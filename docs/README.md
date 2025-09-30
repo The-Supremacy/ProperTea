@@ -1,0 +1,51 @@
+# ProperTea Documentation
+
+This folder contains all architecture and operational documentation for ProperTea. Use this index to navigate.
+
+- Architecture
+  - [Overview](architecture/overview.md)
+- Architecture Decision Records (ADRs)
+  - [Index](adr/README.md)
+  - Key ADRs:
+    - [ADR-001: Core Technology Stack Selection](adr/ADR-001-technology-stack.md)
+    - [ADR-002: Multitenancy Strategy](adr/ADR-002-multitenancy-approach.md)
+    - [ADR-003: API Gateway Architecture](adr/ADR-003-gateway-architecture.md)
+    - [ADR-004: Authentication Token Strategy](adr/ADR-004-authentication-tokens.md)
+    - [ADR-005: Authorization and Permissions Model](adr/ADR-005-authorization-model.md)
+    - [ADR-006: Observability and Monitoring](adr/ADR-006-observability-stack.md)
+    - [ADR-007: Event-Driven Messaging Architecture](adr/ADR-007-messaging-architecture.md)
+    - [ADR-008: Workflow Orchestration with Sagas](adr/ADR-008-workflow-orchestration.md)
+    - [ADR-009: Feature Flag Management](adr/ADR-009-feature-flags.md)
+    - [ADR-010: Local Development Environment](adr/ADR-010-local-development.md)
+- APIs and Standards
+  - [API Standards (incl. RFC 7807)](apis/standards.md)
+- Security and Authorization
+  - [Security Model](security/security-model.md)
+  - [Authorization and Permissions](authz/permissions.md)
+- Multitenancy
+  - [Tenant Model and Enforcement](multitenancy/tenant-model.md)
+- Observability
+  - [Observability](observability/observability.md)
+- Messaging
+  - [Messaging and Events](messaging/events.md)
+- Workflows
+  - [Workflows and Sagas](workflows/sagas.md)
+- Services
+  - [Gateway](services/gateway.md)
+  - [Identity](services/identity.md)
+  - [Authorization](services/authorization.md)
+  - [User Management](services/user-management.md)
+  - [Organizations](services/organizations.md)
+  - [Companies](services/companies.md)
+  - [Property](services/property.md)
+  - [Search Indexer](services/search-indexer.md)
+- Frontend
+  - [Landlord Portal](frontend/landlord-portal.md)
+- Developer Experience
+  - [Local Development](dx/local-dev.md)
+- CI/CD
+  - [CI/CD Overview](cicd/overview.md)
+- Data and Storage
+  - [Data and Storage](data/storage.md)
+- Glossary
+  - [Glossary](glossary.md)

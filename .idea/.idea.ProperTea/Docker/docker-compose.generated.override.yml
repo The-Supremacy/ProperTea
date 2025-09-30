@@ -1,0 +1,36 @@
+# This is a generated file. Not intended for manual editing.
+services:
+  gateway:
+    build:
+      context: "/home/oxface/repos/The-Supremacy/ProperTea"
+      dockerfile: "./services/gateway/ProperTea.Gateway/Dockerfile"
+      target: "base"
+      args:
+        BUILD_CONFIGURATION: "Debug"
+    command: []
+    entrypoint:
+    - "/opt/JetBrains/RiderDebuggerTools/linux-x64/JetBrains.Debugger.Worker"
+    - "--runtimeconfig"
+    - "/opt/JetBrains/RiderDebuggerTools/JetBrains.Debugger.Worker.runtimeconfig.json"
+    - "--mode=server"
+    - "--frontend-port=57000"
+    - "--backend-port=57200"
+    - "--roslyn-worker-port=57412"
+    - "--timeout=60"
+    environment:
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+      RIDER_DEBUGGER_LOG_DIR: "/var/opt/JetBrains/RiderDebuggerTools"
+      RESHARPER_LOG_CONF: "/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
+    image: "propertea.gateway:dev"
+    ports:
+    - "127.0.0.1:57012:57000"
+    - "127.0.0.1:57212:57200"
+    - "127.0.0.1:57412:57412"
+    volumes:
+    - "/home/oxface/repos/The-Supremacy/ProperTea/services/gateway/ProperTea.Gateway:/app:rw"
+    - "/home/oxface/repos/The-Supremacy/ProperTea:/src:rw"
+    - "/home/oxface/.nuget/packages:/home/app/.nuget/packages"
+    - "/home/oxface/.local/share/JetBrains/RiderRemoteDebugger/2025.2.2.1/Linux64:/opt/JetBrains/RiderDebuggerTools"
+    - "/snap/rider/638/bin/backend-log.xml:/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
+    - "/home/oxface/.cache/JetBrains/Rider2025.2/log/DebuggerWorker/JetBrains.Debugger.Worker.2025_9_30_15_21_42:/var/opt/JetBrains/RiderDebuggerTools:rw"
+    working_dir: "/app"

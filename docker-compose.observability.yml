@@ -1,0 +1,130 @@
+services:  
+  # Loki - Log Aggregation
+  loki:
+    image: grafana/loki:3.5.5
+    container_name: propertea-loki
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    environment:
+      - JAEGER_AGENT_HOST=propertea-jaeger
+      - JAEGER_AGENT_PORT=6831
+      - JAEGER_SAMPLER_TYPE=const
+      - JAEGER_SAMPLER_PARAM=1
+    volumes:
+      - ./observability/loki-config.yaml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    networks:
+      - propertea-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.loki.rule=Host(`loki.local.test`)"
+      - "traefik.http.routers.loki.entrypoints=websecure"
+      - "traefik.http.routers.loki.tls=true"
+      - "traefik.http.services.loki.loadbalancer.server.port=3100"
+  
+  # Jaeger - Distributed Tracing
+  jaeger:
+    image: jaegertracing/jaeger:2.10.0
+    container_name: propertea-jaeger
+    ports:
+      - "6831:6831"  # Jaeger collector HTTP
+      - "16686:16686"  # Jaeger UI
+    volumes:
+      - jaeger-data:/tmp
+    networks:
+      - propertea-network
+    logging:
+      driver: loki
+      options:
+        loki-url: 'http://loki.local.test/api/prom/push'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jaeger.rule=Host(`jaeger.local.test`)"
+      - "traefik.http.routers.jaeger.entrypoints=websecure"
+      - "traefik.http.routers.jaeger.tls=true"
+      - "traefik.http.services.jaeger.loadbalancer.server.port=16686"  
+  
+  # Prometheus - Metrics Collection
+  prometheus:
+    image: prom/prometheus:v3.6.0
+    container_name: propertea-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    networks:
+      - propertea-network
+    logging:
+      driver: loki
+      options:
+        loki-url: 'http://loki.local.test/api/prom/push'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.local.test`)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+      - "traefik.http.routers.prometheus.tls=true"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+  
+  # OpenTelemetry Collector
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.136.0
+    container_name: propertea-otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./observability/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"  # gRPC receiver
+      - "55680:55680" # HTTP receiver for OpenTelemetry
+    networks:
+      - propertea-network
+    depends_on:
+      - jaeger
+      - prometheus
+      - loki
+
+  # Grafana - Metrics Visualization
+  grafana:
+    image: grafana/grafana:12.2.0
+    container_name: propertea-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./observability/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./observability/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    networks:
+      - propertea-network
+    depends_on:
+      - prometheus
+      - loki
+    logging:
+      driver: loki
+      options:
+        loki-url: 'http://loki.local.test/api/prom/push'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.local.test`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls=true"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+
+volumes:
+  prometheus-data:
+    name: propertea-prometheus-data
+    external: true
+  grafana-data:
+    name: propertea-grafana-data
+    external: true
+  jaeger-data:
+    name: propertea-jaeger-data
+    external: true
+  loki-data:
+    name: propertea-loki-data
+    external: true

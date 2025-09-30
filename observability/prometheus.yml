@@ -1,0 +1,24 @@
+ global:
+  scrape_interval: 15s
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Scraping metrics from OpenTelemetry Collector
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: ['localhost:55680']  # OTLP HTTP port
+
+  # Scraping logs from Loki (for Grafana's log data source)
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['localhost:3100']
+        
+  # Application services (we'll add these as we create services)
+  - job_name: 'gateway'
+    static_configs:
+      - targets: ['localhost:5000']
+    metrics_path: '/metrics'

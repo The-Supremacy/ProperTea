@@ -1,0 +1,1067 @@
+Answers:
+Questions:
+1. Cloud runtime
+
+- Do you prefer Azure Container Apps over AKS for lower ops overhead, or do you want to learn full Kubernetes (AKS) operations as part of the journey?
+> Would it make sense to start with ACA as a lot of concepts are similar but simpler there, and then go for AKS later if needed?
+- Are you open to Dapr sidecars for pub/sub, bindings, and service invocation, or would you rather implement these concerns directly (e.g., gRPC/HTTP + Kafka/Service Bus + Redis)?
+> I'm open to using Dapr, but previous experience was having a lot of friction because every usage of Dapr gave a lot of extra work. We can use Dapr for some things, but I would like to have an escape-hatch if it gets too much.
+
+2 Data and multitenancy
+
+- Primary database preference: PostgreSQL, SQL Server, or Cosmos DB? (PostgreSQL on Linux is simple and popular; SQL Server is fine in containers.)
+> Considering PostgreSQL or Azure SQL. Azure SQL seems to have more 'flexible' pricing options (for usage) in Azure in case I decide to deploy.
+- Multitenancy approach: database-per-tenant, schema-per-tenant, or shared with tenant discriminator?
+> Any suggestions for Entity Frameworks? Also, I would like to use the most popular.
+
+3 Messaging and events
+
+- Preference for broker: Azure Service Bus, Kafka, or RabbitMQ? (For local dev, Kafka/RabbitMQ are easy; for Azure later, Service Bus is managed and stable.)
+> AFAIK there's ServiceBus emulator for Linux so locally it should work OK as well. But maybe for education Kafka is better?
+- Do you need exactly-once/transactions across services, or is at-least-once with idempotency acceptable?
+> Idempotency is accepted.
+
+4 APIs and contracts
+- External API style: REST only, or REST + gRPC? Any need for GraphQL?
+>  How widely is GraphQL used? I want to have it if it's popular. Same for gRPC.
+- Contract testing target: Pact is OK. Any specific language for consumer tests on FE (JS/TS) and BE (.NET)?
+> for BR C# if possible.
+
+5 Observability
+
+- For local: OK with OpenTelemetry Collector + Jaeger + Prometheus + Grafana + Loki? Or prefer Azure Monitor later with a local equivalent?
+> I want to have complete experience locally, so suggested stack sound OK. How easy would it be adapt in Azure later?
+- Log sink preference: structured JSON via Serilog to console + Loki/ELK locally?
+> Sound good.
+
+6 Frontend
+- React/Next.js or Angular: which do you prefer to deepen? TypeScript either way.
+> React/NextJS.
+- UI component library preference (MUI/Chakra for React; Angular Material/PrimeNG for Angular)?
+> At this point my focus is BE, so I would like to reuse maximum ready components.
+
+7 AuthN/AuthZ
+
+- Prefer to learn Entra ID (Azure AD) from the start, or use local Keycloak for dev and switch later?
+> Azure Entra ID will be used at some point, but there should be internal user-credentials based authentication.
+- Multitenant identity: single authority with tenant context, or per-tenant IdP?
+> I would like for user to be registered once in the whole system. This one identity will be used to sign-in in all places. But each subsystem will have it's own authorization, for example any user (even anonymous) can start using Market to find vacant apartments, residents portal will only provide data to users who already has some offers or contracts, and landlord portal will require Support user to enable corresponding access for specific user.
+
+8 Storage and caching
+
+- Cache choice: Redis?
+> Redis is OK. Will work in Azure as well?
+- Object storage: Azure Blob (Azurite locally) OK?
+> Yes.
+
+9 Testing
+
+- e2e: Playwright for FE and/or backend API e2e? Any preference.
+> Not familiar with this topic too much so I guess it's OK.
+- Integration tests: Testcontainers in .NET OK?
+> OK
+
+10 Tooling and repos
+
+- Monorepo vs polyrepo? Monorepo simplifies cross-service changes for a learning project.
+> Start with monorepo.
+- Any preference for package manager on FE (pnpm/yarn/npm)?
+> Just most popular.
+
+11) .NET runtime and packaging
+- Target framework: net9.0 for all services?
+> Yes
+- Container base: ASP.NET 9 runtime-deps (distroless) for prod and SDK image for build? Any constraints on image size vs debuggability?
+> If it's not complex to implement. 
+
+12) API gateway and edge
+- Prefer Azure API Management (later) with a local equivalent (YARP/Envoy/Kong) for dev, or use YARP-based gateway both local and cloud?
+> Can we start with YARP/Envoy local and cloud, and migrate if needed? BTW, YARP or Envoy? YARP seems more modern, but I guess Envoy is more mature?
+- Need WebSockets/Server-Sent Events support?
+> Not for now.
+
+13) Service-to-service communication
+- Default: REST over HTTP with typed clients? Add gRPC for internal calls where latency matters?
+> Yes.
+- Do you want to try out contract-first (OpenAPI/grpc proto) or code-first?
+> Which is your suggestion? Not too complex.
+
+14) Database access and migrations
+- OR/M: EF Core 9 preferred?
+> Yes.
+- Migrations: EF Core migrations or Flyway/Liquibase? Single migration repo or per-service?
+> You suggestion?
+
+15) Multitenancy details
+- Tenant resolution: subdomain (tenantA.example.com), header, or path segment?
+> Path segment is OK.
+- Isolation strength: schema-per-tenant (good balance) vs shared-table with discriminator? Any need for easy tenant deletion/export?
+> Schema per tenant is OK but it must be simple to implement in EF. Tenant export is not needed for now, but we will need an option to archive/close tenant, but we can't lose some of the data (contracts, invoices etc).
+
+16) Domain modeling and DDD
+- Aggregate/event sourcing interest? Or start with CRUD + domain events and evolve?
+> Event sourcing is not needed for now. It will be implemented per service if that level of logging needed (like accounting).
+- CQRS: separate read models, or keep it simple initially?
+> CQRS, but I don't want to use MediatR due to commercial nature. Simple custom implementation.
+
+17) Eventing pattern details
+- Use outbox pattern with transactional publisher? Store-and-forward using DB outbox + background dispatcher?
+> Please elaborate with some details and ask again.
+- Event format: CloudEvents JSON? Versioning strategy?
+> Yes, use CloudEvents. Any suggestions for versioning strategy?
+
+18) Secrets and config
+- Local: .env + user-secrets?
+> Yes. For simpler loading in .NET BE we can also perhaps use KeyVault emulator.
+- Cloud: Azure Key Vault + managed identity later?
+> Yes.
+
+19) Infrastructure as Code
+- Preference: Bicep, Terraform, or Azure CLI scripts? For local: docker-compose for full stack?
+> Local docker-compose. Bicep or Terraform. Thinking about Bicep cause it's more Azure native, and Terraform still has to use Azure providers.
+
+20) Data indexing and search
+- Need full-text/search? If yes: OpenSearch/Elasticsearch locally, Azure Cognitive Search later?
+> It's not needed but I would like to learn it, so let's include. Perhaps you can think of the function in described domain that could use it?
+
+21) Frontend architecture
+- Next.js 14/15 with App Router, TS, ESLint, Prettier?
+> Yes. We can use TailwindCss as well.
+- Auth: next-auth with credentials locally and Entra later?
+> I heard that next-auth had some serious security issues, is it true? Any alternatives? Also, I would like to have a functioning auth without using Entra even on Prod.
+- State: React Query + minimal global store (Zustand/Redux Toolkit)? UI library: MUI for maximal ready components?
+> Yes, for state - what is your suggestion?
+
+22) Versioning and APIs
+- Semantic versioning and unified versioning across services, or per-service versions?
+> Per service versioning eventually, but perhaps we can have global until the services are mature enough? Thoughts?
+- Backward compatibility window requirements?
+> Elaborate and ask again.
+
+23) CI/CD specifics
+- GitHub Actions OK. Prefer reusable workflows and environment matrices?
+> Sure
+- Build strategy: Docker buildx with multi-arch? Cache layers with GHCR?
+> Not familiar with this topic. Any simple solutions?
+
+24) Local developer experience
+- Makefile or simple bash scripts to orchestrate tasks?
+> Elaborate and ask again.
+- Dev containers (VS Code devcontainer) or plain local Docker?
+> Dev containers will require too much work at the start with docker compose on many layers. Correct me if I'm wrong. So I guess no.
+
+25) Security and policies
+- Need basic OWASP protections at gateway (rate limiting, request size limits, CORS)?
+> Yes.
+- SAST/Dependency scanning in CI (e.g., CodeQL, Dependabot) acceptable?
+> If it's not complex to setup and free - sure.
+
+26) Data lifecycle
+- Backups locally (for learning) and in Azure later?
+> Yes.
+- GDPR-style soft delete/anonymization needed?
+> Yes.
+
+27) Documentation and runbooks
+- Preference: Markdown docs in repo + ADRs?
+> Let's start simple.
+- Architecture diagrams with Draw.io/Mermaid?
+> Mermaid.
+
+28) Domains and SSL locally
+- Use mkcert/Traefik for local TLS and hostnames?
+> Whichever fits best for my cause?
+- Any plan to use custom domain later with APIM/gateway?
+> Not sure.
+
+29) Performance and load testing
+- Include k6 or Locust for simple scenarios?
+> Sure.
+
+30) Team conventions
+- Coding standards: .editorconfig + analyzers (IDEs) + StyleCop/FXCop?
+> StyleCop/FXCop is to much. Others - yes.
+- Commit messages: Conventional Commits? Release notes via changelog tool?
+> Sure.
+
+31) Azure Container Apps specifics
+- Are you OK to avoid Dapr initially in ACA and add it selectively (pub/sub) after core services are stable?
+> Completely OK.
+- For ACA to AKS later: do you want to keep container images and Helm/Bicep compatible from day 1 (so migration is smooth)?
+> Is it very complex to do so? If not then yes. Also it would help me to learn Helm which I'm not familiar with.
+
+32) Database choice and EF Core multitenancy
+- Between PostgreSQL and Azure SQL: pick one primary to start. Suggestion: PostgreSQL locally and in prod (Azure Flexible Server) unless Azure SQL pricing is a must. Which one do you want to commit to?
+> Let's go for PostgreSQL.
+- EF multitenancy with schema-per-tenant: OK to use EF Core’s model cache key + IModelCacheKeyFactory approach per tenant and per-request schema switch (SET search_path for Postgres / EXECUTE AS + default schema for SQL)? This makes it “simple enough” but not trivial—acceptable?
+> I would like to avoid any non-trivial approaches for now if possible. But I also like that the data is more separated that with discriminator. Also, I would like to consider the potenation migration of data to Azure SQL. Will this affect?
+
+33) Messaging
+- Service Bus local: There’s no official Linux emulator. Are you OK using Azure Service Bus in the cloud for dev (cheap tier) or prefer Kafka locally + map to Service Bus later? Alternative: use RabbitMQ locally and switch to ASB later.
+> I dont want to use Azure locally. Kafka sounds good, but how do I have switch? Will have to rewrite connection code or Darp?
+- If the goal is learning: pick Kafka for education and then integrate ASB later, or stick to ASB from start?
+> Kafka is good.
+
+34) GraphQL and gRPC adoption
+- GraphQL usage is popular in FE-heavy domains; gRPC is popular for internal low-latency calls. Do you want to: REST for public, gRPC optional for service-to-service, GraphQL Gateway for FE aggregation later (after MVP)?
+- If yes, we’ll defer GraphQL until you have 2–3 endpoints to compose. OK?
+> OK.
+
+35) Contract-first vs code-first
+- Suggestion: code-first for REST (minimal boilerplate), contract-first for gRPC (proto). OK?
+> OK.
+- For REST, we can auto-generate OpenAPI from annotations and use NSwag to generate typed clients. Acceptable?
+> Yes.
+
+36) Migrations
+- Migrations per service using EF Core migrations stored with the service repo; startup applies migrations in containers in non-prod only (feature-flagged). For prod, run a dedicated migrator job. OK?
+> OK.
+
+37) Outbox and eventing follow-up
+- Proposal: transactional outbox per service in the same DB; write domain changes + outbox record in same transaction; background dispatcher (hosted service) publishes to broker; use dedupe key on consumer. Transport: for ASB use sessions or messageId; for Kafka use key + idempotent consumer store. Is this acceptable?
+> OK.
+- Retry/backoff: exponential with dead-letter (ASB DLQ or Kafka DLQ topic). OK?
+> OK.
+
+38) CloudEvents versioning
+- Event versioning: version field in CloudEvents extension attributes; evolve via additive changes; breaking changes => new event type name suffix (e.g., OrderCreated.v2). Consumers subscribe to specific types. OK?
+> OK.
+
+39) Gateway choice
+- YARP vs Envoy: YARP integrates naturally with .NET, simpler for learning, supports rate limiting, auth, routing in C#. Envoy is more mature at scale but adds YAML/config management. Start with YARP and keep option to move to APIM later. Agreed?
+> OK.
+
+40) Tenancy resolution via path
+- Path-based tenant “/t/{tenantId}/...” for APIs and FE? FE also needs tenant context—OK to use subpath on Next.js and store tenant in URL + cookie fallback?
+> Yes. After user login he will be able to list all available tenants and 'switch' between them (for example like in Azure DevOps when you select the 'project'). Sounds reasonable?
+
+41) Auth and identity
+- Internal credentials-based auth: do you want IdentityServer alternatives like Duende (commercial) are out—so use ASP.NET Core Identity + JWTs issued by your Auth service, with password + TOTP? Later add Entra as external provider via OIDC. OK?
+> .NET Identity is sufficient. And Entra later.
+- Multi-tenant auth: single authority; tenant context resolved post-auth for authorization policies. OK?
+> Yes.
+
+42) Redis
+- Use Redis OSS locally, Azure Cache for Redis later. Use it for caching, distributed locks, and background queues (if needed). OK?
+> OK.
+
+43) Observability adaptation to Azure
+- Local: OTel Collector -> Jaeger/Grafana/Loki/Prometheus.
+- Cloud: OTel Collector -> Azure Monitor (OTel exporter) + Application Insights. We’ll keep OTel-only SDK usage so switching sinks is config-only. OK?
+> OK.
+
+44) Search
+- Learning goal: use OpenSearch locally; in Azure later use Cognitive Search. Proposed feature: property/market listing search with filters, faceting (location, price range, features), and autocomplete. OK?
+> OK.
+
+45) Next.js auth follow-up
+- next-auth had issues historically but is widely used; alternative is Auth.js (the same project renamed) v5 or custom OIDC flow. Since you want credential auth even in prod without Entra, we can implement custom credentials provider with your Auth service (JWT) via Next.js middleware. OK?
+> OK with next-auth.
+- For state: React Query for server state, minimal Zustand for UI/local state. OK?
+> OK
+
+46) API versioning and compatibility window
+- Start global version v0 while iterating; move to per-service versioning once interfaces stabilize.
+> So it's v0 until we go live, and then all changes into individual services are versioned separately?
+- Backward compatibility window: maintain N-1 minor versions for at least 3 months (learning: we can simulate this). Is N-1 for 3 months acceptable?
+> OK.
+
+47) CI/CD
+- Simple path: GitHub Actions with composite reusable workflows; cache Docker layers using GHCR; single-arch (linux/amd64) initially; multi-arch later if needed. OK?
+> OK.
+- Tagging: PR builds tagged with pr-<num>, main tagged with sha and semver. OK?
+> OK.
+
+48) Local DX
+- Makefile to wrap docker compose, tool installs, and common tasks (build, test, run, seed). OK?
+- Alternatively, we can provide bash scripts if you prefer. Which do you prefer?
+> Makefile is good.
+
+49) TLS and local domains
+- Traefik as reverse proxy with mkcert for local TLS and hostnames like *.local.test. OK?
+> Is this necessary at all? Explain why.
+
+50) Security and compliance
+- Gateway-level rate limiting and CORS via YARP middleware; request size and timeout limits.
+- CI: enable CodeQL and Dependabot. OK?
+> OK.
+
+51) Backups and GDPR
+- Postgres/SQL: nightly dump locally; in Azure use built-in backups.
+> OK.
+- Soft delete + PII encryption at rest; anonymization job for user deletion requests. OK?
+> OK.
+
+52) IaaC
+- Choose Bicep unless you prefer Terraform. Start with Bicep for ACA/ASB/KeyVault/Blob/Redis. OK?
+> OK.
+
+Extra bit of info:
+- If I'm using nextjs - do I even need to implement BFFs on .NET? It feels like nextjs BE is BFF by itself.
+- Whole system must be able to run locally without any interaction with outside services like Azure.
+
+53) Helm and portability
+- Using Helm from day 1: we can keep manifests Helm-friendly while deploying to ACA via Bicep, and later reuse Helm for AKS. OK to maintain Helm charts in parallel (templated K8s) even if ACA doesn’t use them directly yet?
+> Yes.
+
+54) EF Core multitenancy simplicity vs schema-per-tenant
+- To keep it simple, would you accept:
+  - Start with shared-table + tenant discriminator (simplest, portable to Azure SQL).
+  - Add schema-per-tenant later behind an abstraction if/when needed.
+- Or do you prefer to commit to schema-per-tenant now and accept extra EF plumbing (IModelCacheKeyFactory + search_path, ensuring migrations per tenant)?
+> Shared table + discriminator is OK. Later on we can decide if we go schema-per-tenant or even database-per-tenant.
+
+55) Kafka now, ASB later strategy
+- To avoid rewrites, are you OK to:
+  - Wrap messaging behind a thin interface (Publisher/Consumer) with two implementations (Kafka, ASB) and select via config?
+  - Or prefer Dapr pub/sub as the abstraction (Kafka locally, ASB component later)? Note: Dapr reduces app code change but introduces sidecar complexity.
+> Let's start with interface.
+
+56) Tenant switching UX
+- Azure DevOps-like switcher is good. For URLs, prefer:
+  - Keep tenant in path always (/t/{tenant}/...), and switcher navigates accordingly; also store recent tenant in cookie for defaulting? OK?
+> OK. As'organization' is our 'tenant' tt will most likely be /{organization
+
+57) API versioning details
+- Yes: v0 globally until go-live. After go-live:
+  - Per-service semantic versioning in routes and OpenAPI (e.g., /api/v1/serviceX).
+  - Keep N-1 minor versions for 3 months. OK to enforce via CI policy before removing older versions?
+OK.
+
+58) BFF vs Next.js backend
+- Next.js can act as BFF. Do you want:
+  - Next.js as the only BFF (server actions/route handlers + React Query), calling .NET APIs.
+  - Or a dedicated .NET API Gateway/BFF (YARP) that FE hits, keeping Next.js purely FE? This helps when you want the same gateway for non-web clients.
+> What about having Gateway in YARP (.NET), and Next.JS BE communicates with Gateway?
+
+59) Local TLS necessity
+- TLS locally isn’t strictly required. Benefits:
+  - Parity with prod (cookies SameSite=None; Secure, OIDC callbacks).
+  - Early catch mixed-content and CORS issues.
+- Minimal approach: start HTTP only; enable Traefik+mkcert later when starting OIDC and cookies. Accept this staged approach?
+> I would like to have Parity with Prod.
+
+60) Back-end CQRS without MediatR
+- OK to use:
+  - Simple in-process command/query handlers pattern with interfaces (ICommand/IQuery) and a small dispatcher you own?
+  - Or keep it even simpler: application services per aggregate and only use separate read repositories?
+> Simple command/query handlers. I also want to create a simple shared class library to contain the similar logic for different .NET services. This later will be moved to Nuget package or just removed depending on situation.
+
+61) Testing specifics
+- Pact:
+  - FE consumer tests in TS, .NET providers with PactNet. OK?
+  > OK.
+- e2e:
+  - Playwright for FE, add a few API e2e (REST) using .NET + Testcontainers spinning Kafka/DB per test suite. OK?
+  > OK
+
+62) OpenSearch scope
+- For learning, we’ll index:
+  - Listings (text, location, price, amenities), add suggesters for autocomplete.
+- OK to accept eventual consistency from the write model to search index via outbox handler?
+> OK for both.
+
+63) Secrets locally
+- .env + dotnet user-secrets + docker compose env files. Avoid any Azure dependency locally. OK?
+> OK, but how do we write the code so that it uses KeyVault on Pro and doesn't locally? Deployment pipeline references?
+
+64) Makefile depth
+- Include targets: bootstrap, build, test, lint, docker-build, compose-up/down, seed, migrate, format, watch.
+- Also include healthcheck targets (curl /healthz) and logs tailing. OK?
+> OK.
+
+65) Service list (initial draft to confirm scope before stack)
+- Core: Auth, Tenants, Listings/Market, Offers/Contracts, Payments (later), Search Indexer, Gateway (YARP), Frontend (Next.js).
+- Infra services: Kafka, Schema Registry (optional), Postgres, Redis, OpenTelemetry Collector, Jaeger, Prometheus, Grafana, Loki, OpenSearch, Azurite, MinIO (if you prefer S3 API) or keep Azurite only.
+- Accept this initial set?
+> Services: Auth, Organizations (term for tenants (multitenancy) in this domain), Companies, Property base, Search Indexer, Gateway (YARP), Landlord portal (Next.js).
+Infra: Kafka, Postgres, Redis, OpenTelemetry Collector, Jaeger, Prometheus, Grafana, Loki, OpenSearch, Azurite.
+
+66) Azure SQL migration consideration
+- If future Azure SQL is important, prefer:
+  - Avoid Postgres-specific features (e.g., partial indexes, advanced JSONB ops) in early phases. Acceptable?
+> OK.
+
+67) Docker base images
+- OK to standardize on: mcr.microsoft.com/dotnet/sdk:9.0 for build, mcr.microsoft.com/dotnet/aspnet:9.0-alpine (or distroless) for runtime? Distroless is more secure but harder to debug. Start with alpine runtime, switch to distroless later?
+> Start with alpine.
+
+68) Rate limiting approach
+- YARP has built-in policy support via .NET middleware (AspNetCore Rate Limiting). OK to use token bucket per route + per user/IP?
+> Yes.
+
+69) Data protection keys
+- For ASP.NET Data Protection (cookie/auth token crypto), store keys in Redis locally (shared across replicas). OK?
+> OK.
+
+70) Feature flags
+- Use .NET built-in FeatureManagement or OpenFeature? For simplicity, start with appsettings-based FeatureManagement and later add Azure App Configuration/OpenFeature. OK?
+> Need help with selection. Feature are to be disabled and enabled per Organization (tenant). It's planned to have multilayer flagging (Feature > Function).
+
+Please confirm/adjust these. Two key choices to settle now:
+- 54) shared-table discriminator first vs schema-per-tenant now.
+> Shared table with discriminator.
+- 55) Messaging abstraction via custom interface vs Dapr pub/sub as abstraction.
+>  Messaging abstraction for now.
+
+71) YARP gateway + Next.js BFF
+- Your proposal: Next.js calls YARP; YARP fans out to services. This keeps a single backend entry for all clients (web, mobile). Confirm this is the only public backend and services are private behind the gateway?
+> Any conserns on this approach?
+
+72) Local TLS parity
+- Since you want prod parity, we’ll run everything behind HTTPS locally (Traefik + mkcert or Caddy). Preference:
+  - Traefik with mkcert-issued certs and local hostnames (e.g., gateway.local.test, landlord.local.test)?
+  - Or Caddy (auto cert for localhost) with simpler config?
+> I want simplicity for local. Which is simpler?
+
+73) Secrets: Key Vault in prod, local .env
+- Implementation approach:
+  - Use Microsoft.Extensions.Configuration with optional Azure Key Vault provider behind an environment flag (e.g., USE_KEYVAULT=true in prod).
+  - Identity via Managed Identity in cloud; locally, do not add the KeyVault provider. Deployment pipelines only set the flag and vault URI.
+Confirm this approach?
+> Confirmed.
+
+74) Feature flags per-Organization
+- You need org-scoped flags and nested “Feature > Function”.
+- Options:
+  - Use .NET FeatureManagement for toggling + store flag state in DB per org (custom provider).
+  - Or OpenFeature SDK + a simple in-house configuration service backed by Postgres.
+Suggestion: start with FeatureManagement + custom IFeatureDefinitionProvider that reads per-org flags from DB; optional cache via Redis. OK?
+> FeatureManagement is OK.
+
+75) Schema registry for Kafka
+- Do you want to introduce Confluent Schema Registry (Avro/JSON Schema) for stronger contracts, or keep CloudEvents JSON without registry at first?
+> CloudEvents JSON is OK.
+
+76) Payments
+- You listed Payments “later”. Should we keep stubs and topics in the initial topology (e.g., PaymentRequested) or leave it out entirely for now?
+> No need.
+
+77) Organization URL shape
+- You suggested “/{organization}”. To keep API uniform with versioning and tenant segment, propose:
+  - /api/v0/{organization}/service/...
+  - Frontend routes: /{organization}/...
+Confirm this shape?
+> Let's change to
+/api/v0/organization/{organization}/service/...
+Frontend routes: /{organization}/...
+
+78) Health, readiness, and liveness
+- Standardize endpoints: /health/live, /health/ready, /metrics (Prometheus). OK?
+> OK.
+
+79) OpenTelemetry sampling
+- Local: parent-based always-on; load-testing: 10–20% trace sampling; prod: 5–10% traces + 100% metrics/logs. Acceptable?
+> OK.
+
+80) Data retention for logs/metrics locally
+- Keep short retention (e.g., 7 days) to limit disk usage. OK?
+> OK.
+
+Responses to your follow-ups
+
+- 33) Kafka now, ASB later switch:
+  - Since you chose custom interface, we’ll code against IPublisher/IConsumer. Two implementations: Kafka (Confluent.Kafka) and ASB (Azure.Messaging.ServiceBus). Switching is config-only. No Dapr needed.
+
+- 49) Why local TLS:
+  - Required for Secure cookies (auth), OIDC redirect URIs, and catching mixed-content early. With Traefik you’ll still use localhost or *.local.test hostnames; we’ll wire compose to route through Traefik via HTTPS.
+
+- 58) Gateway + Next.js:
+  - Using YARP as the single public backend is a solid choice. It also enables non-web clients to reuse the same API and centralizes auth, rate limiting, and CORS.
+
+- 63) Key Vault vs local:
+  - Use environment-based configuration. In Program.cs add Key Vault provider only if USE_KEYVAULT is true. In Azure, set USE_KEYVAULT=true and supply vault URI; use Managed Identity. Locally, flag is false.
+
+- 70) Feature flags per organization:
+  - Start with Microsoft.FeatureManagement (stable, simple). Implement a custom feature definition provider that fetches org-scoped features from DB, with optional Redis cache. Add an attribute/requirement to enforce feature enabled for current organization on endpoints/handlers. This fits your “Feature > Function” via hierarchical flag keys like FeatureX.FunctionY.
+
+Excellent architectural insight! Separating authentication, user identity, and authorization into distinct concerns is a solid approach, especially for complex multi-service systems. This follows the single responsibility principle and allows for more granular security policies.
+
+Let me ask some clarifying questions to better understand your vision:
+
+**Authentication Service Questions:**
+
+81) **External Authentication Service**
+- Are you planning to use an existing service (Auth0, Okta, AWS Cognito, Azure AD B2C) or build a custom authentication service?
+> It will be a combination of local .NET Identity with user credentials and Azure Entra for external auth like Gmail.
+- Should the system support multiple authentication providers simultaneously (credentials, social logins, SAML, OIDC)?
+> Yes, as per answer above.
+
+82) **Auth Service Scope Refinement**
+- If Auth Service only manages user identities, what specific data does it own? Just username/password/email + basic profile, or also include MFA settings, login history, account status?
+> username/password/email, MFA settings, login history, account status
+- Should it handle password reset flows, email verification, account lockout policies?
+> Yes.
+
+**New User Management Service Questions:**
+
+83) **User Profile Service**
+- What user profile data should this service manage? (Display names, preferences, settings, contact info, avatars, etc.)
+> Name, Avatar, Contact info. Preferences must be able to be stored globally AND per Organization.
+- Should it handle user preferences that affect system behavior across services?
+> See answer above. Need to consider per service settings settings?
+
+84) **Organization Membership Service**  
+- Should this be a separate service from User Profiles, or combined?
+> Let's discuss other questions and ask again based on extra info.
+- What membership data: roles per organization, permissions, invitation workflows, approval processes?
+> The current idea of the flow is there will be user groups (with Admin being mandatory), each group will have permissions per feature. Permissions is hardcoded list, for example group 'User managers' will have ability to add permission to send invites to organization 'X'.
+- How complex are the organization hierarchies? (flat membership vs. departments/teams within orgs?)
+> Flat structure. User management is based on user groups as described above. Any feedback?
+
+**Authorization Architecture Questions:**
+
+85) **Authorization Service vs. Embedded Authorization**
+- Do you want a centralized Authorization Service that other services query for permissions, or embed authorization logic in each service?
+> Need your suggestion. On one hand it's good that permissions connected to single service are handled in that service. On the other - features are often multiservice. So it's either hybrid or centralized.
+- Preference for policy-based (ABAC), role-based (RBAC), or hybrid approach?
+> Elaborate on each in scope of my domain/project.
+
+86) **Permission Granularity**
+- How granular should permissions be? Service-level, resource-level, or action-level?
+> actually, kinda neither. Some permissions are for multiple services, some are per resource, some are per action.
+- Example: "CanReadProperties" vs. "CanReadProperty(propertyId)" vs. "CanReadPropertyInOrganization(orgId)"?
+> The example of such permission is permission 'Manage invoices' which may include ability to edit and attest invoices, but only readyonly access to rent contracts.
+
+87) **Cross-Service Authorization**
+- When PropertyService needs to check if a user can access a specific property, how should it verify permissions?
+> Based on answers above - I guess we need separate Authentication (Permission) service.
+- Via direct call to Authorization Service, cached permissions in JWT claims, or some other pattern?
+> JWT claims approach seems less secure, but has performance benefits. Perhaps, combination - JWT token with short life period like 1 minute, so basically each 'flow' needs new token, but can reuse it in scope of request.
+
+**Service Communication and Data Flow:**
+
+88) **Token Strategy with Multiple Services**
+- Should JWT tokens contain user identity only, with services making additional calls for profiles/permissions?
+- Or include common profile/permission claims in JWT to reduce service-to-service calls?
+> I think token can contain only identity, and we request for certain permissions from Authorization service. We'll use caching for performance.
+
+89) **User Registration Flow**
+- What's the user registration flow across these services? Does AuthService create identity, then trigger UserProfileService and OrganizationMembershipService via events?
+> Was thinking about it but leaning on creating separate 'Workflow orchestration' service and ochestrating the calls in synchronous manner. Any suggestions or feedback on why we should go for event driven?
+
+**Specific Domain Questions:**
+
+90) **Property Management Authorization**
+- What are the key roles/permissions in your property domain? (PropertyOwner, PropertyManager, Tenant, MaintenanceWorker, etc.)
+- Should permissions be organization-scoped, property-scoped, or both?
+
+91) **Admin vs. User Permissions**
+- Do you need system administrators who can manage multiple organizations, or are all users scoped to their own organizations?
+> Yes, each user can be have permissions in different organizations. Same user can be connected to several organizations. Also, there's Support team from system who can manage all orgs and have extended permissions.
+
+**Migration and Compatibility:**
+
+92) **Current Auth Service Migration**
+- Since we already designed Auth Service with broader responsibilities, should we refactor it into multiple services now, or build the new architecture alongside and migrate later? This separation will definitely provide more flexibility for complex authorization scenarios and better scalability. It also aligns well with zero-trust security principles where each service validates permissions independently.
+> We don't have any code yet and we're free to design it as we see fit. Having several authentication services seems a bit much for now, but maybe you have some arguments?
+
+Excellent feedback! Your approach is well-thought-out. Let me provide some analysis and follow-up questions to finalize the architecture.
+
+**Feedback on Your Decisions:**
+
+✅ **Great choices:**
+- Flat organization structure with user groups - simpler to implement and understand
+- Short-lived JWT tokens (1 minute) - good security/performance balance
+- Support team with cross-org permissions - essential for SaaS platforms
+- Workflow orchestration service - more reliable than events for critical flows like registration
+
+**Authorization Approach Analysis:**
+
+**RBAC (Role-Based Access Control)**: Users → Roles → Permissions. Simple, widely understood.
+**ABAC (Attribute-Based Access Control)**: Policy-based decisions using attributes (user.department, resource.owner, time.hour, etc.). More flexible but complex.
+**Hybrid**: RBAC for basic permissions + ABAC policies for complex scenarios.
+
+**For your domain:** Hybrid approach fits best. Use groups (like RBAC roles) for basic permissions like "Manage Invoices", but allow attribute-based policies for complex scenarios like "Can edit invoice if user.organization == invoice.organization AND invoice.status != 'Finalized'".
+
+**Follow-up Questions:**
+
+93) **Service Consolidation Decision**
+- **User Profile + Organization Membership**: Should we combine these into a "User Management Service"? It owns user profiles, org memberships, user groups, and invitations. This reduces service complexity while keeping clear boundaries.
+> Yes let's combine to 'User Management'.
+- Alternative: Keep separate if you expect them to scale differently or have different teams.
+
+94) **Authorization Service Architecture**
+- **Recommendation**: Centralized Authorization Service with heavy caching
+- **Pattern**: Services call Authorization Service with context (userId, organizationId, action, resourceId), get back permissions, cache results in Redis
+- **Question**: Should we implement a policy engine (like Open Policy Agent) or keep it simpler with database-driven permissions?
+> Not familiar with Open Policy Agent. Elaborate and ask again.
+
+95) **Permission Definition Strategy**
+- You mentioned permissions like "Manage invoices" span multiple services. Should we:
+  - Define permissions in Authorization Service and let services interpret them?
+  - Or define granular permissions per service and group them into "permission sets"?
+- **Example**: "Manage Invoices" could map to [`invoices:read`, `invoices:write`, `contracts:read`]
+> I think having read/right conditions is not sufficient. Example, there are couple of conditions that cover 'invoices:write', like some permissions allows to change note, some edit invoice, and some attest them. So it's more permission per available action/endpoint group.
+
+96) **Cross-Service Resource Authorization**
+- **Scenario**: User wants to edit an invoice. How do we verify they can access both the invoice (Invoice Service) and the associated property (Property Service)?
+- **Options**:
+  - Authorization Service knows about all resource relationships
+  - Services collaborate to verify permissions
+  - Resource ownership propagation via events
+> If user wants to perform the command called 'Edit invoice' then there will be a separate permission 'Edit invoice' which is required, which in by itself should imply access to specific endpoints, e.g. if it's simple action then it's that endpoint, and if it's workflow - several endpoints. Don't hesitate to ask more.
+
+97) **Workflow Orchestration Service Scope**
+- Besides user registration, what other workflows should it handle?
+- **Candidates**: Organization onboarding, user invitations, property listing approval, contract generation
+- Should it use Saga pattern for complex multi-service transactions?
+> Listed workflows will likely be implemented. Yes, Sagas will be part of the workflow. We're not looking for library, so we'll likely implement own Saga implementation, unless there is some Microsoft solution.
+
+98) **JWT Token Claims Strategy**
+- **Current plan**: Identity only in JWT, call Authorization Service for permissions
+- **Question**: Should we include basic claims like `userId`, `organizationIds[]`, `isSupport` to avoid service calls for tenant resolution?
+> userId, organizationId and instead of isSupport maybe have some sort of roles list?
+
+99) **User Groups per Organization**
+- **Clarification**: Can a user have different groups in different organizations? E.g., "Admin" in Org A, "User Manager" in Org B?
+- How do we handle the Support team's "super admin" permissions across all orgs?
+> Support team shouldn't have Super admin rules. The current idea that even support must have some sort of permission to modify the data. 'Super admin' should only be temporary provided to Support team in exceptional situations. But Support team will have some permissions that don't exist on anyone else, like run data correction job etc.
+
+100) **Per-Service Settings Architecture**
+- You mentioned global AND per-organization preferences. Should services also store per-user-per-service preferences?
+- **Example**: User prefers list view in Property Service but card view in Invoice Service, with different defaults per organization.
+> Yes, but we need to consider this: user can select that by default they want list view everywhere, and it's the default, unless they go to Invoice preferences and change to card view.
+
+101) **Event-Driven vs Sync Orchestration Trade-off**
+- **Your preference**: Sync orchestration for reliability
+- **Trade-off**: Events provide better decoupling but require compensation logic
+- **Question**: Should we use events for non-critical flows (like audit logs, search indexing) but sync orchestration for critical business flows?
+> I think so yes. It's OK to have eventual consistency but the flows should be very reliable. BTW compensation logic will still be required even for sync flow as we are working with several services which can't handle ACID.
+
+102) **Authorization Caching Strategy**
+- **Performance**: With 1-minute JWT lifetime, how should we cache permissions?
+- **Options**: 
+  - Cache in Authorization Service (Redis) with TTL
+  - Cache in individual services with cache invalidation events
+  - No caching, rely on Authorization Service performance
+> The question is if we should perhaps just have some sort of 'Permissions definition' model for user, and return the whole thing, and then concerning services can check for whatever they want? Really easy to cache. Thoughts?
+
+Excellent clarifications! Your permission model is very thoughtful - action-based permissions with hierarchical user preferences is a solid approach. Let me address your follow-ups and ask a few final questions.
+
+**Feedback on Your Latest Decisions:**
+
+✅ **Great approaches:**
+- Action-based permissions ("Edit invoice", "Attest invoice") - much clearer than generic read/write
+- Support team with granular permissions instead of "super admin" - better security posture
+- Hierarchical preferences (global → org → service-specific) - excellent UX
+- Full permissions model caching - simple and performant
+- Sync for critical flows, events for eventual consistency - best of both worlds
+
+**Open Policy Agent (OPA) Explanation:**
+OPA is a policy engine that evaluates rules written in Rego language. Instead of hardcoding "if user has permission X", you write policies like "allow if user.groups[_].permissions[_] == input.permission". 
+
+**Benefits:** Flexible, externalized policies, standardized
+**Drawbacks:** Learning curve, extra complexity, another service to maintain
+
+**For your case:** Database-driven permissions are simpler and sufficient. You can always migrate to OPA later if policies become very complex.
+
+**Final Architecture Questions:**
+
+103) **Permission Model Structure**
+- **Your approach:** Return full permission model for user+org, cache it, let services check locally
+- **Structure question:** Should it be:
+```json
+{
+    "userId": "123",
+    "organizationId": "org1",
+    "permissions": ["edit-invoice", "attest-invoice", "view-properties"],
+    "roles": ["invoice-manager", "support-tier1"]
+  }
+```
+> Looks OK.
+
+- **Question:** Should permissions be flat list or grouped by domain/service for easier filtering?
+> Yes.
+
+104) **Saga Implementation Choice**
+- **Microsoft Options:** 
+  - **MassTransit** - Popular .NET library with built-in saga support
+  - **Custom implementation** - Roll your own state machine
+- **Question:** MassTransit integrates well with your messaging abstraction and provides saga state persistence. Worth the dependency, or prefer custom control?
+> Custom, as MassTransit has switched to commercial model.
+
+105) **Support Team Permission Model**
+- **Clarification:** Support team gets org-specific permissions but can be granted permissions across multiple orgs?
+- **Example:** Support user can have "run-data-correction" in Org A, "view-audit-logs" in Org B?
+- **Temporary permissions:** How should temporary "emergency" permissions be handled? Time-limited roles, manual revocation, or audit-required permissions?
+> Support team has access to all orgs, but only defined set of permissions, for example they don't get to see names of the tenants, only IDs, but they can run some 'support' jobs.
+Regarding time-span - I don't know the standard approaches, but basically the are some 'super admin' users with direct access to infrastructure that can provide specific Support user super permissions. Other option I though was that Org admin can 'provide' access as part of their role, but there should be forced way in case admin users of org lose their access.
+
+106) **Authorization Service API Design**
+- **Option A:** Single call returns everything: `GET /auth/user/{userId}/organization/{orgId}/permissions`
+- **Option B:** Separate calls: `GET /auth/user/{userId}/permissions` and `GET /auth/user/{userId}/organization/{orgId}/context`
+- **Caching:** With 1-minute JWT lifetime, should cache be per-user-per-org or just per-user with org filtering?
+> Per user is OK, as it's only for internal services. 
+
+107) **Workflow Orchestration Technology**
+- **State Storage:** Where should saga state be persisted? Same database as Workflow Service, or separate?
+- **Compensation:** Should compensation actions be automatic (predefined rollback steps) or manual (human intervention required)?
+> Automatic rollback. Saga state will most likely have a separate database. Suggestions? What are the options for runtimes in case we need durable workflows besides Azure Durable functions?
+
+108) **Cross-Service Resource Relationships**
+- **Your approach:** "Edit invoice" permission implies access to related resources (contracts, properties)
+- **Question:** How do we handle cascading permissions? If user loses "view-property" permission, should "edit-invoice" for property-related invoices be automatically revoked?
+- **Resource hierarchy:** Should Authorization Service understand resource relationships, or rely on business services to enforce?
+> Every permission implies set or accesses, it's hardcoded. If the access is removed from the permission it's automatically revoked from all the user groups.
+
+109) **User Preferences Service Integration**
+- **Architecture:** Should User Management Service own ALL preferences (including service-specific ones), or should each service store its own with User Management providing defaults?
+- **Sync strategy:** How do preference changes propagate? Events, direct service calls, or on-demand fetching?
+> Debate me here. I'm thinking about putting UI related settings (like list view vs card view) into BFFs themselves. Ofcourse the system settings (like invoicing period) are not user preferences and connected directly to organization or any child entities/services. Any thoughts?
+
+110) **JWT Claims Final Structure**
+Based on your feedback, proposed JWT structure:
+```json
+{
+  "sub": "user123",
+  "org": "org456", 
+  "roles": ["invoice-manager", "support-tier1"],
+  "exp": 1640995200,
+  "iat": 1640994900
+}
+
+> I'm thinking about changing 'org' to 'orgs' which is an array of organization this user has an access to. This will not give any direct permissions to a user, but will provide a fast way to reject requests on early stage if user for example lost access to some organization.
+```
+
+- **Question:** Should current organization be in JWT, or should services always call User Management to get user's current org context?
+> Every request to tenant-aware service will contain organization ID in it's request. No need to store current org in token.
+
+**Final Service Architecture Confirmation:**
+
+Based on all discussions, here's the proposed service structure:
+
+1. **Identity Service**: Authentication, credentials, MFA, Entra ID integration
+2. **User Management Service**: Profiles, org memberships, user groups, invitations, user preferences
+3. **Authorization Service**: Permissions, access control decisions, permission caching
+4. **Workflow Orchestration Service**: Sagas, multi-service coordination, process management
+5. **Organizations Service**: Org settings, feature flags
+6. **Companies Service**: Company profiles and settings
+7. **Property Service**: Property management and listings  
+8. **Search Service**: Property search and indexing
+9. **API Gateway**: YARP routing, rate limiting, request/response transformation
+10. **Landlord Portal**: Next.js frontend
+
+
+Perfect! Your decisions are very sound. Let me address your follow-ups and provide final recommendations.
+
+**Excellent Architectural Decisions:**
+✅ **JWT with org array** - Fast early rejection, great security boundary
+✅ **UI preferences in frontend** - Reduces backend complexity, better UX performance  
+✅ **Custom saga implementation** - You avoid MassTransit's commercial licensing
+✅ **Support team model** - Proper separation of concerns with audit trail
+
+**Follow-up Responses:**
+
+**107) Durable Workflow Runtime Options (besides Azure Durable Functions):**
+- **Temporal.io** - Most popular, but requires separate infrastructure
+- **Conductor (Netflix)** - Java-based, complex setup
+- **Custom with PostgreSQL** - Store saga state in dedicated tables, use background services for orchestration
+- **Recommendation**: Custom PostgreSQL-based saga implementation. Create `SagaInstances`, `SagaSteps`, `CompensationActions` tables. Use hosted background services to process saga state machines. Simpler, no external dependencies, leverages your existing PostgreSQL expertise.
+
+**109) UI Preferences Debate - Your Approach is Right:**
+**Pros of frontend storage:**
+- ✅ Instant UX response (no API calls for view preferences)
+- ✅ Reduced backend load
+- ✅ Natural separation - UI concerns stay in UI layer
+- ✅ Works offline/during network issues
+
+**Cons:**
+- ❌ Doesn't sync across devices/browsers
+- ❌ Lost on browser data clear
+
+**Recommendation:** Hybrid approach - store in frontend localStorage with periodic sync to User Management Service. Best of both worlds.
+
+**Final Clarifying Questions:**
+
+111) **Permission Grouping Structure**
+You said "Yes" to grouping. Proposed structure:
+```json
+{
+  "userId": "123",
+  "organizationId": "org1",
+  "permissionsByService": {
+    "invoicing": ["edit-invoice", "attest-invoice", "view-reports"],
+    "property": ["view-properties", "edit-properties"],
+    "shared": ["view-audit-logs", "export-data"]
+  },
+  "roles": ["invoice-manager", "support-tier1"]
+}
+```
+
+**Is this the grouping you had in mind?**
+> Yes.
+
+112) **Support Team Emergency Permissions**
+**Two-tier approach sounds right:**
+- **Infrastructure admins** (direct DB/system access) can grant emergency permissions
+- **Organization admins** can grant limited permissions within their scope
+**Should we implement:** Time-limited permissions (auto-expire after X hours) or manual revocation only?
+> Let's implement auto-expire
+
+113) **Saga Database Strategy**
+**Options:**
+- **Dedicated Saga DB** - Separate PostgreSQL instance for all saga state
+- **Per-service saga tables** - Each service maintains its own saga state  
+- **Shared saga DB** - Single DB, separate schema for saga concerns
+**Recommendation:** Shared saga database with separate schema. Easier to query cross-service saga state, centralized saga monitoring.
+> What kind of state do we need to share between services for Sagas? Isn't it that the Saga orchestrator just stores it's own state? Elaborate.
+I have also heard that often Redis with persistence is used for Saga states due to simplicity. Did I mix something up or is it true?
+
+114) **JWT Validation at Gateway vs Services**
+**Current flow:** Gateway validates JWT → extracts user/org list → forwards to services
+**Question:** Should services also validate JWT independently, or trust gateway's token validation and user context headers?
+> Need your thoughts here. One option could be that Gateway fetches user's access definition from User management service and then 'attaches' it to every request it forwards. But then the issues could be if user loses permissions during some durable workflow execution. 
+Or potentially we can take JWT token that comes from UI, and generate new one (with format of our access definition which you already presented above) which will then be sent to services. But it may be unnecessary complex.
+Thoughts?
+
+115) **Authorization Cache Invalidation**
+**Scenario:** User's permissions change (removed from group, group permissions modified)
+**Options:**
+- **Time-based expiry** (1-minute JWT lifetime handles this naturally)
+- **Event-driven invalidation** (publish events on permission changes)
+- **Version-based** (increment user permission version, include in cache key)
+**Which approach do you prefer?**
+> with short token lifetime we will have to refresh it all the time? also, based on question above we may just check permissions every request so this may be not relevant at all, as every request will resolve authentication on gateway.
+
+116) **Workflow Orchestration Error Handling**
+**Saga failure scenarios:**
+- **Service unavailable** during saga step
+- **Business rule violation** mid-workflow
+- **Timeout** on long-running operations
+**Should we implement:** Automatic retry with exponential backoff, or immediate compensation/rollback?
+> Both: standard approach of retrying couple of times and then failing. Some responses won't need retries like when the validation fails.
+
+117) Gateway vs service token validation
+- Do you want zero-trust between services? If yes, each service should validate JWT independently (gateway terminates TLS, forwards original token).
+- Or do you prefer the gateway to mint an internal downstream token (short-lived, signed by gateway) that embeds the “permissionsByService” snapshot and services validate that? This improves perf but adds gateway coupling. Which model do you prefer?
+> Later on I will replace service authentication with Azure Managed Identities, so I want my initial implementation to work a close to that as possible. Gateway service can be handler for this. Thoughts?
+
+118) Downstream token shape
+- If we mint a gateway-internal token, should it include:
+  - userId, orgId (current request’s org), orgs[], roles[], permissionsByService, version, exp (e.g., 30–60s)?
+  - A permissionsVersion to force invalidation when Authorization Service bumps version? OK?
+> Sounds good.
+
+119) Cache invalidation
+- Preference among:
+  - Time-based only (short exp, e.g., 30–60s)
+  - Event-driven bump of permissionsVersion (Authorization Service publishes “UserPermissionsChanged” and increments version)
+  - Both for safety. Which one?
+> Let's start with simpler approach.
+
+120) Org context enforcement
+- Will every tenant-aware request always carry orgId in path (/api/v0/organization/{orgId}/...)? If yes, do you want the gateway to reject requests where orgId is not in user.orgs? This prevents unnecessary hops. OK?
+> Reject for tenant-aware requests.
+
+121) Permission evaluation location
+- With “permissionsByService” cached, should business services:
+  - Perform simple checks locally (e.g., “invoicing” includes “edit-invoice”) and skip calling Authorization Service most of the time?
+  - Call Authorization Service only for complex ABAC conditions (e.g., resource-state checks)? OK?
+> Yes. Also some business critical workflows may elect to recheck the permissions.
+
+122) Complex policy checks
+- For rules like “can edit invoice only when status != Finalized”, do you want:
+  - Service-local checks (service owns resource state, applies policy + permission)
+  - Centralized policy check call to Authorization Service (which would then require resource attributes be passed in)  
+Preference?
+>  Service-local.
+
+123) Emergency support permissions
+- For auto-expiring permissions: default TTL (e.g., 1 hour, 8 hours, 24 hours)? Require reason + ticket id and audit log entry? OK?
+> 24 hours. OK on other things.
+
+124) Saga runtime details
+- Retry policy defaults: maxRetries=3, backoff=exponential with jitter (base 200ms, cap 30s). Acceptable?
+> Sure.
+- Step idempotency: each step must be idempotent or dedupe via step execution table. OK?
+> Not familiar with terms dedupe and step execution table but it's expected for all steps to be idempotent.
+- Compensation visibility: should we expose a dashboard (read-only) in Workflow service to inspect saga state? OK?
+> Yes. Which tech will be used for this?
+
+125) Saga storage
+- You asked what needs to be shared: only the orchestrator’s state is shared; services don’t share saga state between them. A single “workflow” DB (separate schema) is enough.  
+> OK.
+- Redis with AOF can be used, but Postgres is safer for durability, history, and ad-hoc queries. Prefer Postgres?
+> Sure.
+
+126) Preferences sync
+- For the hybrid approach (localStorage + periodic sync), do you want:
+  - FE initiates sync-on-change and periodic background sync
+  - Backend also offers bulk fetch/set endpoints with versioning (ETag) for conflict resolution? OK?
+> If we're talking about user preference (not system settings) my overall idea is following: When user makes changes in their preference this data is sent to BE (specifically, BFF) and also saved in localStorage. When user uses the portal from a different device which don't have any local settings it requests those settings from backend. Then front-end periodically can re-request the user preferences. Re-request is mandatory for when new version of FE or/and BFF is deployed as this may require changes in user preferences format.
+Changes can be explicit (changing a view type in user settings) or implicit (changes sorting in list view, which will be saves for next visit).
+Thoughts?
+
+127) Permissions grouping naming
+- Agree to namespacing like:
+  - invoicing: ["edit-invoice", "attest-invoice", "view-invoice", "view-reports"]
+  - property: ["view-properties", "edit-properties"]
+  - shared: ["view-audit-logs", "export-data"]
+Any additional domains we should predefine (e.g., organizations, users, companies)?
+> invoicing is not needed for now. We want organizations, companies, userManagement, property, shared
+
+128) Token lifetimes
+- External JWT (from Identity Service): 5–15 minutes access token + refresh token at FE?  
+> Yes.
+- Internal gateway-minted token (if chosen): 30–60 seconds. Acceptable values?
+> Yes.
+
+129) Rate limiting granularity
+- Per route + per user/IP at the gateway. Should tenant be part of the key (so one user doesn’t starve an org)? Suggest key = (route, userId, orgId|none, IP). OK?
+> Sure.
+
+130) Auditing
+- Central audit log via eventing (“AuditRecorded”) consumed by an Audit service (or sink to Loki/ELK only)?  
+> Sure.
+- Do you want immutable audit entries for sensitive actions (WORM-like)? If yes, we can append-only in Postgres with restricted role. Preference?
+> Not familiar with WORM term. It's fine to have it in Postgres.
+
+131) Organizations vs Companies
+- You listed both. Confirm: Organizations are the multitenancy boundary; Companies are business entities within or across organizations? If cross-org, need clear ownership rules. Clarify scope.
+> Companies are entities inside Organization. This is in case our customer handles business across different companies (for example, in different cities). Companies will hold information like any regular company - address, back accounts data etc. Organization is mostly just for handling multitenancy and user management. Most of other domain service will work with Company more.
+
+132) Feature flags hierarchy
+- Keys like FeatureX.FunctionY with org-scoped overrides. Do you also want per-group overrides (e.g., enable FunctionY only for “beta-testers” group in org)? Or org-wide only initially?
+> Each group will have to define the full list of features and functions available to them. On UI we will provide some convenience like 'All' button, and when you click on the feature all of its functions are checked automatically. Thoughts? 
+
+133) Kafka topics naming
+- Use consistent naming with org-scope optional in payload, not topic name: e.g., domain.service.event.v1. OK?
+> OK. 
+
+134) Search indexing latency
+- Target end-to-search latency SLA locally (e.g., <2s)? Helps set outbox dispatcher frequency. Preference?
+> Search index is mostly for research purpose so just use the most common and simple approach.
+
+135) Data export/compliance
+- For GDPR anonymization: should Identity Service keep a hash-only tombstone (for dedupe) or fully purge? Often a salted hash is retained. Preference?
+> When user requests data removal we just need to anonimize personal information to keep connections to data we can't erase, for example invoices. If this doesn't answer your question elaborate and ask again.
+
+136) Gateway as auth broker toward services
+- You suggested the gateway can handle service auth similar to Managed Identity. Confirm flow:
+  - FE sends Identity Service access token to Gateway.
+  - Gateway validates it, fetches/caches permissionsByService for user+org, and mints a short-lived internal token for downstream services.
+  - Services only accept gateway-signed internal tokens. OK?
+> Does this correspond to how Managed Identity works? Will it make easy to migrate to it later? If true then OK.
+
+137) Internal token validation keys
+- Should the internal token be signed by a dedicated internal issuer (separate keypair from Identity Service), rotated via key rollover (kid in header)? Gateway publishes JWKs on /.well-known/jwks for services. OK?
+> OK.
+
+138) Cache invalidation (simple approach)
+- You chose “start simple.” Confirm:
+  - Only time-based: 30–60s exp on internal token; gateway refreshes permissions on expiry.
+  - No event-driven version bump initially. OK?
+- OK.
+
+139) Permission re-check in critical flows
+- You said some critical workflows may recheck permissions. Should services:
+  - Re-validate via a lightweight call to Authorization Service, or
+  - Require a fresh internal token (gateway-minted) per critical step? Preference?
+> Lightweight call.
+
+140) Saga dashboard tech
+- Proposed: minimal read-only dashboard hosted by Workflow Service.
+  - Backend: .NET minimal API + EF Core to the workflow Postgres schema.
+  - UI: simple React page (or Razor Pages) showing instances, steps, retries, compensations, with filters.
+Do you prefer Razor Pages (no separate FE build) or a tiny React page served by the service?
+> Tiny react page is preferable. Is there no ready-made solution for this? Only looking free, non-commercial solutions.
+
+141) Idempotency/dedup clarity
+- “Step execution table” = table recording (sagaId, stepId, attemptNo, status, checksum) to ensure retries don’t double-apply side effects. We’ll still design steps to be idempotent where possible. OK?
+> Yes.
+
+142) Preferences protocol
+- For the BFF:
+  - Bulk endpoints: GET/PUT /api/preferences (returns namespaced blob with version, e.g., ui.landlord, grid.defaults)
+  - ETag-based concurrency for PUT to avoid overwriting newer server versions. OK?
+> OK.
+
+143) Domains confirmed for permissions
+- organizations, companies, userManagement, property, shared.
+- We’ll omit invoicing for now. Any others to reserve (e.g., search, gateway)?
+> Nope.
+
+144) WORM-like audit in Postgres
+- WORM = Write Once Read Many; append-only.
+- Implementation: append-only table with DB role that cannot UPDATE/DELETE; only INSERT via stored proc; privileged maintenance role for rare redactions. OK?
+> OK.
+
+145) GDPR anonymization clarifier
+- For deletion requests:
+  - Identity Service: replace PII with irreversible placeholders, keep non-PII identifiers for referential integrity.
+  - Keep salted hash of former email for dedupe prevention, or skip? Preference?
+> Let's keep hash.
+
+146) Group-level feature flags
+- You want groups to explicitly list all features/functions available.
+- This implies org-wide features are not enough; group overrides are the source of truth. Confirm:
+  - Effective feature set for a user = union of features from all groups in that org (minus any future denylists if introduced). OK?
+> OK.
+
+147) Org context header normalization
+- Gateway enforces orgId in path for tenant-aware routes. Should gateway also forward a canonical header (X-Org-Id) to services and reject mismatches between header and path? This simplifies downstream checks. OK?
+> Sure.
+
+148) Service trust model
+- Since only gateway-minted tokens are accepted by services, should services also validate mTLS from gateway in the future (AKS/ACA), or is JWT validation sufficient for now? Suggest: JWT only now; leave mTLS optional later. Agree?
+> Agree.
+
+149) Token lifetimes exact values
+- Identity Service access token: 10 minutes; refresh token: 30 days. Acceptable?
+> Yes.
+- Internal token: 45 seconds default. Acceptable?
+> 60 seconds.
+
+150) Search indexing cadence
+- Since search is for learning, we’ll run outbox dispatcher every 1s and batch to OpenSearch. OK?
+> Sure.
+
+151) Companies within Organizations
+- Since Companies are inside an Organization, do we enforce that companyId always implies a single orgId? Gateway can validate that company belongs to org in path to avoid cross-org leakage. Enforce at gateway or in services only?
+> We don't need this complixity for now.
+
+152) Authorization Service API surface (initial)
+- GET /auth/user/{userId}/org/{orgId}/permissions-model → permissionsByService + roles
+- POST /auth/check (optional later) → for rare centralized ABAC checks
+Good to start with just the first?
+> Sure.
+
+153) Audit event payload
+- Include: userId, orgId, action, resourceType, resourceId, outcome, reason (optional), correlationId, timestamp, clientIp, userAgent. Any additions?
+> Nope.
+
+154) Error responses normalization
+- Standard problem+json with traceId correlation across gateway/services? OK to standardize on RFC 7807 with traceId, orgId, userId?
+> Yes, but also describe the standard you mentioned.
+
+155) Re-request preferences on FE/BFF upgrade
+- Detect via a config version endpoint at the BFF (e.g., /config/version). FE compares and refetches preferences when version changes. OK?
+> OK.
+
+156) Token audience and issuer conventions
+- Internal token: issuer = https://gateway.local, audience = the specific service (e.g., property-api). Do you want per-service audience, or a shared “internal-services” audience?
+> Shared.
+
+157) Key management
+- Key rollover cadence for gateway internal issuer: monthly OK? Keep last 2 keys active for overlap?
+> Sure.
+
+158) RFC 7807 details
+- Problem+JSON: application/problem+json with fields: type (URL doc), title, status, detail, instance, extensions: traceId, orgId, userId. Provide a shared “type” catalog (e.g., https://docs.local.errors/{code}). OK?
+> OK.
+
+159) Permission model size
+- If permissionsByService grows, cap internal token size by embedding only a hash/version and send the full model via a side-car cache fetch from services? Or keep full model in token for now?
+> Keep full model in token for now.
+
+160) Gateway failure mode
+- If Authorization Service is unavailable when minting internal token: fail closed (reject request) or allow with last cached permissions (soft-fail for X minutes)? Preference?
+> Fail closed.
+
+Keep asking questions if needed, in the same format. Don't forget the follow-ups as in some of my answers there's more questions.
+Also, if you see fit - give feedback on my answers and decisions.
+Only start drafting the tech stack after all questions have been cleared out.
+
+
+--
