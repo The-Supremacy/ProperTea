@@ -1,0 +1,6 @@
+services:
+  propertea.gateway:
+    image: ${DOCKER_REGISTRY-}properteagateway
+    build:
+      context: .
+      dockerfile: services/gateway/ProperTea.Gateway/Dockerfile
