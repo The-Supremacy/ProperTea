@@ -1,39 +1,41 @@
-services:  
-  # Reverse proxy and TLS termination
+services:
   traefik:
     image: traefik:v3.5.3
     container_name: propertea-traefik
-    command:
-      - --api.dashboard=true
-      - --api.insecure=true
-      - --providers.docker=true
-      - --providers.docker.network=proxy
-      - --providers.docker.exposedbydefault=false
-      - --entrypoints.web.address=:80
-      - --entrypoints.web.http.redirections.entrypoint.to=websecure
-      - --entryPoints.web.http.redirections.entrypoint.scheme=https
-      - --entrypoints.websecure.asDefault=true
-      - --entrypoints.websecure.address=:443
-      - --providers.file.directory=/etc/traefik/dynamic
-      - --providers.file.watch=true
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./tools/traefik:/etc/traefik/dynamic:ro
-      - ./tools/certs:/etc/traefik/certs:ro
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     networks:
       - propertea-network
+    command:
+      - --api.insecure=true
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=propertea-network
+      - --providers.file.watch=true
+      - --providers.file.directory=/etc/traefik/dynamic
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.websecure.asDefault=true
+      - --serversTransport.insecureSkipVerify=true
+    ports:
+      - "80:80" # http
+      - "443:443" # https
+      - "8080:8080" # http api dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik:/etc/traefik/dynamic:ro
+      - ./certs:/etc/traefik/certs:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.local.test`)"
-      - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.routers.traefik.tls=true"
-      #ma- "traefik.http.services.traefik.loadbalancer.server.port=8080"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.propertea.dev`)"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard.tls=true"
+      - "traefik.http.services.traefik-dashboard.loadbalancer.server.port=8080"
   
-  # PostgreSQL Database
   postgres:
     image: postgres:18-alpine
     container_name: propertea-postgres
@@ -45,8 +47,8 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./infrastructure/postgres/init:/docker-entrypoint-initdb.d
+      - propertea-postgres-data:/var/lib/postgresql
+      - propertea-postgres-data:/docker-entrypoint-initdb.d
     networks:
       - propertea-network
     healthcheck:
@@ -56,145 +58,9 @@ services:
       retries: 5
       start_period: 30s
       
-  postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:v0.18.1
-    container_name: propertea-postgres-exporter
-    environment:
-      DATA_SOURCE_NAME: "postgresql://propertea:dev-password-change-in-prod@postgres:5432/propertea?sslmode=disable"
-    ports:
-      - "9187:9187"
-    networks:
-      - propertea-network
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  # Redis Cache
-  redis:
-    image: redis:8.2.1-alpine
-    container_name: propertea-redis
-    command: redis-server --appendonly yes --requirepass dev-redis-password
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
-    networks:
-      - propertea-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "dev-redis-password", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      
-  redis-exporter:
-    image: oliver006/redis_exporter:v1.77.0-alpine
-    container_name: propertea-redis-exporter
-    environment:
-      REDIS_ADDR: "redis://redis:6379"
-      REDIS_PASSWORD: "dev-redis-password"
-    ports:
-      - "9121:9121"
-    networks:
-      - propertea-network
-    depends_on:
-      redis:
-        condition: service_healthy
-
-  # Zookeeper for Kafka
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.7.5
-    container_name: propertea-zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    volumes:
-      - zookeeper-data:/var/lib/zookeeper/data
-    networks:
-      - propertea-network
-    healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "2181"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Kafka Message Broker
-  kafka:
-    image: confluentinc/cp-kafka:7.7.5
-    container_name: propertea-kafka
-    depends_on:
-      zookeeper:
-        condition: service_healthy
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
-      KAFKA_DELETE_TOPIC_ENABLE: 'true'
-    ports:
-      - "29092:29092"
-    volumes:
-      - kafka-data:/var/lib/kafka/data
-    networks:
-      - propertea-network
-    healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-    restart: on-failure
-
-  # Kafka UI
-  kafka-ui:
-    image: provectuslabs/kafka-ui:v0.7.2
-    container_name: propertea-kafka-ui
-    depends_on:
-      kafka:
-        condition: service_healthy
-    environment:
-      KAFKA_CLUSTERS_0_NAME: propertea-local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-    ports:
-      - "8081:8080"
-    networks:
-      - propertea-network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.kafka-ui.rule=Host(`kafka.local.test`)"
-      - "traefik.http.routers.kafka-ui.entrypoints=websecure"
-      - "traefik.http.routers.kafka-ui.tls=true"
-      - "traefik.http.services.kafka-ui.loadbalancer.server.port=8081"
-
-  # Azurite (Azure Storage Emulator)
-  azurite:
-    image: mcr.microsoft.com/azure-storage/azurite:latest
-    container_name: propertea-azurite
-    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
-    ports:
-      - "10000:10000"  # Blob service
-      - "10001:10001"  # Queue service
-      - "10002:10002"  # Table service
-    networks:
-      - propertea-network        
-
 networks:
   propertea-network:
     driver: bridge
-    name: propertea-network
-    external: true
-
+    
 volumes:
-  postgres-data:
-    name: propertea-postgres-data
-    external: true
-  redis-data:
-    name: propertea-redis-data
-    external: true
-  kafka-data:
-    name: propertea-kafka-data
-    external: true
-  zookeeper-data:
-    name: propertea-zookeeper-data
-    external: true
+  propertea-postgres-data:

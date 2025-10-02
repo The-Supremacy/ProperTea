@@ -1,7 +1,6 @@
 auth_enabled: false
 
 server:
-  http_listen_port: 3100
   grpc_listen_port: 9096
 
 common:
@@ -11,6 +10,9 @@ common:
       store: inmemory
   replication_factor: 1
   path_prefix: /loki
+
+limits_config:
+  allow_structured_metadata: true
 
 schema_config:
   configs:

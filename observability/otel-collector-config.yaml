@@ -1,33 +1,26 @@
 receivers:
-  # HTTP receiver for OpenTelemetry SDKs
   otlp:
     protocols:
       grpc:
-        endpoint: "0.0.0.0:4317"
-      http:
-        endpoint: "0.0.0.0:55680"
-
-exporters:
-  jaeger:
-    endpoint: "localhost:14250"
-    insecure: true
-
-  prometheus:
-    endpoint: "0.0.0.0:8889"
-    namespace: "otel"
-
-  loki:
-    endpoint: "http://localhost:3100/loki/api/v1/push"
-
+        endpoint: 0.0.0.0:4317
+        
 processors:
   batch:
 
+exporters:
+  otlp/jaeger:
+    endpoint: 0.0.0.0:43177
+  prometheus:
+    endpoint: 0.0.0.0:9090
+  otlp/loki:
+    endpoint: 0.0.0.0:9096
 service:
+  extensions: []
   pipelines:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [jaeger]
+      exporters: [otlp/jaeger]
     metrics:
       receivers: [otlp]
       processors: [batch]
@@ -35,4 +28,4 @@ service:
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [loki]
+      exporters: [otlp/loki]
