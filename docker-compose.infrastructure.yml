@@ -57,10 +57,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-      
-networks:
-  propertea-network:
-    driver: bridge
     
 volumes:
   propertea-postgres-data:

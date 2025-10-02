@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using ProperTea.Gateway.Middleware;
-using ProperTea.Gateway.Services;
+using ProperTea.ApiGateway.Middleware;
+using ProperTea.ApiGateway.Services;
 using System.Threading.RateLimiting;
-using ProperTea.Gateway.Configuration;
-using ProperTea.Gateway.Extensions;
+using ProperTea.ApiGateway.Configuration;
+using ProperTea.ApiGateway.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,7 +1,8 @@
 // Middleware/InternalTokenMiddleware.cs
-using ProperTea.Gateway.Services;
 
-namespace ProperTea.Gateway.Middleware;
+using ProperTea.ApiGateway.Services;
+
+namespace ProperTea.ApiGateway.Middleware;
 
 public class InternalTokenMiddleware
 {

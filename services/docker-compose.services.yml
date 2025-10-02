@@ -1,0 +1,4 @@
+include:
+  - path:
+    - api-gateway/docker-compose.api-gateway.yml
+    - docker-compose.shared.yml

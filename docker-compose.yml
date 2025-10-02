@@ -1,6 +1,28 @@
+include:
+  - path:
+    - docker-compose.infrastructure.yml
+    - docker-compose.shared.yml
+  - path:
+    - docker-compose.observability.yml
+    - docker-compose.shared.yml
+      
 services:
-  propertea.gateway:
-    image: ${DOCKER_REGISTRY-}properteagateway
+  api-gateway:
     build:
       context: .
-      dockerfile: services/gateway/ProperTea.Gateway/Dockerfile
+      dockerfile: services/api-gateway/ProperTea.ApiGateway/Dockerfile
+    container_name: propertea-api-gateway
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    networks:
+      - propertea-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gateway.rule=Host(`api-gateway.propertea.dev`)"
+      - "traefik.http.routers.gateway.entrypoints=websecure"
+      - "traefik.http.routers.gateway.tls=true"
+        
+networks:
+  propertea-network:
+    driver: bridge

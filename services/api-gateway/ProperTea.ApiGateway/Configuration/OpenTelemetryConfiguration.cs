@@ -5,7 +5,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-namespace ProperTea.Gateway.Configuration;
+namespace ProperTea.ApiGateway.Configuration;
 
 public static class OpenTelemetryConfiguration
 {
@@ -37,7 +37,7 @@ public static class OpenTelemetryConfiguration
     private static ResourceBuilder CreateResourceBuilder(IWebHostEnvironment environment)
     {
         return ResourceBuilder.CreateDefault()
-            .AddService("ProperTea.Gateway", "1.0.0")
+            .AddService("ProperTea.ApiGateway", "1.0.0")
             .AddAttributes(new Dictionary<string, object>
             {
                 ["service.namespace"] = "ProperTea",
@@ -83,7 +83,7 @@ public static class OpenTelemetryConfiguration
                 activity.SetTag("http.response.content_length", response.Content.Headers.ContentLength);
             };
         })
-        .AddSource("ProperTea.Gateway")
+        .AddSource("ProperTea.ApiGateway")
         .AddSource("Microsoft.AspNetCore")
         .AddSource("System.Net.Http");
         
@@ -109,7 +109,7 @@ public static class OpenTelemetryConfiguration
         metrics.AddAspNetCoreInstrumentation()
                .AddHttpClientInstrumentation()
                .AddAspNetCoreInstrumentation()
-               .AddMeter("ProperTea.Gateway")
+               .AddMeter("ProperTea.ApiGateway")
                .AddMeter("Microsoft.AspNetCore.Hosting")
                .AddMeter("Microsoft.AspNetCore.Server.Kestrel");
 

@@ -1,19 +1,17 @@
 services:
-  gateway:
+  api-gateway:
      build:
-       context: ./../
-       dockerfile: ./services/gateway/Dockerfile
-     container_name: propertea-gateway
+       context: .
+       dockerfile: ProperTea.ApiGateway/Dockerfile
+     container_name: propertea-api-gateway
      environment:
        - ASPNETCORE_ENVIRONMENT=Development
-       - ASPNETCORE_URLS=https://+:443;http://+:80
+       - ASPNETCORE_URLS=https://http://+:80
      networks:
        - propertea-network
-     depends_on:
-       - postgres
      labels:
        - "traefik.enable=true"
-       - "traefik.http.routers.gateway.rule=Host(`gateway.propertea.dev`)"
+       - "traefik.http.routers.gateway.rule=Host(`api-gateway.propertea.dev`)"
        - "traefik.http.routers.gateway.entrypoints=websecure"
        - "traefik.http.routers.gateway.tls=true"
 

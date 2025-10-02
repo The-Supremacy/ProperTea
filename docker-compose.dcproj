@@ -7,10 +7,22 @@
     <ProjectGuid>81dded9d-158b-e303-5f62-77a2896d2a5a</ProjectGuid>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="docker-compose.override.yml">
-      <DependentUpon>docker-compose.yml</DependentUpon>
-    </None>
     <None Include="docker-compose.yml" />
+    <None Include="docker-compose.infrastructure.yml" />
+    <None Include="docker-compose.observability.yml" />
     <None Include=".dockerignore" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="docker-compose.shared.yml" />
+    <Content Include="Makefile" />
+    <Content Include="observability\grafana\dashboards\dashboards.yml" />
+    <Content Include="observability\grafana\datasources\datasources.yml" />
+    <Content Include="observability\loki-config.yaml" />
+    <Content Include="observability\otel-collector-config.yaml" />
+    <Content Include="observability\prometheus.yml" />
+    <Content Include="traefik\tls.yml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="traefik\dynamic\" />
   </ItemGroup>
 </Project>

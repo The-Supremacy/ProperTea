@@ -1,0 +1,3 @@
+networks:
+  propertea-network:
+    driver: bridge

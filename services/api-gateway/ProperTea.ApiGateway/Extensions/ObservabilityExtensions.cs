@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using System.Text.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace ProperTea.Gateway.Extensions;
+namespace ProperTea.ApiGateway.Extensions;
 
 public static class ObservabilityExtensions
 {

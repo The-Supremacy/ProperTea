@@ -5,11 +5,9 @@ ENV := dev
 
 # Variables
 ## Docker Compose files
-DOCKER_COMPOSE_PATH := ./docker-compose
-COMPOSE_FILES := 	-f $(DOCKER_COMPOSE_PATH)/docker-compose.infrastructure.yml \
-					-f $(DOCKER_COMPOSE_PATH)/docker-compose.observability.yml \
-					-f $(DOCKER_COMPOSE_PATH)/services/gateway/docker-compose.gateway.yml \
-					--env-file $(DOCKER_COMPOSE_PATH)/.env.$(ENV)
+COMPOSE_FILES := 	-f docker-compose.shared.yml \
+					-f docker-compose.infrastructure.yml \
+					-f docker-compose.observability.yml
 ## Paths
 SERVICES_PATH := ./services
 FRONTEND_PATH := ./frontend
