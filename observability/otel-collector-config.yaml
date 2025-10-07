@@ -14,14 +14,10 @@ exporters:
     verbosity: detailed
   otlphttp/jaeger:
     endpoint: "http://jaeger:4318"
-    #tls:
-    #  insecure: true
   prometheus:
     endpoint: 0.0.0.0:8889
   otlphttp/loki:
     endpoint: "http://loki:3100/otlp"
-    #tls:
-    #  insecure: true
 
 extensions:
   zpages:

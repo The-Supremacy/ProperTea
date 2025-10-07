@@ -4,18 +4,18 @@ datasources:
   - name: Prometheus
     type: prometheus
     access: proxy
-    url: https://prometheus.propertea.dev
+    url: http://prometheus:9090
     isDefault: true
     editable: true
 
   - name: Loki
     type: loki
     access: proxy
-    url: https://loki.propertea.dev
+    url: http://loki:3100
     editable: true
 
   - name: Jaeger
     type: jaeger
     access: proxy
-    url: http://jaeger:4317
+    url: http://jaeger:16686
     editable: true

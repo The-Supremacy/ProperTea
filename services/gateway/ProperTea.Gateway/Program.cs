@@ -62,6 +62,7 @@ app.MapProperTelemetryEndpoints();
 app.MapGet("/.well-known/jwks", (IInternalTokenService tokenService, ILogger<Program> logger) =>
 {
     logger.LogInformation("Getting JWKs");
+    logger.LogError("Getting JWKs BIG ERROR");
     return Results.Json(tokenService.GetJwks());
 });
 
