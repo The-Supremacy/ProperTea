@@ -3,7 +3,7 @@ auth_enabled: false
 server:
   http_listen_port: 3100
 
-common:  
+common:
   instance_addr: 127.0.0.1
   ring:
     kvstore:
@@ -44,7 +44,7 @@ ruler:
 storage_config:
   filesystem:
     directory: /tmp/loki/chunks
-    
+
 compactor:
   working_directory: /tmp/loki/compactor
   compaction_interval: 5m

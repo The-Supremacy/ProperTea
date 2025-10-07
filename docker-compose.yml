@@ -2,7 +2,7 @@ include:
   - docker-compose.shared.yml
   - docker-compose.infrastructure.yml
   - docker-compose.observability.yml
-      
+
 services:
   gateway:
     build:

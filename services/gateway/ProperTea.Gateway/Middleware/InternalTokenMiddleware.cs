@@ -6,10 +6,10 @@ namespace ProperTea.Gateway.Middleware;
 
 public class InternalTokenMiddleware
 {
-    private readonly RequestDelegate _next;
-    private readonly IInternalTokenService _tokenService;
     private readonly IAuthorizationService _authorizationService;
     private readonly ILogger<InternalTokenMiddleware> _logger;
+    private readonly RequestDelegate _next;
+    private readonly IInternalTokenService _tokenService;
 
     public InternalTokenMiddleware(
         RequestDelegate next,
@@ -26,7 +26,7 @@ public class InternalTokenMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
         // Skip health checks and JWKs
-        if (context.Request.Path.StartsWithSegments("/health") || 
+        if (context.Request.Path.StartsWithSegments("/health") ||
             context.Request.Path.StartsWithSegments("/.well-known"))
         {
             await _next(context);
@@ -51,7 +51,8 @@ public class InternalTokenMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to mint internal token for user {UserId} in org {OrgId}", userId, organizationId);
+            _logger.LogError(ex, "Failed to mint internal token for user {UserId} in org {OrgId}", userId,
+                organizationId);
             context.Response.StatusCode = 500;
             await context.Response.WriteAsync("Authentication service unavailable");
             return;

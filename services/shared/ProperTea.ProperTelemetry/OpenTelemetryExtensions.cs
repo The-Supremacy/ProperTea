@@ -6,6 +6,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -16,13 +17,13 @@ public static class OpenTelemetryExtensions
 {
     private const string HealthEndpointPath = "/health";
     private const string AlivenessEndpointPath = "/alive";
-    
+
     public static IHostApplicationBuilder AddProperTelemetry(
         this IHostApplicationBuilder builder,
         OpenTelemetryOptions options)
     {
         var appName = builder.Environment.ApplicationName;
-        
+
         builder = builder.AddLogging(options);
         builder.Services
             .AddOpenTelemetry()
@@ -30,7 +31,7 @@ public static class OpenTelemetryExtensions
             .AddTracing(options, appName)
             .AddMetrics(options)
             .AddOpenTelemetryExporters(options);
-        
+
         return builder;
     }
 
@@ -39,7 +40,7 @@ public static class OpenTelemetryExtensions
         OpenTelemetryOptions options,
         string appName)
     {
-        if (!options.TracingEnabled) 
+        if (!options.TracingEnabled)
             return builder;
 
         builder.WithTracing(tracing =>
@@ -47,10 +48,7 @@ public static class OpenTelemetryExtensions
             tracing.AddSource(appName)
                 .SetErrorStatusOnException()
                 .SetSampler(new AlwaysOnSampler())
-                .AddAspNetCoreInstrumentation(o =>
-                {
-                    o.RecordException = true;
-                })
+                .AddAspNetCoreInstrumentation(o => { o.RecordException = true; })
                 .AddHttpClientInstrumentation();
         });
 
@@ -59,9 +57,9 @@ public static class OpenTelemetryExtensions
 
     private static OpenTelemetryBuilder AddMetrics(this OpenTelemetryBuilder builder, OpenTelemetryOptions options)
     {
-        if (!options.MetricsEnabled) 
+        if (!options.MetricsEnabled)
             return builder;
-        
+
         builder.WithMetrics(metrics =>
         {
             metrics
@@ -73,11 +71,12 @@ public static class OpenTelemetryExtensions
         return builder;
     }
 
-    private static IHostApplicationBuilder AddLogging(this IHostApplicationBuilder builder, OpenTelemetryOptions options)
+    private static IHostApplicationBuilder AddLogging(this IHostApplicationBuilder builder,
+        OpenTelemetryOptions options)
     {
-        if (!options.LoggingEnabled) 
+        if (!options.LoggingEnabled)
             return builder;
-        
+
         builder.Logging.AddOpenTelemetry(logging =>
         {
             logging.IncludeFormattedMessage = true;
@@ -86,24 +85,24 @@ public static class OpenTelemetryExtensions
 
         return builder;
     }
-    
+
     private static OpenTelemetryBuilder AddOpenTelemetryExporters(
         this OpenTelemetryBuilder builder,
         OpenTelemetryOptions options)
     {
         var useOtlpExporter = !string.IsNullOrWhiteSpace(options.OtlpEndpoint);
         if (useOtlpExporter)
-            builder.Services.AddOpenTelemetry().UseOtlpExporter(OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf,
+            builder.Services.AddOpenTelemetry().UseOtlpExporter(OtlpExportProtocol.HttpProtobuf,
                 new Uri(options.OtlpEndpoint));
-        
+
         var useAzureMonitorExporter = !string.IsNullOrEmpty(options.ApplicationInsightsConnectionString);
         if (useAzureMonitorExporter)
-            builder.Services.AddOpenTelemetry().UseAzureMonitor(o 
+            builder.Services.AddOpenTelemetry().UseAzureMonitor(o
                 => o.ConnectionString = options.ApplicationInsightsConnectionString);
 
         return builder;
     }
-        
+
     public static TBuilder AddProperHealthChecks<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder
     {
@@ -112,7 +111,7 @@ public static class OpenTelemetryExtensions
 
         return builder;
     }
-    
+
     public static WebApplication MapProperTelemetryEndpoints(this WebApplication app)
     {
         app.MapHealthChecks(HealthEndpointPath);

@@ -1,9 +1,9 @@
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using ProperTea.Gateway.Middleware;
 using ProperTea.Gateway.Services;
-using System.Threading.RateLimiting;
 using ProperTea.ProperTelemetry;
 
 var builder = WebApplication.CreateBuilder(args);

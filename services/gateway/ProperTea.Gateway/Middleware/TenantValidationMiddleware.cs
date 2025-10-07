@@ -4,8 +4,8 @@ namespace ProperTea.Gateway.Middleware;
 
 public class TenantValidationMiddleware
 {
-    private readonly RequestDelegate _next;
     private readonly ILogger<TenantValidationMiddleware> _logger;
+    private readonly RequestDelegate _next;
 
     public TenantValidationMiddleware(RequestDelegate next, ILogger<TenantValidationMiddleware> logger)
     {
@@ -32,14 +32,14 @@ public class TenantValidationMiddleware
         }
 
         var organizationId = pathSegments[3];
-        
+
         // Validate user has access to this organization
         var userOrgs = context.User.FindAll("orgs").Select(c => c.Value);
         if (!userOrgs.Contains(organizationId))
         {
             _logger.LogWarning("User {UserId} attempted to access organization {OrgId} without permission",
                 context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, organizationId);
-            
+
             context.Response.StatusCode = 403;
             await context.Response.WriteAsync("Access denied to organization");
             return;

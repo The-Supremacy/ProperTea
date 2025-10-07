@@ -22,13 +22,13 @@ public class AuthorizationService : IAuthorizationService
     {
         var response = await _httpClient.GetAsync($"/auth/user/{userId}/org/{organizationId}/permissions-model");
         response.EnsureSuccessStatusCode();
-        
+
         var json = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<PermissionsModel>(json, new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         });
-        
+
         return result ?? throw new InvalidOperationException("Failed to deserialize permissions model");
     }
 }

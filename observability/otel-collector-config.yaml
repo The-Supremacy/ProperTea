@@ -5,7 +5,7 @@ receivers:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
-        
+
 processors:
   batch:
 
@@ -21,20 +21,20 @@ exporters:
 
 extensions:
   zpages:
-    endpoint: 0.0.0.0:55679 
-    
+    endpoint: 0.0.0.0:55679
+
 service:
-  extensions: [zpages]
+  extensions: [ zpages ]
   pipelines:
     traces:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [otlphttp/jaeger, debug]
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ otlphttp/jaeger, debug ]
     metrics:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [prometheus, debug]
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ prometheus, debug ]
     logs:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [otlphttp/loki, debug]
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ otlphttp/loki, debug ]

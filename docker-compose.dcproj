@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" Sdk="Microsoft.Docker.Sdk">
-  <PropertyGroup Label="Globals">
-    <ProjectVersion>2.1</ProjectVersion>
-    <DockerTargetOS>Linux</DockerTargetOS>
-    <DockerPublishLocally>False</DockerPublishLocally>
-    <ProjectGuid>81dded9d-158b-e303-5f62-77a2896d2a5a</ProjectGuid>
-  </PropertyGroup>
-  <ItemGroup>
-    <None Include="docker-compose.yml" />
-    <None Include="docker-compose.infrastructure.yml" />
-    <None Include="docker-compose.observability.yml" />
-    <None Include=".dockerignore" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="docker-compose.shared.yml" />
-    <Content Include="Makefile" />
-    <Content Include="observability\grafana\dashboards\dashboards.yml" />
-    <Content Include="observability\grafana\datasources\datasources.yml" />
-    <Content Include="observability\loki-config.yaml" />
-    <Content Include="observability\otel-collector-config.yaml" />
-    <Content Include="observability\prometheus.yml" />
-    <Content Include="traefik\tls.yml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="traefik\dynamic\" />
-  </ItemGroup>
+    <PropertyGroup Label="Globals">
+        <ProjectVersion>2.1</ProjectVersion>
+        <DockerTargetOS>Linux</DockerTargetOS>
+        <DockerPublishLocally>False</DockerPublishLocally>
+        <ProjectGuid>81dded9d-158b-e303-5f62-77a2896d2a5a</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <None Include="docker-compose.yml"/>
+        <None Include="docker-compose.infrastructure.yml"/>
+        <None Include="docker-compose.observability.yml"/>
+        <None Include=".dockerignore"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="docker-compose.shared.yml"/>
+        <Content Include="Makefile"/>
+        <Content Include="observability\grafana\dashboards\dashboards.yml"/>
+        <Content Include="observability\grafana\datasources\datasources.yml"/>
+        <Content Include="observability\loki-config.yaml"/>
+        <Content Include="observability\otel-collector-config.yaml"/>
+        <Content Include="observability\prometheus.yml"/>
+        <Content Include="traefik\tls.yml"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Folder Include="traefik\dynamic\"/>
+    </ItemGroup>
 </Project>

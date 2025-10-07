@@ -37,7 +37,7 @@ services:
       - "traefik.http.routers.prometheus.rule=Host(`prometheus.propertea.dev`)"
       - "traefik.http.routers.prometheus.entrypoints=websecure"
       - "traefik.http.routers.prometheus.tls=true"
-      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"        
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
   
   jaeger:
     image: jaegertracing/jaeger:2.10.0
@@ -54,7 +54,7 @@ services:
       - "traefik.http.routers.jaeger.rule=Host(`jaeger.propertea.dev`)"
       - "traefik.http.routers.jaeger.entrypoints=websecure"
       - "traefik.http.routers.jaeger.tls=true"
-      - "traefik.http.services.jaeger.loadbalancer.server.port=16686"  
+      - "traefik.http.services.jaeger.loadbalancer.server.port=16686"
   
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.135.0
