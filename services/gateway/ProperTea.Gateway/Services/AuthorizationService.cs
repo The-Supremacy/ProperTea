@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace ProperTea.ApiGateway.Services;
+namespace ProperTea.Gateway.Services;
 
 public interface IAuthorizationService
 {

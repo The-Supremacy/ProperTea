@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace ProperTea.ApiGateway.Middleware;
+namespace ProperTea.Gateway.Middleware;
 
 public class TenantValidationMiddleware
 {

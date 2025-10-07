@@ -1,18 +1,12 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
-using ProperTea.ApiGateway.Middleware;
-using ProperTea.ApiGateway.Services;
+using ProperTea.Gateway.Middleware;
+using ProperTea.Gateway.Services;
 using System.Threading.RateLimiting;
-using ProperTea.ApiGateway.Configuration;
-using ProperTea.ApiGateway.Extensions;
+using ProperTea.ProperTelemetry;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddObservability(builder.Configuration, builder.Environment);
-builder.Logging.AddObservabilityLogging(builder.Configuration, builder.Environment);
 
 builder.Services.AddHttpClient<IAuthorizationService, AuthorizationService>(client =>
 {
@@ -53,7 +47,8 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
-builder.Services.AddObservabilityEndpoints();
+builder.AddProperTelemetry(builder.Configuration.GetRequiredSection("ProperTelemetry").Get<OpenTelemetryOptions>()!);
+builder.AddProperHealthChecks();
 
 var app = builder.Build();
 
@@ -62,10 +57,13 @@ app.UseAuthentication();
 app.UseMiddleware<TenantValidationMiddleware>();
 app.UseMiddleware<InternalTokenMiddleware>();
 
-app.MapObservabilityEndpoints();
+app.MapProperTelemetryEndpoints();
 
-app.MapGet("/.well-known/jwks", (IInternalTokenService tokenService) => 
-    Results.Json(tokenService.GetJwks()));
+app.MapGet("/.well-known/jwks", (IInternalTokenService tokenService, ILogger<Program> logger) =>
+{
+    logger.LogInformation("Getting JWKs");
+    return Results.Json(tokenService.GetJwks());
+});
 
 app.MapReverseProxy();
 

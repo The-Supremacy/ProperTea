@@ -5,16 +5,16 @@ ENV := dev
 
 # Variables
 ## Docker Compose files
-COMPOSE_FILES := 	-f docker-compose.shared.yml \
-					-f docker-compose.infrastructure.yml \
-					-f docker-compose.observability.yml
+COMPOSE_FILES := 	-f docker-compose.yml
 ## Paths
 SERVICES_PATH := ./services
 FRONTEND_PATH := ./frontend
 
 ## TLS domains
 TLS_DOMAINS := 	traefik.propertea.dev \
+				zpages.propertea.dev \
 				jaeger.propertea.dev \
+				prometheus.propertea.dev \
 				grafana.propertea.dev \
 				gateway.propertea.dev
 
@@ -51,7 +51,7 @@ clean: ## Clean all containers, volumes, and generated files
 
 compose-certs: ## Generate local TLS certificates for docker-compose
 	@echo "$(YELLOW) Generating local certificates...$(NC)"
-	@mkdir -p .docker-compose/certs
+	@mkdir -p certs
 	@if ! command -v mkcert >/dev/null 2>&1; then \
 		echo "$(RED)❌ mkcert not found. Please install it first.$(NC)"; \
 		echo "$(YELLOW)Ubuntu/Debian: curl -JLO 'https://dl.filippo.io/mkcert/latest?for=linux/amd64' && chmod +x mkcert-v*-linux-amd64 && sudo mv mkcert-v*-linux-amd64 /usr/local/bin/mkcert$(NC)"; \
@@ -60,7 +60,7 @@ compose-certs: ## Generate local TLS certificates for docker-compose
 	@echo "$(YELLOW)Installing CA certificate...$(NC)"
 	mkcert -install
 	@echo "$(YELLOW)Generating certificates for local domains...$(NC)"
-	cd docker-compose/certs && mkcert \
+	cd certs && mkcert \
 		--cert-file "_wildcard.dev.pem" \
 		--key-file "_wildcard.dev-key.pem" \
 		*.dev \

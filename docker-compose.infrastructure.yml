@@ -16,10 +16,7 @@ services:
       - --providers.file.watch=true
       - --providers.file.directory=/etc/traefik/dynamic
       - --entrypoints.web.address=:80
-      - --entrypoints.web.http.redirections.entryPoint.to=websecure
-      - --entrypoints.web.http.redirections.entryPoint.scheme=https
       - --entrypoints.websecure.address=:443
-      - --entrypoints.websecure.asDefault=true
       - --serversTransport.insecureSkipVerify=true
     ports:
       - "80:80" # http

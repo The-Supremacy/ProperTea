@@ -17,5 +17,5 @@ datasources:
   - name: Jaeger
     type: jaeger
     access: proxy
-    url: http://jaeger:43177
+    url: http://jaeger:4317
     editable: true

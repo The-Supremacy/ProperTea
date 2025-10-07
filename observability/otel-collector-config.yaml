@@ -3,29 +3,42 @@ receivers:
     protocols:
       grpc:
         endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
         
 processors:
   batch:
 
 exporters:
-  otlp/jaeger:
-    endpoint: 0.0.0.0:43177
+  debug:
+    verbosity: detailed
+  otlphttp/jaeger:
+    endpoint: "http://jaeger:4318"
+    #tls:
+    #  insecure: true
   prometheus:
-    endpoint: 0.0.0.0:9090
-  otlp/loki:
-    endpoint: 0.0.0.0:9096
+    endpoint: 0.0.0.0:8889
+  otlphttp/loki:
+    endpoint: "http://loki:3100/otlp"
+    #tls:
+    #  insecure: true
+
+extensions:
+  zpages:
+    endpoint: 0.0.0.0:55679 
+    
 service:
-  extensions: []
+  extensions: [zpages]
   pipelines:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/jaeger]
+      exporters: [otlphttp/jaeger, debug]
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [prometheus]
+      exporters: [prometheus, debug]
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/loki]
+      exporters: [otlphttp/loki, debug]

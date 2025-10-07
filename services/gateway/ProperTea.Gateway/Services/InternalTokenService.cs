@@ -5,7 +5,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json;
 
-namespace ProperTea.ApiGateway.Services;
+namespace ProperTea.Gateway.Services;
 
 public interface IInternalTokenService
 {

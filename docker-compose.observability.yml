@@ -3,9 +3,9 @@ services:
     image: grafana/loki:3.5.5
     container_name: propertea-loki
     command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
     ports:
       - "3100:3100"
-      - "9096:9096"
     volumes:
       - ./observability/loki-config.yaml:/etc/loki/local-config.yaml
       - propertea-loki-data:/loki
@@ -21,8 +21,12 @@ services:
   prometheus:
     image: prom/prometheus:v3.6.0
     container_name: propertea-prometheus
+    restart: unless-stopped
     ports:
       - "9090:9090"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-otlp-receiver
     volumes:
       - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
       - propertea-prometheus-data:/prometheus
@@ -38,8 +42,8 @@ services:
   jaeger:
     image: jaegertracing/jaeger:2.10.0
     container_name: propertea-jaeger
+    restart: unless-stopped
     ports:
-      - "43177:4317"  # OpenTelemetry Protocol (OTLP) gRPC
       - "16686:16686"  # Jaeger UI
     volumes:
       - propertea-jaeger-data:/tmp
@@ -54,22 +58,31 @@ services:
   
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.135.0
+    container_name: propertea-otel-collector
+    restart: unless-stopped
     volumes:
       - ./observability/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
     ports:
-      - "4317:4317" # OTLP gRPC receiver
-      - "4318:4318" # OTLP HTTP receiver
+      - "8889:8889"
+      - "55679:55679" # zPages extension
     networks:
       - propertea-network
     depends_on:
       - prometheus
       - jaeger
       - loki
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.zpages.rule=Host(`zpages.propertea.dev`)"
+      - "traefik.http.routers.zpages.entrypoints=websecure"
+      - "traefik.http.routers.zpages.tls=true"
+      - "traefik.http.services.zpages.loadbalancer.server.port=55679"
   
   # Grafana - Metrics Visualization
   grafana:
     image: grafana/grafana:12.2.0
     container_name: propertea-grafana
+    restart: unless-stopped
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
