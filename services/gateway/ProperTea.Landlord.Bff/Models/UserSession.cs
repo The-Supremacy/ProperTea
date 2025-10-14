@@ -4,7 +4,7 @@ public class UserSession
 {
     public required string SessionId { get; set; }
     public required string UserId { get; set; }
-    
+
     public string? OrgId { get; set; }
     public required string EnrichedJwt { get; set; }
     public DateTime CreatedAt { get; set; }

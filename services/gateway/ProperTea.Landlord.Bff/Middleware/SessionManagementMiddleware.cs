@@ -8,9 +8,9 @@ namespace ProperTea.Landlord.Bff.Middleware;
 
 public class SessionManagementMiddleware
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<SessionManagementMiddleware> _logger;
     public const string SessionCookieName = "properteasession";
+    private readonly ILogger<SessionManagementMiddleware> _logger;
+    private readonly RequestDelegate _next;
 
     public SessionManagementMiddleware(RequestDelegate next, ILogger<SessionManagementMiddleware> logger)
     {
@@ -23,7 +23,7 @@ public class SessionManagementMiddleware
         IDistributedCache cache,
         IIdentityService identityService)
     {
-        if (context.Request.Cookies.TryGetValue(SessionCookieName, out var sessionId) 
+        if (context.Request.Cookies.TryGetValue(SessionCookieName, out var sessionId)
             && !string.IsNullOrEmpty(sessionId))
         {
             var sessionJson = await cache.GetStringAsync(sessionId);
@@ -35,7 +35,7 @@ public class SessionManagementMiddleware
                 {
                     var tokenHandler = new JwtSecurityTokenHandler();
                     var jwt = tokenHandler.ReadJwtToken(session.EnrichedJwt);
-                    
+
                     // Reissue the token if it's expiring within the next 2 minutes
                     if (jwt.ValidTo < DateTime.UtcNow.AddMinutes(2))
                     {
@@ -47,9 +47,10 @@ public class SessionManagementMiddleware
                         {
                             session.EnrichedJwt = newJwt;
                             session.LastRefreshedAt = DateTime.UtcNow;
-                            
+
                             await cache.SetStringAsync(sessionId, JsonSerializer.Serialize(session));
-                            _logger.LogInformation("Successfully reissued and cached new JWT for user {UserId}.", session.UserId);
+                            _logger.LogInformation("Successfully reissued and cached new JWT for user {UserId}.",
+                                session.UserId);
                         }
                         else
                         {
@@ -57,7 +58,7 @@ public class SessionManagementMiddleware
                                 "Failed to reissue JWT for user {UserId}. The old token will be used.", session.UserId);
                         }
                     }
-                    
+
                     context.Request.Headers.Authorization = $"Bearer {session.EnrichedJwt}";
                 }
             }

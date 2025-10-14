@@ -54,12 +54,12 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-      
+  
   redis:
     image: redis:7-alpine
     container_name: propertea-redis
     ports:
-      - "6379:6379" 
+      - "6379:6379"
     volumes:
       - propertea-redis-data:/data
     networks:

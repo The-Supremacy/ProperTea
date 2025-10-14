@@ -13,7 +13,7 @@ public static class AuthEndpoints
                         out var sessionId)
                     || string.IsNullOrEmpty(sessionId))
                     return Results.Ok();
-                
+
                 await cache.RemoveAsync(sessionId);
                 context.Response.Cookies.Delete(SessionManagementMiddleware.SessionCookieName);
 

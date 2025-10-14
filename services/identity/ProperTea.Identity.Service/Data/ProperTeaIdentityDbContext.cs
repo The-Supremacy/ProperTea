@@ -8,9 +8,11 @@ namespace ProperTea.Identity.Service.Data;
 
 public class ProperTeaIdentityDbContext : IdentityDbContext<ProperTeaUser, IdentityRole<Guid>, Guid>
 {
-    public DbSet<SecurityLog> SecurityLogs { get; set; }
+    public ProperTeaIdentityDbContext(DbContextOptions<ProperTeaIdentityDbContext> options) : base(options)
+    {
+    }
 
-    public ProperTeaIdentityDbContext(DbContextOptions<ProperTeaIdentityDbContext> options) : base(options) { }
+    public DbSet<SecurityLog> SecurityLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

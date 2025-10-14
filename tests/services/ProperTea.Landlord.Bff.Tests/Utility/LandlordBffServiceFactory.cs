@@ -12,30 +12,8 @@ public class LandlordBffServiceFactory : WebApplicationFactory<Program>, IAsyncL
     private readonly RedisContainer _redisContainer = new RedisBuilder()
         .WithImage("redis:7")
         .Build();
-    
-    private readonly WireMockServer _identityServiceMock = WireMockServer.Start();
-    
-    public WireMockServer IdentityServiceMock => _identityServiceMock;
-    
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
-    {
-        // Override configuration to use our test dependencies
-        builder.ConfigureAppConfiguration(config =>
-        {
-            var testConfig = new Dictionary<string, string?>
-            {
-                { "ConnectionStrings:Redis", _redisContainer.GetConnectionString() },
-                { "ReverseProxy:Clusters:identity-cluster:Destinations:destination1:Address", _identityServiceMock.Url },
-                { "ServiceEndpoints:Identity", _identityServiceMock.Url }
-            };
-            config.AddInMemoryCollection(testConfig);
-        });
 
-        builder.ConfigureTestServices(services =>
-        {
-            // Optional: If you need to replace or mock other services, you can do it here.
-        });
-    }
+    public WireMockServer IdentityServiceMock { get; } = WireMockServer.Start();
 
     public async Task InitializeAsync()
     {
@@ -45,6 +23,26 @@ public class LandlordBffServiceFactory : WebApplicationFactory<Program>, IAsyncL
     public new async Task DisposeAsync()
     {
         await _redisContainer.StopAsync();
-        _identityServiceMock.Stop();
+        IdentityServiceMock.Stop();
+    }
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        // Override configuration to use our test dependencies
+        builder.ConfigureAppConfiguration(config =>
+        {
+            var testConfig = new Dictionary<string, string?>
+            {
+                { "ConnectionStrings:Redis", _redisContainer.GetConnectionString() },
+                { "ReverseProxy:Clusters:identity-cluster:Destinations:destination1:Address", IdentityServiceMock.Url },
+                { "ServiceEndpoints:Identity", IdentityServiceMock.Url }
+            };
+            config.AddInMemoryCollection(testConfig);
+        });
+
+        builder.ConfigureTestServices(services =>
+        {
+            // Optional: If you need to replace or mock other services, you can do it here.
+        });
     }
 }

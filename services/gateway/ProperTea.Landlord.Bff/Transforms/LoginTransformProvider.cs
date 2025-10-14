@@ -12,19 +12,22 @@ public class LoginTransformProvider : ITransformProvider
         _serviceProvider = serviceProvider;
     }
 
-    public void ValidateRoute(TransformRouteValidationContext context) { }
-    public void ValidateCluster(TransformClusterValidationContext context) { }
+    public void ValidateRoute(TransformRouteValidationContext context)
+    {
+    }
+
+    public void ValidateCluster(TransformClusterValidationContext context)
+    {
+    }
 
     public void Apply(TransformBuilderContext context)
     {
         if (context.Route.Metadata?.TryGetValue("LoginTransform", out var transformValue) == true &&
             transformValue == "true")
-        {
             context.AddResponseTransform(async c =>
             {
                 var transform = ActivatorUtilities.CreateInstance<LoginResponseTransform>(_serviceProvider);
                 await transform.ApplyAsync(c);
             });
-        }
     }
 }

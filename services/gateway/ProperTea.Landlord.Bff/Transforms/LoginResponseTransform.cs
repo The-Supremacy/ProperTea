@@ -1,4 +1,3 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Distributed;
@@ -20,15 +19,15 @@ public class LoginResponseTransform : ResponseTransform
     public override async ValueTask ApplyAsync(ResponseTransformContext context)
     {
         if (context.ProxyResponse?.StatusCode != HttpStatusCode.OK)
-        {
             return;
-        }
 
         var responseStream = await context.ProxyResponse.Content.ReadAsStreamAsync();
         var loginResponse = await JsonSerializer.DeserializeAsync<JsonElement>(responseStream);
 
-        if (!loginResponse.TryGetProperty("accessToken", out var accessTokenElement) || accessTokenElement.ValueKind != JsonValueKind.String ||
-            !loginResponse.TryGetProperty("user", out var userElement) || userElement.ValueKind != JsonValueKind.Object ||
+        if (!loginResponse.TryGetProperty("accessToken", out var accessTokenElement) ||
+            accessTokenElement.ValueKind != JsonValueKind.String ||
+            !loginResponse.TryGetProperty("user", out var userElement) ||
+            userElement.ValueKind != JsonValueKind.Object ||
             !userElement.TryGetProperty("id", out var userIdElement) || userIdElement.ValueKind != JsonValueKind.String)
         {
             context.HttpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
@@ -43,7 +42,7 @@ public class LoginResponseTransform : ResponseTransform
             context.HttpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             return;
         }
-        
+
         var enrichedJwt = accessToken;
 
         var sessionId = $"session:{Guid.NewGuid()}";
@@ -60,20 +59,21 @@ public class LoginResponseTransform : ResponseTransform
                 UserAgent = context.HttpContext.Request.Headers.UserAgent
             }
         };
-        
+
         await _cache.SetStringAsync(sessionId, JsonSerializer.Serialize(userSession), new DistributedCacheEntryOptions
         {
             SlidingExpiration = TimeSpan.FromDays(7)
         });
-        
-        context.HttpContext.Response.Cookies.Append(SessionManagementMiddleware.SessionCookieName, sessionId, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            MaxAge = TimeSpan.FromDays(7)
-        });
-        
+
+        context.HttpContext.Response.Cookies.Append(SessionManagementMiddleware.SessionCookieName, sessionId,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                MaxAge = TimeSpan.FromDays(7)
+            });
+
         context.SuppressResponseBody = true;
         context.HttpContext.Response.StatusCode = (int)HttpStatusCode.OK;
         await context.HttpContext.Response.WriteAsJsonAsync(new { message = "Login successful." });

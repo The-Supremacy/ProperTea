@@ -96,7 +96,8 @@ public static class OpenTelemetryExtensions
             builder.Services.AddOpenTelemetry().UseOtlpExporter(OtlpExportProtocol.HttpProtobuf,
                 new Uri(options.OtlpEndpoint));
 
-        var useAzureMonitorExporter = !string.IsNullOrEmpty(hostBuilder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]);
+        var useAzureMonitorExporter =
+            !string.IsNullOrEmpty(hostBuilder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]);
         if (useAzureMonitorExporter)
             builder.Services.AddOpenTelemetry().UseAzureMonitor();
 

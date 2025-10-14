@@ -23,9 +23,7 @@ public static class Register
                 var result = await userManager.CreateAsync(user, request.Password);
 
                 if (!result.Succeeded)
-                {
                     return Results.BadRequest(result.Errors);
-                }
 
                 var token = tokenService.CreateToken(user);
                 var response = new AuthResponse(user.Id, user.Email, token);

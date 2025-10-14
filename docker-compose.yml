@@ -3,7 +3,7 @@ include:
   - docker-compose.infrastructure.yml
   - docker-compose.observability.yml
 
-services:        
+services:
   identity:
     build:
       context: .

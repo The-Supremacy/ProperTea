@@ -15,22 +15,16 @@ public static class ChangePassword
             {
                 var userId = claims.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (userId is null)
-                {
                     return Results.Unauthorized();
-                }
 
                 var user = await userManager.FindByIdAsync(userId);
                 if (user is null)
-                {
                     return Results.Unauthorized();
-                }
 
                 var result = await userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
 
                 if (!result.Succeeded)
-                {
                     return Results.BadRequest(result.Errors);
-                }
 
                 return Results.Ok("Password changed successfully.");
             })

@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace ProperTea.Identity.Service.Models;
 
 public class SecurityLog

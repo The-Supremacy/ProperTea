@@ -43,16 +43,18 @@ public class TestExternalSchemeOptions : AuthenticationSchemeOptions
 {
 }
 
-public class TestExternalSchemeHandler: SignOutAuthenticationHandler<TestExternalSchemeOptions>
+public class TestExternalSchemeHandler : SignOutAuthenticationHandler<TestExternalSchemeOptions>
 {
     public const string DefaultScheme = "test_external";
     public const string TestUserId = "test_user@external.com";
-    
-    public TestExternalSchemeHandler(IOptionsMonitor<TestExternalSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
+
+    public TestExternalSchemeHandler(IOptionsMonitor<TestExternalSchemeOptions> options, ILoggerFactory logger,
+        UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
     {
     }
 
-    public TestExternalSchemeHandler(IOptionsMonitor<TestExternalSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
+    public TestExternalSchemeHandler(IOptionsMonitor<TestExternalSchemeOptions> options, ILoggerFactory logger,
+        UrlEncoder encoder) : base(options, logger, encoder)
     {
     }
 
@@ -60,7 +62,7 @@ public class TestExternalSchemeHandler: SignOutAuthenticationHandler<TestExterna
     {
         var properties = new AuthenticationProperties();
         properties.Items.Add("LoginProvider", DefaultScheme);
-        
+
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, TestUserId),
@@ -69,7 +71,7 @@ public class TestExternalSchemeHandler: SignOutAuthenticationHandler<TestExterna
         var identity = new ClaimsIdentity(claims, DefaultScheme);
         var principal = new ClaimsPrincipal(identity);
         var ticket = new AuthenticationTicket(principal, properties, DefaultScheme);
-        
+
         return Task.FromResult(AuthenticateResult.Success(ticket));
     }
 

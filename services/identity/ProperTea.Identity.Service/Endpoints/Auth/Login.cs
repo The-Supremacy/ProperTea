@@ -17,17 +17,13 @@ public static class Login
                 var user = await userManager.FindByEmailAsync(request.Email);
 
                 if (user is null)
-                {
                     return Results.Unauthorized();
-                }
 
-                var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
+                var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, true);
 
                 if (!result.Succeeded)
-                {
                     return Results.Unauthorized();
-                }
-                
+
                 user.LastLoginAt = DateTime.UtcNow;
                 await userManager.UpdateAsync(user);
 

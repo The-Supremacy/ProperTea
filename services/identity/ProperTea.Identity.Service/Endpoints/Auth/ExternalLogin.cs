@@ -12,7 +12,7 @@ public static class ExternalLogin
                 string provider,
                 [FromServices] SignInManager<ProperTeaUser> signInManager) =>
             {
-                const string redirectUrl = $"/api/auth/external/callback";
+                const string redirectUrl = "/api/auth/external/callback";
                 var properties = signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
                 return Results.Challenge(properties, [provider]);
             })

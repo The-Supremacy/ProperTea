@@ -13,12 +13,11 @@ public static class ForgotPassword
             {
                 var user = await userManager.FindByEmailAsync(request.Email);
                 if (user is null || !await userManager.IsEmailConfirmedAsync(user))
-                {
-                    return Results.Ok("If an account with this email exists and is confirmed, a password reset token has been generated.");
-                }
+                    return Results.Ok(
+                        "If an account with this email exists and is confirmed, a password reset token has been generated.");
 
                 var token = await userManager.GeneratePasswordResetTokenAsync(user);
-            
+
                 // TODO: email the token to the user using an email service
                 return Results.Ok(new { Token = token });
             })

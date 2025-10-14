@@ -21,7 +21,8 @@ builder.Services.Configure<JsonOptions>(options =>
 });
 
 // OTel.
-var otelOptions = builder.Configuration.GetSection("OpenTelemetry").Get<OpenTelemetryOptions>() ?? new OpenTelemetryOptions();
+var otelOptions = builder.Configuration.GetSection("OpenTelemetry").Get<OpenTelemetryOptions>() ??
+                  new OpenTelemetryOptions();
 builder.AddProperTelemetry(otelOptions);
 builder.Services.AddHealthChecks()
     .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!, name: "database-check");
@@ -32,7 +33,8 @@ builder.Services.AddDbContext<ProperTeaIdentityDbContext>(options =>
 
 // Identity.
 var identitySettings = builder.Configuration.GetSection("IdentitySettings")
-    .Get<IdentitySettings>() ?? new IdentitySettings();;
+    .Get<IdentitySettings>() ?? new IdentitySettings();
+;
 builder.Services.AddIdentity<ProperTeaUser, IdentityRole<Guid>>(options =>
     {
         options.Password = new PasswordOptions
@@ -43,7 +45,7 @@ builder.Services.AddIdentity<ProperTeaUser, IdentityRole<Guid>>(options =>
             RequireUppercase = identitySettings.Password.RequireUppercase,
             RequireLowercase = identitySettings.Password.RequireLowercase
         };
-        
+
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
     })
     .AddEntityFrameworkStores<ProperTeaIdentityDbContext>()
@@ -108,5 +110,7 @@ app.Run();
 // This is needed so that test can access the app.
 namespace ProperTea.Identity.Service
 {
-    public partial class Program { }
+    public class Program
+    {
+    }
 }

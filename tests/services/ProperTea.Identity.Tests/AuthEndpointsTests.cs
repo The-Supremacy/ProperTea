@@ -48,7 +48,7 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
-    
+
     [Fact]
     public async Task ChangePassword_WithInvalidToken_ReturnsUnauthorized()
     {
@@ -78,7 +78,7 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
-    
+
     [Fact]
     public async Task ChangePassword_WithValidOldPassword_ReturnsOk()
     {
@@ -118,7 +118,7 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
     {
         // Arrange
         const string email = "forgot.password.user@example.com";
-        
+
         var registrationRequest = new RegisterRequest(email, "ValidPassword123!");
         await _client.PostAsJsonAsync("/api/auth/register", registrationRequest);
         var forgotPasswordRequest = new ForgotPasswordRequest(email);
@@ -142,7 +142,7 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
-       
+
     [Fact]
     public async Task ExternalCallback_WithNonExistingUser_ReturnsUnauthorizedChallenge()
     {
@@ -150,7 +150,7 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
         // Act
         var response = await _client.GetAsync("/api/auth/external/callback");
         var response2 = await _client.GetAsync("/api/auth/external/callback");
-        
+
         // Assert
         // Check first response - must be success.
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -158,7 +158,7 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
         authResponse.ShouldNotBeNull();
         authResponse.Email.ShouldBe(TestExternalSchemeHandler.TestUserId);
         authResponse.AccessToken.ShouldNotBeNullOrEmpty();
-        
+
         // Check second response - must be success with an existing user.
         response2.StatusCode.ShouldBe(HttpStatusCode.OK);
         var authResponse2 = await response2.Content.ReadFromJsonAsync<AuthResponse>();
@@ -166,13 +166,13 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
         authResponse2.Email.ShouldBe(TestExternalSchemeHandler.TestUserId);
         authResponse2.AccessToken.ShouldNotBeNullOrEmpty();
     }
-    
+
     [Fact]
     public async Task ExternalCallback_WithNewUser_CreatesUserAndReturnsToken()
     {
         // Arrange
         const string provider = TestExternalSchemeHandler.DefaultScheme;
-        
+
         // Act
         var response = await _client.GetAsync($"/api/auth/external/{provider}");
 
@@ -185,7 +185,7 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
     {
         // Arrange
         const string email = "invalid.password@example.com";
-        
+
         var registrationRequest = new RegisterRequest(email, "ValidPassword123!");
         await _client.PostAsJsonAsync("/api/auth/register", registrationRequest);
         var loginRequest = new LoginRequest(email, "WrongPassword!");
@@ -216,7 +216,7 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
         // Arrange
         const string email = "login.user@example.com";
         const string password = "ValidPassword123!";
-        
+
         var registrationRequest = new RegisterRequest(email, password);
         await _client.PostAsJsonAsync("/api/auth/register", registrationRequest);
         var loginRequest = new LoginRequest(email, password);
@@ -238,7 +238,7 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
         // Arrange
         const string email = "reissue.user@example.com";
         const string password = "ValidPassword123!";
-        
+
         var registrationRequest = new RegisterRequest(email, password);
         await _client.PostAsJsonAsync("/api/auth/register", registrationRequest);
         var loginRequest = new LoginRequest(email, password);
@@ -264,7 +264,7 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
         // Arrange
         const string email = "invalid.reissue.user@example.com";
         const string password = "ValidPassword123!";
-        
+
         var registrationRequest = new RegisterRequest(email, password);
         await _client.PostAsJsonAsync("/api/auth/register", registrationRequest);
         var loginRequest = new LoginRequest(email, password);
@@ -293,13 +293,13 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
-    
+
     [Fact]
     public async Task Register_WithValidData_ReturnsCreatedAndToken()
     {
         // Arrange
         const string email = "test.user@example.com";
-        
+
         var request = new RegisterRequest(email, "ValidPassword123!");
 
         // Act
@@ -307,9 +307,9 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
-        
+
         var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
-        
+
         authResponse.ShouldNotBeNull();
         authResponse.Email.ShouldBe(email);
         authResponse.AccessToken.ShouldNotBeNullOrEmpty();
@@ -348,7 +348,7 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
         // as in future the reset token is to be send to email and not in the response
         using var scope = _factory.Services.CreateScope();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ProperTeaUser>>();
-        
+
         var user = new ProperTeaUser { UserName = email, Email = email, EmailConfirmed = true };
         await userManager.CreateAsync(user, oldPassword);
 

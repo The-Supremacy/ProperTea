@@ -18,33 +18,10 @@ public class IdentityServiceFactory : WebApplicationFactory<Service.Program>, IA
         .WithPassword("testpass")
         .Build();
 
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
-    {
-        builder.ConfigureTestServices(services =>
-        {
-            var descriptor = services.SingleOrDefault(d => d.ServiceType 
-                                                           == typeof(DbContextOptions<ProperTeaIdentityDbContext>));
-            if (descriptor != null)
-            {
-                services.Remove(descriptor);
-            }
-            
-            services.AddDbContext<ProperTeaIdentityDbContext>(options =>
-            {
-                options.UseNpgsql(_dbContainer.GetConnectionString());
-            });
-
-            services.AddAuthentication().AddScheme<TestExternalSchemeOptions, TestExternalSchemeHandler>(
-                TestExternalSchemeHandler.DefaultScheme, options => { });
-            
-            services.AddTransient<IAuthenticationSchemeProvider, TestSchemeProvider>();
-        });
-    }
-
     public async Task InitializeAsync()
     {
         await _dbContainer.StartAsync();
-        
+
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ProperTeaIdentityDbContext>();
         await dbContext.Database.MigrateAsync();
@@ -54,6 +31,25 @@ public class IdentityServiceFactory : WebApplicationFactory<Service.Program>, IA
     {
         await _dbContainer.StopAsync();
     }
-    
-    
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.ConfigureTestServices(services =>
+        {
+            var descriptor = services.SingleOrDefault(d => d.ServiceType
+                                                           == typeof(DbContextOptions<ProperTeaIdentityDbContext>));
+            if (descriptor != null)
+                services.Remove(descriptor);
+
+            services.AddDbContext<ProperTeaIdentityDbContext>(options =>
+            {
+                options.UseNpgsql(_dbContainer.GetConnectionString());
+            });
+
+            services.AddAuthentication().AddScheme<TestExternalSchemeOptions, TestExternalSchemeHandler>(
+                TestExternalSchemeHandler.DefaultScheme, options => { });
+
+            services.AddTransient<IAuthenticationSchemeProvider, TestSchemeProvider>();
+        });
+    }
 }

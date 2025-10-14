@@ -1,6 +1,7 @@
 # Authentication & Authorization Strategy - ProperTea MVP 1
 
 ## Table of Contents
+
 1. [Executive Summary](#executive-summary)
 2. [Architecture Overview](#architecture-overview)
 3. [Service Responsibilities](#service-responsibilities)
@@ -18,9 +19,12 @@
 
 ## Executive Summary
 
-ProperTea implements a **session-based authentication** system with **distributed authorization** across multiple BFFs (Backend for Frontend) serving different portals. The architecture prioritizes security through HTTP-only cookies, Redis-backed sessions, and fine-grained permissions managed by a dedicated PermissionService.
+ProperTea implements a **session-based authentication** system with **distributed authorization** across multiple BFFs (
+Backend for Frontend) serving different portals. The architecture prioritizes security through HTTP-only cookies,
+Redis-backed sessions, and fine-grained permissions managed by a dedicated PermissionService.
 
 ### Key Architectural Decisions
+
 - **Session-based authentication** (no refresh tokens needed)
 - **Separate BFFs** for each portal (Landlord, Tenant, Market, Support)
 - **PermissionService** manages user groups and authorization
@@ -28,6 +32,7 @@ ProperTea implements a **session-based authentication** system with **distribute
 - **Redis sessions** with HTTP-only cookies for maximum security
 
 ### Service Architecture
+
 ```
 ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
 │ Landlord Portal │   │ Tenant Portal   │   │ Market Portal   │
@@ -54,6 +59,7 @@ ProperTea implements a **session-based authentication** system with **distribute
 ## Architecture Overview
 
 ### Core Principles
+
 1. **Security First**: HTTP-only cookies, short-lived tokens, secure session management
 2. **Microservice Independence**: Each service owns its domain and permissions
 3. **Scalability**: Redis-backed sessions, stateless services, horizontal scaling
@@ -61,6 +67,7 @@ ProperTea implements a **session-based authentication** system with **distribute
 5. **Educational Value**: Demonstrates microservice patterns, event-driven architecture, security best practices
 
 ### Technology Stack
+
 - **BFF Framework**: ASP.NET Core with YARP for reverse proxy
 - **Session Store**: Redis (sessions, permissions cache, user preferences)
 - **Message Bus**: Azure Service Bus or RabbitMQ (for event choreography)
@@ -72,9 +79,11 @@ ProperTea implements a **session-based authentication** system with **distribute
 ## Service Responsibilities
 
 ### Identity Service
+
 **Purpose**: Authentication broker and JWT token management
 
 **Responsibilities**:
+
 - User authentication (username/password, MFA)
 - **External identity provider integration** (Azure Entra ID, Google, Microsoft)
 - **Identity linking and mapping** (external identities → internal users)
@@ -83,6 +92,7 @@ ProperTea implements a **session-based authentication** system with **distribute
 - User account lifecycle (create, activate, deactivate)
 
 **Key Endpoints**:
+
 - `POST /api/auth/login` - Local user authentication
 - **`GET /api/auth/external/{provider}` - Initiate external provider login**
 - **`POST /api/auth/external/callback` - Handle external provider callback**
@@ -92,6 +102,7 @@ ProperTea implements a **session-based authentication** system with **distribute
 - `POST /api/auth/reset-password` - Password reset flow (local accounts only)
 
 **Database Tables**:
+
 - `Users`: Core user identity data
 - **`ExternalLogins`: External identity provider mappings**
 - `UserLogins`: External login providers (Google, Microsoft) **[DEPRECATED - use ExternalLogins]**
@@ -99,33 +110,40 @@ ProperTea implements a **session-based authentication** system with **distribute
 - `SecurityLogs`: Authentication attempts and security events
 
 ### Organization Service
+
 **Purpose**: Organizational structure and user-organization relationships
 
 **Responsibilities**:
+
 - Organization CRUD operations
 - User-organization relationship management
 - Organization approval workflow (new org → pending → approved)
 - Publishing events for organization lifecycle
 
 **Key Endpoints**:
+
 - `POST /api/organizations` - Create new organization
 - `GET /api/organizations/{orgId}/users` - List organization members
 - `POST /api/organizations/{orgId}/users/{userId}` - Add user to organization
 - `GET /api/organizations/by-subdomain/{subdomain}` - Resolve org from subdomain
 
 **Database Tables**:
+
 - `Organizations`: Organization master data
 - `UserOrganizations`: User membership in organizations
 - `OrganizationSettings`: Configuration per organization
 
 **Events Published**:
+
 - `OrganizationCreated`: Triggers default group seeding
 - `UserAddedToOrganization`: Triggers welcome email, audit logging
 
 ### Permission Service
+
 **Purpose**: Authorization, user groups, and permission management
 
 **Responsibilities**:
+
 - User group management (CRUD, membership)
 - Permission definition caching (from domain services)
 - Group-permission assignments
@@ -133,6 +151,7 @@ ProperTea implements a **session-based authentication** system with **distribute
 - Default group seeding (event handler)
 
 **Key Endpoints**:
+
 - `GET /api/permissions/definitions/all` - All available permissions
 - `POST /api/permissions/definitions/refresh` - Force refresh from services
 - `GET /api/permissions/groups?orgId={orgId}` - List groups in organization
@@ -142,18 +161,22 @@ ProperTea implements a **session-based authentication** system with **distribute
 - `GET /api/permissions/check?userId={}&orgId={}&permission={}` - Authorization check
 
 **Database Tables**:
+
 - `Groups`: User groups scoped by organization
 - `GroupMembers`: User membership in groups
 - `GroupPermissions`: Permission assignments to groups
 - `PermissionCache`: Cached permission definitions from services (Redis)
 
 **Events Subscribed**:
+
 - `OrganizationCreated`: Seeds default groups with recommended permissions
 
 ### BFF Services (Landlord, Tenant, Market, Support)
+
 **Purpose**: Portal-specific gateway, session management, and request aggregation
 
 **Responsibilities**:
+
 - JWT enrichment (subdomain → org context → user groups)
 - Session management (Redis-backed with HTTP-only cookies)
 - Request routing and aggregation
@@ -161,6 +184,7 @@ ProperTea implements a **session-based authentication** system with **distribute
 - Authentication middleware (token validation and refresh)
 
 **Session Structure**:
+
 ```json
 {
   "sessionId": "abc123",
@@ -178,15 +202,18 @@ ProperTea implements a **session-based authentication** system with **distribute
 ```
 
 ### Domain Services (Company, Lease, Contact, etc.)
+
 **Purpose**: Business logic and domain-specific operations
 
 **Responsibilities**:
+
 - Domain business logic
 - Expose permission metadata endpoints
 - Query PermissionService for authorization
 - Data persistence and validation
 
 **Standard Endpoints**:
+
 - `GET /api/permissions/metadata` - Service-owned permission definitions
 - `GET /api/permissions/default-groups` - Recommended group-permission mappings
 
@@ -342,6 +369,7 @@ sequenceDiagram
 ### Permission Model
 
 **Two-Level Authorization**:
+
 1. **Organization/Company Level**: Handled by PermissionService (cached, cross-service)
 2. **Resource-Specific Level**: Handled by individual domain services
 
@@ -515,14 +543,17 @@ public class BffMiddlewarePipeline
 ### Session Lifecycle
 
 **Creation**:
+
 - User authenticates → BFF creates session in Redis with 7-day TTL
 - Session ID stored in HTTP-only cookie
 
 **Maintenance**:
+
 - Every request → BFF extends session TTL (sliding expiration disabled for MVP 1)
 - Token expiring in <2 minutes → BFF proactively refreshes from Identity Service
 
 **Termination**:
+
 - User logout → BFF deletes Redis session + clears cookie
 - Session TTL expires → automatic cleanup
 - Admin revocation → BFF deletes specific session(s)
@@ -542,6 +573,7 @@ User tracking:
 ```
 
 **Admin can revoke individual sessions**:
+
 ```csharp
 public async Task RevokeSessionAsync(string userId, string sessionId)
 {
@@ -733,6 +765,7 @@ CREATE INDEX idx_group_permissions_permission ON GroupPermissions(PermissionId);
 ### Identity Service
 
 #### POST /api/auth/login
+
 ```json
 // Request
 {
@@ -759,6 +792,7 @@ CREATE INDEX idx_group_permissions_permission ON GroupPermissions(PermissionId);
 ```
 
 #### POST /api/auth/reissue
+
 ```json
 // Request (from BFF only)
 {
@@ -779,6 +813,7 @@ CREATE INDEX idx_group_permissions_permission ON GroupPermissions(PermissionId);
 ```
 
 #### GET /api/auth/external/{provider}
+
 ```http
 GET /api/auth/external/google
 
@@ -793,6 +828,7 @@ Location: https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client
 ```
 
 #### POST /api/auth/external/callback
+
 ```json
 // Request (from external provider)
 {
@@ -819,6 +855,7 @@ Location: https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client
 ```
 
 #### POST /api/auth/link-external
+
 ```json
 // Request
 {
@@ -842,6 +879,7 @@ Location: https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client
 ### Permission Service
 
 #### GET /api/permissions/check
+
 ```http
 GET /api/permissions/check?userId=alice123&orgId=org123&permission=company.create
 
@@ -859,6 +897,7 @@ GET /api/permissions/check?userId=alice123&orgId=org123&permission=company.creat
 ```
 
 #### POST /api/permissions/groups/{groupId}/assignments
+
 ```json
 // Request
 {
@@ -890,6 +929,7 @@ GET /api/permissions/check?userId=alice123&orgId=org123&permission=company.creat
 ### Organization Service
 
 #### GET /api/organizations/by-subdomain/{subdomain}
+
 ```http
 GET /api/organizations/by-subdomain/acme
 
@@ -916,38 +956,38 @@ GET /api/organizations/by-subdomain/acme
 ### Authentication Security
 
 1. **Password Security**:
-   - Minimum 8 characters, complexity requirements
-   - BCrypt hashing with salt (cost factor 12+)
-   - Account lockout after 5 failed attempts (30-minute lockout)
+    - Minimum 8 characters, complexity requirements
+    - BCrypt hashing with salt (cost factor 12+)
+    - Account lockout after 5 failed attempts (30-minute lockout)
 
 2. **Session Security**:
-   - HTTP-only cookies with Secure and SameSite flags
-   - Session rotation on privilege escalation
-   - Device fingerprinting for session validation
+    - HTTP-only cookies with Secure and SameSite flags
+    - Session rotation on privilege escalation
+    - Device fingerprinting for session validation
 
 3. **Token Security**:
-   - Short-lived access tokens (15 minutes)
-   - No refresh tokens (session-based architecture)
-   - JWT signature validation on every request
+    - Short-lived access tokens (15 minutes)
+    - No refresh tokens (session-based architecture)
+    - JWT signature validation on every request
 
 ### Authorization Security
 
 1. **Permission Validation**:
-   - All permissions validated against cached definitions
-   - Resource-level authorization in domain services
-   - Audit logging for all permission checks
+    - All permissions validated against cached definitions
+    - Resource-level authorization in domain services
+    - Audit logging for all permission checks
 
 2. **Group Management**:
-   - Only organization admins can modify groups
-   - Default groups provide sensible permission baselines
-   - Permission assignments logged for audit
+    - Only organization admins can modify groups
+    - Default groups provide sensible permission baselines
+    - Permission assignments logged for audit
 
 ### Network Security
 
 1. **TLS/HTTPS**:
-   - TLS 1.3 minimum
-   - HTTP Strict Transport Security (HSTS)
-   - Certificate pinning for service-to-service communication
+    - TLS 1.3 minimum
+    - HTTP Strict Transport Security (HSTS)
+    - Certificate pinning for service-to-service communication
 
 2. **CORS Configuration**:
    ```csharp
@@ -965,63 +1005,70 @@ GET /api/organizations/by-subdomain/acme
    ```
 
 3. **Rate Limiting**:
-   - Authentication endpoints: 5 requests/minute per IP
-   - API endpoints: 100 requests/minute per user
-   - Admin endpoints: 10 requests/minute per user
+    - Authentication endpoints: 5 requests/minute per IP
+    - API endpoints: 100 requests/minute per user
+    - Admin endpoints: 10 requests/minute per user
 
 ### Data Protection
 
 1. **GDPR Compliance**:
-   - Separate Contact Service for PII
-   - Right to be forgotten implementation
-   - Data processing audit logs
+    - Separate Contact Service for PII
+    - Right to be forgotten implementation
+    - Data processing audit logs
 
 2. **Encryption**:
-   - Data at rest: PostgreSQL TDE
-   - Data in transit: TLS 1.3
-   - Application secrets: Azure Key Vault
+    - Data at rest: PostgreSQL TDE
+    - Data in transit: TLS 1.3
+    - Application secrets: Azure Key Vault
 
 ---
 
 ## Implementation Roadmap
 
 ### Phase 1: Core Authentication (Weeks 1-2)
+
 - [ ] Identity Service implementation
 - [ ] Basic JWT token issuance and validation
 - [ ] User registration and login flows
 - [ ] Password reset functionality
 
 ### Phase 2: Session Management (Weeks 3-4)
+
 - [ ] BFF session middleware implementation
 - [ ] Redis session store configuration
 - [ ] Secure cookie implementation
 - [ ] Token refresh automation
 
 ### Phase 3: Authorization Foundation (Weeks 5-6)
+
 - [ ] Permission Service implementation
 - [ ] Organization Service implementation
 - [ ] Basic group and permission management
 - [ ] Event-driven organization creation
 
 ### Phase 4: BFF Integration (Weeks 7-8)
+
 - [ ] JWT enrichment logic
 - [ ] Subdomain-to-organization resolution
 - [ ] Multi-device session support
 - [ ] User preference management
 
 ### Phase 5: Portal Implementation (Weeks 9-12)
+
 - [ ] Landlord BFF and portal
 - [ ] Tenant BFF and portal
 - [ ] Market BFF and portal
 - [ ] Default group seeding
 
 ### Phase 6: Security Hardening (Weeks 13-14)
+
 - [ ] Security headers implementation
 - [ ] Rate limiting configuration
 - [ ] Audit logging system
 - [ ] Penetration testing and fixes
 
 ### Phase 7: Production Preparation (Weeks 15-16)
+
 - [ ] Performance optimization
 - [ ] Monitoring and alerting
 - [ ] Documentation completion
@@ -1031,9 +1078,12 @@ GET /api/organizations/by-subdomain/acme
 
 ## Conclusion
 
-This architecture provides a secure, scalable foundation for ProperTea's multi-portal authentication and authorization system. The session-based approach eliminates the complexity of refresh tokens while maintaining security through HTTP-only cookies and Redis-backed sessions.
+This architecture provides a secure, scalable foundation for ProperTea's multi-portal authentication and authorization
+system. The session-based approach eliminates the complexity of refresh tokens while maintaining security through
+HTTP-only cookies and Redis-backed sessions.
 
 Key benefits:
+
 - **Security**: Maximum protection against XSS, CSRF, and token theft
 - **Scalability**: Redis sessions, stateless services, and horizontal scaling
 - **Maintainability**: Clear service boundaries and event-driven interactions
@@ -1048,6 +1098,7 @@ The implementation roadmap provides a clear path from basic authentication to a 
 **Purpose**: Authentication broker using ASP.NET Core Identity
 
 **.NET Identity Integration**:
+
 - Uses `IdentityUser` as base for user entities
 - Leverages built-in `UserManager<T>` and `SignInManager<T>`
 - Native support for external providers (Google, Microsoft, Azure Entra ID)

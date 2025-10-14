@@ -68,13 +68,13 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
         sessionCookie.ShouldContain("HttpOnly");
         sessionCookie.ShouldContain("Secure");
     }
-    
+
     [Fact]
     public async Task Login_WithMalformedIdentityResponse_ReturnsInternalServerError()
     {
         // Arrange
         var loginRequest = new { email = "test@example.com", password = "ValidPassword123!" };
-        
+
         var malformedAuthResponse = new
         {
             user = new
@@ -83,7 +83,7 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
                 email = "test@example.com"
             }
         };
-        
+
         _factory.IdentityServiceMock
             .Given(Request.Create().WithPath("/api/auth/login").UsingPost())
             .RespondWith(Response.Create()
@@ -97,13 +97,13 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         response.Headers.TryGetValues("Set-Cookie", out _).ShouldBeFalse();
     }
-    
+
     [Fact]
     public async Task Logout_WithActiveSession_DeletesSessionCookie()
     {
         // Arrange
         var jwtString = CreateJwt(TimeSpan.FromMinutes(10));
-        
+
         var loginRequest = new { email = "test@example.com", password = "ValidPassword123!" };
         var authResponse = new
         {
@@ -128,19 +128,20 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
 
         // Assert
         logoutResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
-        
+
         logoutResponse.Headers.TryGetValues("Set-Cookie", out var expiredCookies).ShouldBeTrue();
-        var expiredCookie = expiredCookies!.FirstOrDefault(c => c.StartsWith(SessionManagementMiddleware.SessionCookieName));
+        var expiredCookie =
+            expiredCookies!.FirstOrDefault(c => c.StartsWith(SessionManagementMiddleware.SessionCookieName));
         expiredCookie.ShouldNotBeNull();
         expiredCookie.ShouldContain("expires=Thu, 01 Jan 1970"); // The standard way to expire a cookie.
     }
-    
+
     [Fact]
     public async Task SessionMiddleware_WhenTokenIsExpiring_ReissuesTokenSuccessfully()
     {
         // Arrange
-        var expiringJwt = CreateJwt(expiresIn: TimeSpan.FromMinutes(1));
-        var reissuedJwt = CreateJwt(expiresIn: TimeSpan.FromMinutes(10));
+        var expiringJwt = CreateJwt(TimeSpan.FromMinutes(1));
+        var reissuedJwt = CreateJwt(TimeSpan.FromMinutes(10));
 
         _factory.IdentityServiceMock
             .Given(Request.Create().WithPath("/api/auth/login").UsingPost())
@@ -163,7 +164,7 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
             "/api/auth/login", new { email = "test@example.com", password = "ValidPassword123!" });
         loginResponse.Headers.TryGetValues("Set-Cookie", out var cookies).ShouldBeTrue();
         var sessionCookie = cookies!.First(c => c.StartsWith(SessionManagementMiddleware.SessionCookieName));
-    
+
         // Act    
         var protectedRequest = new HttpRequestMessage(HttpMethod.Get, "/api/auth/protected");
         protectedRequest.Headers.Add("Cookie", sessionCookie);
@@ -171,13 +172,13 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
 
         // Assert
         protectedResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
-        
+
         var reissueRequests = _factory.IdentityServiceMock.FindLogEntries(
             Request.Create().WithPath("/api/auth/reissue").UsingPost()
         );
         reissueRequests.Count().ShouldBe(1);
     }
-    
+
     [Fact]
     public async Task SessionMiddleware_WithInvalidSessionId_ClearsCookieAndReturnsUnauthorized()
     {
@@ -194,27 +195,28 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
         response.Headers.TryGetValues("Set-Cookie", out var expiredCookies).ShouldBeTrue();
-        var expiredCookie = expiredCookies!.FirstOrDefault(c => c.StartsWith(SessionManagementMiddleware.SessionCookieName));
+        var expiredCookie =
+            expiredCookies!.FirstOrDefault(c => c.StartsWith(SessionManagementMiddleware.SessionCookieName));
         expiredCookie.ShouldNotBeNull();
         expiredCookie.ShouldContain("expires=Thu, 01 Jan 1970");
     }
-    
+
     [Fact]
     public async Task SessionMiddleware_WhenReissueFails_UsesOldToken()
     {
         // Arrange
-        var expiringJwt = CreateJwt(expiresIn: TimeSpan.FromMinutes(1));
-        
+        var expiringJwt = CreateJwt(TimeSpan.FromMinutes(1));
+
         _factory.IdentityServiceMock
             .Given(Request.Create().WithPath("/api/auth/login").UsingPost())
             .RespondWith(Response.Create()
                 .WithStatusCode(HttpStatusCode.OK)
                 .WithBodyAsJson(new { accessToken = expiringJwt, user = new { id = Guid.NewGuid().ToString() } }));
-        
+
         _factory.IdentityServiceMock
             .Given(Request.Create().WithPath("/api/auth/reissue").UsingPost())
             .RespondWith(Response.Create().WithStatusCode(HttpStatusCode.InternalServerError));
-        
+
         _factory.IdentityServiceMock
             .Given(Request.Create().WithPath("/api/auth/protected").UsingGet()
                 .WithHeader("Authorization", $"Bearer {expiringJwt}"))
@@ -224,7 +226,7 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
             "/api/auth/login", new { email = "test@example.com", password = "ValidPassword123!" });
         loginResponse.Headers.TryGetValues("Set-Cookie", out var cookies).ShouldBeTrue();
         var sessionCookie = cookies!.First(c => c.StartsWith(SessionManagementMiddleware.SessionCookieName));
- 
+
         // Act       
         var protectedRequest = new HttpRequestMessage(HttpMethod.Get, "/api/auth/protected");
         protectedRequest.Headers.Add("Cookie", sessionCookie);
@@ -232,30 +234,30 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
 
         // Assert
         protectedResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
-        
+
         var reissueRequests = _factory.IdentityServiceMock.FindLogEntries(
             Request.Create().WithPath("/api/auth/reissue").UsingPost()
         );
         reissueRequests.Count().ShouldBe(1);
     }
-    
+
     [Fact]
     public async Task SessionMiddleware_WithValidSession_ForwardsAuthorizationHeader()
     {
         // Arrange
-        var jwt = CreateJwt(expiresIn: TimeSpan.FromMinutes(10));
-        
+        var jwt = CreateJwt(TimeSpan.FromMinutes(10));
+
         _factory.IdentityServiceMock
             .Given(Request.Create().WithPath("/api/auth/login").UsingPost())
             .RespondWith(Response.Create()
                 .WithStatusCode(HttpStatusCode.OK)
                 .WithBodyAsJson(new { accessToken = jwt, user = new { id = Guid.NewGuid().ToString() } }));
-        
+
         _factory.IdentityServiceMock
             .Given(Request.Create().WithPath("/api/auth/some-protected-resource").UsingGet()
                 .WithHeader("Authorization", $"Bearer {jwt}"))
             .RespondWith(Response.Create().WithStatusCode(HttpStatusCode.OK));
-        
+
         var loginResponse = await _client.PostAsJsonAsync(
             "/api/auth/login", new { email = "test@example.com", password = "ValidPassword123!" });
         loginResponse.Headers.TryGetValues("Set-Cookie", out var cookies).ShouldBeTrue();
@@ -269,7 +271,7 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
         // Assert
         protectedResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
-    
+
     private static string CreateJwt(TimeSpan expiresIn)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -278,7 +280,8 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
         {
             Subject = new ClaimsIdentity(new[] { new Claim("sub", Guid.NewGuid().ToString()) }),
             Expires = DateTime.UtcNow.Add(expiresIn),
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            SigningCredentials =
+                new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);

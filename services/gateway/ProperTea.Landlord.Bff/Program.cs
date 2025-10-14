@@ -44,9 +44,7 @@ builder.Services.AddHttpClient<IIdentityService, IdentityService>(client =>
 {
     var baseAddress = builder.Configuration.GetValue<string>("ServiceEndpoints:Identity");
     if (string.IsNullOrEmpty(baseAddress))
-    {
         throw new InvalidOperationException("Identity service endpoint is not configured.");
-    }
     client.BaseAddress = new Uri(baseAddress);
 });
 
@@ -66,5 +64,7 @@ app.Run();
 // This is needed so that test can access the app.
 namespace ProperTea.Landlord.Bff
 {
-    public partial class Program { }
+    public class Program
+    {
+    }
 }
