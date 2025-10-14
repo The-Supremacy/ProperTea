@@ -30,7 +30,7 @@ public static class OpenTelemetryExtensions
             .ConfigureResource(resource => resource.AddService(appName))
             .AddTracing(options, appName)
             .AddMetrics(options)
-            .AddOpenTelemetryExporters(options);
+            .AddOpenTelemetryExporters(builder, options);
 
         return builder;
     }
@@ -88,6 +88,7 @@ public static class OpenTelemetryExtensions
 
     private static OpenTelemetryBuilder AddOpenTelemetryExporters(
         this OpenTelemetryBuilder builder,
+        IHostApplicationBuilder hostBuilder,
         OpenTelemetryOptions options)
     {
         var useOtlpExporter = !string.IsNullOrWhiteSpace(options.OtlpEndpoint);
@@ -95,10 +96,9 @@ public static class OpenTelemetryExtensions
             builder.Services.AddOpenTelemetry().UseOtlpExporter(OtlpExportProtocol.HttpProtobuf,
                 new Uri(options.OtlpEndpoint));
 
-        var useAzureMonitorExporter = !string.IsNullOrEmpty(options.ApplicationInsightsConnectionString);
+        var useAzureMonitorExporter = !string.IsNullOrEmpty(hostBuilder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]);
         if (useAzureMonitorExporter)
-            builder.Services.AddOpenTelemetry().UseAzureMonitor(o
-                => o.ConnectionString = options.ApplicationInsightsConnectionString);
+            builder.Services.AddOpenTelemetry().UseAzureMonitor();
 
         return builder;
     }

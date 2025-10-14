@@ -3,25 +3,28 @@ include:
   - docker-compose.infrastructure.yml
   - docker-compose.observability.yml
 
-services:
-  gateway:
+services:        
+  identity:
     build:
       context: .
-      dockerfile: services/gateway/ProperTea.Gateway/Dockerfile
-    container_name: propertea-gateway
+      dockerfile: services/identity/ProperTea.Identity.Service/Dockerfile
+    container_name: propertea-identity
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=propertea_identity;Username=propertea;Password=dev-password-change-in-prod
     ports:
       - "5000:80"
-      - "5001:443"
     networks:
       - propertea-network
+    depends_on:
+      postgres:
+        condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.gateway.rule=Host(`gateway.propertea.dev`)"
-      - "traefik.http.routers.gateway.entrypoints=websecure"
-      - "traefik.http.routers.gateway.tls=true"
+      - "traefik.http.routers.identity.rule=Host(`identity.propertea.dev`)"
+      - "traefik.http.routers.identity.entrypoints=websecure"
+      - "traefik.http.routers.identity.tls=true"
 
 networks:
   propertea-network:

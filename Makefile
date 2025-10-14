@@ -16,7 +16,7 @@ TLS_DOMAINS := 	traefik.propertea.dev \
 				jaeger.propertea.dev \
 				prometheus.propertea.dev \
 				grafana.propertea.dev \
-				gateway.propertea.dev
+				identity.propertea.dev
 
 # Docker resources
 NETWORK_NAME := propertea-network

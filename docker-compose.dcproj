@@ -10,10 +10,10 @@
         <None Include="docker-compose.yml"/>
         <None Include="docker-compose.infrastructure.yml"/>
         <None Include="docker-compose.observability.yml"/>
-        <None Include=".dockerignore"/>
     </ItemGroup>
     <ItemGroup>
         <Content Include="docker-compose.shared.yml"/>
+        <Content Include="docs\authentication-authorization-strategy.md" />
         <Content Include="Makefile"/>
         <Content Include="observability\grafana\dashboards\dashboards.yml"/>
         <Content Include="observability\grafana\datasources\datasources.yml"/>
