@@ -11,7 +11,6 @@ using WireMock.ResponseBuilders;
 
 namespace ProperTea.Landlord.Bff.Tests;
 
-[Collection("Sequential")]
 public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDisposable
 {
     private readonly HttpClient _client;
@@ -46,7 +45,7 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
 
         // Configure the mock Identity service to return a successful response
         _factory.IdentityServiceMock
-            .Given(Request.Create().WithPath("/api/auth/login").UsingPost())
+            .Given(Request.Create().WithPath("/api/token/login").UsingPost())
             .RespondWith(Response.Create()
                 .WithStatusCode(HttpStatusCode.OK)
                 .WithBodyAsJson(authResponse));
@@ -85,7 +84,7 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
         };
 
         _factory.IdentityServiceMock
-            .Given(Request.Create().WithPath("/api/auth/login").UsingPost())
+            .Given(Request.Create().WithPath("/api/token/login").UsingPost())
             .RespondWith(Response.Create()
                 .WithStatusCode(HttpStatusCode.OK)
                 .WithBodyAsJson(malformedAuthResponse));
@@ -112,7 +111,7 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
         };
 
         _factory.IdentityServiceMock
-            .Given(Request.Create().WithPath("/api/auth/login").UsingPost())
+            .Given(Request.Create().WithPath("/api/token/login").UsingPost())
             .RespondWith(Response.Create()
                 .WithStatusCode(HttpStatusCode.OK)
                 .WithBodyAsJson(authResponse));
@@ -122,7 +121,7 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
         var sessionCookie = cookies!.First(c => c.StartsWith(SessionManagementMiddleware.SessionCookieName));
 
         // Act
-        var logoutRequest = new HttpRequestMessage(HttpMethod.Post, "/api/logout");
+        var logoutRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout");
         logoutRequest.Headers.Add("Cookie", sessionCookie);
         var logoutResponse = await _client.SendAsync(logoutRequest);
 
@@ -144,13 +143,13 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
         var reissuedJwt = CreateJwt(TimeSpan.FromMinutes(10));
 
         _factory.IdentityServiceMock
-            .Given(Request.Create().WithPath("/api/auth/login").UsingPost())
+            .Given(Request.Create().WithPath("/api/token/login").UsingPost())
             .RespondWith(Response.Create()
                 .WithStatusCode(HttpStatusCode.OK)
                 .WithBodyAsJson(new { accessToken = expiringJwt, user = new { id = Guid.NewGuid().ToString() } }));
 
         _factory.IdentityServiceMock
-            .Given(Request.Create().WithPath("/api/auth/reissue").UsingPost())
+            .Given(Request.Create().WithPath("/api/token/reissue").UsingPost())
             .RespondWith(Response.Create()
                 .WithStatusCode(HttpStatusCode.OK)
                 .WithBodyAsJson(new { accessToken = reissuedJwt }));
@@ -174,7 +173,7 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
         protectedResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
 
         var reissueRequests = _factory.IdentityServiceMock.FindLogEntries(
-            Request.Create().WithPath("/api/auth/reissue").UsingPost()
+            Request.Create().WithPath("/api/token/reissue").UsingPost()
         );
         reissueRequests.Count().ShouldBe(1);
     }
@@ -208,13 +207,13 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
         var expiringJwt = CreateJwt(TimeSpan.FromMinutes(1));
 
         _factory.IdentityServiceMock
-            .Given(Request.Create().WithPath("/api/auth/login").UsingPost())
+            .Given(Request.Create().WithPath("/api/token/login").UsingPost())
             .RespondWith(Response.Create()
                 .WithStatusCode(HttpStatusCode.OK)
                 .WithBodyAsJson(new { accessToken = expiringJwt, user = new { id = Guid.NewGuid().ToString() } }));
 
         _factory.IdentityServiceMock
-            .Given(Request.Create().WithPath("/api/auth/reissue").UsingPost())
+            .Given(Request.Create().WithPath("/api/token/reissue").UsingPost())
             .RespondWith(Response.Create().WithStatusCode(HttpStatusCode.InternalServerError));
 
         _factory.IdentityServiceMock
@@ -236,7 +235,7 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
         protectedResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
 
         var reissueRequests = _factory.IdentityServiceMock.FindLogEntries(
-            Request.Create().WithPath("/api/auth/reissue").UsingPost()
+            Request.Create().WithPath("/api/token/reissue").UsingPost()
         );
         reissueRequests.Count().ShouldBe(1);
     }
@@ -248,7 +247,7 @@ public class AuthEndpointsTests : IClassFixture<LandlordBffServiceFactory>, IDis
         var jwt = CreateJwt(TimeSpan.FromMinutes(10));
 
         _factory.IdentityServiceMock
-            .Given(Request.Create().WithPath("/api/auth/login").UsingPost())
+            .Given(Request.Create().WithPath("/api/token/login").UsingPost())
             .RespondWith(Response.Create()
                 .WithStatusCode(HttpStatusCode.OK)
                 .WithBodyAsJson(new { accessToken = jwt, user = new { id = Guid.NewGuid().ToString() } }));

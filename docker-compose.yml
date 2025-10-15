@@ -25,6 +25,28 @@ services:
       - "traefik.http.routers.identity.rule=Host(`identity.propertea.dev`)"
       - "traefik.http.routers.identity.entrypoints=websecure"
       - "traefik.http.routers.identity.tls=true"
+        
+  landlord-bff:
+    build:
+      context: .
+      dockerfile: services/gateway/ProperTea.Landlord.Bff/Dockerfile
+    container_name: propertea-landlord-bff
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__Redis=redis:6379
+    ports:
+      - "5050:80"
+    networks:
+      - propertea-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.identity.rule=Host(`loadlord-bff.propertea.dev`)"
+      - "traefik.http.routers.identity.entrypoints=websecure"
+      - "traefik.http.routers.identity.tls=true"
 
 networks:
   propertea-network:

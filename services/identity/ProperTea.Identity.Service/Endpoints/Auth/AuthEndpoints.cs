@@ -7,10 +7,6 @@ public static class AuthEndpoints
         var group = app.MapGroup("api/auth");
 
         group.MapRegisterEndpoint();
-        group.MapLoginEndpoint();
-        group.MapReissueEndpoint();
-        group.MapExternalLoginEndpoint();
-        group.MapExternalCallbackEndpoint();
         group.MapForgotPasswordEndpoint();
         group.MapResetPasswordEndpoint();
         group.MapChangePasswordEndpoint();

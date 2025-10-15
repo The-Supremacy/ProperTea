@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ProperTea.Identity.Service.Models;
 
-namespace ProperTea.Identity.Service.Endpoints.Auth;
+namespace ProperTea.Identity.Service.Endpoints.Token;
 
 public static class ExternalLogin
 {

@@ -10,6 +10,7 @@ using ProperTea.Identity.Service.Data;
 using ProperTea.Identity.Service.Endpoints;
 using ProperTea.Identity.Service.Models;
 using ProperTea.Identity.Service.Services;
+using ProperTea.ProperErrorHandling;
 using ProperTea.ProperTelemetry;
 using Scalar.AspNetCore;
 
@@ -19,6 +20,8 @@ builder.Services.Configure<JsonOptions>(options =>
 {
     options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 });
+
+builder.AddProperGlobalErrorHandling();
 
 // OTel.
 var otelOptions = builder.Configuration.GetSection("OpenTelemetry").Get<OpenTelemetryOptions>() ??
@@ -96,6 +99,7 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
+app.UseProperGlobalErrorHandling();
 app.MapProperTelemetryEndpoints();
 
 app.UseRouting();

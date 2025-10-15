@@ -1,9 +1,10 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
+using ProperTea.Identity.Service.DTOs;
 using ProperTea.Identity.Service.Models;
 using ProperTea.Identity.Service.Services;
 
-namespace ProperTea.Identity.Service.Endpoints.Auth;
+namespace ProperTea.Identity.Service.Endpoints.Token;
 
 public static class ExternalCallback
 {

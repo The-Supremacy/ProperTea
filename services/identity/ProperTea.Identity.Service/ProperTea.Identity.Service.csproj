@@ -34,6 +34,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\shared\ProperTea.ProperErrorHandling\ProperTea.ProperErrorHandling.csproj" />
         <ProjectReference Include="..\..\shared\ProperTea.ProperTelemetry\ProperTea.ProperTelemetry.csproj"/>
     </ItemGroup>
 

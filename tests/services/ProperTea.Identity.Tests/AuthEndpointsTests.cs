@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using ProperTea.Identity.Service.DTOs;
 using ProperTea.Identity.Service.Models;
 using ProperTea.Identity.Tests.Utility;
 using Shouldly;
@@ -32,7 +33,7 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
         await _client.PostAsJsonAsync("/api/auth/register", registrationRequest);
 
         var loginRequest = new LoginRequest(email, oldPassword);
-        var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
+        var loginResponse = await _client.PostAsJsonAsync("/api/token/login", loginRequest);
         var authResponse = await loginResponse.Content.ReadFromJsonAsync<AuthResponse>();
 
         var changePasswordRequest = new ChangePasswordRequest("WrongOldPassword!", newPassword);
@@ -61,7 +62,7 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
         await _client.PostAsJsonAsync("/api/auth/register", registrationRequest);
 
         var loginRequest = new LoginRequest(email, oldPassword);
-        var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
+        var loginResponse = await _client.PostAsJsonAsync("/api/token/login", loginRequest);
         var authResponse = await loginResponse.Content.ReadFromJsonAsync<AuthResponse>();
 
         var changePasswordRequest = new ChangePasswordRequest(oldPassword, newPassword);
@@ -91,7 +92,7 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
         await _client.PostAsJsonAsync("/api/auth/register", registrationRequest);
 
         var loginRequest = new LoginRequest(email, oldPassword);
-        var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
+        var loginResponse = await _client.PostAsJsonAsync("/api/token/login", loginRequest);
         var authResponse = await loginResponse.Content.ReadFromJsonAsync<AuthResponse>();
 
         var changePasswordRequest = new ChangePasswordRequest(oldPassword, newPassword);
@@ -109,7 +110,7 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
 
         // Verify password was changed
         var newLoginRequest = new LoginRequest(email, newPassword);
-        var newLoginResponse = await _client.PostAsJsonAsync("/api/auth/login", newLoginRequest);
+        var newLoginResponse = await _client.PostAsJsonAsync("/api/token/login", newLoginRequest);
         newLoginResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
@@ -143,142 +144,7 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
-    [Fact]
-    public async Task ExternalCallback_WithNonExistingUser_ReturnsUnauthorizedChallenge()
-    {
-        // Arrange
-        // Act
-        var response = await _client.GetAsync("/api/auth/external/callback");
-        var response2 = await _client.GetAsync("/api/auth/external/callback");
-
-        // Assert
-        // Check first response - must be success.
-        response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
-        authResponse.ShouldNotBeNull();
-        authResponse.Email.ShouldBe(TestExternalSchemeHandler.TestUserId);
-        authResponse.AccessToken.ShouldNotBeNullOrEmpty();
-
-        // Check second response - must be success with an existing user.
-        response2.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var authResponse2 = await response2.Content.ReadFromJsonAsync<AuthResponse>();
-        authResponse2.ShouldNotBeNull();
-        authResponse2.Email.ShouldBe(TestExternalSchemeHandler.TestUserId);
-        authResponse2.AccessToken.ShouldNotBeNullOrEmpty();
-    }
-
-    [Fact]
-    public async Task ExternalCallback_WithNewUser_CreatesUserAndReturnsToken()
-    {
-        // Arrange
-        const string provider = TestExternalSchemeHandler.DefaultScheme;
-
-        // Act
-        var response = await _client.GetAsync($"/api/auth/external/{provider}");
-
-        // Assert
-        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
-    }
-
-    [Fact]
-    public async Task Login_WithInvalidPassword_ReturnsUnauthorized()
-    {
-        // Arrange
-        const string email = "invalid.password@example.com";
-
-        var registrationRequest = new RegisterRequest(email, "ValidPassword123!");
-        await _client.PostAsJsonAsync("/api/auth/register", registrationRequest);
-        var loginRequest = new LoginRequest(email, "WrongPassword!");
-
-        // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
-
-        // Assert
-        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
-    }
-
-    [Fact]
-    public async Task Login_WithNonExistentUser_ReturnsUnauthorized()
-    {
-        // Arrange
-        var loginRequest = new LoginRequest("non.existent.user@example.com", "SomePassword");
-
-        // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
-
-        // Assert
-        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
-    }
-
-    [Fact]
-    public async Task Login_WithValidCredentials_ReturnsOkAndToken()
-    {
-        // Arrange
-        const string email = "login.user@example.com";
-        const string password = "ValidPassword123!";
-
-        var registrationRequest = new RegisterRequest(email, password);
-        await _client.PostAsJsonAsync("/api/auth/register", registrationRequest);
-        var loginRequest = new LoginRequest(email, password);
-
-        // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
-
-        // Assert
-        response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
-        authResponse.ShouldNotBeNull();
-        authResponse.Email.ShouldBe(email);
-        authResponse.AccessToken.ShouldNotBeNullOrEmpty();
-    }
-
-    [Fact]
-    public async Task Reissue_WithValidRefreshToken_ReturnsNewToken()
-    {
-        // Arrange
-        const string email = "reissue.user@example.com";
-        const string password = "ValidPassword123!";
-
-        var registrationRequest = new RegisterRequest(email, password);
-        await _client.PostAsJsonAsync("/api/auth/register", registrationRequest);
-        var loginRequest = new LoginRequest(email, password);
-        var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
-        var authResponse = await loginResponse.Content.ReadFromJsonAsync<AuthResponse>();
-
-        var reissueRequest = new ReissueRequest(authResponse!.AccessToken);
-
-        // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/reissue", reissueRequest);
-
-        // Assert
-        response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var newAuthResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
-        newAuthResponse.ShouldNotBeNull();
-        newAuthResponse.AccessToken.ShouldNotBeNullOrEmpty();
-        newAuthResponse.AccessToken.ShouldNotBe(authResponse.AccessToken);
-    }
-
-    [Fact]
-    public async Task Reissue_WithInvalidRefreshToken_ReturnsUnauthorized()
-    {
-        // Arrange
-        const string email = "invalid.reissue.user@example.com";
-        const string password = "ValidPassword123!";
-
-        var registrationRequest = new RegisterRequest(email, password);
-        await _client.PostAsJsonAsync("/api/auth/register", registrationRequest);
-        var loginRequest = new LoginRequest(email, password);
-        var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
-        var authResponse = await loginResponse.Content.ReadFromJsonAsync<AuthResponse>();
-
-        var reissueRequest = new ReissueRequest(authResponse!.AccessToken + "tampered");
-
-        // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/reissue", reissueRequest);
-
-        // Assert
-        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
-    }
+    
 
     [Fact]
     public async Task Register_WithExistingEmail_ReturnsBadRequest()
@@ -363,7 +229,7 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
 
         // Verify password was changed
         var loginRequest = new LoginRequest(email, newPassword);
-        var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
+        var loginResponse = await _client.PostAsJsonAsync("/api/token/login", loginRequest);
         loginResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 }

@@ -31,6 +31,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.Identity.Tests", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.Landlord.Bff.Tests", "tests\services\ProperTea.Landlord.Bff.Tests\ProperTea.Landlord.Bff.Tests.csproj", "{57F31AE7-830B-45E5-B661-E37025BEF1F1}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "contact", "contact", "{020FB996-2594-4FC6-BF07-D2EFEFB701A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperErrorHandling", "services\shared\ProperTea.ProperErrorHandling\ProperTea.ProperErrorHandling.csproj", "{38FA8ECE-93EA-437C-920C-9B5857AD4202}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +65,10 @@ Global
 		{57F31AE7-830B-45E5-B661-E37025BEF1F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57F31AE7-830B-45E5-B661-E37025BEF1F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57F31AE7-830B-45E5-B661-E37025BEF1F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38FA8ECE-93EA-437C-920C-9B5857AD4202}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38FA8ECE-93EA-437C-920C-9B5857AD4202}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38FA8ECE-93EA-437C-920C-9B5857AD4202}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38FA8ECE-93EA-437C-920C-9B5857AD4202}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -76,5 +84,7 @@ Global
 		{7ECD2C72-00A4-4296-A0B5-104B6D9FBEE6} = {04D0F049-78D6-4DC0-A52A-DFB7EEE63625}
 		{77774D58-FDE0-4AE1-BAB7-23736380223D} = {7ECD2C72-00A4-4296-A0B5-104B6D9FBEE6}
 		{57F31AE7-830B-45E5-B661-E37025BEF1F1} = {7ECD2C72-00A4-4296-A0B5-104B6D9FBEE6}
+		{020FB996-2594-4FC6-BF07-D2EFEFB701A2} = {B2F32B07-1651-4F33-B1F2-FD03ADCEA374}
+		{38FA8ECE-93EA-437C-920C-9B5857AD4202} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
 	EndGlobalSection
 EndGlobal

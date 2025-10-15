@@ -3,9 +3,10 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.RateLimiting;
 using ProperTea.Landlord.Bff.Endpoints;
+using ProperTea.Landlord.Bff.Endpoints.Auth;
 using ProperTea.Landlord.Bff.Middleware;
 using ProperTea.Landlord.Bff.Services;
-using ProperTea.Landlord.Bff.Transforms;
+using ProperTea.ProperErrorHandling;
 using ProperTea.ProperTelemetry;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,8 +29,7 @@ builder.Services.AddRateLimiter(options =>
 });
 
 builder.Services.AddReverseProxy()
-    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
-    .AddTransforms<LoginTransformProvider>();
+    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
 builder.Services.AddStackExchangeRedisCache(options =>
 {
@@ -37,6 +37,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.InstanceName = "ProperTea_Landlord_Bff_";
 });
 
+builder.AddProperGlobalErrorHandling();
 builder.AddProperTelemetry(builder.Configuration.GetRequiredSection("ProperTelemetry").Get<OpenTelemetryOptions>()!);
 builder.AddProperHealthChecks();
 
@@ -50,21 +51,19 @@ builder.Services.AddHttpClient<IIdentityService, IdentityService>(client =>
 
 var app = builder.Build();
 
-app.UseMiddleware<SessionManagementMiddleware>();
-
+app.UseProperGlobalErrorHandling();
 app.MapProperTelemetryEndpoints();
 
 app.UseRateLimiter();
 app.MapReverseProxy();
+
+app.UseMiddleware<SessionManagementMiddleware>();
 
 app.MapAuthEndpoints();
 
 app.Run();
 
 // This is needed so that test can access the app.
-namespace ProperTea.Landlord.Bff
+public partial class Program
 {
-    public class Program
-    {
-    }
 }
