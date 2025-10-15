@@ -49,11 +49,6 @@ public class TestExternalSchemeHandler : SignOutAuthenticationHandler<TestExtern
     public const string TestUserId = "test_user@external.com";
 
     public TestExternalSchemeHandler(IOptionsMonitor<TestExternalSchemeOptions> options, ILoggerFactory logger,
-        UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
-    {
-    }
-
-    public TestExternalSchemeHandler(IOptionsMonitor<TestExternalSchemeOptions> options, ILoggerFactory logger,
         UrlEncoder encoder) : base(options, logger, encoder)
     {
     }

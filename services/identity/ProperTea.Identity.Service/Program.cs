@@ -21,7 +21,7 @@ builder.Services.Configure<JsonOptions>(options =>
     options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 });
 
-builder.AddProperGlobalErrorHandling();
+builder.AddProperGlobalErrorHandling("ProperTea.Identity.Service");
 
 // OTel.
 var otelOptions = builder.Configuration.GetSection("OpenTelemetry").Get<OpenTelemetryOptions>() ??

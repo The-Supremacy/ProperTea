@@ -37,7 +37,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.InstanceName = "ProperTea_Landlord_Bff_";
 });
 
-builder.AddProperGlobalErrorHandling();
+builder.AddProperGlobalErrorHandling("ProperTea.Landlord.Bff");
 builder.AddProperTelemetry(builder.Configuration.GetRequiredSection("ProperTelemetry").Get<OpenTelemetryOptions>()!);
 builder.AddProperHealthChecks();
 
