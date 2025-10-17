@@ -4,7 +4,7 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using ProperTea.Landlord.Bff.Middleware;
-using ProperTea.Landlord.Bff.Tests.Utility;
+using ProperTea.Landlord.Bff.Tests.Setup;
 using Shouldly;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;

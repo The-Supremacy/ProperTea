@@ -7,7 +7,7 @@ services:
   identity:
     build:
       context: .
-      dockerfile: services/identity/ProperTea.Identity.Service/Dockerfile
+      dockerfile: services/Identity/ProperTea.Identity.Service/Dockerfile
     container_name: propertea-identity
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
@@ -29,7 +29,7 @@ services:
   landlord-bff:
     build:
       context: .
-      dockerfile: services/gateway/ProperTea.Landlord.Bff/Dockerfile
+      dockerfile: services/Gateway/ProperTea.Landlord.Bff/Dockerfile
     container_name: propertea-landlord-bff
     environment:
       - ASPNETCORE_ENVIRONMENT=Development

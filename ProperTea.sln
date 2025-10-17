@@ -9,33 +9,61 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "frontend", "frontend", "{96
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{04D0F049-78D6-4DC0-A52A-DFB7EEE63625}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{55D0CA1F-4073-4637-8D1F-72A965119AF4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{55D0CA1F-4073-4637-8D1F-72A965119AF4}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "gateway", "gateway", "{DF0BDC59-2126-4E2B-8613-1FB34ED9680D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bffs", "Bffs", "{DF0BDC59-2126-4E2B-8613-1FB34ED9680D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "identity", "identity", "{B92684CF-9BC4-4B9F-A94C-9090969F6ED2}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity", "Identity", "{B92684CF-9BC4-4B9F-A94C-9090969F6ED2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "landlord-portal", "landlord-portal", "{64902321-1C7A-4C1E-9B09-FDFE679EF4D9}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{81DDED9D-158B-E303-5F62-77A2896D2A5A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.Landlord.Bff", "services\gateway\ProperTea.Landlord.Bff\ProperTea.Landlord.Bff.csproj", "{9E4DC9AE-2EF2-4675-B1AB-0497DE5DB439}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.Landlord.Bff", "services\Gateway\ProperTea.Landlord.Bff\ProperTea.Landlord.Bff.csproj", "{9E4DC9AE-2EF2-4675-B1AB-0497DE5DB439}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperTelemetry", "services\shared\ProperTea.ProperTelemetry\ProperTea.ProperTelemetry.csproj", "{74C19E23-9CF4-41A9-B29C-BB0AF17C9ECC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperTelemetry", "services\Shared\ProperTea.ProperTelemetry\ProperTea.ProperTelemetry.csproj", "{74C19E23-9CF4-41A9-B29C-BB0AF17C9ECC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.Identity.Service", "services\identity\ProperTea.Identity.Service\ProperTea.Identity.Service.csproj", "{B3A35E75-1887-4F6E-B3ED-B8F241089B8B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.Identity.Service", "services\Identity\ProperTea.Identity.Service\ProperTea.Identity.Service.csproj", "{B3A35E75-1887-4F6E-B3ED-B8F241089B8B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{7ECD2C72-00A4-4296-A0B5-104B6D9FBEE6}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{7ECD2C72-00A4-4296-A0B5-104B6D9FBEE6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.Identity.Tests", "tests\services\ProperTea.Identity.Tests\ProperTea.Identity.Tests.csproj", "{77774D58-FDE0-4AE1-BAB7-23736380223D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.Landlord.Bff.Tests", "tests\services\ProperTea.Landlord.Bff.Tests\ProperTea.Landlord.Bff.Tests.csproj", "{57F31AE7-830B-45E5-B661-E37025BEF1F1}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "contact", "contact", "{020FB996-2594-4FC6-BF07-D2EFEFB701A2}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Contact", "Contact", "{020FB996-2594-4FC6-BF07-D2EFEFB701A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperErrorHandling", "services\shared\ProperTea.ProperErrorHandling\ProperTea.ProperErrorHandling.csproj", "{38FA8ECE-93EA-437C-920C-9B5857AD4202}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperErrorHandling", "services\Shared\ProperTea.ProperErrorHandling\ProperTea.ProperErrorHandling.csproj", "{38FA8ECE-93EA-437C-920C-9B5857AD4202}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperCqrs", "services\shared\ProperTea.ProperCqrs\ProperTea.ProperCqrs.csproj", "{EB81A640-95A8-43AF-858E-0D9693FF0A30}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperCqrs", "services\Shared\ProperTea.ProperCqrs\ProperTea.ProperCqrs.csproj", "{EB81A640-95A8-43AF-858E-0D9693FF0A30}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperDdd", "services\Shared\ProperTea.ProperDdd\ProperTea.ProperDdd.csproj", "{BCB38478-654E-452F-ABA1-488FA778105F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperIntegrationEvents.ServiceBus", "services\Shared\ProperTea.ProperIntegrationEvents.ServiceBus\ProperTea.ProperIntegrationEvents.ServiceBus.csproj", "{38C009EB-4F50-46FA-AB5B-7C3E601F564A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperDdd.Persistence.Ef", "services\Shared\ProperTea.ProperDdd.Persistence.Ef\ProperTea.ProperDdd.Persistence.Ef.csproj", "{42A8F7CB-98EC-4514-BDF7-96F5D3B2D913}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperIntegrationEvents.Outbox", "services\Shared\ProperTea.ProperIntegrationEvents.Outbox\ProperTea.ProperIntegrationEvents.Outbox.csproj", "{2030E475-7D38-4DFA-9C6E-4754E28D4767}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperIntegrationEvents.Outbox.Ef", "services\Shared\ProperTea.ProperIntegrationEvents.Outbox.Ef\ProperTea.ProperIntegrationEvents.Outbox.Ef.csproj", "{0427EA14-EAEB-4C53-880C-AC89F8CE7B61}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperIntegrationEvents", "services\Shared\ProperTea.ProperIntegrationEvents\ProperTea.ProperIntegrationEvents.csproj", "{2D5FD9C1-E325-44A1-BE93-ED71316790E4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{318A2161-F2D1-46F0-AB2F-6DDEE2D82865}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity", "Identity", "{ED152EE0-D059-4435-A1EC-794734BEBF37}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bffs", "Bffs", "{54930834-ED41-459D-9E39-46F5F183A36A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperDdd.Tests", "tests\Services\Shared\ProperTea.ProperDdd.Tests\ProperTea.ProperDdd.Tests.csproj", "{E435AD08-C0DB-40D6-B69F-339E1DB7ED25}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperDdd.Persistence.Ef.Tests", "tests\Services\Shared\ProperTea.ProperDdd.Persistence.Ef.Tests\ProperTea.ProperDdd.Persistence.Ef.Tests.csproj", "{8ED0428B-4F9F-429F-9071-1771E060C74E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperCqrs.Tests", "tests\Services\Shared\ProperTea.ProperCqrs.Tests\ProperTea.ProperCqrs.Tests.csproj", "{1F6CA25F-FA44-4AE7-B1D7-252994D45172}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperIntegrationEvents.Outbox.Ef.Tests", "tests\Services\Shared\ProperTea.ProperIntegrationEvents.Outbox.Ef.Tests\ProperTea.ProperIntegrationEvents.Outbox.Ef.Tests.csproj", "{8BC186A9-C1E1-4D7A-9318-B4005B77A0F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperIntegrationEvents.Outbox.Tests", "tests\Services\Shared\ProperTea.ProperIntegrationEvents.Outbox.Tests\ProperTea.ProperIntegrationEvents.Outbox.Tests.csproj", "{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,6 +103,50 @@ Global
 		{EB81A640-95A8-43AF-858E-0D9693FF0A30}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB81A640-95A8-43AF-858E-0D9693FF0A30}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB81A640-95A8-43AF-858E-0D9693FF0A30}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCB38478-654E-452F-ABA1-488FA778105F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCB38478-654E-452F-ABA1-488FA778105F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCB38478-654E-452F-ABA1-488FA778105F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCB38478-654E-452F-ABA1-488FA778105F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38C009EB-4F50-46FA-AB5B-7C3E601F564A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38C009EB-4F50-46FA-AB5B-7C3E601F564A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38C009EB-4F50-46FA-AB5B-7C3E601F564A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38C009EB-4F50-46FA-AB5B-7C3E601F564A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42A8F7CB-98EC-4514-BDF7-96F5D3B2D913}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42A8F7CB-98EC-4514-BDF7-96F5D3B2D913}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42A8F7CB-98EC-4514-BDF7-96F5D3B2D913}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42A8F7CB-98EC-4514-BDF7-96F5D3B2D913}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2030E475-7D38-4DFA-9C6E-4754E28D4767}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2030E475-7D38-4DFA-9C6E-4754E28D4767}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2030E475-7D38-4DFA-9C6E-4754E28D4767}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2030E475-7D38-4DFA-9C6E-4754E28D4767}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0427EA14-EAEB-4C53-880C-AC89F8CE7B61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0427EA14-EAEB-4C53-880C-AC89F8CE7B61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0427EA14-EAEB-4C53-880C-AC89F8CE7B61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0427EA14-EAEB-4C53-880C-AC89F8CE7B61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D5FD9C1-E325-44A1-BE93-ED71316790E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D5FD9C1-E325-44A1-BE93-ED71316790E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D5FD9C1-E325-44A1-BE93-ED71316790E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D5FD9C1-E325-44A1-BE93-ED71316790E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E435AD08-C0DB-40D6-B69F-339E1DB7ED25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E435AD08-C0DB-40D6-B69F-339E1DB7ED25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E435AD08-C0DB-40D6-B69F-339E1DB7ED25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E435AD08-C0DB-40D6-B69F-339E1DB7ED25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8ED0428B-4F9F-429F-9071-1771E060C74E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8ED0428B-4F9F-429F-9071-1771E060C74E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8ED0428B-4F9F-429F-9071-1771E060C74E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8ED0428B-4F9F-429F-9071-1771E060C74E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F6CA25F-FA44-4AE7-B1D7-252994D45172}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F6CA25F-FA44-4AE7-B1D7-252994D45172}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F6CA25F-FA44-4AE7-B1D7-252994D45172}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F6CA25F-FA44-4AE7-B1D7-252994D45172}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BC186A9-C1E1-4D7A-9318-B4005B77A0F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BC186A9-C1E1-4D7A-9318-B4005B77A0F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BC186A9-C1E1-4D7A-9318-B4005B77A0F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BC186A9-C1E1-4D7A-9318-B4005B77A0F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -88,10 +160,24 @@ Global
 		{74C19E23-9CF4-41A9-B29C-BB0AF17C9ECC} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
 		{B3A35E75-1887-4F6E-B3ED-B8F241089B8B} = {B92684CF-9BC4-4B9F-A94C-9090969F6ED2}
 		{7ECD2C72-00A4-4296-A0B5-104B6D9FBEE6} = {04D0F049-78D6-4DC0-A52A-DFB7EEE63625}
-		{77774D58-FDE0-4AE1-BAB7-23736380223D} = {7ECD2C72-00A4-4296-A0B5-104B6D9FBEE6}
-		{57F31AE7-830B-45E5-B661-E37025BEF1F1} = {7ECD2C72-00A4-4296-A0B5-104B6D9FBEE6}
 		{020FB996-2594-4FC6-BF07-D2EFEFB701A2} = {B2F32B07-1651-4F33-B1F2-FD03ADCEA374}
 		{38FA8ECE-93EA-437C-920C-9B5857AD4202} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
 		{EB81A640-95A8-43AF-858E-0D9693FF0A30} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
+		{318A2161-F2D1-46F0-AB2F-6DDEE2D82865} = {7ECD2C72-00A4-4296-A0B5-104B6D9FBEE6}
+		{ED152EE0-D059-4435-A1EC-794734BEBF37} = {7ECD2C72-00A4-4296-A0B5-104B6D9FBEE6}
+		{77774D58-FDE0-4AE1-BAB7-23736380223D} = {ED152EE0-D059-4435-A1EC-794734BEBF37}
+		{54930834-ED41-459D-9E39-46F5F183A36A} = {7ECD2C72-00A4-4296-A0B5-104B6D9FBEE6}
+		{57F31AE7-830B-45E5-B661-E37025BEF1F1} = {54930834-ED41-459D-9E39-46F5F183A36A}
+		{E435AD08-C0DB-40D6-B69F-339E1DB7ED25} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
+		{2D5FD9C1-E325-44A1-BE93-ED71316790E4} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
+		{2030E475-7D38-4DFA-9C6E-4754E28D4767} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
+		{0427EA14-EAEB-4C53-880C-AC89F8CE7B61} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
+		{38C009EB-4F50-46FA-AB5B-7C3E601F564A} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
+		{BCB38478-654E-452F-ABA1-488FA778105F} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
+		{42A8F7CB-98EC-4514-BDF7-96F5D3B2D913} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
+		{8ED0428B-4F9F-429F-9071-1771E060C74E} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
+		{1F6CA25F-FA44-4AE7-B1D7-252994D45172} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
+		{8BC186A9-C1E1-4D7A-9318-B4005B77A0F4} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
+		{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
 	EndGlobalSection
 EndGlobal

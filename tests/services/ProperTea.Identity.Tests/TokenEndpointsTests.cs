@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using ProperTea.Identity.Service.DTOs;
-using ProperTea.Identity.Tests.Utility;
+using ProperTea.Identity.Tests.Setup;
 using Shouldly;
 
 namespace ProperTea.Identity.Tests;
