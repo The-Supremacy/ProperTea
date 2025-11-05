@@ -25,7 +25,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperTelemetry",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.Identity.Service", "services\Identity\ProperTea.Identity.Service\ProperTea.Identity.Service.csproj", "{B3A35E75-1887-4F6E-B3ED-B8F241089B8B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{7ECD2C72-00A4-4296-A0B5-104B6D9FBEE6}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{7ECD2C72-00A4-4296-A0B5-104B6D9FBEE6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.Identity.Tests", "tests\services\ProperTea.Identity.Tests\ProperTea.Identity.Tests.csproj", "{77774D58-FDE0-4AE1-BAB7-23736380223D}"
 EndProject
@@ -55,15 +55,23 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity", "Identity", "{ED
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bffs", "Bffs", "{54930834-ED41-459D-9E39-46F5F183A36A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperDdd.Tests", "tests\Services\Shared\ProperTea.ProperDdd.Tests\ProperTea.ProperDdd.Tests.csproj", "{E435AD08-C0DB-40D6-B69F-339E1DB7ED25}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperDdd.Tests", "tests\services\Shared\ProperTea.ProperDdd.Tests\ProperTea.ProperDdd.Tests.csproj", "{E435AD08-C0DB-40D6-B69F-339E1DB7ED25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperDdd.Persistence.Ef.Tests", "tests\Services\Shared\ProperTea.ProperDdd.Persistence.Ef.Tests\ProperTea.ProperDdd.Persistence.Ef.Tests.csproj", "{8ED0428B-4F9F-429F-9071-1771E060C74E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperDdd.Persistence.Ef.Tests", "tests\services\Shared\ProperTea.ProperDdd.Persistence.Ef.Tests\ProperTea.ProperDdd.Persistence.Ef.Tests.csproj", "{8ED0428B-4F9F-429F-9071-1771E060C74E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperCqrs.Tests", "tests\Services\Shared\ProperTea.ProperCqrs.Tests\ProperTea.ProperCqrs.Tests.csproj", "{1F6CA25F-FA44-4AE7-B1D7-252994D45172}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperCqrs.Tests", "tests\services\Shared\ProperTea.ProperCqrs.Tests\ProperTea.ProperCqrs.Tests.csproj", "{1F6CA25F-FA44-4AE7-B1D7-252994D45172}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperIntegrationEvents.Outbox.Ef.Tests", "tests\Services\Shared\ProperTea.ProperIntegrationEvents.Outbox.Ef.Tests\ProperTea.ProperIntegrationEvents.Outbox.Ef.Tests.csproj", "{8BC186A9-C1E1-4D7A-9318-B4005B77A0F4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperIntegrationEvents.Outbox.Ef.Tests", "tests\services\Shared\ProperTea.ProperIntegrationEvents.Outbox.Ef.Tests\ProperTea.ProperIntegrationEvents.Outbox.Ef.Tests.csproj", "{8BC186A9-C1E1-4D7A-9318-B4005B77A0F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperIntegrationEvents.Outbox.Tests", "tests\Services\Shared\ProperTea.ProperIntegrationEvents.Outbox.Tests\ProperTea.ProperIntegrationEvents.Outbox.Tests.csproj", "{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperIntegrationEvents.Outbox.Tests", "tests\services\Shared\ProperTea.ProperIntegrationEvents.Outbox.Tests\ProperTea.ProperIntegrationEvents.Outbox.Tests.csproj", "{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperSagas", "services\Shared\ProperTea.ProperSagas\ProperTea.ProperSagas.csproj", "{0B93BD5E-4A65-444A-9E2E-7E0C6924CD05}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperSagas.Ef", "services\Shared\ProperTea.ProperSagas.Ef\ProperTea.ProperSagas.Ef.csproj", "{BDC76836-26A5-4C91-B36A-39C786253B02}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperSagas.Tests", "tests\services\Shared\ProperTea.ProperSagas.Tests\ProperTea.ProperSagas.Tests.csproj", "{0D1A4CD0-5292-47C0-A9C5-9A45F48897FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperSagas.Ef.Tests", "tests\services\Shared\ProperTea.ProperSagas.Ef.Tests\ProperTea.ProperSagas.Ef.Tests.csproj", "{25DBB097-EB1B-4194-BFAC-9AC692F5D42F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -147,6 +155,22 @@ Global
 		{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B93BD5E-4A65-444A-9E2E-7E0C6924CD05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B93BD5E-4A65-444A-9E2E-7E0C6924CD05}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B93BD5E-4A65-444A-9E2E-7E0C6924CD05}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B93BD5E-4A65-444A-9E2E-7E0C6924CD05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDC76836-26A5-4C91-B36A-39C786253B02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDC76836-26A5-4C91-B36A-39C786253B02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDC76836-26A5-4C91-B36A-39C786253B02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDC76836-26A5-4C91-B36A-39C786253B02}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D1A4CD0-5292-47C0-A9C5-9A45F48897FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D1A4CD0-5292-47C0-A9C5-9A45F48897FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D1A4CD0-5292-47C0-A9C5-9A45F48897FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D1A4CD0-5292-47C0-A9C5-9A45F48897FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25DBB097-EB1B-4194-BFAC-9AC692F5D42F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25DBB097-EB1B-4194-BFAC-9AC692F5D42F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25DBB097-EB1B-4194-BFAC-9AC692F5D42F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25DBB097-EB1B-4194-BFAC-9AC692F5D42F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -179,5 +203,9 @@ Global
 		{1F6CA25F-FA44-4AE7-B1D7-252994D45172} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
 		{8BC186A9-C1E1-4D7A-9318-B4005B77A0F4} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
 		{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
+		{0B93BD5E-4A65-444A-9E2E-7E0C6924CD05} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
+		{BDC76836-26A5-4C91-B36A-39C786253B02} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
+		{0D1A4CD0-5292-47C0-A9C5-9A45F48897FB} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
+		{25DBB097-EB1B-4194-BFAC-9AC692F5D42F} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
 	EndGlobalSection
 EndGlobal

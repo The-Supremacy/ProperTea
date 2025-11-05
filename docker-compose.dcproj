@@ -13,13 +13,36 @@
     </ItemGroup>
     <ItemGroup>
         <Content Include="docker-compose.shared.yml"/>
-        <Content Include="docs\authentication-authorization-strategy.md"/>
+        <Content Include="docs\00-architecture-overview.md" />
+        <Content Include="docs\00-UPDATES-COMPLETE.md" />
+        <Content Include="docs\01-authentication-authorization.md" />
+        <Content Include="docs\02-service-specifications.md" />
+        <Content Include="docs\03-event-driven-patterns.md" />
+        <Content Include="docs\04-shared-libraries.md" />
+        <Content Include="docs\05-elasticsearch-integration.md" />
+        <Content Include="docs\08-observability.md" />
+        <Content Include="docs\09-local-development.md" />
+        <Content Include="docs\10-migration-guide.md" />
+        <Content Include="docs\11-implementation-roadmap.md" />
+        <Content Include="docs\12-invitation-flows.md" />
+        <Content Include="docs\12-saga-implementation-guide.md" />
+        <Content Include="docs\DURABLE-FUNCTIONS-MIGRATION.md" />
+        <Content Include="docs\README-SAGA-WORK.md" />
+        <Content Include="docs\README.md" />
+        <Content Include="docs\SAGA-DESIGN-PATTERNS.md" />
+        <Content Include="docs\SAGA-VALIDATION-COMPENSATION.md" />
+        <Content Include="IMPLEMENTATION-COMPLETE.md" />
         <Content Include="Makefile"/>
         <Content Include="observability\grafana\dashboards\dashboards.yml"/>
         <Content Include="observability\grafana\datasources\datasources.yml"/>
         <Content Include="observability\loki-config.yaml"/>
         <Content Include="observability\otel-collector-config.yaml"/>
         <Content Include="observability\prometheus.yml"/>
+        <Content Include="SAGA-FEATURES-COMPLETE.md" />
+        <Content Include="SAGA-IMPLEMENTATION-COMPLETE.md" />
+        <Content Include="SAGA-TESTS-COMPLETE.md" />
+        <Content Include="SAGA-TESTS-FIXED.md" />
+        <Content Include="TEST-CONVENTION-APPLIED.md" />
         <Content Include="traefik\tls.yml"/>
     </ItemGroup>
     <ItemGroup>
