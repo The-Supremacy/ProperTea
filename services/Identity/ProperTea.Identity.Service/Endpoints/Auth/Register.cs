@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using ProperTea.Identity.Service.DTOs;
+using ProperTea.Identity.Service.IntegrationEvents;
 using ProperTea.Identity.Service.Models;
 using ProperTea.Identity.Service.Services;
+using ProperTea.ProperIntegrationEvents;
 
 namespace ProperTea.Identity.Service.Endpoints.Auth;
 
@@ -12,7 +14,8 @@ public static class Register
         app.MapPost("/register", async (
                 RegisterRequest request,
                 UserManager<ProperTeaUser> userManager,
-                ITokenService tokenService) =>
+                ITokenService tokenService,
+                IIntegrationEventPublisher eventPublisher) =>
             {
                 var user = new ProperTeaUser
                 {
@@ -25,6 +28,14 @@ public static class Register
 
                 if (!result.Succeeded)
                     return Results.BadRequest(result.Errors);
+
+                // Publish UserCreated event using outbox pattern
+                // This event will be processed by the worker and published to the message bus
+                await eventPublisher.PublishAsync("identity-events", new UserCreatedIntegrationEvent(
+                    Guid.NewGuid(),
+                    DateTime.UtcNow,
+                    user.Id,
+                    user.CreatedAt));
 
                 var token = tokenService.CreateToken(user);
                 var response = new AuthResponse(user.Id, user.Email, token);

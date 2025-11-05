@@ -4,15 +4,15 @@ namespace ProperTea.ProperIntegrationEvents.Outbox;
 
 public static class OutboxIntegrationEventsBuilderExtensions
 {
-    public static IntegrationEventsBuilder UseOutbox(
+    public static OutboxBuilder UseOutbox(
         this IntegrationEventsBuilder builder,
-        Action<OutboxBuilder> outboxConfiguration)
+        Action<OutboxBuilder>? outboxConfiguration = null)
     {
         builder.Services.TryAddScoped<IIntegrationEventsOutboxProcessor, IntegrationEventsOutboxProcessor>();
 
         var outboxBuilder = new OutboxBuilder(builder.Services);
-        outboxConfiguration(outboxBuilder);
+        outboxConfiguration?.Invoke(outboxBuilder);
 
-        return builder;
+        return outboxBuilder;
     }
 }

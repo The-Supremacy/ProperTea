@@ -8,20 +8,23 @@ public class ServiceBusExternalIntegrationEventPublisher : IIntegrationEventPubl
     IExternalIntegrationEventPublisher
 {
     private readonly ILogger<ServiceBusExternalIntegrationEventPublisher> _logger;
-    private readonly ServiceBusSender _sender;
+    private readonly ServiceBusClient _client;
 
-    public ServiceBusExternalIntegrationEventPublisher(ServiceBusSender sender,
+    public ServiceBusExternalIntegrationEventPublisher(ServiceBusClient client,
         ILogger<ServiceBusExternalIntegrationEventPublisher> logger)
     {
-        _sender = sender;
+        _client = client;
         _logger = logger;
     }
 
     public async Task PublishAsync<TEvent>(string topic, TEvent @event, CancellationToken ct = default)
         where TEvent : IntegrationEvent
     {
+        ServiceBusSender? sender = null;
         try
         {
+            sender = _client.CreateSender(topic);
+
             var messageBody = JsonSerializer.Serialize(@event);
             var message = new ServiceBusMessage(messageBody)
             {
@@ -30,14 +33,14 @@ public class ServiceBusExternalIntegrationEventPublisher : IIntegrationEventPubl
                 CorrelationId = @event.Id.ToString()
             };
 
-            await _sender.SendMessageAsync(message, ct);
+            await sender.SendMessageAsync(message, ct);
             _logger.LogInformation("Published integration event {EventType} with ID {EventId}",
-                topic, @event.Id);
+                @event.EventType, @event.Id);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to publish integration event {EventType} with ID {EventId}",
-                topic, @event.Id);
+                @event.EventType, @event.Id);
             throw;
         }
     }

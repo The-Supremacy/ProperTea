@@ -8,9 +8,17 @@ using Microsoft.IdentityModel.Tokens;
 using ProperTea.Identity.Service.Configuration;
 using ProperTea.Identity.Service.Data;
 using ProperTea.Identity.Service.Endpoints;
+using ProperTea.Identity.Service.IntegrationEvents;
 using ProperTea.Identity.Service.Models;
 using ProperTea.Identity.Service.Services;
+using ProperTea.ProperCqrs;
+using ProperTea.ProperDdd;
+using ProperTea.ProperDdd.Persistence.Ef;
 using ProperTea.ProperErrorHandling;
+using ProperTea.ProperIntegrationEvents;
+using ProperTea.ProperIntegrationEvents.Outbox;
+using ProperTea.ProperIntegrationEvents.Outbox.Ef;
+using ProperTea.ProperIntegrationEvents.ServiceBus;
 using ProperTea.ProperTelemetry;
 using Scalar.AspNetCore;
 
@@ -28,7 +36,7 @@ var otelOptions = builder.Configuration.GetSection("OpenTelemetry").Get<OpenTele
                   new OpenTelemetryOptions();
 builder.AddProperTelemetry(otelOptions);
 builder.Services.AddHealthChecks()
-    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!, name: "database-check");
+    .AddNpgSql(builder.Configuration.GetConnectionString("Database")!, name: "database-check");
 
 // DB.
 builder.Services.AddDbContext<ProperTeaIdentityDbContext>(options =>
@@ -37,7 +45,7 @@ builder.Services.AddDbContext<ProperTeaIdentityDbContext>(options =>
 // Identity.
 var identitySettings = builder.Configuration.GetSection("IdentitySettings")
     .Get<IdentitySettings>() ?? new IdentitySettings();
-;
+
 builder.Services.AddIdentity<ProperTeaUser, IdentityRole<Guid>>(options =>
     {
         options.Password = new PasswordOptions
@@ -87,6 +95,16 @@ builder.Services.AddAuthentication()
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
+
+// Proper registrations.
+builder.Services.AddProperDdd()
+    .UseEntityFramework<ProperTeaIdentityDbContext>();
+builder.Services.AddProperCqrs(typeof(Program).Assembly);
+builder.Services.AddProperIntegrationEvents(e =>
+{
+    e.AddEventType<UserCreatedIntegrationEvent>("UserCreated");
+}).UseServiceBus(builder.Configuration.GetConnectionString("ServiceBus")!).UseOutbox().UseEntityFrameworkStorage<ProperTeaIdentityDbContext>();
+builder.Services.AddScoped<IIntegrationEventPublisher, OutboxIntegrationEventPublisher>();
 
 builder.Services.AddOpenApi();
 

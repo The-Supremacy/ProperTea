@@ -1,4 +1,4 @@
-namespace ProperTea.ProperIntegrationEvents.Outbox;
+namespace ProperTea.ProperIntegrationEvents;
 
 public interface IIntegrationEventTypeResolver
 {

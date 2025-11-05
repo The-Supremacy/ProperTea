@@ -73,6 +73,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperSagas.Tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperSagas.Ef.Tests", "tests\services\Shared\ProperTea.ProperSagas.Ef.Tests\ProperTea.ProperSagas.Ef.Tests.csproj", "{25DBB097-EB1B-4194-BFAC-9AC692F5D42F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.Identity.Worker", "services\Identity\ProperTea.Identity.Worker\ProperTea.Identity.Worker.csproj", "{055A74F0-70C0-477E-8A0C-518C7AC626D5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -171,6 +173,10 @@ Global
 		{25DBB097-EB1B-4194-BFAC-9AC692F5D42F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{25DBB097-EB1B-4194-BFAC-9AC692F5D42F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{25DBB097-EB1B-4194-BFAC-9AC692F5D42F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{055A74F0-70C0-477E-8A0C-518C7AC626D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{055A74F0-70C0-477E-8A0C-518C7AC626D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{055A74F0-70C0-477E-8A0C-518C7AC626D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{055A74F0-70C0-477E-8A0C-518C7AC626D5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -207,5 +213,6 @@ Global
 		{BDC76836-26A5-4C91-B36A-39C786253B02} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
 		{0D1A4CD0-5292-47C0-A9C5-9A45F48897FB} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
 		{25DBB097-EB1B-4194-BFAC-9AC692F5D42F} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
+		{055A74F0-70C0-477E-8A0C-518C7AC626D5} = {B92684CF-9BC4-4B9F-A94C-9090969F6ED2}
 	EndGlobalSection
 EndGlobal
