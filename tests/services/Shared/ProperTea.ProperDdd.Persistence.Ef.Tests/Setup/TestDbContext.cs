@@ -7,7 +7,7 @@ public class TestDbContext : DbContext
     public TestDbContext()
     {
     }
-    
+
     public TestDbContext(DbContextOptions<TestDbContext> options) : base(options)
     {
     }
@@ -27,7 +27,7 @@ public class TestDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseNpgsql();
-        
+
         base.OnConfiguring(optionsBuilder);
     }
 }

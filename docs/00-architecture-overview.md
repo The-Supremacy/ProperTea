@@ -22,7 +22,9 @@
 
 ## Executive Summary
 
-ProperTea is a cloud-native, event-driven ERP system for real estate and lease management. The architecture prioritizes **educational value** while maintaining production readiness, enabling hands-on learning with modern microservices patterns.
+ProperTea is a cloud-native, event-driven ERP system for real estate and lease management. The architecture prioritizes
+**educational value** while maintaining production readiness, enabling hands-on learning with modern microservices
+patterns.
 
 ### Key Characteristics
 
@@ -50,20 +52,20 @@ ProperTea is a cloud-native, event-driven ERP system for real estate and lease m
 ProperTea serves three primary user groups:
 
 1. **Property Managers** (Landlord Portal)
-   - Manage properties across multiple organizations
-   - Publish rental objects to market
-   - Approve lease agreements
-   - Assign maintenance work orders
+    - Manage properties across multiple organizations
+    - Publish rental objects to market
+    - Approve lease agreements
+    - Assign maintenance work orders
 
 2. **Tenants** (Tenant Portal)
-   - View lease agreements and invoices
-   - Report maintenance issues
-   - Receive notifications
+    - View lease agreements and invoices
+    - Report maintenance issues
+    - Receive notifications
 
 3. **Market Users** (Market Portal)
-   - Search available rental objects
-   - Submit applications
-   - Negotiate offers
+    - Search available rental objects
+    - Submit applications
+    - Negotiate offers
 
 ### Technical Vision
 
@@ -81,12 +83,14 @@ ProperTea serves three primary user groups:
 **Principle:** Design for Kubernetes, avoid cloud-specific lock-in.
 
 **Implementation:**
+
 - Standard k8s patterns (Deployments, Services, Ingress)
 - Abstracted dependencies (Kafka ↔ ServiceBus, SeaweedFS ↔ Azure Blob)
 - Helm charts for all services
 - Works on: Kind (local), Kind (CI), AKS (prod), AKS (future)
 
 **Example:**
+
 ```csharp
 // Abstraction allows swapping providers
 builder.Services.AddProperIntegrationEvents()
@@ -100,12 +104,13 @@ builder.Services.AddProperIntegrationEvents()
 
 **When to Use:**
 
-| Pattern | Use Case | Example |
-|---------|----------|---------|
-| **Choreography** | Independent actions, eventual consistency OK | Organization created → Permission service seeds default groups |
-| **Orchestration (Saga)** | Multi-step workflow, compensation needed | Contact GDPR cleanup → Validate with all services holding personal data → Compensate if any service rejects |
+| Pattern                  | Use Case                                     | Example                                                                                                     |
+|--------------------------|----------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| **Choreography**         | Independent actions, eventual consistency OK | Organization created → Permission service seeds default groups                                              |
+| **Orchestration (Saga)** | Multi-step workflow, compensation needed     | Contact GDPR cleanup → Validate with all services holding personal data → Compensate if any service rejects |
 
 **Implementation:**
+
 - Outbox pattern for reliable event publishing
 - Custom saga library (`ProperTea.ProperSagas`) for orchestration
 - Event-driven workers (separate projects per service)
@@ -115,6 +120,7 @@ builder.Services.AddProperIntegrationEvents()
 **Principle:** Business logic in domain layer, separated from infrastructure.
 
 **Structure:**
+
 ```
 Service/
 ├── ProperTea.{Service}.Service/       # API (Controllers → Application layer)
@@ -130,6 +136,7 @@ Service/
 ```
 
 **Key Patterns:**
+
 - Aggregate roots as transaction boundaries
 - Domain events within aggregates
 - Integration events published via outbox
@@ -140,12 +147,14 @@ Service/
 **Principle:** Commands change state, queries read state. Separate models when needed.
 
 **Implementation:**
+
 - Commands: `CreatePropertyCommand`, `PublishListingCommand`
 - Queries: `GetPropertiesQuery`, `GetAvailableListingsQuery`
 - Command/query buses via `ProperTea.ProperCqrs`
 - Validation decorators for commands
 
 **Example:**
+
 ```csharp
 // Command (write)
 var command = new CreatePropertyCommand(companyId, address, buildingData);
@@ -161,11 +170,13 @@ var properties = await _queryBus.SendAsync(query);
 **Principle:** Each client type has dedicated gateway for session management and request routing.
 
 **Why:**
+
 - ✅ Isolates client-specific logic (session cookies for web, future mobile auth)
 - ✅ Aggregates backend calls (reduces frontend complexity)
 - ✅ Security boundary (JWT enrichment, internal services not exposed)
 
 **BFFs:**
+
 - **Landlord BFF** - Org-scoped, permission-enriched JWT
 - **Tenant BFF** - User-scoped, personal data access
 - **Market BFF** - Public + user-scoped (applications)
@@ -175,6 +186,7 @@ var properties = await _queryBus.SendAsync(query);
 **Principle:** Every service emits structured logs, metrics, and traces from day 1.
 
 **Implementation:**
+
 - OpenTelemetry SDK in all services
 - Dual-stack: Local (Jaeger, Loki, Prometheus) / Production (Azure Monitor)
 - Distributed tracing spans critical flows (Contact GDPR deletion saga, listing publication)
@@ -186,65 +198,65 @@ var properties = await _queryBus.SendAsync(query);
 
 ### Backend Services
 
-| Component                | Technology | Version  | Purpose |
-|--------------------------|-----------|----------|---------|
-| **Runtime**              | .NET | 9.0      | All services |
-| **API Framework**        | ASP.NET Core Minimal APIs | 9.0      | HTTP endpoints |
-| **Database**             | PostgreSQL | 17       | Per-service databases |
-| **ORM**                  | Entity Framework Core | 9.0      | Data access |
-| **Resilience**           | .NET 9 Resilience APIs | Built-in | Retries, circuit breakers, timeouts |
-| **Caching**              | Redis | 7        | Session storage, permission cache |
-| **Messaging (Local)**    | Kafka | 4.0      | Event streaming |
-| **Messaging (Prod)**     | Azure Service Bus | Managed  | Event streaming |
-| **Search**               | Elasticsearch | 9.0      | Full-text search, autocomplete |
-| **Blob Storage (Local)** | Azurite | Latest | Azure Blob emulator (primary)|
-| **Blob Storage (Optional)** | SeaweedFS | Latest | Self-hosted S3 (educational) |
-| **Blob Storage (Prod)**  | Azure Blob | Managed  | Document storage |
+| Component                   | Technology                | Version  | Purpose                             |
+|-----------------------------|---------------------------|----------|-------------------------------------|
+| **Runtime**                 | .NET                      | 9.0      | All services                        |
+| **API Framework**           | ASP.NET Core Minimal APIs | 9.0      | HTTP endpoints                      |
+| **Database**                | PostgreSQL                | 17       | Per-service databases               |
+| **ORM**                     | Entity Framework Core     | 9.0      | Data access                         |
+| **Resilience**              | .NET 9 Resilience APIs    | Built-in | Retries, circuit breakers, timeouts |
+| **Caching**                 | Redis                     | 7        | Session storage, permission cache   |
+| **Messaging (Local)**       | Kafka                     | 4.0      | Event streaming                     |
+| **Messaging (Prod)**        | Azure Service Bus         | Managed  | Event streaming                     |
+| **Search**                  | Elasticsearch             | 9.0      | Full-text search, autocomplete      |
+| **Blob Storage (Local)**    | Azurite                   | Latest   | Azure Blob emulator (primary)       |
+| **Blob Storage (Optional)** | SeaweedFS                 | Latest   | Self-hosted S3 (educational)        |
+| **Blob Storage (Prod)**     | Azure Blob                | Managed  | Document storage                    |
 
 ### Shared Libraries (NuGet Packages)
 
-| Library | Purpose |
-|---------|---------|
-| `ProperTea.ProperCqrs` | Command/query buses, validation decorators |
-| `ProperTea.ProperDdd` | Aggregate roots, entities, domain events, repositories |
-| `ProperTea.ProperIntegrationEvents` | Event bus abstraction, outbox pattern |
-| `ProperTea.ProperSagas` | Saga orchestration base classes |
-| `ProperTea.ProperStorage` | Blob storage abstraction (SeaweedFS/Azure Blob) |
-| `ProperTea.ProperTelemetry` | OpenTelemetry configuration |
-| `ProperTea.ProperErrorHandling` | Global exception handling |
+| Library                             | Purpose                                                |
+|-------------------------------------|--------------------------------------------------------|
+| `ProperTea.ProperCqrs`              | Command/query buses, validation decorators             |
+| `ProperTea.ProperDdd`               | Aggregate roots, entities, domain events, repositories |
+| `ProperTea.ProperIntegrationEvents` | Event bus abstraction, outbox pattern                  |
+| `ProperTea.ProperSagas`             | Saga orchestration base classes                        |
+| `ProperTea.ProperStorage`           | Blob storage abstraction (SeaweedFS/Azure Blob)        |
+| `ProperTea.ProperTelemetry`         | OpenTelemetry configuration                            |
+| `ProperTea.ProperErrorHandling`     | Global exception handling                              |
 
 ### Infrastructure (Local Development)
 
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| **Orchestration** | Kind | Local k8s cluster |
-| **Package Manager** | Helm | Service deployments |
-| **Ingress** | Traefik | HTTP routing, TLS termination |
-| **Observability** | Jaeger, Loki, Prometheus, Grafana | Traces, logs, metrics, dashboards |
+| Component           | Technology                        | Purpose                           |
+|---------------------|-----------------------------------|-----------------------------------|
+| **Orchestration**   | Kind                              | Local k8s cluster                 |
+| **Package Manager** | Helm                              | Service deployments               |
+| **Ingress**         | Traefik                           | HTTP routing, TLS termination     |
+| **Observability**   | Jaeger, Loki, Prometheus, Grafana | Traces, logs, metrics, dashboards |
 
 ### Infrastructure (Production - AKS)
 
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| **Container Platform** | Azure Kubernetes Service (AKS) | Managed Kubernetes |
-| **Ingress** | NGINX Ingress Controller | HTTP routing, TLS termination |
-| **Service Mesh** | None (deferred to post-MVP) | Future: Istio or Linkerd |
-| **Database** | Azure PostgreSQL Flexible | Managed Postgres |
-| **Caching** | Azure Cache for Redis | Managed Redis |
-| **Messaging** | Azure Service Bus | Managed messaging |
-| **Storage** | Azure Blob Storage | Managed blob storage |
-| **Secrets** | Azure Key Vault | Secret management |
-| **Observability** | Azure Monitor / Application Insights | Managed observability |
-| **IaC** | Bicep | Infrastructure provisioning |
+| Component              | Technology                           | Purpose                       |
+|------------------------|--------------------------------------|-------------------------------|
+| **Container Platform** | Azure Kubernetes Service (AKS)       | Managed Kubernetes            |
+| **Ingress**            | NGINX Ingress Controller             | HTTP routing, TLS termination |
+| **Service Mesh**       | None (deferred to post-MVP)          | Future: Istio or Linkerd      |
+| **Database**           | Azure PostgreSQL Flexible            | Managed Postgres              |
+| **Caching**            | Azure Cache for Redis                | Managed Redis                 |
+| **Messaging**          | Azure Service Bus                    | Managed messaging             |
+| **Storage**            | Azure Blob Storage                   | Managed blob storage          |
+| **Secrets**            | Azure Key Vault                      | Secret management             |
+| **Observability**      | Azure Monitor / Application Insights | Managed observability         |
+| **IaC**                | Bicep                                | Infrastructure provisioning   |
 
 ### Frontend (Future)
 
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| **Framework** | Next.js | SSR, routing |
-| **UI Library** | React | Component library |
-| **Styling** | Tailwind CSS | Utility-first CSS |
-| **Hosting** | Azure Kubernetes Service (AKS) | Containerized Next.js |
+| Component      | Technology                     | Purpose               |
+|----------------|--------------------------------|-----------------------|
+| **Framework**  | Next.js                        | SSR, routing          |
+| **UI Library** | React                          | Component library     |
+| **Styling**    | Tailwind CSS                   | Utility-first CSS     |
+| **Hosting**    | Azure Kubernetes Service (AKS) | Containerized Next.js |
 
 ---
 
@@ -314,38 +326,38 @@ var properties = await _queryBus.SendAsync(query);
 
 #### Core Services (Authentication, Users, Permissions)
 
-| Service | Responsibility | Database | Events Published | Events Consumed |
-|---------|---------------|----------|------------------|-----------------|
-| **Identity** | User authentication, JWT generation, external logins (Google, Entra) | `identity_db` | `UserCreated`, `UserActivated`, `UserDeactivated` | - |
-| **Contact** | Personal profiles, org-user profiles, GDPR deletion | `contact_db` | `ContactCreated`, `ContactUpdated`, `ContactDeleted` | `UserCreated` |
-| **Organization** | Organizations, companies, user-org membership | `organization_db` | `OrganizationCreated`, `CompanyCreated`, `UserAddedToOrganization`, `PermissionsRegistered` | - |
-| **Permission** | Groups, permissions, authorization checks, cache | `permission_db` | `GroupCreated`, `PermissionsChanged` | `OrganizationCreated`, `PermissionsRegistered` |
-| **Preferences** | User UI preferences (theme, language, columns) per portal/org | `preferences_db` | - | - |
+| Service          | Responsibility                                                       | Database          | Events Published                                                                            | Events Consumed                                |
+|------------------|----------------------------------------------------------------------|-------------------|---------------------------------------------------------------------------------------------|------------------------------------------------|
+| **Identity**     | User authentication, JWT generation, external logins (Google, Entra) | `identity_db`     | `UserCreated`, `UserActivated`, `UserDeactivated`                                           | -                                              |
+| **Contact**      | Personal profiles, org-user profiles, GDPR deletion                  | `contact_db`      | `ContactCreated`, `ContactUpdated`, `ContactDeleted`                                        | `UserCreated`                                  |
+| **Organization** | Organizations, companies, user-org membership                        | `organization_db` | `OrganizationCreated`, `CompanyCreated`, `UserAddedToOrganization`, `PermissionsRegistered` | -                                              |
+| **Permission**   | Groups, permissions, authorization checks, cache                     | `permission_db`   | `GroupCreated`, `PermissionsChanged`                                                        | `OrganizationCreated`, `PermissionsRegistered` |
+| **Preferences**  | User UI preferences (theme, language, columns) per portal/org        | `preferences_db`  | -                                                                                           | -                                              |
 
 #### Domain Services (Property, Leasing, Operations)
 
-| Service | Responsibility | Database | Events Published | Events Consumed |
-|---------|---------------|----------|------------------|-----------------|
-| **Property Base** | Property, buildings, rental objects, rooms, components | `property_db` | `PropertyCreated`, `RentalObjectCreated`, `RentalObjectUpdated` | - |
-| **Rental Management** | Vacancy periods, availability calculation, blocks | `vacancy_db` | `VacancyPeriodCreated`, `VacancyPeriodUpdated`, `PublicationRequested` | `RentalObjectCreated`, `LeaseActivated`, `LeaseTerminated` |
-| **Market** | Listings, applications, offers, view tracking | `market_db` | `ListingCreated`, `ApplicationSubmitted`, `OfferAccepted` | `VacancyPeriodCreated`, `RentalObjectUpdated` |
-| **Lease** | Lease agreements, approval, digital signatures, termination | `lease_db` | `LeaseCreated`, `LeaseActivated`, `LeaseTerminated` | `OfferAccepted` |
-| **Dwelling Inspection** | Dwelling inspections, scheduling, assignment to inspectors | `inspection_db` | `InspectionCreated`, `InspectionCompleted` | `LeaseTerminated` |
-| **Maintenance** | Fault notifications, work orders, repair tracking | `maintenance_db` | `FaultNotificationCreated`, `WorkOrderCreated` | - |
+| Service                 | Responsibility                                              | Database         | Events Published                                                       | Events Consumed                                            |
+|-------------------------|-------------------------------------------------------------|------------------|------------------------------------------------------------------------|------------------------------------------------------------|
+| **Property Base**       | Property, buildings, rental objects, rooms, components      | `property_db`    | `PropertyCreated`, `RentalObjectCreated`, `RentalObjectUpdated`        | -                                                          |
+| **Rental Management**   | Vacancy periods, availability calculation, blocks           | `vacancy_db`     | `VacancyPeriodCreated`, `VacancyPeriodUpdated`, `PublicationRequested` | `RentalObjectCreated`, `LeaseActivated`, `LeaseTerminated` |
+| **Market**              | Listings, applications, offers, view tracking               | `market_db`      | `ListingCreated`, `ApplicationSubmitted`, `OfferAccepted`              | `VacancyPeriodCreated`, `RentalObjectUpdated`              |
+| **Lease**               | Lease agreements, approval, digital signatures, termination | `lease_db`       | `LeaseCreated`, `LeaseActivated`, `LeaseTerminated`                    | `OfferAccepted`                                            |
+| **Dwelling Inspection** | Dwelling inspections, scheduling, assignment to inspectors  | `inspection_db`  | `InspectionCreated`, `InspectionCompleted`                             | `LeaseTerminated`                                          |
+| **Maintenance**         | Fault notifications, work orders, repair tracking           | `maintenance_db` | `FaultNotificationCreated`, `WorkOrderCreated`                         | -                                                          |
 
 #### Infrastructure Services
 
-| Service | Responsibility | Database | Events Published | Events Consumed |
-|---------|---------------|----------|------------------|-----------------|
-| **Search** | Elasticsearch indexing, autocomplete API | `search_db` (metadata) | - | `RentalObjectCreated`, `ContactCreated`, `ListingCreated` (indexes to ES) |
+| Service    | Responsibility                           | Database               | Events Published | Events Consumed                                                           |
+|------------|------------------------------------------|------------------------|------------------|---------------------------------------------------------------------------|
+| **Search** | Elasticsearch indexing, autocomplete API | `search_db` (metadata) | -                | `RentalObjectCreated`, `ContactCreated`, `ListingCreated` (indexes to ES) |
 
 #### BFF Services (Client Gateways)
 
-| Service | Responsibility | Storage | Exposed Externally |
-|---------|---------------|---------|-------------------|
-| **Landlord BFF** | Session management, JWT enrichment (org-scoped), YARP routing | Redis (sessions) | ✅ Yes (HTTPS) |
-| **Tenant BFF** | Session management, user-scoped routing | Redis (sessions) | ✅ Yes (HTTPS) |
-| **Market BFF** | Session management, public + user-scoped routing | Redis (sessions) | ✅ Yes (HTTPS) |
+| Service          | Responsibility                                                | Storage          | Exposed Externally |
+|------------------|---------------------------------------------------------------|------------------|--------------------|
+| **Landlord BFF** | Session management, JWT enrichment (org-scoped), YARP routing | Redis (sessions) | ✅ Yes (HTTPS)      |
+| **Tenant BFF**   | Session management, user-scoped routing                       | Redis (sessions) | ✅ Yes (HTTPS)      |
+| **Market BFF**   | Session management, public + user-scoped routing              | Redis (sessions) | ✅ Yes (HTTPS)      |
 
 ---
 
@@ -356,6 +368,7 @@ var properties = await _queryBus.SendAsync(query);
 **Design Principle:** Avoid orchestration when possible. Let users complete their profile after authentication.
 
 ### Flow for Regular User:
+
 ```
 1. User submits registration (POST /api/auth/register)
    ↓
@@ -380,6 +393,7 @@ var properties = await _queryBus.SendAsync(query);
 ```
 
 ### Flow for Employee with Invite Code:
+
 ```
 1. Admin creates Contact first (PersonalProfile without userId)
    - POST /api/contacts { fullName, email, organizationId }
@@ -403,6 +417,7 @@ var properties = await _queryBus.SendAsync(query);
 ```
 
 ### Flow for Employee "Already Have Account":
+
 ```
 1. Employee registers normally (regular flow above)
 2. Employee logs in → creates basic Contact
@@ -413,12 +428,14 @@ var properties = await _queryBus.SendAsync(query);
 ```
 
 **Benefits:**
+
 - ✅ No saga complexity
 - ✅ User controls profile creation
 - ✅ Eventual consistency acceptable
 - ✅ Failed registrations don't leave orphaned contacts
 
 **Employee Organization Membership:**
+
 - **Default Membership:** OrganizationUserProfile (not a Permission Group)
     - Created when admin adds Contact to organization
     - Simple many-to-many: Contact ↔ Organization
@@ -431,6 +448,7 @@ var properties = await _queryBus.SendAsync(query);
 ## Pattern 2: Property Publication to Market (Choreographed)
 
 **Flow:**
+
 ```
 1. Property Manager clicks "Publish" in Landlord Portal
    ↓
@@ -453,13 +471,15 @@ var properties = await _queryBus.SendAsync(query);
    - Listing now searchable on Market Portal
 ```
 
-**No orchestrator needed** - each service reacts independently. Eventual consistency is acceptable (listing appears in market within seconds).
+**No orchestrator needed** - each service reacts independently. Eventual consistency is acceptable (listing appears in
+market within seconds).
 
 ---
 
 ## Pattern 3: Lease Termination → Dwelling Inspection Creation (Choreographed)
 
 **Flow:**
+
 ```
 1. Landlord terminates lease (POST /api/leases/{id}/terminate)
    ↓
@@ -480,7 +500,8 @@ var properties = await _queryBus.SendAsync(query);
    - Creates new Listing (rental object available again)
 ```
 
-**Parallel processing** - Dwelling Inspection and Rental Management services react independently, no coordination needed.
+**Parallel processing** - Dwelling Inspection and Rental Management services react independently, no coordination
+needed.
 
 ---
 
@@ -489,6 +510,7 @@ var properties = await _queryBus.SendAsync(query);
 **Design Principle:** Use orchestration when multi-service validation is required before action.
 
 **Flow:**
+
 ```
 1. User requests data deletion (POST /api/contacts/delete-request)
    ↓
@@ -519,6 +541,7 @@ var properties = await _queryBus.SendAsync(query);
 ### Pre-Validation Endpoints
 
 **Exposed by each service:**
+
 ```http
 POST /api/leases/validate-user-deletion
 Body: { userId: "guid" }
@@ -542,6 +565,7 @@ Response: { canDelete: true }
 ### Frontend Pre-Validation
 
 **User Experience:**
+
 ```
 User clicks "Delete My Account"
   ↓
@@ -558,6 +582,7 @@ User confirms → Actual deletion saga starts
 ```
 
 **Benefits:**
+
 - ✅ Validate before any writes (no compensations needed)
 - ✅ User gets immediate feedback (frontend validation)
 - ✅ Consistent validation logic (same endpoints used by FE and saga)
@@ -568,6 +593,7 @@ User confirms → Actual deletion saga starts
 **Any service can expose validation endpoints for frontend:**
 
 **Example: Check Organization Name Uniqueness**
+
 ```http
 POST /api/organizations/validate-name
 Body: { name: "Acme Property Management" }
@@ -578,6 +604,7 @@ Response: {
 ```
 
 **Example: Check Rental Object Number Uniqueness**
+
 ```http
 POST /api/rental-objects/validate-number
 Body: { buildingId: "guid", objectNumber: "101" }
@@ -587,6 +614,7 @@ Response: {
 ```
 
 **Implementation Pattern:**
+
 ```csharp
 // Validation endpoint (read-only, fast)
 [HttpPost("validate-name")]
@@ -612,6 +640,7 @@ public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizatio
 ```
 
 **Benefits:**
+
 - ✅ Immediate feedback to users (no waiting for command to fail)
 - ✅ Reduces failed command attempts
 - ✅ Better UX (red border on field immediately)
@@ -708,17 +737,20 @@ public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizatio
 ### Security
 
 **Authentication:**
+
 - BFFs: Session cookies (HTTP-only, secure, SameSite=Strict)
 - Internal services: JWT validation (enriched with org context, permissions)
 - External identity: Google OAuth, Azure Entra ID (optional, production)
 
 **Authorization:**
+
 - Permission-based (not role-based)
 - Groups assigned at org or company scope
 - BFF enriches JWT with permissions for current org
 - Services validate permissions from JWT claims
 
 **Service-to-Service:**
+
 - MVP 1: Trusted network (no mTLS)
 - Internal services not exposed externally
 - Future: Service mesh with auto-mTLS (Istio/Linkerd on AKS)
@@ -726,38 +758,45 @@ public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizatio
 ### Observability
 
 **Distributed Tracing:**
+
 - OpenTelemetry instrumentation in all services
 - Trace IDs propagated via HTTP headers
 - Spans cover: HTTP requests, database queries, event publishing/consuming, saga steps
 
 **Logging:**
+
 - Structured JSON logs (Serilog)
 - Log levels: Debug (dev), Information (prod), Warning/Error (always)
 - Correlation IDs link logs across services
 
 **Metrics:**
+
 - Custom metrics: Event processing latency, saga duration, cache hit rate
 - Standard metrics: HTTP request duration, database query time
 - Local: Prometheus scraping, Grafana dashboards
 - Production: Azure Monitor, Application Insights
 
 **Dashboards:**
+
 - Grafana dashboards for local development
 - Azure Monitor workbooks for production
 
 ### Resilience
 
 **Retry Policies:**
+
 - Transient failures: Exponential backoff (.NET 9 Resilience APIs)
 - HTTP calls: 3 retries with jitter
 - Event processing: Dead-letter queue after 5 retries
 
 **Circuit Breakers:**
+
 - Protect downstream services from cascading failures
 - Open circuit after 5 consecutive failures
 - Half-open after 30 seconds
 
 **Timeouts:**
+
 - HTTP calls: 10 seconds default
 - Database queries: 30 seconds
 - Event processing: 60 seconds (heavy operations like ES indexing)
@@ -765,11 +804,13 @@ public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizatio
 ### Data Consistency
 
 **Transactional Boundaries:**
+
 - Aggregate root = transaction boundary
 - Use EF Core transactions within aggregate
 - Outbox pattern for publishing events (atomic with business transaction)
 
 **Eventual Consistency:**
+
 - Cross-service data updates via events
 - Denormalized data refreshed on events (e.g., Market service caches rental object data)
 - Periodic reconciliation jobs for drift detection (future)
@@ -783,6 +824,7 @@ public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizatio
 **Decision:** Build `ProperTea.ProperCqrs` and `ProperTea.ProperSagas` instead of using established libraries.
 
 **Rationale:**
+
 - ✅ **Educational Value:** Deep understanding of patterns by implementing them
 - ✅ **Avoid Commercial Licenses:** MassTransit/MediatR have commercial restrictions
 - ✅ **Control:** Customize to exact needs (no feature bloat)
@@ -795,6 +837,7 @@ public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizatio
 **Decision:** Each service has separate API and Worker projects (e.g., `Identity.Service` + `Identity.Worker`).
 
 **Rationale:**
+
 - ✅ **Independent Scaling:** Scale workers separately from APIs (Search worker needs 10 replicas, API needs 2)
 - ✅ **Clear Separation:** API handles HTTP, Worker handles events (no mixed concerns)
 - ✅ **Educational:** Learn worker patterns across all services
@@ -807,6 +850,7 @@ public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizatio
 **Decision:** Dedicated BFF per client type (Landlord, Tenant, Market) instead of single API gateway.
 
 **Rationale:**
+
 - ✅ **Session Management:** BFFs handle session cookies (secure for web, different for future mobile)
 - ✅ **Client-Specific Logic:** Landlord BFF enriches JWT with org permissions, Tenant BFF doesn't
 - ✅ **Security Isolation:** BFFs are trusted boundary, internal services never exposed
@@ -819,6 +863,7 @@ public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizatio
 **Decision:** Use Kafka for local/AKS, Azure Service Bus for ACA production.
 
 **Rationale:**
+
 - ✅ **Portability:** Kafka works everywhere (docker, k8s, cloud-agnostic)
 - ✅ **Learning:** Industry-standard event streaming (valuable skill)
 - ✅ **Production Pragmatism:** Service Bus is managed, no operational overhead in ACA
@@ -831,6 +876,7 @@ public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizatio
 **Decision:** Use Kind (Kubernetes in Docker) for local pre-production testing.
 
 **Rationale:**
+
 - ✅ **Self-Contained:** Entire cluster in Docker, easy cleanup (`kind delete cluster`)
 - ✅ **Multi-Node:** Test HA scenarios (3-node cluster)
 - ✅ **CI/CD Friendly:** GitHub Actions has built-in Kind support
@@ -843,12 +889,14 @@ public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizatio
 ## Next Steps
 
 **For Developers:**
+
 1. Read `01-authentication-authorization.md` for auth flow details
 2. Read `02-service-specifications.md` for individual service designs
 3. Read `09-local-development.md` for setup instructions
 4. Start with Phase 1 services (see `11-implementation-roadmap.md`)
 
 **For AI Assistants:**
+
 - This document provides system-wide context
 - Reference service-specific docs for implementation details
 - Follow patterns described here for consistency across services
@@ -857,7 +905,7 @@ public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizatio
 
 **Document Version History:**
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2025-10-22 | Initial architecture approved for MVP 1 implementation |
+| Version | Date       | Changes                                                |
+|---------|------------|--------------------------------------------------------|
+| 1.0.0   | 2025-10-22 | Initial architecture approved for MVP 1 implementation |
 

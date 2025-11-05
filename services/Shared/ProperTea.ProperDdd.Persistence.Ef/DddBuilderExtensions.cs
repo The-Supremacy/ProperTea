@@ -10,7 +10,7 @@ public static class DddBuilderExtensions
         where TDbContext : DbContext
     {
         builder.Services.AddScoped<DbContext>(sp => sp.GetRequiredService<TDbContext>());
-        
+
         builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork<TDbContext>>();
         builder.Services.TryAddScoped(typeof(IRepository<>), typeof(EfRepository<>));
 

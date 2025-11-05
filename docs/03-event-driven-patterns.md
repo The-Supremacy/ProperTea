@@ -19,20 +19,24 @@
 
 ## Overview
 
-ProperTea uses **event-driven architecture** to achieve loose coupling between services while maintaining data consistency.
+ProperTea uses **event-driven architecture** to achieve loose coupling between services while maintaining data
+consistency.
 
 ### Key Patterns
 
-| Pattern | Use Case | Implementation |
-|---------|----------|----------------|
-| **Choreography** | Independent actions, eventual consistency acceptable | Services publish events, others subscribe and react |
+| Pattern                  | Use Case                                                                       | Implementation                                                                |
+|--------------------------|--------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| **Choreography**         | Independent actions, eventual consistency acceptable                           | Services publish events, others subscribe and react                           |
 | **Orchestration (Saga)** | Multi-step workflow requiring coordination, validation, and potential rollback | Contact GDPR Deletion: Must validate with multiple services before proceeding |
 
 ### Implementation
 
-- **Outbox Pattern:** Guarantees "at-least-once" delivery of integration events, even if the message broker is temporarily unavailable.
-- **Custom Saga Library (`ProperTea.ProperSagas`):** A lightweight framework for building and executing orchestrated workflows.
-- **Event-Driven Workers:** Each service can have a separate `Worker` project responsible for consuming and reacting to integration events.
+- **Outbox Pattern:** Guarantees "at-least-once" delivery of integration events, even if the message broker is
+  temporarily unavailable.
+- **Custom Saga Library (`ProperTea.ProperSagas`):** A lightweight framework for building and executing orchestrated
+  workflows.
+- **Event-Driven Workers:** Each service can have a separate `Worker` project responsible for consuming and reacting to
+  integration events.
 
 ---
 
@@ -41,6 +45,7 @@ ProperTea uses **event-driven architecture** to achieve loose coupling between s
 ### Choreography: Event-Driven Reactions
 
 **When to use:**
+
 - ✅ Services react independently to events
 - ✅ No central coordinator needed
 - ✅ Eventual consistency is acceptable
@@ -117,6 +122,7 @@ Each service reacts independently. If one fails, the message broker retries.
 ### Orchestration: Coordinated Saga
 
 **When to use:**
+
 - ✅ Multi-step workflow with dependencies between steps
 - ✅ Need rollback/compensation on failures
 - ✅ Multiple validation steps required before execution
@@ -213,23 +219,25 @@ public class GDPRDeletionOrchestrator : SagaOrchestratorBase<GDPRDeletionSaga>
 
 ### Comparison Table
 
-| Aspect | Choreography | Orchestration (Saga) |
-|--------|--------------|----------------------|
-| **Coordination** | Decentralized (events) | Centralized (orchestrator) |
-| **State** | Stateless (each service tracks own state) | Stateful (saga tracks overall progress) |
-| **Failure Handling** | Retry via message broker | Orchestrator triggers compensation |
-| **Use Case** | Independent actions | Coordinated multi-step workflows |
-| **Example** | User registration, property publication | GDPR deletion, payment processing |
-| **Library** | `ProperIntegrationEvents` | `ProperSagas` |
-| **Complexity** | Low | Medium-High |
+| Aspect               | Choreography                              | Orchestration (Saga)                    |
+|----------------------|-------------------------------------------|-----------------------------------------|
+| **Coordination**     | Decentralized (events)                    | Centralized (orchestrator)              |
+| **State**            | Stateless (each service tracks own state) | Stateful (saga tracks overall progress) |
+| **Failure Handling** | Retry via message broker                  | Orchestrator triggers compensation      |
+| **Use Case**         | Independent actions                       | Coordinated multi-step workflows        |
+| **Example**          | User registration, property publication   | GDPR deletion, payment processing       |
+| **Library**          | `ProperIntegrationEvents`                 | `ProperSagas`                           |
+| **Complexity**       | Low                                       | Medium-High                             |
 
 ---
 
 ## Saga Orchestration Pattern
 
-**Definition:** A stateful orchestrator coordinates a multi-step workflow across services, with compensation logic for rollback on failures.
+**Definition:** A stateful orchestrator coordinates a multi-step workflow across services, with compensation logic for
+rollback on failures.
 
 **When to use:**
+
 - Multi-step workflows requiring strict ordering
 - Need to validate preconditions before executing changes
 - Critical processes that must be atomic (all-or-nothing)
@@ -326,7 +334,8 @@ public class SagaProcessor : BackgroundService
 
 **Option 2: Production - Azure Durable Functions**
 
-Use Durable Functions for orchestration with built-in state management, timers, and retries. Saga state still persists in your database for auditing.
+Use Durable Functions for orchestration with built-in state management, timers, and retries. Saga state still persists
+in your database for auditing.
 
 ```csharp
 [FunctionName("GDPRDeletionDurableOrchestrator")]

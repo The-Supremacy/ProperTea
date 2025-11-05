@@ -24,12 +24,12 @@
 
 ProperTea supports **4 development modes** optimized for different workflows:
 
-| Mode | What Runs | Debugging | When to Use |
-|------|-----------|-----------|-------------|
-| **1. Inner Loop** | Infrastructure (Docker) + One service (Rider) | ✅ Full debugging (one service) | Daily feature development |
-| **2. Application Loop** | All services (Docker) | ✅ Attach to 3-5 services | Multi-service flows, e2e debugging |
-| **3. Integration Testing** | All services (Docker) | ❌ Logs + traces only | Automated testing, CI/CD |
-| **4. Pre-Production** | All services (Kind k8s) | ❌ kubectl logs | Validate Helm charts, k8s configs |
+| Mode                       | What Runs                                     | Debugging                      | When to Use                        |
+|----------------------------|-----------------------------------------------|--------------------------------|------------------------------------|
+| **1. Inner Loop**          | Infrastructure (Docker) + One service (Rider) | ✅ Full debugging (one service) | Daily feature development          |
+| **2. Application Loop**    | All services (Docker)                         | ✅ Attach to 3-5 services       | Multi-service flows, e2e debugging |
+| **3. Integration Testing** | All services (Docker)                         | ❌ Logs + traces only           | Automated testing, CI/CD           |
+| **4. Pre-Production**      | All services (Kind k8s)                       | ❌ kubectl logs                 | Validate Helm charts, k8s configs  |
 
 ---
 
@@ -97,11 +97,13 @@ make kind-up
 ### Setup
 
 **1. Start Infrastructure:**
+
 ```bash
 make infra-up
 ```
 
 This starts:
+
 - PostgreSQL (port 5432)
 - Redis (port 6379)
 - Kafka + Zookeeper (ports 9092, 9093)
@@ -202,6 +204,7 @@ make platform-up
 ```
 
 This starts:
+
 - All infrastructure (from Mode 1)
 - All microservices (APIs + Workers) in Docker
 - Services exposed on ports 5001-5020
@@ -230,9 +233,9 @@ docker ps | grep propertea
 2. In "Show processes from" dropdown: Select **"Docker"**
 3. Filter by "propertea" to see your services
 4. Select containers to debug (Ctrl+Click for multiple):
-   - `identity-service`
-   - `contact-service`
-   - `landlord-bff`
+    - `identity-service`
+    - `contact-service`
+    - `landlord-bff`
 5. Click **"Attach with .NET Debugger"**
 
 **Rider will attach debuggers to selected containers!**
@@ -444,6 +447,7 @@ kind create cluster --name propertea-local --config kind-config.yaml
 ```
 
 **kind-config.yaml:**
+
 ```yaml
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
@@ -553,6 +557,7 @@ make kind-down
 ### Debugging in Mode 1 (Rider Native)
 
 **Full debugging capabilities:**
+
 - Breakpoints
 - Step through (F8), Step into (F7), Step out (Shift+F8)
 - Variable inspection
@@ -563,17 +568,20 @@ make kind-down
 ### Debugging in Mode 2 (Attach to Docker)
 
 **Capabilities:**
+
 - Breakpoints ✅
 - Step through ✅
 - Variable inspection ✅
 - Hot reload ❌ (requires container rebuild)
 
 **Limitations:**
+
 - Each attached debugger adds ~50MB RAM overhead
 - Recommend attaching to max 5 services
 - Hot reload doesn't work - must rebuild container for code changes
 
 **Workflow:**
+
 1. Make code changes
 2. Rebuild container: `docker-compose up -d --build identity-service`
 3. Reattach debugger in Rider
@@ -588,14 +596,14 @@ make kind-down
 2. Open Jaeger: http://localhost:16686
 3. Search for trace by operation (e.g., "POST /api/auth/register")
 4. View full trace:
-   - BFF → Identity (12ms)
-   - Identity → Kafka (publish event) (3ms)
-   - Contact Worker ← Kafka (consume event) (5ms)
-   - Contact → Database (create contact) (8ms)
+    - BFF → Identity (12ms)
+    - Identity → Kafka (publish event) (3ms)
+    - Contact Worker ← Kafka (consume event) (5ms)
+    - Contact → Database (create contact) (8ms)
 5. Click on each span to see:
-   - Tags (userId, email, etc.)
-   - Logs (info, errors)
-   - Duration
+    - Tags (userId, email, etc.)
+    - Logs (info, errors)
+    - Duration
 
 **This is often faster than debugging for understanding flows!**
 
@@ -711,13 +719,14 @@ clean:              # Remove all containers, volumes, images
 ---
 
 **Next Documents:**
+
 - `06-deployment-kubernetes.md` - Helm charts, k8s manifests
 - `10-migration-guide.md` - Refactor existing code
 - `11-implementation-roadmap.md` - Phased approach
 
 **Document Version:**
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2025-10-22 | Initial local development guide |
+| Version | Date       | Changes                         |
+|---------|------------|---------------------------------|
+| 1.0.0   | 2025-10-22 | Initial local development guide |
 

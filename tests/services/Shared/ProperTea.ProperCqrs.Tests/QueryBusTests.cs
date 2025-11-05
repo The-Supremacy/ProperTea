@@ -41,7 +41,7 @@ public class QueryBusTests
         // Assert
         Assert.Equal("Handled: Test Data", result);
     }
-    
+
     [Fact]
     public async Task SendAsync_SendQueryWithInvalidData_ThrowsValidationException()
     {

@@ -1,6 +1,5 @@
 using System.Text;
 using System.Text.Json;
-using ProperTea.Landlord.Bff.DTOs;
 using ProperTea.Landlord.Bff.DTOs.Auth;
 
 namespace ProperTea.Landlord.Bff.Services;
@@ -53,7 +52,7 @@ public class IdentityService : IIdentityService
             throw;
         }
     }
-    
+
     public async Task<string?> ReissueTokenAsync(string expiredToken)
     {
         try

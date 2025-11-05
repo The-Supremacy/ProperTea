@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ProperTea.ProperDdd.Persistence.Ef.Tests.Setup;
-using Xunit;
 
 namespace ProperTea.ProperDdd.Persistence.Ef.Tests;
 
@@ -87,7 +86,7 @@ public class EfRepositoryTests
         var result = await context.TestAggregates.FindAsync(aggregate.Id);
         Assert.Null(result);
     }
-    
+
     private async Task<(EfRepository<TestAggregate> repository, TestDbContext dbContext)> GetRepositoryAsync()
     {
         var services = new ServiceCollection();

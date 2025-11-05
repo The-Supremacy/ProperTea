@@ -14,7 +14,7 @@ public class OutboxIntegrationEventPublisher(IOutboxDbContext dbContext) : IInte
             Topic = topic,
             EventType = @event.EventType,
             Payload = JsonSerializer.Serialize(@event, @event.GetType()),
-            Status = OutboxMessageStatus.Pending,
+            Status = OutboxMessageStatus.Pending
         };
 
         await dbContext.OutboxMessages.AddAsync(outboxMessage, ct);

@@ -19,6 +19,7 @@ ProperSagas supports two advanced patterns for real-world saga implementations:
 ### The Problem
 
 In multi-step sagas, you often want to validate preconditions BEFORE executing any changes:
+
 - ✅ Front-end can show validation errors before user confirms action
 - ✅ Avoid starting a saga that will fail validation
 - ✅ Separate read-only checks from write operations
@@ -159,6 +160,7 @@ if (confirm('All validation passed. Proceed with deletion?')) {
 ### The Problem
 
 Different saga steps have different compensation requirements:
+
 - ✅ Some steps are read-only (no compensation needed)
 - ✅ Some steps can be easily compensated
 - ✅ Some steps reach a "point of no return" (cannot be compensated)
@@ -245,6 +247,7 @@ protected override async Task CompensateAsync(GDPRDeletionSaga saga)
 ```
 
 **What `AutoCompensateAsync` does:**
+
 1. Marks saga as `Compensating`
 2. Gets steps where `HasCompensation = true` and `Status = Completed` (in REVERSE order)
 3. For each step, calls your compensation action
@@ -421,23 +424,23 @@ protected override async Task ExecuteStepsAsync(GDPRDeletionSaga saga)
 
 ### Validation Features
 
-| Feature | Purpose | Usage |
-|---------|---------|-------|
-| `IsPreValidation` | Mark read-only validation steps | `new SagaStep { IsPreValidation = true }` |
-| `ValidateAsync()` | Run only validation steps | `await orchestrator.ValidateAsync(saga)` |
-| `ValidateStepAsync()` | Implement validation logic | Override in orchestrator |
-| `GetPreValidationSteps()` | Get validation steps | `saga.GetPreValidationSteps()` |
-| Front-end endpoint | Validate before saga starts | `POST /api/.../validate` |
+| Feature                   | Purpose                         | Usage                                     |
+|---------------------------|---------------------------------|-------------------------------------------|
+| `IsPreValidation`         | Mark read-only validation steps | `new SagaStep { IsPreValidation = true }` |
+| `ValidateAsync()`         | Run only validation steps       | `await orchestrator.ValidateAsync(saga)`  |
+| `ValidateStepAsync()`     | Implement validation logic      | Override in orchestrator                  |
+| `GetPreValidationSteps()` | Get validation steps            | `saga.GetPreValidationSteps()`            |
+| Front-end endpoint        | Validate before saga starts     | `POST /api/.../validate`                  |
 
 ### Compensation Features
 
-| Feature | Purpose | Usage |
-|---------|---------|-------|
-| `HasCompensation` | Mark if step can be compensated | `new SagaStep { HasCompensation = true }` |
-| `CompensationName` | Custom compensation action name | `CompensationName = "RestoreFromBackup"` |
-| `AutoCompensateAsync()` | Automatic compensation helper | Call from `CompensateAsync()` |
-| `GetStepsNeedingCompensation()` | Get compensatable steps | `saga.GetStepsNeedingCompensation()` |
-| Point of no return | Steps that can't be compensated | `HasCompensation = false` for final steps |
+| Feature                         | Purpose                         | Usage                                     |
+|---------------------------------|---------------------------------|-------------------------------------------|
+| `HasCompensation`               | Mark if step can be compensated | `new SagaStep { HasCompensation = true }` |
+| `CompensationName`              | Custom compensation action name | `CompensationName = "RestoreFromBackup"`  |
+| `AutoCompensateAsync()`         | Automatic compensation helper   | Call from `CompensateAsync()`             |
+| `GetStepsNeedingCompensation()` | Get compensatable steps         | `saga.GetStepsNeedingCompensation()`      |
+| Point of no return              | Steps that can't be compensated | `HasCompensation = false` for final steps |
 
 ### Best Practices
 
@@ -446,7 +449,7 @@ protected override async Task ExecuteStepsAsync(GDPRDeletionSaga saga)
 ✅ **Order steps by reversibility** - Reversible first, irreversible last  
 ✅ **Use automatic compensation** - Unless you need custom logic  
 ✅ **Log compensation failures** - They may need manual intervention  
-✅ **Test compensation paths** - Don't just test happy path  
+✅ **Test compensation paths** - Don't just test happy path
 
 ---
 

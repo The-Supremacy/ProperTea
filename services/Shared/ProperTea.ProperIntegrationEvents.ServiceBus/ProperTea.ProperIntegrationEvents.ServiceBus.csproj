@@ -11,8 +11,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ProperTea.ProperDdd\ProperTea.ProperDdd.csproj" />
-      <ProjectReference Include="..\ProperTea.ProperIntegrationEvents\ProperTea.ProperIntegrationEvents.csproj" />
+        <ProjectReference Include="..\ProperTea.ProperDdd\ProperTea.ProperDdd.csproj"/>
+        <ProjectReference Include="..\ProperTea.ProperIntegrationEvents\ProperTea.ProperIntegrationEvents.csproj"/>
     </ItemGroup>
-    
+
 </Project>

@@ -25,7 +25,7 @@ services:
       - "traefik.http.routers.identity.rule=Host(`identity.propertea.dev`)"
       - "traefik.http.routers.identity.entrypoints=websecure"
       - "traefik.http.routers.identity.tls=true"
-        
+  
   landlord-bff:
     build:
       context: .

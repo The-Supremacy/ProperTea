@@ -144,7 +144,6 @@ public class AuthEndpointsTests : IClassFixture<IdentityServiceFactory>
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
-    
 
     [Fact]
     public async Task Register_WithExistingEmail_ReturnsBadRequest()

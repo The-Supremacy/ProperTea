@@ -6,7 +6,9 @@
 
 ---
 
-> **Note on Implementation Details:** The design described in this document is a high-level approach. The specific fields to be indexed, the exact queries, and the worker implementation details are subject to change during the development of the Search Service.
+> **Note on Implementation Details:** The design described in this document is a high-level approach. The specific
+> fields to be indexed, the exact queries, and the worker implementation details are subject to change during the
+> development of the Search Service.
 
 ## Table of Contents
 
@@ -23,7 +25,8 @@
 
 ## Overview
 
-ProperTea uses Elasticsearch for full-text search and autocomplete functionality across rental objects, contacts, and listings.
+ProperTea uses Elasticsearch for full-text search and autocomplete functionality across rental objects, contacts, and
+listings.
 
 ### Use Cases
 
@@ -35,6 +38,7 @@ ProperTea uses Elasticsearch for full-text search and autocomplete functionality
 ### Design Decisions
 
 **Why Elasticsearch?**
+
 - ✅ Blazing fast full-text search (millisecond response times)
 - ✅ Excellent autocomplete support (edge n-grams, fuzzy matching)
 - ✅ Scalable (handles millions of documents)
@@ -42,6 +46,7 @@ ProperTea uses Elasticsearch for full-text search and autocomplete functionality
 - ✅ Educational value (industry-standard search technology)
 
 **Search Service Architecture:**
+
 - Dedicated microservice owns Elasticsearch interaction
 - Event-driven indexing (listens to PropertyCreated, ListingCreated, etc.)
 - Separate API + Worker projects
@@ -494,12 +499,14 @@ public class RentalObjectIndexHandler : IIntegrationEventHandler<RentalObjectCre
 ### Event-Driven Indexing
 
 **Flow:**
+
 1. Property service creates rental object
 2. Publishes `RentalObjectCreatedEvent` to Kafka
 3. Search worker consumes event
 4. Indexes document in Elasticsearch
 
 **Advantages:**
+
 - ✅ Decoupled (Property service doesn't know about search)
 - ✅ Asynchronous (doesn't slow down API requests)
 - ✅ Resilient (events stored in Kafka, retried on failure)
@@ -545,11 +552,13 @@ public class InitialIndexJob
 ### Reindexing Strategy
 
 **When to reindex:**
+
 - Index mapping changes (add new fields, change analyzers)
 - Data inconsistencies detected
 - Scheduled maintenance (e.g., monthly full reindex)
 
 **Zero-Downtime Reindexing:**
+
 1. Create new index: `rental_objects_v2`
 2. Bulk index all data into `rental_objects_v2`
 3. Switch alias: `rental_objects` → `rental_objects_v2`
@@ -576,6 +585,7 @@ Response:
 ```
 
 **Implementation uses edge n-grams:**
+
 - Input: "sun" → Matches: "**Sun**set", "**Sun**ny"
 - Input: "sunset ap" → Matches: "**Sunset Ap**artments"
 
@@ -616,6 +626,7 @@ var searchRequest = new SearchRequest<ListingDocument>("listings")
 ### Index Settings
 
 **Number of shards:**
+
 ```json
 {
   "settings": {
@@ -626,6 +637,7 @@ var searchRequest = new SearchRequest<ListingDocument>("listings")
 ```
 
 **Refresh interval:**
+
 ```json
 {
   "settings": {
@@ -637,6 +649,7 @@ var searchRequest = new SearchRequest<ListingDocument>("listings")
 ### Query Optimization
 
 **1. Use filters instead of queries when possible:**
+
 ```csharp
 // Good (cached)
 .Filter(f => f.Term(t => t.Field(x => x.Status).Value("Published")))
@@ -646,11 +659,13 @@ var searchRequest = new SearchRequest<ListingDocument>("listings")
 ```
 
 **2. Limit field data:**
+
 ```csharp
 .Source(s => s.Includes(i => i.Fields("rentalObjectId", "address", "monthlyRent")))
 ```
 
 **3. Use pagination:**
+
 ```csharp
 .From((page - 1) * pageSize)
 .Size(pageSize)
@@ -706,6 +721,7 @@ curl "localhost:9200/_cat/indices?v"
 Access: http://localhost:5601/app/dev_tools#/console
 
 **Test queries:**
+
 ```
 GET rental_objects/_search
 {
@@ -721,7 +737,7 @@ GET rental_objects/_search
 
 **Document Version:**
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2025-10-22 | Initial Elasticsearch integration guide |
+| Version | Date       | Changes                                 |
+|---------|------------|-----------------------------------------|
+| 1.0.0   | 2025-10-22 | Initial Elasticsearch integration guide |
 

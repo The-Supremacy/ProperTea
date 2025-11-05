@@ -4,21 +4,6 @@ namespace ProperTea.ProperSagas.Tests;
 
 public class SagaBaseTests
 {
-    private class TestSaga : SagaBase
-    {
-        public TestSaga()
-        {
-            Steps = new List<SagaStep>
-            {
-                new() { Name = "Validate1", IsPreValidation = true, HasCompensation = false },
-                new() { Name = "Validate2", IsPreValidation = true, HasCompensation = false },
-                new() { Name = "Execute1", HasCompensation = true },
-                new() { Name = "Execute2", HasCompensation = true },
-                new() { Name = "Execute3", HasCompensation = false }
-            };
-        }
-    }
-
     // AllPreValidationStepsCompleted tests
     [Fact]
     public void AllPreValidationStepsCompleted_AllStepsCompleted_ReturnsTrue()
@@ -261,5 +246,19 @@ public class SagaBaseTests
         saga.GetData<decimal>("amount").ShouldBe(100.50m);
         saga.GetData<bool>("isActive").ShouldBeTrue();
     }
-}
 
+    private class TestSaga : SagaBase
+    {
+        public TestSaga()
+        {
+            Steps = new List<SagaStep>
+            {
+                new() { Name = "Validate1", IsPreValidation = true, HasCompensation = false },
+                new() { Name = "Validate2", IsPreValidation = true, HasCompensation = false },
+                new() { Name = "Execute1", HasCompensation = true },
+                new() { Name = "Execute2", HasCompensation = true },
+                new() { Name = "Execute3", HasCompensation = false }
+            };
+        }
+    }
+}

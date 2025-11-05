@@ -65,7 +65,7 @@ app.Run();
 // This is needed so that test can access the app.
 namespace ProperTea.Landlord.Bff
 {
-    public partial class Program
+    public class Program
     {
     }
 }

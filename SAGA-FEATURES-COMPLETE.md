@@ -10,17 +10,20 @@
 ### 1. Pre-Validation Support ✅
 
 **Added to `SagaStep`:**
+
 - `IsPreValidation` flag - Mark read-only validation steps
 - `HasCompensation` flag - Control compensation behavior per step
 - `CompensationName` property - Optional custom compensation action name
 
 **Added to `SagaBase`:**
+
 - `GetPreValidationSteps()` - Get all validation steps
 - `GetExecutionSteps()` - Get non-validation steps
 - `GetStepsNeedingCompensation()` - Get compensatable steps (in reverse order)
 - `AllPreValidationStepsCompleted()` - Check if validations passed
 
 **Added to `SagaOrchestratorBase`:**
+
 - `ValidateAsync()` - Execute only pre-validation steps (for front-end)
 - `ValidateStepAsync()` - Virtual method to implement validation logic
 - `AutoCompensateAsync()` - Helper for automatic compensation
@@ -114,35 +117,40 @@ protected override async Task CompensateAsync(MySaga saga)
 ## 3. Benefits
 
 ### For Validation:
+
 ✅ **Front-end integration** - UI can validate before user confirms  
 ✅ **Fail fast** - Catch blockers before starting saga  
 ✅ **Separation of concerns** - Validation logic separate from execution  
 ✅ **Reusable** - Same validation for front-end and saga execution  
-✅ **Better UX** - Show errors immediately, not after saga starts  
+✅ **Better UX** - Show errors immediately, not after saga starts
 
 ### For Compensation:
+
 ✅ **Per-step control** - Mark which steps can be compensated  
 ✅ **Point of no return** - Handle irreversible steps appropriately  
 ✅ **Automatic helper** - Less boilerplate for common patterns  
 ✅ **Reverse order** - Compensation happens in correct order  
 ✅ **Error tolerance** - Continues compensating even if one step fails  
-✅ **Flexibility** - Use auto helper or implement custom logic  
+✅ **Flexibility** - Use auto helper or implement custom logic
 
 ---
 
 ## 4. Files Created/Modified
 
 ### Code Changes:
+
 - ✅ `SagaStep.cs` - Added 3 new properties
 - ✅ `SagaBase.cs` - Added 5 new helper methods
 - ✅ `SagaOrchestratorBase.cs` - Added 3 new methods
 
 ### Examples (V2):
+
 - ✅ `GDPRDeletionSagaV2.cs` - Saga with validation steps
 - ✅ `GDPRDeletionOrchestratorV2.cs` - Orchestrator with validation & auto-compensation
 - ✅ `GDPREndpointsV2.cs` - Endpoints with front-end validation support
 
 ### Documentation:
+
 - ✅ `SAGA-VALIDATION-COMPENSATION.md` - Complete guide
 - ✅ `examples/sagas/README.md` - Updated with V2 examples
 
@@ -151,11 +159,13 @@ protected override async Task CompensateAsync(MySaga saga)
 ## 5. Usage Summary
 
 ### Basic Flow (V1 - Still Valid)
+
 1. Define saga with steps
 2. Implement validation in `ExecuteStepsAsync`
 3. Implement manual compensation in `CompensateAsync`
 
 ### Advanced Flow (V2 - Recommended)
+
 1. Define saga with `IsPreValidation` and `HasCompensation` flags
 2. Implement `ValidateStepAsync()` for validation logic
 3. Create validation endpoint using `orchestrator.ValidateAsync()`
@@ -248,6 +258,7 @@ protected override async Task CompensateAsync(MySaga saga)
 ## 8. Next Steps
 
 **You can now:**
+
 1. ✅ Use pre-validation for front-end integration
 2. ✅ Configure per-step compensation behavior
 3. ✅ Use automatic compensation helper
@@ -255,11 +266,13 @@ protected override async Task CompensateAsync(MySaga saga)
 5. ✅ Build better user experiences with early validation
 
 **See examples:**
+
 - `/docs/examples/sagas/GDPRDeletionSagaV2.cs`
 - `/docs/examples/sagas/GDPRDeletionOrchestratorV2.cs`
 - `/docs/examples/sagas/GDPREndpointsV2.cs`
 
 **Read guide:**
+
 - `/docs/SAGA-VALIDATION-COMPENSATION.md`
 
 ---

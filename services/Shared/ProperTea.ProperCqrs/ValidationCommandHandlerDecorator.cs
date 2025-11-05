@@ -16,7 +16,7 @@ public class ValidationCommandHandlerDecorator<TCommand, TResult> : ICommandHand
 
     public async Task<TResult> HandleAsync(TCommand command, CancellationToken ct = default)
     {
-        await _validator.ValidateAndThrowAsync(command, cancellationToken: ct);
+        await _validator.ValidateAndThrowAsync(command, ct);
         return await _handler.HandleAsync(command, ct);
     }
 }
@@ -34,7 +34,7 @@ public class ValidationCommandHandlerDecorator<TCommand> : ICommandHandler<TComm
 
     public async Task HandleAsync(TCommand command, CancellationToken ct = default)
     {
-        await _validator.ValidateAndThrowAsync(command, cancellationToken: ct);
+        await _validator.ValidateAndThrowAsync(command, ct);
         await _handler.HandleAsync(command, ct);
     }
 }

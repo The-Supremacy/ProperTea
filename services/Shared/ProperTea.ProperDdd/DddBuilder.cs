@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using ProperTea.ProperDdd.Events;
 
 namespace ProperTea.ProperDdd;
 

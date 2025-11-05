@@ -16,7 +16,7 @@ public class TokenEndpointsTests : IClassFixture<IdentityServiceFactory>
         _client = factory.CreateClient();
         _factory = factory;
     }
-    
+
     [Fact]
     public async Task ExternalCallback_WithNonExistingUser_ReturnsUnauthorizedChallenge()
     {

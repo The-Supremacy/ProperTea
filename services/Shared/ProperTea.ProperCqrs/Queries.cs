@@ -15,14 +15,13 @@ public interface IQueryBus
     Task<TResult> SendAsync<TResult>(IQuery<TResult> query, CancellationToken ct = default);
 }
 
-
 public class QueryBus : IQueryBus
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
 
     public QueryBus(IServiceScopeFactory serviceScopeFactory)
     {
-        this._serviceScopeFactory = serviceScopeFactory;
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
     public Task<TResult> SendAsync<TResult>(IQuery<TResult> query, CancellationToken ct = default)

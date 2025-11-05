@@ -18,11 +18,13 @@
 
 ## Overview
 
-This guide helps you refactor existing Identity Service and Landlord BFF code to align with the architecture documented in `00-architecture-overview.md` and `01-authentication-authorization.md`.
+This guide helps you refactor existing Identity Service and Landlord BFF code to align with the architecture documented
+in `00-architecture-overview.md` and `01-authentication-authorization.md`.
 
 ### Current State
 
 **What's Good:**
+
 - ✅ Basic authentication flow works (login, JWT generation)
 - ✅ Session management in BFF (Redis-backed)
 - ✅ HTTP-only cookies for security
@@ -30,6 +32,7 @@ This guide helps you refactor existing Identity Service and Landlord BFF code to
 - ✅ Integration tests exist
 
 **What Needs Refactoring:**
+
 - ❌ No choreographed event publishing for user registration
 - ❌ No separate worker projects
 - ❌ No JWT enrichment with org/permissions
@@ -39,12 +42,14 @@ This guide helps you refactor existing Identity Service and Landlord BFF code to
 ### Migration Strategy
 
 **Phase 1a: Identity Service** (Week 1)
+
 1. Create worker project
 2. Add outbox pattern
 3. Update registration endpoint to publish events
 4. Keep existing endpoints working
 
 **Phase 1b: Landlord BFF** (Week 4)
+
 1. Add JWT enrichment middleware (on-demand)
 2. Integrate with Permission Service
 3. Update session structure
@@ -58,12 +63,14 @@ This guide helps you refactor existing Identity Service and Landlord BFF code to
 **Decision:** User registration uses **choreographed events** - no saga needed.
 
 **Why choreography, not saga:**
+
 - ✅ Contact creation can fail independently without affecting user creation
 - ✅ Contact is created later (deferred until user first accesses an org)
 - ✅ No rollback needed - user can exist without a contact initially
 - ✅ Each service reacts independently to events
 
 **New Flow:**
+
 1. User registers → Identity creates User → Publishes `UserCreated` event → Done
 2. User logs in → BFF detects no Contact for current org → Redirects to onboarding
 3. User fills profile → Contact Service creates PersonalProfile
@@ -129,6 +136,7 @@ public class UserCreatedIntegrationEvent : IntegrationEventBase
     public override string Topic => "identity-events";
 }
 ```
+
 ```
 
 ### Step 2: Create Worker Project (For Future Event Consumers)

@@ -16,7 +16,7 @@ public class ValidationQueryHandlerDecorator<TQuery, TResult> : IQueryHandler<TQ
 
     public async Task<TResult> HandleAsync(TQuery query, CancellationToken ct = default)
     {
-        await _validator.ValidateAndThrowAsync(query, cancellationToken: ct);
+        await _validator.ValidateAndThrowAsync(query, ct);
         return await _handler.HandleAsync(query, ct);
     }
 }

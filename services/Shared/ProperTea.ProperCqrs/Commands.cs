@@ -37,7 +37,7 @@ public class CommandBus : ICommandBus
         using var scope = _serviceScopeFactory.CreateScope();
         var handlerType = typeof(ICommandHandler<,>).MakeGenericType(command.GetType(), typeof(TResult));
         var handler = scope.ServiceProvider.GetRequiredService(handlerType);
-        
+
         return (Task<TResult>)handler.GetType()
             .GetMethod("HandleAsync")!
             .Invoke(handler, [command, ct])!;
@@ -48,7 +48,7 @@ public class CommandBus : ICommandBus
         using var scope = _serviceScopeFactory.CreateScope();
         var handlerType = typeof(ICommandHandler<>).MakeGenericType(command.GetType());
         var handler = scope.ServiceProvider.GetRequiredService(handlerType);
-        
+
         return (Task)handler.GetType()
             .GetMethod("HandleAsync")!
             .Invoke(handler, new object[] { command, ct })!;

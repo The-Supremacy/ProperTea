@@ -6,29 +6,32 @@
 
 ---
 
-> **Note on Implementation Details:** The database schemas, aggregates, and detailed code samples in this document are for initial guidance, particularly for AI-assisted development. They are subject to change during implementation. The final, authoritative documentation for each service will be the code itself, its comments, and its OpenAPI specification.
+> **Note on Implementation Details:** The database schemas, aggregates, and detailed code samples in this document are
+> for initial guidance, particularly for AI-assisted development. They are subject to change during implementation. The
+> final, authoritative documentation for each service will be the code itself, its comments, and its OpenAPI
+> specification.
 
 ## Table of Contents
 
 1. [Core Services](#core-services)
-   - [Identity Service](#identity-service)
-   - [Contact Service](#contact-service)
-   - [Organization Service](#organization-service)
-   - [Permission Service](#permission-service)
-   - [Preferences Service](#preferences-service)
+    - [Identity Service](#identity-service)
+    - [Contact Service](#contact-service)
+    - [Organization Service](#organization-service)
+    - [Permission Service](#permission-service)
+    - [Preferences Service](#preferences-service)
 2. [Domain Services](#domain-services)
-   - [Property Base Service](#property-base-service)
-   - [Rental Management Service](#vacancy-service)
-   - [Market Service](#market-service)
-   - [Lease Service](#lease-service)
-   - [Inspection Service](#inspection-service)
-   - [Maintenance Service](#maintenance-service)
+    - [Property Base Service](#property-base-service)
+    - [Rental Management Service](#vacancy-service)
+    - [Market Service](#market-service)
+    - [Lease Service](#lease-service)
+    - [Inspection Service](#inspection-service)
+    - [Maintenance Service](#maintenance-service)
 3. [Infrastructure Services](#infrastructure-services)
-   - [Search Service](#search-service)
+    - [Search Service](#search-service)
 4. [BFF Services](#bff-services)
-   - [Landlord BFF](#landlord-bff)
-   - [Tenant BFF](#tenant-bff)
-   - [Market BFF](#market-bff)
+    - [Landlord BFF](#landlord-bff)
+    - [Tenant BFF](#tenant-bff)
+    - [Market BFF](#market-bff)
 
 ---
 
@@ -45,6 +48,7 @@
 #### API Endpoints
 
 **Token Management:**
+
 ```
 POST   /api/token/login              - Authenticate user, return JWT
 POST   /api/token/reissue            - Reissue expired JWT
@@ -53,6 +57,7 @@ POST   /api/token/external/callback  - Handle OAuth callback
 ```
 
 **User Management:**
+
 ```
 POST   /api/auth/register            - Register new user
 POST   /api/auth/forgot-password     - Initiate password reset
@@ -64,6 +69,7 @@ POST   /api/auth/confirm-email       - Confirm email address
 #### Data Models
 
 **User (Aggregate Root):**
+
 ```csharp
 public class ProperTeaUser : IdentityUser<Guid>
 {
@@ -79,6 +85,7 @@ public class ProperTeaUser : IdentityUser<Guid>
 ```
 
 **ExternalLogin (Entity):**
+
 ```csharp
 public class ExternalLogin
 {
@@ -109,6 +116,7 @@ None (Identity is the source of truth for users)
 #### Worker Responsibilities
 
 **Identity.Worker:**
+
 - Processes outbox messages (publishes integration events to message broker)
 - Future: May handle other background tasks like user cleanup
 
@@ -239,6 +247,7 @@ GET    /api/contacts/export?userId={guid}  - Export user data (GDPR)
 #### Data Models
 
 **PersonalProfile (Aggregate Root):**
+
 ```csharp
 public class PersonalProfile : AggregateRoot
 {
@@ -303,6 +312,7 @@ public class PersonalProfile : AggregateRoot
 ```
 
 **OrganizationUserProfile (Entity):**
+
 ```csharp
 public class OrganizationUserProfile
 {
@@ -337,6 +347,7 @@ public record UserCreated(Guid UserId, string Email, DateTime CreatedAt);
 #### Worker Responsibilities
 
 **Contact.Worker:**
+
 - Listens to `UserCreated` event
 - Creates `PersonalProfile` for new users
 - Publishes `ContactCreated` event
@@ -396,6 +407,7 @@ CREATE TABLE deletion_request_sagas (
 #### API Endpoints
 
 **Organizations:**
+
 ```
 GET    /api/organizations                           - List organizations
 GET    /api/organizations/{orgId}                   - Get organization
@@ -408,6 +420,7 @@ GET    /api/organizations/by-subdomain/{subdomain}  - Resolve org from subdomain
 ```
 
 **Companies:**
+
 ```
 GET    /api/organizations/{orgId}/companies         - List companies in org
 GET    /api/companies/{companyId}                   - Get company
@@ -417,6 +430,7 @@ DELETE /api/companies/{companyId}                   - Delete company
 ```
 
 **User Membership:**
+
 ```
 GET    /api/organizations/{orgId}/users             - List users in org
 POST   /api/organizations/{orgId}/users/{userId}    - Add user to org
@@ -426,6 +440,7 @@ DELETE /api/organizations/{orgId}/users/{userId}    - Remove user from org
 #### Data Models
 
 **Organization (Aggregate Root):**
+
 ```csharp
 public class Organization : AggregateRoot
 {
@@ -476,6 +491,7 @@ public class Organization : AggregateRoot
 ```
 
 **Company (Entity):**
+
 ```csharp
 public class Company
 {
@@ -493,6 +509,7 @@ public class Company
 ```
 
 **UserOrganization (Entity):**
+
 ```csharp
 public class UserOrganization
 {
@@ -520,6 +537,7 @@ None
 #### Worker Responsibilities
 
 **Organization.Worker:**
+
 - Orchestrates `OrganizationCreationSaga` (creates default company)
 - Listens to organization lifecycle events
 
@@ -570,12 +588,14 @@ CREATE TABLE user_organizations (
 #### API Endpoints
 
 **Permission Definitions:**
+
 ```
 GET    /api/permissions/definitions           - List all permissions
 POST   /api/permissions/definitions/refresh   - Force refresh from services
 ```
 
 **Groups:**
+
 ```
 GET    /api/permissions/groups?orgId={guid}              - List groups
 GET    /api/permissions/groups/{groupId}                 - Get group
@@ -593,6 +613,7 @@ DELETE /api/permissions/groups/{groupId}/permissions/{permKey} - Remove permissi
 ```
 
 **User Permissions:**
+
 ```
 GET    /api/permissions/user/{userId}/org/{orgId}  - Get user permissions for org
 POST   /api/permissions/check                      - Check if user has permission
@@ -601,6 +622,7 @@ POST   /api/permissions/check                      - Check if user has permissio
 #### Data Models
 
 **Group (Aggregate Root):**
+
 ```csharp
 public class Group : AggregateRoot
 {
@@ -633,6 +655,7 @@ public class Group : AggregateRoot
 ```
 
 **PermissionDefinition (Entity):**
+
 ```csharp
 public class PermissionDefinition
 {
@@ -663,6 +686,7 @@ public record PermissionsRegistered(string ServiceName, List<PermissionDefinitio
 #### Worker Responsibilities
 
 **Permission.Worker:**
+
 - Listens to `OrganizationCreated` → seeds default groups (Administrator, User)
 - Listens to `PermissionsRegistered` → updates permission definitions
 - Publishes `UserPermissionsChanged` when groups/permissions change
@@ -729,6 +753,7 @@ DELETE /api/preferences/{preferenceId}                            - Delete prefe
 #### Data Models
 
 **UserPreference (Entity):**
+
 ```csharp
 public class UserPreference
 {
@@ -774,7 +799,9 @@ CREATE INDEX idx_preferences_lookup ON user_preferences(user_id, portal, organiz
 
 ### Property Base Service
 
-**Responsibility:** Manages the physical structure of properties, including buildings and the individual 'rentable units' within them (e.g., apartments, storage rooms, parking spaces). It **does not** manage the concept of a lease-ready `RentalObject`. Instead, it publishes integration events when a new rentable unit is defined.
+**Responsibility:** Manages the physical structure of properties, including buildings and the individual 'rentable
+units' within them (e.g., apartments, storage rooms, parking spaces). It **does not** manage the concept of a
+lease-ready `RentalObject`. Instead, it publishes integration events when a new rentable unit is defined.
 
 **Technology:** ASP.NET Core, Entity Framework Core, PostgreSQL
 
@@ -790,11 +817,14 @@ POST   /api/properties/{propertyId}/units   - Create a new rentable unit (e.g., 
 #### Data Models (High-Level Concept)
 
 **Property (Aggregate Root):**
+
 - Represents a physical real estate asset (e.g., "Main Street 123").
 - Contains a collection of `RentableUnit` entities.
 
 **RentableUnit (Entity):**
-- Represents a specific, physically distinct space that can be rented (e.g., "Apartment #101", "Parking Space #P2", "Storage Unit #S5").
+
+- Represents a specific, physically distinct space that can be rented (e.g., "Apartment #101", "Parking Space #P2", "
+  Storage Unit #S5").
 - When a `RentableUnit` is created, it triggers an integration event.
 
 #### Integration Events Published
@@ -813,7 +843,9 @@ public record RentableUnitCreated(
 
 ### Rental Management Service
 
-**Responsibility:** Consumes `RentableUnitCreated` events to create and manage the `RentalObject` aggregate. A `RentalObject` is the commercial representation of a rentable unit, containing details about pricing, availability, and vacancy periods. This service is responsible for the lifecycle of a leasable entity.
+**Responsibility:** Consumes `RentableUnitCreated` events to create and manage the `RentalObject` aggregate. A
+`RentalObject` is the commercial representation of a rentable unit, containing details about pricing, availability, and
+vacancy periods. This service is responsible for the lifecycle of a leasable entity.
 
 **Technology:** ASP.NET Core, Entity Framework Core, PostgreSQL
 
@@ -833,6 +865,7 @@ POST   /api/rental-objects/{rentalObjectId}/publish - Publish rental object
 #### Data Models
 
 **RentalObject (Aggregate Root):**
+
 ```csharp
 public class RentalObject : AggregateRoot
 {
@@ -905,6 +938,8 @@ CREATE TABLE components (
 
 ---
 
-*(Continuing with remaining services: Market, Lease, Inspection, Maintenance, Search, and BFFs in subsequent files due to length constraints...)*
+*(Continuing with remaining services: Market, Lease, Inspection, Maintenance, Search, and BFFs in subsequent files due
+to length constraints...)*
 
-**Document Status:** Part 1 of 2 - Core and Property services documented. Remaining domain services, infrastructure services, and BFFs will be documented in Part 2.
+**Document Status:** Part 1 of 2 - Core and Property services documented. Remaining domain services, infrastructure
+services, and BFFs will be documented in Part 2.

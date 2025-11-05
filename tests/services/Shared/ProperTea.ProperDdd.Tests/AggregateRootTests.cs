@@ -1,6 +1,4 @@
-using System.Linq;
 using ProperTea.ProperDdd.Events;
-using Xunit;
 
 namespace ProperTea.ProperDdd.Tests;
 

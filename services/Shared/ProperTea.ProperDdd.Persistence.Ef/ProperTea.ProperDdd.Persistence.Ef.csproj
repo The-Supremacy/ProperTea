@@ -7,11 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ProperTea.ProperDdd\ProperTea.ProperDdd.csproj" />
+        <ProjectReference Include="..\ProperTea.ProperDdd\ProperTea.ProperDdd.csproj"/>
     </ItemGroup>
-    
+
 </Project>

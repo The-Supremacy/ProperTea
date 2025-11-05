@@ -6,70 +6,6 @@ namespace ProperTea.ProperSagas.Tests;
 
 public class SagaOrchestratorBaseTests
 {
-    public class TestSaga : SagaBase
-    {
-        public TestSaga()
-        {
-            Steps = new List<SagaStep>
-            {
-                new() { Name = "Validate", IsPreValidation = true, HasCompensation = false },
-                new() { Name = "Execute", HasCompensation = true },
-                new() { Name = "Finalize", HasCompensation = false }
-            };
-        }
-    }
-
-    public class TestOrchestrator : SagaOrchestratorBase<TestSaga>
-    {
-        public bool ExecuteStepsCalled { get; private set; }
-        public bool CompensateCalled { get; private set; }
-        public bool ValidateStepCalled { get; private set; }
-        public string? LastValidatedStepName { get; private set; }
-
-        public TestOrchestrator(ISagaRepository repository, ILogger<TestOrchestrator> logger)
-            : base(repository, logger)
-        {
-        }
-
-        public override Task<TestSaga> StartAsync(TestSaga saga)
-        {
-            saga.MarkAsRunning();
-            ExecuteStepsCalled = true;
-            return Task.FromResult(saga);
-        }
-
-        protected override Task ExecuteStepsAsync(TestSaga saga)
-        {
-            ExecuteStepsCalled = true;
-            return Task.CompletedTask;
-        }
-
-        protected override Task CompensateAsync(TestSaga saga)
-        {
-            CompensateCalled = true;
-            return Task.CompletedTask;
-        }
-
-        protected override Task ValidateStepAsync(TestSaga saga, string stepName)
-        {
-            ValidateStepCalled = true;
-            LastValidatedStepName = stepName;
-            return Task.CompletedTask;
-        }
-
-        // Expose protected method for testing
-        public Task<bool> TestExecuteStepAsync(TestSaga saga, string stepName, Func<Task> action)
-        {
-            return ExecuteStepAsync(saga, stepName, action);
-        }
-
-        // Expose protected method for testing
-        public Task TestCompensateCompletedAsync(TestSaga saga, Func<TestSaga, string, Task> compensationAction)
-        {
-            return CompensateCompletedAsync(saga, compensationAction);
-        }
-    }
-
     // CompensateCompletedAsync tests
     [Fact]
     public async Task CompensateCompletedAsync_StepsWithCompensation_CompensatesOnlyThoseSteps()
@@ -119,9 +55,7 @@ public class SagaOrchestratorBaseTests
         {
             compensatedSteps.Add(stepName);
             if (stepName == "Finalize")
-            {
                 throw new InvalidOperationException("Compensation failed");
-            }
             await Task.CompletedTask;
         });
 
@@ -143,10 +77,8 @@ public class SagaOrchestratorBaseTests
         var saga = new TestSaga();
 
         // Act
-        var result = await orchestrator.TestExecuteStepAsync(saga, "Execute", async () =>
-        {
-            await Task.CompletedTask;
-        });
+        var result =
+            await orchestrator.TestExecuteStepAsync(saga, "Execute", async () => { await Task.CompletedTask; });
 
         // Assert
         result.ShouldBeTrue();
@@ -244,5 +176,69 @@ public class SagaOrchestratorBaseTests
         errorMessage.ShouldBeNull();
         orchestrator.ValidateStepCalled.ShouldBeTrue();
         orchestrator.LastValidatedStepName.ShouldBe("Validate");
+    }
+
+    public class TestSaga : SagaBase
+    {
+        public TestSaga()
+        {
+            Steps = new List<SagaStep>
+            {
+                new() { Name = "Validate", IsPreValidation = true, HasCompensation = false },
+                new() { Name = "Execute", HasCompensation = true },
+                new() { Name = "Finalize", HasCompensation = false }
+            };
+        }
+    }
+
+    public class TestOrchestrator : SagaOrchestratorBase<TestSaga>
+    {
+        public TestOrchestrator(ISagaRepository repository, ILogger<TestOrchestrator> logger)
+            : base(repository, logger)
+        {
+        }
+
+        public bool ExecuteStepsCalled { get; private set; }
+        public bool CompensateCalled { get; private set; }
+        public bool ValidateStepCalled { get; private set; }
+        public string? LastValidatedStepName { get; private set; }
+
+        public override Task<TestSaga> StartAsync(TestSaga saga)
+        {
+            saga.MarkAsRunning();
+            ExecuteStepsCalled = true;
+            return Task.FromResult(saga);
+        }
+
+        protected override Task ExecuteStepsAsync(TestSaga saga)
+        {
+            ExecuteStepsCalled = true;
+            return Task.CompletedTask;
+        }
+
+        protected override Task CompensateAsync(TestSaga saga)
+        {
+            CompensateCalled = true;
+            return Task.CompletedTask;
+        }
+
+        protected override Task ValidateStepAsync(TestSaga saga, string stepName)
+        {
+            ValidateStepCalled = true;
+            LastValidatedStepName = stepName;
+            return Task.CompletedTask;
+        }
+
+        // Expose protected method for testing
+        public Task<bool> TestExecuteStepAsync(TestSaga saga, string stepName, Func<Task> action)
+        {
+            return ExecuteStepAsync(saga, stepName, action);
+        }
+
+        // Expose protected method for testing
+        public Task TestCompensateCompletedAsync(TestSaga saga, Func<TestSaga, string, Task> compensationAction)
+        {
+            return CompensateCompletedAsync(saga, compensationAction);
+        }
     }
 }

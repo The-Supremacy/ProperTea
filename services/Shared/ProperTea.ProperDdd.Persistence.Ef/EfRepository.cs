@@ -2,15 +2,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ProperTea.ProperDdd.Persistence.Ef;
 
-public class EfRepository<TEntity>(DbContext dbContext) : IRepository<TEntity> 
+public class EfRepository<TEntity>(DbContext dbContext) : IRepository<TEntity>
     where TEntity : class, IAggregateRoot
 {
     protected readonly DbSet<TEntity> DbSet = dbContext.Set<TEntity>();
-
-    protected virtual IQueryable<TEntity> IncludeRelations(IQueryable<TEntity> query)
-    {
-        return query;
-    }
 
     public virtual async Task<TEntity?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
@@ -31,5 +26,10 @@ public class EfRepository<TEntity>(DbContext dbContext) : IRepository<TEntity>
     public virtual void Delete(TEntity aggregate)
     {
         DbSet.Remove(aggregate);
+    }
+
+    protected virtual IQueryable<TEntity> IncludeRelations(IQueryable<TEntity> query)
+    {
+        return query;
     }
 }

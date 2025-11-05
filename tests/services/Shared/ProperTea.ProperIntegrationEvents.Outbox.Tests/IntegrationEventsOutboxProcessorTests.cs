@@ -10,11 +10,11 @@ public record TestEvent(Guid Id, DateTime OccurredAt) : IntegrationEvent(Id, Occ
 
 public class IntegrationEventsOutboxProcessorTests
 {
-    private readonly Mock<IOutboxMessagesService> _outboxMessagesServiceMock;
     private readonly Mock<IExternalIntegrationEventPublisher> _integrationEventPublisherMock;
-    private readonly Mock<IIntegrationEventTypeResolver> _typeResolver;
     private readonly Mock<ILogger<IntegrationEventsOutboxProcessor>> _loggerMock;
+    private readonly Mock<IOutboxMessagesService> _outboxMessagesServiceMock;
     private readonly IntegrationEventsOutboxProcessor _outboxProcessor;
+    private readonly Mock<IIntegrationEventTypeResolver> _typeResolver;
 
     public IntegrationEventsOutboxProcessorTests()
     {
@@ -34,7 +34,7 @@ public class IntegrationEventsOutboxProcessorTests
     {
         // Arrange
         _outboxMessagesServiceMock.Setup(s => s.GetPendingOutboxMessagesAsync(
-                It.IsAny<int>(),It.IsAny<CancellationToken>()))
+                It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
         // Act
@@ -43,7 +43,7 @@ public class IntegrationEventsOutboxProcessorTests
         // Assert
         _integrationEventPublisherMock.Verify(
             p => p.PublishAsync(
-            It.IsAny<string>(), It.IsAny<IntegrationEvent>(), It.IsAny<CancellationToken>()),
+                It.IsAny<string>(), It.IsAny<IntegrationEvent>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -63,18 +63,18 @@ public class IntegrationEventsOutboxProcessorTests
             Status = OutboxMessageStatus.Pending
         };
         _outboxMessagesServiceMock.Setup(s => s.GetPendingOutboxMessagesAsync(
-                It.IsAny<int>(),It.IsAny<CancellationToken>()))
+                It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([message]);
         _typeResolver.Setup(s => s.ResolveType(eventType)).Returns(typeof(TestEvent));
-        
+
         // Act
         await _outboxProcessor.ProcessOutboxMessagesAsync(10, CancellationToken.None);
 
         // Assert
-        _integrationEventPublisherMock.Verify(p => 
+        _integrationEventPublisherMock.Verify(p =>
                 p.PublishAsync(It.IsAny<string>(), It.IsAny<IntegrationEvent>(), It.IsAny<CancellationToken>()),
             Times.Once);
-        _outboxMessagesServiceMock.Verify(s => 
+        _outboxMessagesServiceMock.Verify(s =>
             s.SaveMessageAsync(message, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -94,10 +94,11 @@ public class IntegrationEventsOutboxProcessorTests
             Status = OutboxMessageStatus.Pending
         };
         _outboxMessagesServiceMock.Setup(s => s.GetPendingOutboxMessagesAsync(
-                It.IsAny<int>(),It.IsAny<CancellationToken>()))
+                It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([message]);
         _typeResolver.Setup(s => s.ResolveType(eventType)).Returns(typeof(TestEvent));
-        _integrationEventPublisherMock.Setup(p => p.PublishAsync(It.IsAny<string>(), It.IsAny<IntegrationEvent>(), It.IsAny<CancellationToken>()))
+        _integrationEventPublisherMock.Setup(p =>
+                p.PublishAsync(It.IsAny<string>(), It.IsAny<IntegrationEvent>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("test exception"));
 
         // Act
@@ -105,7 +106,7 @@ public class IntegrationEventsOutboxProcessorTests
 
         // Assert
         _outboxMessagesServiceMock.Verify(s => s.SaveMessageAsync(
-            It.Is<OutboxMessage>(m => m.Status == OutboxMessageStatus.Failed), 
+            It.Is<OutboxMessage>(m => m.Status == OutboxMessageStatus.Failed),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -139,7 +140,7 @@ public class IntegrationEventsOutboxProcessorTests
             It.Is<OutboxMessage>(m => m.Status == OutboxMessageStatus.Failed),
             It.IsAny<CancellationToken>()), Times.Once);
     }
-    
+
     [Fact]
     public async Task ProcessOutboxMessagesAsync_WhenPayloadDeserializationFails_MarksMessageAsFailed()
     {

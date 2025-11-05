@@ -10,17 +10,20 @@
 ### 1. ✅ Fixed: CompensateCompletedAsync_Should_Continue_On_Compensation_Failure
 
 **Problem:**
+
 - Test expected 2 compensated steps but only got 1
 - Root cause: Test was using Steps[0] (Validate) which is a pre-validation step
 - `GetStepsNeedingCompensation()` filters out pre-validation steps (IsPreValidation = true)
 
 **Solution:**
+
 - Changed test to use Steps[1] (Execute) and Steps[2] (Finalize)
 - Set `HasCompensation = true` on Steps[2] (Finalize) to allow compensation
 - Updated exception to throw on "Finalize" instead of "Execute"
 - Added assertions to verify reverse order: Finalize then Execute
 
 **Fixed Test:**
+
 ```csharp
 [Fact]
 public async Task CompensateCompletedAsync_Should_Continue_On_Compensation_Failure()
@@ -58,26 +61,29 @@ public async Task CompensateCompletedAsync_Should_Continue_On_Compensation_Failu
 ### 2. ✅ Fixed: Missing SagaBaseTests
 
 **Problem:**
+
 - UnitTest1.cs was deleted during previous fixes
 - All 14 SagaBase tests were missing
 
 **Solution:**
+
 - Created `SagaBaseTests.cs` with all 14 unit tests
 - Tests cover:
-  - SetData/GetData with primitives
-  - HasData
-  - GetPreValidationSteps
-  - GetExecutionSteps  
-  - GetStepsNeedingCompensation
-  - AllPreValidationStepsCompleted
-  - MarkAsWaitingForCallback
-  - MarkAsRunning
-  - MarkAsCompleted
-  - MarkAsFailed
-  - MarkStepAsCompleted
-  - MarkStepAsFailed
+    - SetData/GetData with primitives
+    - HasData
+    - GetPreValidationSteps
+    - GetExecutionSteps
+    - GetStepsNeedingCompensation
+    - AllPreValidationStepsCompleted
+    - MarkAsWaitingForCallback
+    - MarkAsRunning
+    - MarkAsCompleted
+    - MarkAsFailed
+    - MarkStepAsCompleted
+    - MarkStepAsFailed
 
 **Fixed Tests:**
+
 - All 14 tests now present in `SagaBaseTests.cs`
 - Fixed nullable DateTime comparison issue: `saga.CompletedAt.Value.ShouldBeGreaterThanOrEqualTo(beforeComplete)`
 
@@ -88,6 +94,7 @@ public async Task CompensateCompletedAsync_Should_Continue_On_Compensation_Failu
 ### ProperTea.ProperSagas.Tests
 
 **Files:**
+
 - `SagaBaseTests.cs` - 14 tests
 - `SagaOrchestratorBaseTests.cs` - 7 tests
 
@@ -96,6 +103,7 @@ public async Task CompensateCompletedAsync_Should_Continue_On_Compensation_Failu
 ### Test Coverage
 
 **SagaBase (14 tests):**
+
 1. ✅ SetData_And_GetData_Should_Work_With_Primitives
 2. ✅ GetData_Should_Return_Default_For_Nonexistent_Key
 3. ✅ HasData_Should_Return_True_For_Existing_Key
@@ -112,6 +120,7 @@ public async Task CompensateCompletedAsync_Should_Continue_On_Compensation_Failu
 14. ✅ MarkStepAsFailed_Should_Update_Step_Status_And_Error
 
 **SagaOrchestratorBase (7 tests):**
+
 1. ✅ ExecuteStepAsync_Should_Mark_Step_As_Running_Then_Completed
 2. ✅ ExecuteStepAsync_Should_Mark_Step_As_Failed_On_Exception
 3. ✅ ValidateAsync_Should_Run_Only_PreValidation_Steps
@@ -125,14 +134,15 @@ public async Task CompensateCompletedAsync_Should_Continue_On_Compensation_Failu
 ## What Was Changed
 
 ### Files Modified:
+
 1. **SagaOrchestratorBaseTests.cs**
-   - Fixed `CompensateCompletedAsync_Should_Continue_On_Compensation_Failure` test
-   - Updated to use non-validation steps (Execute and Finalize)
-   - Added proper assertions for reverse order compensation
+    - Fixed `CompensateCompletedAsync_Should_Continue_On_Compensation_Failure` test
+    - Updated to use non-validation steps (Execute and Finalize)
+    - Added proper assertions for reverse order compensation
 
 2. **SagaBaseTests.cs** (NEW)
-   - Created file with all 14 SagaBase tests
-   - Fixed nullable DateTime comparison
+    - Created file with all 14 SagaBase tests
+    - Fixed nullable DateTime comparison
 
 ---
 
@@ -155,6 +165,7 @@ dotnet test --filter "FullyQualifiedName~CompensateCompletedAsync_Should_Continu
 ## Key Learnings
 
 ### Pre-Validation Steps Are Filtered from Compensation
+
 ```csharp
 public IEnumerable<SagaStep> GetStepsNeedingCompensation()
 {
@@ -167,12 +178,15 @@ public IEnumerable<SagaStep> GetStepsNeedingCompensation()
 ```
 
 **Why?**
+
 - Pre-validation steps are read-only checks
 - They don't modify data, so no compensation needed
 - Only execution steps need compensation
 
 ### Compensation Happens in Reverse Order
+
 When compensating:
+
 1. Last completed step compensated first (Finalize)
 2. Then previous steps (Execute)
 3. Continues even if compensation fails
@@ -184,7 +198,7 @@ When compensating:
 ✅ **All 21 tests are now present and passing**  
 ✅ **Compensation test fixed to use correct steps**  
 ✅ **Build succeeds without errors**  
-✅ **All features properly tested**  
+✅ **All features properly tested**
 
 ---
 

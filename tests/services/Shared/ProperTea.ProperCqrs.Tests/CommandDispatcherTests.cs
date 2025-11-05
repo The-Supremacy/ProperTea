@@ -1,10 +1,10 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-using ProperTea.ProperCqrs;
 
 namespace ProperTea.ProperCqrs.Tests;
 
 public record TestCommand(string Data) : ICommand<string>;
+
 public record TestCommandWithoutResult(string Data) : ICommand;
 
 public class TestCommandHandler : ICommandHandler<TestCommand, string>
@@ -18,7 +18,7 @@ public class TestCommandHandler : ICommandHandler<TestCommand, string>
 public class TestCommandWithoutResultHandler : ICommandHandler<TestCommandWithoutResult>
 {
     public static string? HandledData;
-    
+
     public Task HandleAsync(TestCommandWithoutResult command, CancellationToken ct = default)
     {
         HandledData = command.Data;
@@ -72,12 +72,12 @@ public class CommandDispatcherTests
 
         var serviceProvider = services.BuildServiceProvider();
         var dispatcher = serviceProvider.GetRequiredService<ICommandBus>();
-        
+
         var command = new TestCommand("");
-        
+
         await Assert.ThrowsAsync<ValidationException>(() => dispatcher.SendAsync(command));
     }
-    
+
     [Fact]
     public async Task SendAsync_SendCommandWithoutResult_DispatchesToCorrectHandler()
     {

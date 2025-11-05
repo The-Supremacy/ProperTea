@@ -50,11 +50,11 @@ public class EfUnitOfWorkTests
 
         // Assert
         Assert.True(result > 0);
-        
+
         var savedAggregate = await dbContext.TestAggregates.FindAsync(aggregate.Id);
         Assert.NotNull(savedAggregate);
         Assert.Equal("Test Name", savedAggregate.Name);
-        
+
         domainEventDispatcherMock.Verify(
             dispatcher => dispatcher.DispatchAllAsync(It.IsAny<CancellationToken>()),
             Times.Once);

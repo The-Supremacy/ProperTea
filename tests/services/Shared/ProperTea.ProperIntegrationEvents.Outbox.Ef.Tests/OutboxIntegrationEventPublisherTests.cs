@@ -1,10 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using ProperTea.ProperIntegrationEvents.Outbox;
-using ProperTea.ProperIntegrationEvents.Outbox.Ef;
-using Shouldly;
-using System.Text.Json;
 using ProperTea.ProperIntegrationEvents.Outbox.Ef.Tests.Setup;
+using Shouldly;
 
 namespace ProperTea.ProperIntegrationEvents.Outbox.Ef.Tests;
 
@@ -17,14 +15,14 @@ public record TestIntegrationEvent(Guid Id, DateTime OccurredAt) : IntegrationEv
 public class OutboxIntegrationEventPublisherTests : IAsyncLifetime
 {
     private readonly DatabaseFixture _fixture;
+    private IServiceScope _scope = null!;
+
+    private IServiceProvider _serviceProvider = null!;
 
     public OutboxIntegrationEventPublisherTests(DatabaseFixture fixture)
     {
         _fixture = fixture;
     }
-
-    private IServiceProvider _serviceProvider = null!;
-    private IServiceScope _scope = null!;
 
     public async Task InitializeAsync()
     {
@@ -33,14 +31,14 @@ public class OutboxIntegrationEventPublisherTests : IAsyncLifetime
         services.AddDbContext<TestDbContext>(options =>
             options.UseNpgsql(_fixture.ConnectionString,
                 o => o.MigrationsAssembly(typeof(TestDbContext).Assembly.FullName)));
-        
+
         services.AddScoped<IOutboxDbContext>(sp => sp.GetRequiredService<TestDbContext>());
 
         services.AddTransient<IIntegrationEventPublisher, OutboxIntegrationEventPublisher>();
-        
+
         services.AddProperIntegrationEvents()
             .UseOutbox(o => o.UseEntityFrameworkStorage<TestDbContext>());
-        
+
         _scope = services.BuildServiceProvider().CreateScope();
         _serviceProvider = _scope.ServiceProvider;
 

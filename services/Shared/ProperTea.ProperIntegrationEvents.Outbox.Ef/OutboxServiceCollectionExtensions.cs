@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using ProperTea.ProperIntegrationEvents;
 
 namespace ProperTea.ProperIntegrationEvents.Outbox.Ef;
 
@@ -15,7 +14,7 @@ public static class OutboxServiceCollectionExtensions
         services.TryAddScoped<IIntegrationEventPublisher, OutboxIntegrationEventPublisher>();
         services.TryAddScoped<IOutboxDbContext, TDbContext>();
         services.TryAddScoped<IOutboxMessagesService, DbContextOutboxMessagesService>();
-        
+
         var builder = new IntegrationEventPublisherBuilder(services);
         buildAction(builder);
 

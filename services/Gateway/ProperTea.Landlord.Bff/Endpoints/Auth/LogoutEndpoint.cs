@@ -9,7 +9,8 @@ public static class LogoutEndpoint
     {
         app.MapPost("/logout", async (HttpContext context, IDistributedCache cache) =>
             {
-                if (context.Request.Cookies.TryGetValue(SessionManagementMiddleware.SessionCookieName, out var sessionId)
+                if (context.Request.Cookies.TryGetValue(SessionManagementMiddleware.SessionCookieName,
+                        out var sessionId)
                     && !string.IsNullOrEmpty(sessionId))
                 {
                     await cache.RemoveAsync(sessionId);

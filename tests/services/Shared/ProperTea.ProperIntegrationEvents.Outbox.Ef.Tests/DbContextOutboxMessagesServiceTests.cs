@@ -9,14 +9,14 @@ namespace ProperTea.ProperIntegrationEvents.Outbox.Ef.Tests;
 public class DbContextOutboxMessagesServiceTests : IAsyncLifetime
 {
     private readonly DatabaseFixture _fixture;
+    private IServiceScope _scope = null!;
+
+    private IServiceProvider _serviceProvider = null!;
 
     public DbContextOutboxMessagesServiceTests(DatabaseFixture fixture)
     {
         _fixture = fixture;
     }
-
-    private IServiceProvider _serviceProvider = null!;
-    private IServiceScope _scope = null!;
 
     public async Task InitializeAsync()
     {
@@ -89,7 +89,8 @@ public class DbContextOutboxMessagesServiceTests : IAsyncLifetime
             Status = OutboxMessageStatus.Failed
         };
 
-        await dbContext.OutboxMessages.AddRangeAsync(publishedMessage, pendingMessage1, pendingMessage2, pendingMessage4);
+        await dbContext.OutboxMessages.AddRangeAsync(publishedMessage, pendingMessage1, pendingMessage2,
+            pendingMessage4);
         await dbContext.SaveChangesAsync();
 
         // Act
@@ -102,7 +103,7 @@ public class DbContextOutboxMessagesServiceTests : IAsyncLifetime
         pendingMessages.ShouldContain(m => m.Id == pendingMessage2.Id);
         pendingMessages.ShouldNotContain(m => m.Id == publishedMessage.Id);
     }
-    
+
     [Fact]
     public async Task SaveMessageAsync_UpdatesMessageStatus()
     {
@@ -127,10 +128,10 @@ public class DbContextOutboxMessagesServiceTests : IAsyncLifetime
         // Act
         var messageToUpdate = await dbContext.OutboxMessages.FindAsync(messageId);
         messageToUpdate.ShouldNotBeNull();
-        
+
         messageToUpdate.Status = OutboxMessageStatus.Published;
         messageToUpdate.PublishedAt = DateTime.UtcNow;
-        
+
         await service.SaveMessageAsync(messageToUpdate, CancellationToken.None);
 
         // Assert

@@ -27,4 +27,3 @@ public class DatabaseFixture : IAsyncLifetime
 public class DatabaseCollection : ICollectionFixture<DatabaseFixture>
 {
 }
-

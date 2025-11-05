@@ -21,7 +21,8 @@
 
 ## Overview
 
-ProperTea uses custom shared libraries to implement cross-cutting patterns without dependency on commercial products like MediatR or MassTransit.
+ProperTea uses custom shared libraries to implement cross-cutting patterns without dependency on commercial products
+like MediatR or MassTransit.
 
 ### Design Philosophy
 
@@ -318,9 +319,11 @@ builder.Services.AddProperDdd()
 
 ## ProperTea.ProperIntegrationEvents
 
-**Purpose:** A lightweight framework for event-driven communication between services, featuring a robust outbox pattern and handlers for converting domain events to integration events.
+**Purpose:** A lightweight framework for event-driven communication between services, featuring a robust outbox pattern
+and handlers for converting domain events to integration events.
 
 **NuGet Packages:**
+
 - `ProperTea.ProperIntegrationEvents` (core)
 - `ProperTea.ProperIntegrationEvents.Outbox` (outbox pattern)
 - `ProperTea.ProperIntegrationEvents.Outbox.Ef` (EF Core storage)
@@ -345,10 +348,13 @@ public class PropertyCreatedEvent : IntegrationEventBase
 
 ### Publisher: Converting Domain Events to Integration Events
 
-The recommended pattern is to use a dedicated handler that subscribes to a domain event and is responsible for creating and publishing the corresponding integration event. This decouples your core domain logic from the specifics of integration contracts.
+The recommended pattern is to use a dedicated handler that subscribes to a domain event and is responsible for creating
+and publishing the corresponding integration event. This decouples your core domain logic from the specifics of
+integration contracts.
 
 **1. Define a Domain Event:**
 This happens within your domain model (`ProperTea.ProperDdd`).
+
 ```csharp
 // In Property.Domain/Events
 public record PropertyCreatedDomainEvent(Guid PropertyId, Guid CompanyId, string Name) : IDomainEvent;
@@ -356,6 +362,7 @@ public record PropertyCreatedDomainEvent(Guid PropertyId, Guid CompanyId, string
 
 **2. Define the corresponding Integration Event:**
 This is the public contract for other services.
+
 ```csharp
 // In Property.Service/IntegrationEvents
 public class PropertyCreatedIntegrationEvent : IntegrationEvent
@@ -368,6 +375,7 @@ public class PropertyCreatedIntegrationEvent : IntegrationEvent
 
 **3. Create a `DomainEventToIntegrationEventProcessor`:**
 This handler listens for the domain event and publishes the integration event.
+
 ```csharp
 using ProperTea.ProperDdd.DomainEvents;
 using ProperTea.ProperIntegrationEvents;
@@ -401,6 +409,7 @@ public class PropertyCreatedDomainEventHandler : IDomainEventHandler<PropertyCre
 The `ProperDdd` library will automatically discover and invoke this handler when `_unitOfWork.CommitAsync()` is called.
 
 **Benefits of this pattern:**
+
 - ✅ **Decoupling:** Your domain model is completely unaware of integration events.
 - ✅ **SOLID:** Each mapping has its own class, adhering to the Single Responsibility Principle.
 - ✅ **Testable:** The mapping logic can be easily unit-tested.
@@ -409,18 +418,22 @@ The `ProperDdd` library will automatically discover and invoke this handler when
 
 When `_publisher.PublishAsync()` is called with an outbox configured, the following happens:
 
-1.  The `integrationEvent` is serialized to JSON.
-2.  A new `OutboxMessage` is created with the payload, topic, and a `Pending` status.
-3.  This `OutboxMessage` is saved to the database as part of the **same transaction** that saves your business data (e.g., the new `Property` aggregate).
-4.  A background service (`OutboxProcessor`) periodically queries the database for `Pending` messages, publishes them to the message broker (e.g., Kafka), and marks them as `Published`.
+1. The `integrationEvent` is serialized to JSON.
+2. A new `OutboxMessage` is created with the payload, topic, and a `Pending` status.
+3. This `OutboxMessage` is saved to the database as part of the **same transaction** that saves your business data (
+   e.g., the new `Property` aggregate).
+4. A background service (`OutboxProcessor`) periodically queries the database for `Pending` messages, publishes them to
+   the message broker (e.g., Kafka), and marks them as `Published`.
 
 This guarantees that an integration event is only published if the original database transaction succeeds.
 
 ### Consumer (Worker)
 
-The consumer side needs to know how to deserialize the JSON payload from an incoming message back into a specific `IntegrationEvent` type. This requires registering all expected event types.
+The consumer side needs to know how to deserialize the JSON payload from an incoming message back into a specific
+`IntegrationEvent` type. This requires registering all expected event types.
 
 **1. Register Event Types in Worker `Program.cs`:**
+
 ```csharp
 builder.Services.AddProperIntegrationEvents()
     .UseKafka(builder.Configuration.GetConnectionString("Kafka")!)
@@ -430,9 +443,12 @@ builder.Services.AddProperIntegrationEvents()
 
 builder.Services.AddHostedService<PropertyEventConsumer>();
 ```
-This registration builds a map of `eventTypeName` strings to .NET `Type` objects, which the `OutboxProcessor` uses for deserialization.
+
+This registration builds a map of `eventTypeName` strings to .NET `Type` objects, which the `OutboxProcessor` uses for
+deserialization.
 
 **2. Create Consumer:**
+
 ```csharp
 public class PropertyEventConsumer : BackgroundService
 {
@@ -477,18 +493,21 @@ public class PropertyCreatedHandler
 **Purpose:** Orchestration for multi-step workflows with automatic compensation on failure.
 
 **NuGet Packages:**
+
 - `ProperTea.ProperSagas` (core abstractions)
 - `ProperTea.ProperSagas.Ef` (Entity Framework Core persistence)
 
 ### When to Use Sagas
 
 ✅ **Use for:**
+
 - Multi-step workflows requiring coordination across services
 - Processes that need rollback/compensation on failure
 - Long-running operations that may be paused and resumed
 - Critical business processes with multiple validation steps
 
 ❌ **Don't use for:**
+
 - Simple event reactions (use choreography with `ProperIntegrationEvents`)
 - Single-service operations
 - Fire-and-forget notifications
@@ -550,6 +569,7 @@ builder.Services.AddHostedService<SagaProcessor>();
 **5. Create your saga and orchestrator:**
 
 See complete working examples in `/docs/examples/sagas/`:
+
 - `GDPRDeletionSaga.cs` - Example saga with strongly-typed helpers
 - `GDPRDeletionOrchestrator.cs` - Complete orchestrator with validation and compensation
 - `SagaProcessor.cs` - Background service for polling waiting sagas
@@ -651,6 +671,7 @@ protected override async Task CompensateAsync(YourSaga saga)
 ### Complete Examples
 
 See `/docs/examples/sagas/` for:
+
 - ✅ Complete GDPR deletion saga implementation
 - ✅ Validation and execution phases
 - ✅ Compensation logic
@@ -820,6 +841,7 @@ public class PropertyValidationException : ValidationException
 ```
 
 **These are automatically caught and converted to appropriate HTTP responses:**
+
 - `NotFoundException` → 404
 - `ValidationException` → 400
 - `UnauthorizedException` → 401
@@ -842,7 +864,7 @@ dotnet test tests/services/Shared/
 
 **Document Version:**
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.1.0 | 2025-10-30 | Adopted `DomainEventToIntegrationEventProcessor` pattern and clarified event type registration. |
-| 1.0.0 | 2025-10-22 | Initial shared libraries guide |
+| Version | Date       | Changes                                                                                         |
+|---------|------------|-------------------------------------------------------------------------------------------------|
+| 1.1.0   | 2025-10-30 | Adopted `DomainEventToIntegrationEventProcessor` pattern and clarified event type registration. |
+| 1.0.0   | 2025-10-22 | Initial shared libraries guide                                                                  |

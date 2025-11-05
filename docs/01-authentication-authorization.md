@@ -24,6 +24,7 @@
 ## Overview
 
 ProperTea implements a **hybrid authentication model**:
+
 - **Session-based** authentication for web clients (HTTP-only cookies)
 - **JWT-based** authentication for internal service-to-service communication
 - **Permission-based** authorization (not role-based)
@@ -72,6 +73,7 @@ ProperTea implements a **hybrid authentication model**:
 ### Authentication Flow (Login)
 
 **Step 1: User Submits Credentials**
+
 ```http
 POST https://landlord.propertea.com/api/auth/login
 Content-Type: application/json
@@ -83,6 +85,7 @@ Content-Type: application/json
 ```
 
 **Step 2: BFF → Identity Service**
+
 ```
 BFF calls Identity Service:
 POST http://identity-service:80/api/token/login
@@ -111,6 +114,7 @@ Response:
 ```
 
 **Step 3: BFF Creates Session**
+
 ```
 BFF:
 1. Generates sessionId: "session:guid"
@@ -131,6 +135,7 @@ BFF:
 ```
 
 **Step 4: Response to Client**
+
 ```http
 HTTP/1.1 200 OK
 Set-Cookie: properteasession=session:guid; HttpOnly; Secure; SameSite=Strict
@@ -187,6 +192,7 @@ Content-Type: application/json
 ### JWT Enrichment (Organization Context)
 
 **Base JWT from Identity Service:**
+
 ```json
 {
   "sub": "user-guid",
@@ -198,6 +204,7 @@ Content-Type: application/json
 ```
 
 **Enriched JWT (Created on-demand by BFF):**
+
 ```json
 {
   "sub": "user-guid",
@@ -298,6 +305,7 @@ public async Task InvokeAsync(HttpContext context, IPermissionService permission
 ### Session Structure (On-Demand Enrichment)
 
 **Stored in Redis:**
+
 ```json
 {
   "sessionId": "session:guid",
@@ -322,14 +330,17 @@ public async Task InvokeAsync(HttpContext context, IPermissionService permission
 **TTL:** 7 days (sliding expiration - refreshed on each request)
 
 **Multi-Organization Support (On-Demand):**
+
 - Session is created with an **empty** `organizationJwts` map at login.
-- On first request to an organization (`/org/{orgId}/...`), the BFF enriches and caches the JWT for that specific `orgId`.
+- On first request to an organization (`/org/{orgId}/...`), the BFF enriches and caches the JWT for that specific
+  `orgId`.
 - Subsequent requests to the same `orgId` use the cached JWT, making them fast.
 - This avoids a slow login if a user belongs to many organizations.
 
 ### Session Lifecycle
 
 **1. Creation (Login) - Simplified**
+
 ```csharp
 // User authenticates
 var loginResult = await _identityService.LoginAsync(email, password);
@@ -349,6 +360,7 @@ await _redis.SetAsync($"session:{session.SessionId}", session, TimeSpan.FromDays
 ```
 
 **2. Validation & On-Demand Enrichment (Every Request)**
+
 ```csharp
 // SessionManagementMiddleware
 public async Task InvokeAsync(HttpContext context, IDistributedCache cache, IPermissionService permissionService, IOrganizationService orgService)
@@ -407,11 +419,13 @@ private string? ExtractOrgIdFromPath(PathString path)
 ```
 
 **3. Organization Context via URL**
+
 - There is no explicit "switch organization" API.
 - The user's context is determined entirely by the URL they navigate to (e.g., `/org/{orgId}/dashboard`).
 - The BFF middleware handles fetching or creating the correct JWT based on the URL.
 
 **Benefits of On-Demand Enrichment:**
+
 - ✅ **Fast Login:** Login is always fast, regardless of how many organizations a user belongs to.
 - ✅ **Efficient:** Caching is done only for organizations the user actually interacts with in a session.
 - ✅ **Scalable:** Handles users with hundreds of organization memberships without a slow login.
@@ -423,6 +437,7 @@ private string? ExtractOrgIdFromPath(PathString path)
 **Purpose:** Identify user, short-lived (15 minutes)
 
 **Claims:**
+
 ```json
 {
   "sub": "user-guid",
@@ -444,6 +459,7 @@ private string? ExtractOrgIdFromPath(PathString path)
 **Purpose:** Include org context and permissions for authorization
 
 **Claims:**
+
 ```json
 {
   "sub": "user-guid",
@@ -506,6 +522,7 @@ CheckAccess("Property.Manage", propertyToUpdate.CompanyId);
 ```
 
 **Benefits of this model:**
+
 - ✅ **Explicit Scopes:** The JWT clearly states which resources a permission applies to.
 - ✅ **Fast & Stateless:** Downstream services remain self-sufficient for authorization.
 - ✅ **Flexible:** Supports org-wide, company-specific, or even more granular scopes in the future.
@@ -515,6 +532,7 @@ CheckAccess("Property.Manage", propertyToUpdate.CompanyId);
 **Purpose:** User-scoped (no org context)
 
 **Claims:**
+
 ```json
 {
   "sub": "user-guid",
@@ -536,6 +554,7 @@ CheckAccess("Property.Manage", propertyToUpdate.CompanyId);
 ### Structure
 
 **Permissions are defined by services:**
+
 ```csharp
 // Property Base Service
 public static class PropertyPermissions
@@ -558,6 +577,7 @@ public static class RentalObjectPermissions
 ```
 
 **Services register permissions on startup:**
+
 ```csharp
 // Property Base Service - Program.cs
 await _eventBus.PublishAsync(new PermissionsRegisteredEvent
@@ -574,6 +594,7 @@ await _eventBus.PublishAsync(new PermissionsRegisteredEvent
 ```
 
 **Permission Service stores and caches:**
+
 ```sql
 CREATE TABLE permission_definitions (
     id UUID PRIMARY KEY,
@@ -588,6 +609,7 @@ CREATE TABLE permission_definitions (
 ### Groups (Organization or Company Scoped)
 
 **Group Structure:**
+
 ```sql
 CREATE TABLE groups (
     id UUID PRIMARY KEY,
@@ -616,6 +638,7 @@ CREATE TABLE group_permissions (
 **Example Groups:**
 
 **Org-wide group (applies to all companies in org):**
+
 ```json
 {
   "id": "group-guid",
@@ -632,6 +655,7 @@ CREATE TABLE group_permissions (
 ```
 
 **Company-specific group:**
+
 ```json
 {
   "id": "group-guid",
@@ -649,15 +673,18 @@ CREATE TABLE group_permissions (
 
 **Granular Permission Scoping (Revised):**
 
-To support scenarios like a "Regional Manager" who can view all properties in an organization but only manage properties in a specific company, the permission model must be structured.
+To support scenarios like a "Regional Manager" who can view all properties in an organization but only manage properties
+in a specific company, the permission model must be structured.
 
 **The Solution: Scoped Permissions in JWT**
+
 - The flat list of permissions is replaced by a JSON object within the JWT.
 - The keys of the object are the permission strings (e.g., `Property.Manage`).
 - The values are arrays of resource IDs (e.g., company IDs) to which that permission applies.
 - An empty array `[]` signifies **organization-wide scope**.
 
 **Example JWT Claim:**
+
 ```json
 "permissions": {
   "Property.View": [], // Can view properties across the entire organization
@@ -666,13 +693,18 @@ To support scenarios like a "Regional Manager" who can view all properties in an
 ```
 
 **Implementation:**
-- The **Permission Service** is responsible for resolving a user's group memberships and roles into this final, structured permission object for a given organization.
-- The **BFF** requests this structure from the Permission Service and places it directly into the `permissions` claim of the enriched JWT.
-- **Downstream services** use this structure to perform detailed, scoped authorization checks as shown in the `Authorization Check with Scoped Permissions` section above. This keeps their logic simple and fast.
+
+- The **Permission Service** is responsible for resolving a user's group memberships and roles into this final,
+  structured permission object for a given organization.
+- The **BFF** requests this structure from the Permission Service and places it directly into the `permissions` claim of
+  the enriched JWT.
+- **Downstream services** use this structure to perform detailed, scoped authorization checks as shown in the
+  `Authorization Check with Scoped Permissions` section above. This keeps their logic simple and fast.
 
 ### Default Groups (Seeded on Organization Creation)
 
 **Event-driven:**
+
 ```
 Organization Service: OrganizationCreated event published
   ↓
@@ -682,6 +714,7 @@ Permission Worker: Listens to event, creates default groups:
 ```
 
 **Default groups:**
+
 ```json
 [
   {
@@ -705,11 +738,13 @@ Permission Worker: Listens to event, creates default groups:
 ### Multi-Organization Context via URL
 
 **How context is determined:**
+
 - There is **no explicit "switch organization" API**.
 - The user's context is determined entirely by the URL they navigate to.
 - The BFF middleware is responsible for extracting the `orgId` from the URL and ensuring the user has access.
 
 **Option 1: Subdomain-based (Future)**
+
 ```
 User navigates to: https://acme.propertea.dev
   ↓
@@ -717,6 +752,7 @@ BFF extracts orgId from subdomain mapping
 ```
 
 **Option 2: Route parameter (Current)**
+
 ```
 User navigates to: https://landlord.propertea.dev/org/{orgId}/properties
   ↓
@@ -728,6 +764,7 @@ BFF extracts orgId from route
 ### Data Isolation
 
 **All domain tables include org discriminators:**
+
 ```sql
 CREATE TABLE properties (
     id UUID PRIMARY KEY,
@@ -747,6 +784,7 @@ CREATE TABLE companies (
 ```
 
 **Queries always filter by org/company:**
+
 ```csharp
 // Property Base Service
 public async Task<List<Property>> GetPropertiesAsync(Guid companyId)
@@ -772,11 +810,13 @@ public async Task<List<Property>> GetPropertiesAsync(Guid companyId)
 ### Supported Providers
 
 **MVP 1:**
+
 - Local accounts (email + password)
 - Google OAuth
 - Azure Entra ID (optional, production)
 
 **Future:**
+
 - Microsoft Account (personal)
 - GitHub
 - Facebook
@@ -837,6 +877,7 @@ CREATE TABLE external_logins (
 ```
 
 **Example:**
+
 ```json
 {
   "userId": "alice-guid",
@@ -851,6 +892,7 @@ CREATE TABLE external_logins (
 **Scenario:** User has local account (alice@example.com), wants to link Google account.
 
 **Flow:**
+
 ```
 1. User logs in with local account
 2. User navigates to profile settings
@@ -868,6 +910,7 @@ CREATE TABLE external_logins (
 ### Azure Entra ID (Optional, Production)
 
 **Configuration:**
+
 ```json
 {
   "EntraIdSettings": {
@@ -881,6 +924,7 @@ CREATE TABLE external_logins (
 ```
 
 **When enabled:**
+
 - "Login with Microsoft" button appears
 - Used for corporate accounts (e.g., @acmeproperty.com)
 - Local accounts still available (coexist)
@@ -892,16 +936,19 @@ CREATE TABLE external_logins (
 ### JWT Security
 
 **1. Never Expose JWT to Client**
+
 - JWTs stored in BFF Redis sessions
 - Clients only receive HTTP-only session cookies
 - Prevents XSS attacks (JavaScript can't access JWT)
 
 **2. Short-Lived Tokens**
+
 - JWT lifetime: 15 minutes
 - Automatically reissued by BFF before expiration
 - Reduces impact of token theft
 
 **3. Token Reissuance Validation**
+
 ```csharp
 // Identity Service - Reissue endpoint
 var validationParameters = new TokenValidationParameters
@@ -931,6 +978,7 @@ var newToken = _tokenService.CreateToken(user);
 ### Session Security
 
 **1. Cookie Attributes**
+
 ```csharp
 var cookieOptions = new CookieOptions
 {
@@ -944,10 +992,12 @@ var cookieOptions = new CookieOptions
 ```
 
 **2. Session Binding**
+
 - IP address stored in session (optional strict validation)
 - User agent stored (detect session hijacking)
 
 **3. Concurrent Sessions**
+
 - Allow multiple devices (desktop, mobile)
 - Each device has separate session
 - User can view/revoke sessions (future feature)
@@ -955,12 +1005,14 @@ var cookieOptions = new CookieOptions
 ### Permission Caching & Invalidation
 
 **Cache Strategy:**
+
 ```
 Redis Key: "permissions:user:{userId}:org:{orgId}:version:{version}"
 TTL: 1 hour
 ```
 
 **Invalidation:**
+
 ```
 When permissions change (group membership, group permissions):
 1. Permission Service increments cache version
@@ -970,6 +1022,7 @@ When permissions change (group membership, group permissions):
 ```
 
 **Example:**
+
 ```csharp
 // Permission Service
 public async Task UpdateGroupPermissionsAsync(Guid groupId, List<string> permissions)
@@ -998,20 +1051,24 @@ public async Task UpdateGroupPermissionsAsync(Guid groupId, List<string> permiss
 A multi-layered approach to rate limiting provides the best security.
 
 **Layer 1: Ingress/Edge (Traefik)**
-- **Responsibility:** First line of defense. Protects the entire cluster from volumetric attacks (DDoS) and broad brute-force attempts.
+
+- **Responsibility:** First line of defense. Protects the entire cluster from volumetric attacks (DDoS) and broad
+  brute-force attempts.
 - **Implementation:** Traefik's rate limiting middleware.
 - **Strategy:** IP-based, relatively generous limits (e.g., 1000 requests/minute per IP).
 - **Benefit:** Blocks malicious traffic before it ever reaches the application services.
 
 **Layer 2: BFF (Application-Aware)**
+
 - **Responsibility:** Granular, user-aware rate limiting for sensitive endpoints.
 - **Implementation:** ASP.NET Core Rate Limiting middleware.
 - **Strategy:** User/session-based, strict limits on specific actions.
-  - **Login:** 10 attempts per minute per IP.
-  - **Password Reset:** 5 requests per hour per user.
+    - **Login:** 10 attempts per minute per IP.
+    - **Password Reset:** 5 requests per hour per user.
 - **Benefit:** Prevents abuse by authenticated or unauthenticated users that Layer 1 would miss.
 
-This defense-in-depth strategy is robust. Traefik handles the brute force, and the BFF handles the nuanced application-level abuse.
+This defense-in-depth strategy is robust. Traefik handles the brute force, and the BFF handles the nuanced
+application-level abuse.
 
 ---
 
@@ -1020,6 +1077,7 @@ This defense-in-depth strategy is robust. Traefik handles the brute force, and t
 ### Right to Erasure (Delete User Data)
 
 **Orchestrated Saga:**
+
 ```
 1. User requests deletion (POST /api/contact/delete-request)
    ↓
@@ -1041,6 +1099,7 @@ This defense-in-depth strategy is robust. Traefik handles the brute force, and t
 ```
 
 **Soft Delete:**
+
 ```sql
 -- Contact Service
 UPDATE personal_profiles SET
@@ -1061,16 +1120,20 @@ WHERE id = :userId;
 ```
 
 **Historical Data Retention:**
+
 - Lease agreements: Keep tenant name (anonymized after 2 years)
 - Invoices: Keep for 7 years (legal requirement)
 - Audit logs: Keep for 1 year (security requirement)
 
 **Note on Org-Owned Contacts:**
-With the organization-owned contact model, a GDPR deletion request is simpler. Deleting a user from one organization only removes the `Contact` associated with that org. The global `User` account is only deleted if it's their last remaining `Contact`. This provides clear data ownership and isolation.
+With the organization-owned contact model, a GDPR deletion request is simpler. Deleting a user from one organization
+only removes the `Contact` associated with that org. The global `User` account is only deleted if it's their last
+remaining `Contact`. This provides clear data ownership and isolation.
 
 ### Data Export (Right to Portability)
 
 **API Endpoint:**
+
 ```http
 GET /api/contact/export?userId={userId}
 
@@ -1087,6 +1150,7 @@ Response: ZIP file containing:
 ## Implementation Checklist
 
 ### Phase 1: Core Authentication
+
 - [x] Identity Service (JWT generation, local accounts)
 - [x] BFF Session Management (Redis, cookies, on-demand enrichment)
 - [ ] External logins (Google, Entra)
@@ -1094,12 +1158,14 @@ Response: ZIP file containing:
 - [x] JWT enrichment with org permissions (on-demand)
 
 ### Phase 2: Authorization
+
 - [ ] Permission registration from services
 - [ ] Group management API
 - [ ] Permission caching strategy
 - [ ] Authorization middleware in domain services
 
 ### Phase 3: Security Hardening
+
 - [x] Rate limiting on public endpoints (BFF and Ingress)
 - [ ] Session binding (IP, user agent)
 - [ ] Audit logging (authentication attempts)
@@ -1108,13 +1174,14 @@ Response: ZIP file containing:
 ---
 
 **Next Documents:**
+
 - `02-service-specifications.md` - Detailed service designs
 - `09-local-development.md` - How to test authentication flows locally
 
 **Document Version History:**
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.2.0 | 2025-10-30 | On-demand JWT enrichment clarified, date fix |
-| 1.1.0 | 2025-10-29 | On-demand JWT enrichment, clarified permission scoping, defense-in-depth rate limiting |
-| 1.0.0 | 2025-10-22 | Initial authentication strategy
+| Version | Date       | Changes                                                                                |
+|---------|------------|----------------------------------------------------------------------------------------|
+| 1.2.0   | 2025-10-30 | On-demand JWT enrichment clarified, date fix                                           |
+| 1.1.0   | 2025-10-29 | On-demand JWT enrichment, clarified permission scoping, defense-in-depth rate limiting |
+| 1.0.0   | 2025-10-22 | Initial authentication strategy                                                        

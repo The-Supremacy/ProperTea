@@ -1,12 +1,11 @@
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Logging;
-using ProperTea.ProperDdd.Events;
-using ProperTea.ProperIntegrationEvents;
 
 namespace ProperTea.ProperIntegrationEvents.ServiceBus;
 
-public class ServiceBusExternalIntegrationEventPublisher : IIntegrationEventPublisher, IExternalIntegrationEventPublisher
+public class ServiceBusExternalIntegrationEventPublisher : IIntegrationEventPublisher,
+    IExternalIntegrationEventPublisher
 {
     private readonly ILogger<ServiceBusExternalIntegrationEventPublisher> _logger;
     private readonly ServiceBusSender _sender;
@@ -14,8 +13,8 @@ public class ServiceBusExternalIntegrationEventPublisher : IIntegrationEventPubl
     public ServiceBusExternalIntegrationEventPublisher(ServiceBusSender sender,
         ILogger<ServiceBusExternalIntegrationEventPublisher> logger)
     {
-        this._sender = sender;
-        this._logger = logger;
+        _sender = sender;
+        _logger = logger;
     }
 
     public async Task PublishAsync<TEvent>(string topic, TEvent @event, CancellationToken ct = default)

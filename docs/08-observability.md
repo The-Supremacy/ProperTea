@@ -21,7 +21,8 @@
 
 ## Overview
 
-ProperTea implements comprehensive observability using **OpenTelemetry** as the instrumentation layer, with different backends for local development and production.
+ProperTea implements comprehensive observability using **OpenTelemetry** as the instrumentation layer, with different
+backends for local development and production.
 
 ### Observability Goals
 
@@ -66,6 +67,7 @@ ProperTea implements comprehensive observability using **OpenTelemetry** as the 
 ```
 
 **Production (Azure):**
+
 ```
 All Services → OTel SDK → Azure Monitor / Application Insights
 ```
@@ -77,6 +79,7 @@ All Services → OTel SDK → Azure Monitor / Application Insights
 ### 1. Traces (What happened?)
 
 **Distributed traces** show request flow across services:
+
 ```
 User Registration Request
 ├─ BFF: POST /api/auth/register (120ms)
@@ -90,6 +93,7 @@ User Registration Request
 ### 2. Logs (What was the system doing?)
 
 **Structured logs** provide context:
+
 ```json
 {
   "timestamp": "2025-10-22T10:15:30Z",
@@ -106,6 +110,7 @@ User Registration Request
 ### 3. Metrics (How is the system performing?)
 
 **Time-series metrics** show trends:
+
 - HTTP request rate: 120 req/s
 - Average latency: 45ms (p95: 120ms, p99: 250ms)
 - Error rate: 0.5%
@@ -210,6 +215,7 @@ builder.AddProperTelemetry(otelOptions);
 ### Automatic Instrumentation
 
 **These are automatically traced:**
+
 - ✅ HTTP requests (ASP.NET Core, HttpClient)
 - ✅ Database queries (Entity Framework Core)
 - ✅ Outgoing HTTP calls to other services
@@ -313,6 +319,7 @@ public class GDPRDeletionSaga : SagaBase
 ```
 
 **View in Jaeger:**
+
 ```
 Saga: GDPRDeletion (sagaId: xxx)
 ├─ Validation: LeaseService (canDelete: false, reason: "2 active leases")
@@ -378,6 +385,7 @@ public async Task<IResult> RegisterUser(RegisterRequest request, ILogger<Registe
 ```
 
 **Output:**
+
 ```json
 {
   "timestamp": "2025-10-22T10:15:30Z",
@@ -393,11 +401,13 @@ public async Task<IResult> RegisterUser(RegisterRequest request, ILogger<Registe
 ### Log Queries in Loki
 
 **Find all errors for a user:**
+
 ```
 {service="ProperTea.Identity.Service"} |= "error" | json | userId="guid"
 ```
 
 **Find slow queries:**
+
 ```
 {service="ProperTea.Property.Service"} | json | duration > 1000
 ```
@@ -455,15 +465,18 @@ builder.Services.AddOpenTelemetry()
 ### Common Metrics
 
 **HTTP Metrics (automatic):**
+
 - `http.server.request.duration` - Request latency histogram
 - `http.server.active_requests` - Concurrent requests gauge
 - `http.server.request.body.size` - Request size histogram
 
 **Database Metrics (automatic):**
+
 - `db.client.connections.usage` - Connection pool usage
 - `db.client.operation.duration` - Query duration
 
 **Custom Business Metrics:**
+
 - `properties.created` - Properties created counter
 - `leases.activated` - Leases activated counter
 - `listings.viewed` - Listing views counter
@@ -632,6 +645,7 @@ groups:
 ```
 
 **Access:**
+
 - Jaeger UI: http://localhost:16686
 - Prometheus: http://localhost:9090
 - Grafana: http://localhost:3000
@@ -653,6 +667,7 @@ if (builder.Environment.IsProduction())
 ```
 
 **Azure Monitor Features:**
+
 - Application Map (service dependencies visualization)
 - Live Metrics (real-time telemetry)
 - Log Analytics (Kusto queries)
@@ -663,6 +678,6 @@ if (builder.Environment.IsProduction())
 
 **Document Version:**
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2025-10-22 | Initial observability strategy |
+| Version | Date       | Changes                        |
+|---------|------------|--------------------------------|
+| 1.0.0   | 2025-10-22 | Initial observability strategy |

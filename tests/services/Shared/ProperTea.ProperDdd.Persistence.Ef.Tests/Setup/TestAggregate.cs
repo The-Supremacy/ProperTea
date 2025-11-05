@@ -6,22 +6,22 @@ public record TestDomainEvent(Guid AggregateId, Guid EventId, DateTime OccurredA
 
 public class TestAggregate : AggregateRoot
 {
-    public string? Name { get; private set; } 
-    
     public TestAggregate() : base(Guid.NewGuid())
     {
     }
-    
+
     public TestAggregate(string name) : base(Guid.NewGuid())
     {
         Name = name;
     }
 
+    public string? Name { get; private set; }
+
     public void ChangeName(string newName)
     {
         Name = newName;
     }
-    
+
     public void DoSomething()
     {
         RaiseDomainEvent(new TestDomainEvent(Id, Guid.NewGuid(), DateTime.UtcNow));

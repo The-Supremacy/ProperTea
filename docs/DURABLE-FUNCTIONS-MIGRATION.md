@@ -11,24 +11,24 @@
 **Reasons:**
 
 1. **Different Activity Models**
-   - Your activities: Take saga objects, modify saga state
-   - Durable activities: Take primitives, return primitives
-   - Not compatible structures
+    - Your activities: Take saga objects, modify saga state
+    - Durable activities: Take primitives, return primitives
+    - Not compatible structures
 
 2. **Deterministic Replay Requirements**
-   - Durable Functions replays orchestrator code
-   - No I/O in orchestrator (must use activities)
-   - Different programming model
+    - Durable Functions replays orchestrator code
+    - No I/O in orchestrator (must use activities)
+    - Different programming model
 
 3. **State Management Differences**
-   - Your sagas: State in database
-   - Durable Functions: State in Azure Storage
-   - Duplicate state stores
+    - Your sagas: State in database
+    - Durable Functions: State in Azure Storage
+    - Duplicate state stores
 
 4. **Added Complexity Now**
-   - Activity pattern is more complex
-   - Doesn't provide value until you actually use Durable Functions
-   - Premature optimization
+    - Activity pattern is more complex
+    - Doesn't provide value until you actually use Durable Functions
+    - Premature optimization
 
 ---
 
@@ -39,6 +39,7 @@ Instead of using Activity pattern, follow these principles to make future migrat
 ### Principle 1: Keep Saga State Simple
 
 **✅ Do:**
+
 ```csharp
 // Simple, serializable primitives
 saga.SetData("userId", Guid.Parse("..."));
@@ -47,6 +48,7 @@ saga.SetData("amount", 100.50m);
 ```
 
 **❌ Don't:**
+
 ```csharp
 // Complex objects, service dependencies
 saga.SetData("user", new User { ... }); // Entire user object
@@ -56,6 +58,7 @@ saga.SetData("service", _leaseService); // Service instance
 ### Principle 2: Extract Business Logic to Services
 
 **✅ Do:**
+
 ```csharp
 // Business logic in reusable services
 public interface IGDPRValidationService
@@ -73,6 +76,7 @@ protected override async Task ExecuteStepsAsync(MySaga saga)
 ```
 
 **❌ Don't:**
+
 ```csharp
 // Business logic embedded in orchestrator
 protected override async Task ExecuteStepsAsync(MySaga saga)
@@ -90,6 +94,7 @@ protected override async Task ExecuteStepsAsync(MySaga saga)
 ### Principle 3: Keep Steps Small and Focused
 
 **✅ Do:**
+
 ```csharp
 // Small, single-purpose steps
 await ExecuteStepAsync(saga, "ValidateLeases", async () => { ... });
@@ -98,6 +103,7 @@ await ExecuteStepAsync(saga, "AnonymizeContact", async () => { ... });
 ```
 
 **❌ Don't:**
+
 ```csharp
 // Large, multi-purpose steps
 await ExecuteStepAsync(saga, "ProcessEverything", async () =>
@@ -113,6 +119,7 @@ await ExecuteStepAsync(saga, "ProcessEverything", async () =>
 ### Principle 4: Use Interfaces, Not Concrete Dependencies
 
 **✅ Do:**
+
 ```csharp
 public class MyOrchestrator : SagaOrchestratorBase<MySaga>
 {
@@ -124,6 +131,7 @@ public class MyOrchestrator : SagaOrchestratorBase<MySaga>
 ```
 
 **❌ Don't:**
+
 ```csharp
 public class MyOrchestrator : SagaOrchestratorBase<MySaga>
 {
@@ -235,9 +243,11 @@ Production:
 ### Using Activity Pattern Now
 
 **Pros:**
+
 - Slightly more reusable step logic
 
 **Cons:**
+
 - ❌ More complex now (when you don't need it)
 - ❌ Doesn't actually help with Durable Functions migration
 - ❌ Still need to rewrite orchestrator for Durable Functions
@@ -246,12 +256,14 @@ Production:
 ### Using Portable Design Now
 
 **Pros:**
+
 - ✅ Simple and easy to understand now
 - ✅ Service logic fully reusable in Durable Functions
 - ✅ No premature optimization
 - ✅ Easy to debug and maintain
 
 **Cons:**
+
 - Still need to rewrite orchestrator for Durable Functions (but that's unavoidable)
 
 ---
@@ -261,12 +273,14 @@ Production:
 ### ✅ Use Current Pattern + Portable Design Principles
 
 **Do this:**
+
 1. Keep saga orchestrator simple (current pattern)
 2. Extract business logic to services (with interfaces)
 3. Keep saga state simple (primitives only)
 4. Make steps small and focused
 
 **Don't do this:**
+
 1. Don't adopt Activity pattern prematurely
 2. Don't embed business logic in orchestrator
 3. Don't store complex objects in saga state
@@ -274,6 +288,7 @@ Production:
 ### When to Migrate to Durable Functions
 
 **Consider Durable Functions when:**
+
 - ✅ Workflows run for days/weeks (timers)
 - ✅ Need external event triggers
 - ✅ Need automatic retry/timeout per step
@@ -281,6 +296,7 @@ Production:
 - ✅ Need very high scale
 
 **Stick with ProperSagas when:**
+
 - ✅ Workflows complete in seconds/minutes
 - ✅ Local development is primary
 - ✅ Want simple debugging
@@ -292,6 +308,7 @@ Production:
 ## Migration Effort Comparison
 
 ### With Activity Pattern Now:
+
 ```
 Services:           ✅ Reused (0% rewrite)
 Activity wrappers:  🔄 Still need to create (100% new)
@@ -302,6 +319,7 @@ Total reuse: ~25%
 ```
 
 ### With Portable Design:
+
 ```
 Services:           ✅ Reused (0% rewrite)
 Activity wrappers:  🔄 Still need to create (100% new)
@@ -381,6 +399,7 @@ public async Task RunOrchestrator([OrchestrationTrigger] IDurableOrchestrationCo
 ### Don't Use Activity Pattern Now
 
 ❌ **Activity pattern doesn't help with Durable Functions migration**
+
 - Different activity models
 - Orchestrator still needs rewrite
 - Adds unnecessary complexity now
@@ -388,12 +407,14 @@ public async Task RunOrchestrator([OrchestrationTrigger] IDurableOrchestrationCo
 ### Do Use Portable Design
 
 ✅ **Follow portable design principles:**
+
 - Extract business logic to services
 - Keep saga state simple
 - Use interfaces, not concrete dependencies
 - Make steps small and focused
 
 ✅ **Benefits:**
+
 - Services are fully reusable in Durable Functions
 - Simple and maintainable now
 - Easy migration path when needed
@@ -402,6 +423,7 @@ public async Task RunOrchestrator([OrchestrationTrigger] IDurableOrchestrationCo
 ### Best Practice
 
 **Build for today's needs, with tomorrow's migration in mind:**
+
 1. Use current ProperSagas pattern (simple)
 2. Extract business logic to services (reusable)
 3. Keep saga state simple (portable)

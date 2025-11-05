@@ -4,12 +4,12 @@ using Microsoft.Extensions.DependencyInjection;
 namespace ProperTea.ProperSagas.Ef;
 
 /// <summary>
-/// Extension methods for registering ProperSagas EF Core services
+///     Extension methods for registering ProperSagas EF Core services
 /// </summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds ProperSagas with Entity Framework Core persistence
+    ///     Adds ProperSagas with Entity Framework Core persistence
     /// </summary>
     /// <typeparam name="TContext">Your DbContext type that has a DbSet&lt;SagaEntity&gt; Sagas property</typeparam>
     public static IServiceCollection AddProperSagasEf<TContext>(this IServiceCollection services)
@@ -19,4 +19,3 @@ public static class ServiceCollectionExtensions
         return services;
     }
 }
-

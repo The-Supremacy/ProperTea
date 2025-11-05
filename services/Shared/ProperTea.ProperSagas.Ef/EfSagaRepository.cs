@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace ProperTea.ProperSagas.Ef;
 
 /// <summary>
-/// Entity Framework Core implementation of ISagaRepository
+///     Entity Framework Core implementation of ISagaRepository
 /// </summary>
 public class EfSagaRepository<TContext> : ISagaRepository where TContext : DbContext
 {
@@ -18,7 +18,8 @@ public class EfSagaRepository<TContext> : ISagaRepository where TContext : DbCon
     public async Task<TSaga?> GetByIdAsync<TSaga>(Guid sagaId) where TSaga : SagaBase
     {
         var entity = await GetSagasDbSet().FindAsync(sagaId);
-        if (entity == null) return null;
+        if (entity == null)
+            return null;
 
         return MapToSaga<TSaga>(entity);
     }
@@ -69,10 +70,8 @@ public class EfSagaRepository<TContext> : ISagaRepository where TContext : DbCon
         // Use reflection to get the Sagas DbSet from the context
         var property = _context.GetType().GetProperty("Sagas");
         if (property == null)
-        {
             throw new InvalidOperationException(
                 $"DbContext {_context.GetType().Name} must have a DbSet<SagaEntity> property named 'Sagas'");
-        }
 
         return (DbSet<SagaEntity>)property.GetValue(_context)!;
     }
@@ -88,7 +87,7 @@ public class EfSagaRepository<TContext> : ISagaRepository where TContext : DbCon
         sagaType.GetProperty(nameof(SagaBase.Status))!.SetValue(saga, Enum.Parse<SagaStatus>(entity.Status));
         sagaType.GetProperty(nameof(SagaBase.SagaData))!.SetValue(saga, entity.SagaData);
         sagaType.GetProperty(nameof(SagaBase.Steps))!.SetValue(saga,
-            JsonSerializer.Deserialize<List<SagaStep>>(entity.Steps) ?? new());
+            JsonSerializer.Deserialize<List<SagaStep>>(entity.Steps) ?? new List<SagaStep>());
         sagaType.GetProperty(nameof(SagaBase.ErrorMessage))!.SetValue(saga, entity.ErrorMessage);
         sagaType.GetProperty(nameof(SagaBase.CreatedAt))!.SetValue(saga, entity.CreatedAt);
         sagaType.GetProperty(nameof(SagaBase.CompletedAt))!.SetValue(saga, entity.CompletedAt);
@@ -96,4 +95,3 @@ public class EfSagaRepository<TContext> : ISagaRepository where TContext : DbCon
         return saga;
     }
 }
-

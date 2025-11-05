@@ -4,9 +4,12 @@ using ProperTea.ProperDdd.Events;
 
 namespace ProperTea.ProperDdd.Persistence.Ef;
 
-public class EfUnitOfWork<TDbContext>(TDbContext dbContext, IDomainEventDispatcher dispatcher, ILogger<EfUnitOfWork<TDbContext>> logger)
+public class EfUnitOfWork<TDbContext>(
+    TDbContext dbContext,
+    IDomainEventDispatcher dispatcher,
+    ILogger<EfUnitOfWork<TDbContext>> logger)
     : IUnitOfWork
-    where TDbContext: DbContext
+    where TDbContext : DbContext
 {
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -38,7 +41,7 @@ public class EfUnitOfWork<TDbContext>(TDbContext dbContext, IDomainEventDispatch
 
             if (currentIteration >= iterationsLimit)
                 logger.LogWarning("Too many iterations while dispatching domain events.");
-            
+
             await transaction.CommitAsync(cancellationToken);
             return result;
         }

@@ -1,7 +1,7 @@
 namespace ProperTea.ProperSagas.Ef;
 
 /// <summary>
-/// Database entity for storing saga state
+///     Database entity for storing saga state
 /// </summary>
 public class SagaEntity
 {
@@ -14,4 +14,3 @@ public class SagaEntity
     public DateTime CreatedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
 }
-

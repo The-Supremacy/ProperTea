@@ -15,42 +15,6 @@ public class EfSagaRepositoryTests
         _fixture = fixture;
     }
 
-    private class TestSaga : SagaBase
-    {
-        public TestSaga()
-        {
-            Steps = new List<SagaStep>
-            {
-                new() { Name = "Step1", Status = SagaStepStatus.Pending },
-                new() { Name = "Step2", Status = SagaStepStatus.Pending }
-            };
-        }
-
-        public void SetUserId(Guid userId) => SetData("userId", userId);
-        public Guid GetUserId() => GetData<Guid>("userId");
-    }
-
-    private class TestDbContext : DbContext
-    {
-        public DbSet<SagaEntity> Sagas { get; set; } = null!;
-
-        public TestDbContext(DbContextOptions<TestDbContext> options) : base(options)
-        {
-        }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<SagaEntity>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.SagaType).IsRequired();
-                entity.Property(e => e.Status).IsRequired();
-                entity.Property(e => e.SagaData).IsRequired();
-                entity.Property(e => e.Steps).IsRequired();
-            });
-        }
-    }
-
     private async Task<(EfSagaRepository<TestDbContext> repository, TestDbContext dbContext)> GetRepositoryAsync()
     {
         var services = new ServiceCollection();
@@ -166,7 +130,7 @@ public class EfSagaRepositoryTests
         // Arrange
         var (repository, _) = await GetRepositoryAsync();
         var saga = new TestSaga();
-        
+
         saga.Steps[0].Status = SagaStepStatus.Completed;
         saga.Steps[0].IsPreValidation = true;
         saga.Steps[0].HasCompensation = false;
@@ -182,7 +146,7 @@ public class EfSagaRepositoryTests
         var retrievedSaga = await repository.GetByIdAsync<TestSaga>(saga.Id);
         retrievedSaga.ShouldNotBeNull();
         var step = retrievedSaga.Steps[0];
-        
+
         step.Status.ShouldBe(SagaStepStatus.Completed);
         step.IsPreValidation.ShouldBeTrue();
         step.HasCompensation.ShouldBeFalse();
@@ -198,7 +162,7 @@ public class EfSagaRepositoryTests
         // Arrange
         var (repository, _) = await GetRepositoryAsync();
         var saga = new TestSaga();
-        
+
         // Store various data types
         var guidValue = Guid.NewGuid();
         saga.SetData("guid", guidValue);
@@ -278,5 +242,48 @@ public class EfSagaRepositoryTests
         updatedSaga.Id.ShouldBe(originalId);
         updatedSaga.CreatedAt.ShouldBe(originalCreatedAt);
         updatedSaga.Status.ShouldBe(SagaStatus.Completed);
+    }
+
+    private class TestSaga : SagaBase
+    {
+        public TestSaga()
+        {
+            Steps = new List<SagaStep>
+            {
+                new() { Name = "Step1", Status = SagaStepStatus.Pending },
+                new() { Name = "Step2", Status = SagaStepStatus.Pending }
+            };
+        }
+
+        public void SetUserId(Guid userId)
+        {
+            SetData("userId", userId);
+        }
+
+        public Guid GetUserId()
+        {
+            return GetData<Guid>("userId");
+        }
+    }
+
+    private class TestDbContext : DbContext
+    {
+        public TestDbContext(DbContextOptions<TestDbContext> options) : base(options)
+        {
+        }
+
+        public DbSet<SagaEntity> Sagas { get; set; } = null!;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<SagaEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.SagaType).IsRequired();
+                entity.Property(e => e.Status).IsRequired();
+                entity.Property(e => e.SagaData).IsRequired();
+                entity.Property(e => e.Steps).IsRequired();
+            });
+        }
     }
 }

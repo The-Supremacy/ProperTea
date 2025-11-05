@@ -7,6 +7,7 @@
 ## The Core Question
 
 **Should saga steps be:**
+
 1. **Pure definitions** (data structures describing what happens) + separate orchestrator implementation?
 2. **Self-contained activities** (each step knows how to execute itself)?
 3. **Hybrid** (support both approaches)?
@@ -90,7 +91,7 @@ public class GDPRDeletionOrchestrator : SagaOrchestratorBase<GDPRDeletionSaga>
 ✅ **GDPR Deletion** - Steps are specific to this workflow  
 ✅ **User Onboarding** - Linear flow, saga-specific logic  
 ✅ **Order Cancellation** - Simple compensation logic  
-✅ **Invoice Processing** - Straightforward validation and execution  
+✅ **Invoice Processing** - Straightforward validation and execution
 
 ---
 
@@ -166,7 +167,7 @@ public class GDPRDeletionOrchestrator
 ✅ **E-commerce Order Processing** - Many steps reused across order/refund/exchange sagas  
 ✅ **Payment Processing** - PaymentActivity used in multiple workflows  
 ✅ **Notification Systems** - SendEmailActivity, SendSMSActivity reused everywhere  
-✅ **Complex Approval Workflows** - Multiple validation activities shared  
+✅ **Complex Approval Workflows** - Multiple validation activities shared
 
 ---
 
@@ -238,44 +239,48 @@ public class GDPRDeletionOrchestrator
 
 ✅ **Growing projects** - Start simple, extract activities as needed  
 ✅ **Mixed complexity** - Some steps common, others saga-specific  
-✅ **Team learning** - Gradual introduction to activity pattern  
+✅ **Team learning** - Gradual introduction to activity pattern
 
 ---
 
 ## Comparison Table
 
-| Aspect | Separation | Activity Pattern | Hybrid |
-|--------|-----------|------------------|--------|
-| **Complexity** | Low | High | Medium |
-| **Reusability** | None | High | Medium |
-| **Testability** | Orchestrator-level | Activity-level | Both |
-| **Learning Curve** | Easy | Steep | Medium |
-| **Boilerplate** | Low | High | Medium |
-| **Best For** | Simple sagas | Complex/reusable | Growing projects |
-| **Files per saga** | 2-3 | 5-15+ | 3-8 |
-| **DI complexity** | Low | High | Medium |
-| **Debugging** | Easy | Harder | Medium |
+| Aspect             | Separation         | Activity Pattern | Hybrid           |
+|--------------------|--------------------|------------------|------------------|
+| **Complexity**     | Low                | High             | Medium           |
+| **Reusability**    | None               | High             | Medium           |
+| **Testability**    | Orchestrator-level | Activity-level   | Both             |
+| **Learning Curve** | Easy               | Steep            | Medium           |
+| **Boilerplate**    | Low                | High             | Medium           |
+| **Best For**       | Simple sagas       | Complex/reusable | Growing projects |
+| **Files per saga** | 2-3                | 5-15+            | 3-8              |
+| **DI complexity**  | Low                | High             | Medium           |
+| **Debugging**      | Easy               | Harder           | Medium           |
 
 ---
 
 ## Real-World Patterns
 
 ### Microsoft Durable Functions
+
 - **Uses:** Activity Pattern
 - **Why:** Designed for complex, long-running workflows with many reusable steps
 - **Trade-off:** More complexity for better scalability
 
 ### Spring State Machine
+
 - **Uses:** Hybrid (can do both)
 - **Why:** Flexible to support different use cases
 - **Trade-off:** More concepts to learn
 
 ### Netflix Conductor
+
 - **Uses:** Activity Pattern (called "Tasks")
 - **Why:** Workflows as JSON configs, tasks are reusable microservices
 - **Trade-off:** Requires infrastructure
 
 ### ProperSagas (Current)
+
 - **Uses:** Separation Pattern
 - **Why:** Simplicity for educational purposes and small/medium sagas
 - **Trade-off:** Less reusability, but easier to understand
@@ -287,6 +292,7 @@ public class GDPRDeletionOrchestrator
 ### Keep Current Pattern as Default ✅
 
 **Reasons:**
+
 1. **Educational value** - Easier to understand and teach
 2. **Most sagas are simple** - GDPR deletion, user onboarding, etc.
 3. **Less boilerplate** - Faster to implement
@@ -295,6 +301,7 @@ public class GDPRDeletionOrchestrator
 ### Add Hybrid Support (Optional) ✅
 
 **For teams that need it:**
+
 - Provide `ISagaStepAction<TSaga>` interface
 - Show example in documentation
 - Make it opt-in, not required
@@ -302,6 +309,7 @@ public class GDPRDeletionOrchestrator
 ### Don't Force Activity Pattern ❌
 
 **Because:**
+
 - Overkill for most use cases in ProperTea
 - Adds complexity without clear benefit
 - Better patterns exist if you need that complexity (use Durable Functions)
@@ -341,20 +349,24 @@ else
 ### For ProperTea:
 
 ✅ **Keep current separation pattern as default**
+
 - Simple, clear, easy to understand
 - Perfect for 80% of use cases
 
 ✅ **Document hybrid approach as advanced pattern**
+
 - For teams that need reusability
 - Show in examples, make it opt-in
 
 ❌ **Don't force activity pattern**
+
 - Too complex for typical sagas
 - If you need that, use Azure Durable Functions
 
 ### Key Insight:
 
 **The best pattern depends on:**
+
 - Saga complexity (simple vs. complex)
 - Reusability needs (saga-specific vs. shared steps)
 - Team experience (beginners vs. experts)

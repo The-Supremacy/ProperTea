@@ -4,6 +4,13 @@ namespace ProperTea.ProperSagas;
 
 public abstract class SagaBase
 {
+    protected SagaBase()
+    {
+        Id = Guid.NewGuid();
+        CreatedAt = DateTime.UtcNow;
+        SagaType = GetType().Name;
+    }
+
     public Guid Id { get; protected set; }
     public string SagaType { get; protected set; }
     public SagaStatus Status { get; protected set; } = SagaStatus.NotStarted;
@@ -12,13 +19,6 @@ public abstract class SagaBase
     public DateTime CreatedAt { get; protected set; }
     public DateTime? CompletedAt { get; protected set; }
     public string SagaData { get; protected set; } = "{}"; // JSON serialized data
-
-    protected SagaBase()
-    {
-        Id = Guid.NewGuid();
-        CreatedAt = DateTime.UtcNow;
-        SagaType = GetType().Name;
-    }
 
     public void MarkAsRunning()
     {
@@ -87,32 +87,30 @@ public abstract class SagaBase
     }
 
     /// <summary>
-    /// Store strongly-typed data in the saga
+    ///     Store strongly-typed data in the saga
     /// </summary>
     public void SetData<T>(string key, T value)
     {
-        var data = JsonSerializer.Deserialize<Dictionary<string, object>>(SagaData) 
-            ?? new Dictionary<string, object>();
-        
+        var data = JsonSerializer.Deserialize<Dictionary<string, object>>(SagaData)
+                   ?? new Dictionary<string, object>();
+
         data[key] = value!;
         SagaData = JsonSerializer.Serialize(data);
     }
 
     /// <summary>
-    /// Retrieve strongly-typed data from the saga
+    ///     Retrieve strongly-typed data from the saga
     /// </summary>
     public T? GetData<T>(string key)
     {
         var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(SagaData);
         if (data?.TryGetValue(key, out var element) == true)
-        {
             return JsonSerializer.Deserialize<T>(element.GetRawText());
-        }
         return default;
     }
 
     /// <summary>
-    /// Check if saga has data for a key
+    ///     Check if saga has data for a key
     /// </summary>
     public bool HasData(string key)
     {
@@ -121,7 +119,7 @@ public abstract class SagaBase
     }
 
     /// <summary>
-    /// Get all pre-validation steps (read-only checks that don't need compensation)
+    ///     Get all pre-validation steps (read-only checks that don't need compensation)
     /// </summary>
     public IEnumerable<SagaStep> GetPreValidationSteps()
     {
@@ -129,7 +127,7 @@ public abstract class SagaBase
     }
 
     /// <summary>
-    /// Get all execution steps (non-validation steps that may need compensation)
+    ///     Get all execution steps (non-validation steps that may need compensation)
     /// </summary>
     public IEnumerable<SagaStep> GetExecutionSteps()
     {
@@ -137,24 +135,24 @@ public abstract class SagaBase
     }
 
     /// <summary>
-    /// Get completed steps that need compensation (in reverse order)
+    ///     Get completed steps that need compensation (in reverse order)
     /// </summary>
     public IEnumerable<SagaStep> GetStepsNeedingCompensation()
     {
         return Steps
-            .Where(s => !s.IsPreValidation && 
-                       s.HasCompensation && 
-                       s.Status == SagaStepStatus.Completed)
+            .Where(s => !s.IsPreValidation &&
+                        s.HasCompensation &&
+                        s.Status == SagaStepStatus.Completed)
             .Reverse();
     }
 
     /// <summary>
-    /// Check if all pre-validation steps are completed
+    ///     Check if all pre-validation steps are completed
     /// </summary>
     public bool AllPreValidationStepsCompleted()
     {
         var preValidationSteps = GetPreValidationSteps().ToList();
-        return preValidationSteps.Any() && 
+        return preValidationSteps.Any() &&
                preValidationSteps.All(s => s.Status == SagaStepStatus.Completed);
     }
 }
