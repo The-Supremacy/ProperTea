@@ -8,32 +8,38 @@
 ## 🎯 What We Accomplished
 
 ### ✅ Created Identity Worker Project
+
 - New `ProperTea.Identity.Worker` console application
 - Configured with OpenTelemetry and error handling
 - Added to solution
 
 ### ✅ Implemented Outbox Pattern
+
 - Added `OutboxMessages` table to `ProperTeaIdentityDbContext`
 - Registered `IIntegrationEventPublisher` using outbox implementation
 - Events are now stored in database before being published (transactional)
 
 ### ✅ Created Integration Event
+
 - `UserCreatedIntegrationEvent` - published when user registers
 - Contains: `UserId`, `Email`, `CreatedAt`
 - Topic: `identity-events`
 
 ### ✅ Updated Registration Endpoint
+
 - Now publishes `UserCreatedIntegrationEvent` to outbox
 - Event stored in same transaction as user creation
 - Guaranteed delivery via outbox pattern
 
 ### ✅ Created Outbox Processor Worker
+
 - Background service that polls outbox table every 5 seconds
 - Processes messages in batches (configurable)
 - Uses `IntegrationEventsOutboxProcessor` for all logic
 - Handles failures gracefully with retry logic
 
 ### ✅ Temporary No-Op Publisher
+
 - `NoOpExternalIntegrationEventPublisher` for local development
 - Logs events instead of publishing to message bus
 - Ready to swap with RabbitMQ/Azure Service Bus implementation
@@ -139,8 +145,8 @@ builder.Services.AddProperIntegrationEvents(e =>
 1. **AddProperIntegrationEvents** - Sets up event type resolver
 2. **UseOutbox** - Enables outbox pattern, registers `IIntegrationEventsOutboxProcessor`
 3. **UseEntityFrameworkStorage** - Registers EF-based outbox services:
-   - `IIntegrationEventPublisher` → `OutboxIntegrationEventPublisher`
-   - `IOutboxMessagesService` → `DbContextOutboxMessagesService`
+    - `IIntegrationEventPublisher` → `OutboxIntegrationEventPublisher`
+    - `IOutboxMessagesService` → `DbContextOutboxMessagesService`
 
 ---
 
@@ -188,6 +194,7 @@ curl -X POST http://localhost:5001/api/auth/register \
 ### 6. Check Worker Logs
 
 You should see:
+
 ```
 [Information] Outbox Processor Worker starting...
 [Debug] Checking for pending outbox messages...
@@ -213,11 +220,13 @@ SELECT * FROM "OutboxMessages" WHERE "EventType" = 'UserCreated';
 ### 1. Outbox Pattern
 
 **Why?**
+
 - Ensures events are published even if message bus is down
 - Guarantees at-least-once delivery
 - Decouples event publishing from business logic
 
 **How?**
+
 - Events stored in database table (same transaction as domain changes)
 - Background worker polls table and publishes to message bus
 - Messages marked as published after successful delivery
@@ -298,6 +307,7 @@ ON "OutboxMessages" ("Status", "CreatedAt");
 ### 1. Fluent API Design
 
 The integration events registration uses a fluent builder pattern:
+
 - `AddProperIntegrationEvents()` - Entry point
 - `UseOutbox()` - Middleware/feature registration
 - `UseEntityFrameworkStorage<T>()` - Implementation selection
@@ -307,6 +317,7 @@ This is extensible: could add `.UseRabbitMQ()`, `.UseServiceBus()`, etc.
 ### 2. Type Resolver Pattern
 
 Events are registered by type name string for:
+
 - Serialization/deserialization across services
 - Version compatibility (can have multiple versions of same event)
 - Language interoperability (could consume from non-.NET services)
@@ -314,6 +325,7 @@ Events are registered by type name string for:
 ### 3. Worker Service Pattern
 
 Background workers should:
+
 - Use `IServiceProvider` and create scopes (not inject scoped services)
 - Handle exceptions gracefully (don't crash the worker)
 - Respect cancellation tokens
@@ -337,12 +349,13 @@ When this goes to production, monitor:
 
 ### OutboxProcessorOptions
 
-| Property | Default | Description |
-|----------|---------|-------------|
-| `PollingIntervalSeconds` | 5 | How often to check for new messages |
-| `BatchSize` | 10 | Max messages to process per batch |
+| Property                 | Default | Description                         |
+|--------------------------|---------|-------------------------------------|
+| `PollingIntervalSeconds` | 5       | How often to check for new messages |
+| `BatchSize`              | 10      | Max messages to process per batch   |
 
 **Tuning:**
+
 - **High throughput:** Decrease interval, increase batch size
 - **Low overhead:** Increase interval, decrease batch size
 - **Development:** 2-5 seconds is fine
@@ -364,15 +377,17 @@ When this goes to production, monitor:
 
 ## 🎉 Summary
 
-**Identity Service refactoring is complete!** 
+**Identity Service refactoring is complete!**
 
 We successfully:
+
 1. Added outbox pattern for reliable event publishing
 2. Created worker service for background processing
 3. Maintained backward compatibility
 4. Set foundation for choreographed event-driven architecture
 
 **The pattern is now proven and can be replicated in:**
+
 - Contact Service
 - Organization Service
 - Permission Service

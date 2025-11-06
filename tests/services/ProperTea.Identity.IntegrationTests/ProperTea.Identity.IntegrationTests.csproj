@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="coverlet.collector" Version="6.0.4">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="xunit" Version="2.9.0"/>
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.1"/>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.10"/>
+        <PackageReference Include="Testcontainers" Version="4.8.1"/>
+        <PackageReference Include="Testcontainers.Kafka" Version="4.8.1"/>
+        <PackageReference Include="Testcontainers.PostgreSql" Version="4.8.1"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.10"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.10">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Confluent.Kafka" Version="2.12.0"/>
+        <PackageReference Include="Shouldly" Version="4.3.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\services\Identity\ProperTea.Identity.Api\ProperTea.Identity.Api.csproj"/>
+        <ProjectReference Include="..\..\..\services\Identity\ProperTea.Identity.Kernel\ProperTea.Identity.Kernel.csproj"/>
+        <ProjectReference Include="..\..\..\services\Identity\ProperTea.Identity.Api\ProperTea.Identity.Api.csproj"/>
+        <ProjectReference Include="..\..\..\services\Shared\ProperTea.ProperIntegrationEvents\ProperTea.ProperIntegrationEvents.csproj"/>
+        <ProjectReference Include="..\..\..\services\Shared\ProperTea.ProperIntegrationEvents.Kafka\ProperTea.ProperIntegrationEvents.Kafka.csproj"/>
+        <ProjectReference Include="..\..\..\services\Shared\ProperTea.ProperIntegrationEvents.Outbox\ProperTea.ProperIntegrationEvents.Outbox.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Xunit"/>
+    </ItemGroup>
+
+</Project>

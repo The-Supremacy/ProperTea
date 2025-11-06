@@ -4,14 +4,14 @@ using ProperTea.ProperIntegrationEvents.Outbox;
 namespace ProperTea.Identity.Worker.Workers;
 
 /// <summary>
-/// Background worker that processes outbox messages and publishes them to the message bus.
-/// This implements the transactional outbox pattern for reliable event publishing.
+///     Background worker that processes outbox messages and publishes them to the message bus.
+///     This implements the transactional outbox pattern for reliable event publishing.
 /// </summary>
 public class OutboxProcessorWorker : BackgroundService
 {
-    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<OutboxProcessorWorker> _logger;
     private readonly OutboxProcessorOptions _options;
+    private readonly IServiceProvider _serviceProvider;
 
     public OutboxProcessorWorker(
         IServiceProvider serviceProvider,
@@ -50,25 +50,24 @@ public class OutboxProcessorWorker : BackgroundService
         var outboxProcessor = scope.ServiceProvider.GetRequiredService<IIntegrationEventsOutboxProcessor>();
 
         _logger.LogDebug("Checking for pending outbox messages...");
-        
+
         // Use the existing IntegrationEventsOutboxProcessor to handle all the logic
         await outboxProcessor.ProcessOutboxMessagesAsync(_options.BatchSize, cancellationToken);
     }
 }
 
 /// <summary>
-/// Configuration options for the outbox processor
+///     Configuration options for the outbox processor
 /// </summary>
 public class OutboxProcessorOptions
 {
     /// <summary>
-    /// How often to poll for new messages (in seconds)
+    ///     How often to poll for new messages (in seconds)
     /// </summary>
     public int PollingIntervalSeconds { get; set; } = 5;
 
     /// <summary>
-    /// How many messages to process in each batch
+    ///     How many messages to process in each batch
     /// </summary>
     public int BatchSize { get; set; } = 10;
 }
-

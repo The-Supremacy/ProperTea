@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.RateLimiting;
 using ProperTea.Landlord.Bff.Endpoints.Auth;
 using ProperTea.Landlord.Bff.Middleware;
 using ProperTea.Landlord.Bff.Services;
-using ProperTea.ProperErrorHandling;
-using ProperTea.ProperTelemetry;
+using TheSupremacy.ProperErrorHandling;
+using TheSupremacy.ProperTelemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 

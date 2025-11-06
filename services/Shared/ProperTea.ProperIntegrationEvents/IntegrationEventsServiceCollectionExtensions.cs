@@ -9,7 +9,7 @@ public static class IntegrationEventsServiceCollectionExtensions
     {
         var builder = new IntegrationEventsBuilder(services);
         configure?.Invoke(builder);
-        
+
         services.AddSingleton<IIntegrationEventTypeResolver>(sp =>
             new IntegrationEventTypeResolver(builder.EventTypes));
 

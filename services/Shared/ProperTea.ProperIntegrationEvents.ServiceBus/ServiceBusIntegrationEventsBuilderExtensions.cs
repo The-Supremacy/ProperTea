@@ -1,17 +1,38 @@
-using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ProperTea.ProperIntegrationEvents.ServiceBus;
 
 public static class ServiceBusIntegrationEventsBuilderExtensions
 {
-    public static IntegrationEventsBuilder UseServiceBus(this IntegrationEventsBuilder builder, string connectionString)
+    public static IntegrationEventsBuilder AddServiceBus(
+        this IntegrationEventsBuilder builder,
+        Action<ServiceBusConfiguration> configure)
     {
-        builder.Services.AddSingleton<ServiceBusClient>(provider => new ServiceBusClient(connectionString));
-        builder.Services
-            .TryAddSingleton<IExternalIntegrationEventPublisher, ServiceBusExternalIntegrationEventPublisher>();
-
+        builder.Services.Configure(configure);
+        builder.Services.AddSingleton<IExternalIntegrationEventPublisher, ServiceBusIntegrationEventPublisher>();
         return builder;
+    }
+
+    public static IntegrationEventsBuilder UseDirectServiceBus(
+        this IntegrationEventsBuilder builder,
+        Action<ServiceBusConfiguration> configure)
+    {
+        builder.Services.Configure(configure);
+        builder.Services.AddSingleton<IIntegrationEventPublisher, ServiceBusIntegrationEventPublisher>();
+        return builder;
+    }
+
+    public static IntegrationEventsBuilder AddServiceBus(
+        this IntegrationEventsBuilder builder,
+        string connectionString)
+    {
+        return builder.AddServiceBus(config => { config.ConnectionString = connectionString; });
+    }
+
+    public static IntegrationEventsBuilder UseDirectServiceBus(
+        this IntegrationEventsBuilder builder,
+        string connectionString)
+    {
+        return builder.UseDirectServiceBus(config => { config.ConnectionString = connectionString; });
     }
 }

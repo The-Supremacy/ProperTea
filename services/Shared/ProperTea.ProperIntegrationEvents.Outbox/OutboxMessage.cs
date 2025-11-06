@@ -9,6 +9,7 @@ public class OutboxMessage
     public OutboxMessageStatus Status { get; set; }
     public DateTime OccurredAt { get; set; }
     public DateTime? PublishedAt { get; set; }
+    public DateTime? NextRetryAt { get; set; }
     public int RetryCount { get; set; } = 0;
     public string? LastError { get; set; } = null!;
 }

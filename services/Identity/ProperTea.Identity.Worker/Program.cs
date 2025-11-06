@@ -1,16 +1,19 @@
 using Microsoft.EntityFrameworkCore;
-using ProperTea.Identity.Service.Data;
-using ProperTea.Identity.Service.IntegrationEvents;
-using ProperTea.Identity.Worker.Publishers;
+using ProperTea.Identity.Kernel.Data;
+using ProperTea.Identity.Kernel.IntegrationEvents;
 using ProperTea.Identity.Worker.Workers;
-using ProperTea.ProperErrorHandling;
 using ProperTea.ProperIntegrationEvents;
+using ProperTea.ProperIntegrationEvents.Kafka;
 using ProperTea.ProperIntegrationEvents.Outbox;
 using ProperTea.ProperIntegrationEvents.Outbox.Ef;
-using ProperTea.ProperTelemetry;
+using ProperTea.ProperIntegrationEvents.ServiceBus;
+using TheSupremacy.ProperErrorHandling;
+using TheSupremacy.ProperTelemetry;
 
 var builder = Host.CreateApplicationBuilder(args);
-var otelOptions = builder.Configuration.GetSection("OpenTelemetry").Get<OpenTelemetryOptions>() ?? 
+var isDevelopment = builder.Environment.IsDevelopment();
+
+var otelOptions = builder.Configuration.GetSection("OpenTelemetry").Get<OpenTelemetryOptions>() ??
                   new OpenTelemetryOptions();
 builder.AddProperTelemetry(otelOptions);
 
@@ -19,13 +22,26 @@ builder.AddProperGlobalErrorHandling("ProperTea.Identity.Worker");
 builder.Services.AddDbContext<ProperTeaIdentityDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddProperIntegrationEvents(e =>
+var integrationEventsBuilder = builder.Services.AddProperIntegrationEvents(e =>
 {
-    e.AddEventType<UserCreatedIntegrationEvent>("UserCreated");
-}).UseOutbox().UseEntityFrameworkStorage<ProperTeaIdentityDbContext>();
-
-// TODO: Add actual message bus publisher (RabbitMQ/Azure Service Bus)
-builder.Services.AddScoped<IExternalIntegrationEventPublisher, NoOpExternalIntegrationEventPublisher>();
+    e.AddEventType<UserCreatedIntegrationEvent>(UserCreatedIntegrationEvent.EventTypeName);
+});
+integrationEventsBuilder.AddOutbox().AddEntityFrameworkStores<ProperTeaIdentityDbContext>();
+if (isDevelopment)
+    integrationEventsBuilder.AddKafka(kafka =>
+    {
+        kafka.BootstrapServers = builder.Configuration["Kafka:BootstrapServers"] ?? "localhost:9092";
+        kafka.ClientId = "identity-worker";
+        kafka.CompressionType = CompressionType.Snappy;
+    });
+else
+    integrationEventsBuilder.AddServiceBus(sb =>
+    {
+        sb.ConnectionString = builder.Configuration["ServiceBus:ConnectionString"]!;
+        sb.MaxRetries = 5;
+        sb.RetryDelay = TimeSpan.FromSeconds(3);
+        sb.ClientId = "identity-worker";
+    });
 
 builder.Services.Configure<OutboxProcessorOptions>(
     builder.Configuration.GetSection("OutboxProcessor"));

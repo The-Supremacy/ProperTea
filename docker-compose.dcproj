@@ -12,7 +12,7 @@
         <None Include="docker-compose.observability.yml"/>
     </ItemGroup>
     <ItemGroup>
-        <Content Include="ACTION-PLAN.md" />
+        <Content Include="ACTION-PLAN.md"/>
         <Content Include="docker-compose.shared.yml"/>
         <Content Include="docs\00-architecture-overview.md"/>
         <Content Include="docs\00-UPDATES-COMPLETE.md"/>
@@ -32,18 +32,18 @@
         <Content Include="docs\README.md"/>
         <Content Include="docs\SAGA-DESIGN-PATTERNS.md"/>
         <Content Include="docs\SAGA-VALIDATION-COMPENSATION.md"/>
-        <Content Include="IDENTITY-REFACTORING-CHECKLIST.md" />
-        <Content Include="IDENTITY-REFACTORING-COMPLETE.md" />
-        <Content Include="IDENTITY-REFACTORING-SUMMARY.md" />
+        <Content Include="IDENTITY-REFACTORING-CHECKLIST.md"/>
+        <Content Include="IDENTITY-REFACTORING-COMPLETE.md"/>
+        <Content Include="IDENTITY-REFACTORING-SUMMARY.md"/>
         <Content Include="IMPLEMENTATION-COMPLETE.md"/>
         <Content Include="Makefile"/>
-        <Content Include="NEXT-STEPS.md" />
+        <Content Include="NEXT-STEPS.md"/>
         <Content Include="observability\grafana\dashboards\dashboards.yml"/>
         <Content Include="observability\grafana\datasources\datasources.yml"/>
         <Content Include="observability\loki-config.yaml"/>
         <Content Include="observability\otel-collector-config.yaml"/>
         <Content Include="observability\prometheus.yml"/>
-        <Content Include="QUICK-WINS-COMPLETE.md" />
+        <Content Include="QUICK-WINS-COMPLETE.md"/>
         <Content Include="SAGA-FEATURES-COMPLETE.md"/>
         <Content Include="SAGA-IMPLEMENTATION-COMPLETE.md"/>
         <Content Include="SAGA-TESTS-COMPLETE.md"/>
