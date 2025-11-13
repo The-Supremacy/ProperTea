@@ -11,8 +11,8 @@ public static class ProperDomainBuilderExtensions
     {
         builder.Services.AddScoped<DbContext>(sp => sp.GetRequiredService<TDbContext>());
 
-        builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork<TDbContext>>();
-        builder.Services.TryAddScoped(typeof(IRepository<>), typeof(EfRepository<>));
+        builder.Services.AddScoped<IDomainUnitOfWork, EfDomainDomainUnitOfWork<TDbContext>>();
+        builder.Services.TryAddScoped(typeof(IDomainRepository<>), typeof(EfDomainRepository<>));
 
         return builder;
     }

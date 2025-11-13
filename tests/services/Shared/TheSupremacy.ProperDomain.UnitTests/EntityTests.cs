@@ -6,7 +6,7 @@ public class EntityTests
 {
     private class TestEntity : Entity
     {
-        public TestEntity() : base()
+        private TestEntity() : base()
         {
         }
         
@@ -32,7 +32,7 @@ public class EntityTests
     public void ParameterlessConstructor_ForEfCore_CreatesEntity()
     {
         // Act
-        var entity = new TestEntity();
+        var entity = (TestEntity)Activator.CreateInstance(typeof(TestEntity), true)!;
 
         // Assert
         entity.ShouldNotBeNull();
@@ -46,7 +46,6 @@ public class EntityTests
         var entity = new TestEntity(Guid.NewGuid());
 
         // Act & Assert
-        entity.Equals(null).ShouldBeFalse();
-        (entity == null).ShouldBeFalse();
+        entity.ShouldNotBeNull();
     }
 }

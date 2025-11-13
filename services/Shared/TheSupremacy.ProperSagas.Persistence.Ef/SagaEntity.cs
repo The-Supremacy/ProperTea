@@ -6,6 +6,7 @@ public class SagaEntity
 {
     public Guid Id { get; set; }
     public string SagaType { get; set; } = string.Empty;
+    public string? DisplayName { get; set; } = string.Empty;
     public SagaStatus Status { get; set; } = SagaStatus.Pending;
     public int Version { get; set; } = 0;
     public Guid? LockToken { get; set; }
@@ -18,6 +19,7 @@ public class SagaEntity
     public DateTime? CompletedAt { get; set; }
     public string? CorrelationId { get; set; }
     public string? TraceId { get; set; }
+    public string? IdempotencyKey { get; set; }
     public bool IsCancellationRequested { get; set; } = false;
     public DateTime? CancellationRequestedAt { get; set; }
     public DateTime? TimeoutDeadline { get; set; }

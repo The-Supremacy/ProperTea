@@ -10,6 +10,7 @@ public class Saga
 
     public Guid Id { get; internal set; } = Guid.NewGuid();
     public string SagaType { get; internal set; } = string.Empty;
+    public string? DisplayName { get; internal set; } = string.Empty;
     public SagaStatus Status { get; internal set; } = SagaStatus.Pending;
     public int Version { get; internal set; }
     public Guid? LockToken { get; internal set; }
@@ -22,6 +23,7 @@ public class Saga
     public string SagaData { get; internal set; } = "{}";
     public string? CorrelationId { get; internal set; }
     public string? TraceId { get; internal set; }
+    public string? IdempotencyKey { get; internal set; }
     public bool IsCancellationRequested { get; internal set; }
     public DateTime? CancellationRequestedAt { get; internal set; }
     public TimeSpan? Timeout { get; internal set; }

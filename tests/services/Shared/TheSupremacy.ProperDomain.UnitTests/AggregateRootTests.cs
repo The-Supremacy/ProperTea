@@ -1,17 +1,9 @@
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using TheSupremacy.ProperDomain.Events;
+using TheSupremacy.ProperDomain.UnitTests.TestHelpers;
 
 namespace TheSupremacy.ProperDomain.UnitTests;
-
-internal record TestDomainEvent(Guid AggregateId, Guid EventId, DateTime OccurredAt) : IDomainEvent;
-
-internal class TestAggregate() : AggregateRoot(Guid.NewGuid())
-{
-    public void DoSomething()
-    {
-        RaiseDomainEvent(new TestDomainEvent(Id, Guid.NewGuid(), DateTime.UtcNow));
-    }
-}
 
 public class AggregateRootTests
 {
@@ -19,14 +11,14 @@ public class AggregateRootTests
     public void RaiseDomainEvent_AddsDomainEvent()
     {
         // Arrange
-        var aggregate = new TestAggregate();
+        var aggregate = new TestAggregate(Guid.NewGuid());
 
         // Act
         aggregate.DoSomething();
 
         // Assert
         aggregate.DomainEvents.ShouldHaveSingleItem();
-        var domainEvent = aggregate.DomainEvents.First() as TestDomainEvent;
+        var domainEvent = aggregate.DomainEvents.First() as TestAggregateDomainEvent;
         domainEvent.ShouldNotBeNull();
         aggregate.Id.ShouldBe(domainEvent.AggregateId);
     }
@@ -35,7 +27,7 @@ public class AggregateRootTests
     public void ClearDomainEvents_ClearsDomainEventsList()
     {
         // Arrange
-        var aggregate = new TestAggregate();
+        var aggregate = new TestAggregate(Guid.NewGuid());
         aggregate.DoSomething();
 
         // Act
@@ -49,10 +41,17 @@ public class AggregateRootTests
     public void DomainEvents_IsReadOnly()
     {
         // Arrange
-        var aggregate = new TestAggregate();
+        var aggregate = new TestAggregate(Guid.NewGuid());
         aggregate.DoSomething();
 
         // Act & Assert
         aggregate.DomainEvents.ShouldBeAssignableTo<IReadOnlyCollection<IDomainEvent>>();
+    }
+    
+    [Fact]
+    public void ParameterlessConstructor_ForEfCore_CreatesAggregate()
+    {
+        var aggregate = (TestAggregate)Activator.CreateInstance(typeof(TestAggregate), true)!;
+        aggregate.ShouldNotBeNull();
     }
 }

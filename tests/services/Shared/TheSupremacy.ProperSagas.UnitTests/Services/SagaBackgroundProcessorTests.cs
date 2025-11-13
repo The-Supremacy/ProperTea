@@ -12,7 +12,6 @@ public class SagaBackgroundProcessorTests
 {
     private readonly Mock<ILogger<SagaBackgroundProcessor>> _logger;
     private readonly SagaBackgroundProcessor _processor;
-    private readonly SagaRegistry _registry;
     private readonly Mock<ISagaRepository> _repository;
     private readonly Mock<ISagaResumeService> _resumeService;
 
@@ -20,7 +19,7 @@ public class SagaBackgroundProcessorTests
     {
         var services = new ServiceCollection();
         _repository = new Mock<ISagaRepository>();
-        _registry = new SagaRegistry();
+        var registry = new SagaRegistry();
         _logger = new Mock<ILogger<SagaBackgroundProcessor>>();
         _resumeService = new Mock<ISagaResumeService>();
 
@@ -31,7 +30,7 @@ public class SagaBackgroundProcessorTests
         });
 
         services.AddSingleton(_repository.Object);
-        services.AddSingleton(_registry);
+        services.AddSingleton(registry);
         services.AddSingleton(options);
         services.AddSingleton(_resumeService.Object);
         services.AddSingleton<ILogger<TestSagaOrchestrator>>(Mock.Of<ILogger<TestSagaOrchestrator>>());
@@ -119,7 +118,7 @@ public class SagaBackgroundProcessorTests
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains("Failed to start scheduled saga")),
+                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains("Failed to start/resume saga")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -149,7 +148,7 @@ public class SagaBackgroundProcessorTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains($"Starting scheduled saga {saga.Id}")),
+                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains($"Starting/resuming saga {saga.Id}")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -236,7 +235,7 @@ public class SagaBackgroundProcessorTests
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains("Failed to resume stale saga")),
+                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains("Failed to start/resume saga")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -281,121 +280,7 @@ public class SagaBackgroundProcessorTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains($"Resuming stale saga {saga.Id}")),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-    }
-
-    #endregion
-
-    #region ProcessTimedOutSagasAsync Tests
-
-    [Fact]
-    public async Task ProcessTimedOutSagasAsync_WhenNoTimedOutSagas_LogsZeroCount()
-    {
-        // Arrange
-        _repository.Setup(r => r.FindTimedOutSagasAsync()).ReturnsAsync([]);
-
-        // Act
-        await _processor.ProcessTimedOutSagasAsync();
-
-        // Assert
-        _logger.Verify(
-            x => x.Log(
-                LogLevel.Information,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains("Found 0 timed out sagas")),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task ProcessTimedOutSagasAsync_ResumesAllTimedOutSagas()
-    {
-        // Arrange
-        var saga1 = new Saga { SagaType = "TestSaga", Status = SagaStatus.Running };
-        saga1.SetTimeout(TimeSpan.FromMinutes(30));
-        saga1.TimeoutDeadline = DateTime.UtcNow.AddMinutes(-1);
-
-        var saga2 = new Saga { SagaType = "TestSaga", Status = SagaStatus.Running };
-        saga2.SetTimeout(TimeSpan.FromMinutes(30));
-        saga2.TimeoutDeadline = DateTime.UtcNow.AddMinutes(-5);
-
-        _repository.Setup(r => r.FindTimedOutSagasAsync()).ReturnsAsync([saga1, saga2]);
-
-        _resumeService
-            .Setup(s => s.ResumeAsync(It.IsAny<Guid>()))
-            .ReturnsAsync((Guid id) => new[] { saga1, saga2 }.First(s => s.Id == id));
-
-        // Act
-        await _processor.ProcessTimedOutSagasAsync();
-
-        // Assert
-        _logger.Verify(
-            x => x.Log(
-                LogLevel.Information,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains("Found 2 timed out sagas")),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-
-        _resumeService.Verify(s => s.ResumeAsync(It.IsAny<Guid>()), Times.Exactly(2));
-    }
-
-    [Fact]
-    public async Task ProcessTimedOutSagasAsync_ContinuesOnIndividualFailures()
-    {
-        // Arrange
-        var saga1 = new Saga { SagaType = "TestSaga", Status = SagaStatus.Running };
-        var saga2 = new Saga { SagaType = "UnknownSaga", Status = SagaStatus.Running };
-
-        _repository.Setup(r => r.FindTimedOutSagasAsync()).ReturnsAsync([saga1, saga2]);
-
-        _resumeService
-            .SetupSequence(s => s.ResumeAsync(It.IsAny<Guid>()))
-            .ReturnsAsync(saga1)
-            .ThrowsAsync(new Exception("Unknown saga type"));
-
-        // Act
-        await _processor.ProcessTimedOutSagasAsync();
-
-        // Assert
-        _logger.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains("Failed to process timed out saga")),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-
-        _resumeService.Verify(s => s.ResumeAsync(It.IsAny<Guid>()), Times.Exactly(2));
-    }
-
-    [Fact]
-    public async Task ProcessTimedOutSagasAsync_LogsEachProcessingAttempt()
-    {
-        // Arrange
-        var saga = new Saga { SagaType = "TestSaga", Status = SagaStatus.Running };
-
-        _repository.Setup(r => r.FindTimedOutSagasAsync()).ReturnsAsync([saga]);
-
-        _resumeService
-            .Setup(s => s.ResumeAsync(saga.Id))
-            .ReturnsAsync(saga);
-
-        // Act
-        await _processor.ProcessTimedOutSagasAsync();
-
-        // Assert
-        _logger.Verify(
-            x => x.Log(
-                LogLevel.Information,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains($"Processing timed out saga {saga.Id}")),
+                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains($"Starting/resuming saga {saga.Id}")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -420,7 +305,6 @@ public class SagaBackgroundProcessorTests
         // Assert
         _repository.Verify(r => r.FindScheduledSagasAsync(It.IsAny<DateTime>()), Times.Once);
         _repository.Verify(r => r.FindSagasNeedingResumptionAsync(It.IsAny<TimeSpan>()), Times.Once);
-        _repository.Verify(r => r.FindTimedOutSagasAsync(), Times.Once);
     }
 
     [Fact]
@@ -463,16 +347,7 @@ public class SagaBackgroundProcessorTests
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
 
-        _logger.Verify(
-            x => x.Log(
-                LogLevel.Information,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains("Found 1 timed out sagas")),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-
-        _resumeService.Verify(s => s.ResumeAsync(It.IsAny<Guid>()), Times.Exactly(3));
+        _resumeService.Verify(s => s.ResumeAsync(It.IsAny<Guid>()), Times.Exactly(2));
     }
 
     [Fact]
@@ -491,16 +366,11 @@ public class SagaBackgroundProcessorTests
             .ReturnsAsync([])
             .Callback(() => callOrder.Add("stale"));
 
-        _repository
-            .Setup(r => r.FindTimedOutSagasAsync())
-            .ReturnsAsync([])
-            .Callback(() => callOrder.Add("timedout"));
-
         // Act
         await _processor.ProcessAllAsync();
 
         // Assert
-        callOrder.ShouldBe(["scheduled", "stale", "timedout"]);
+        callOrder.ShouldBe(["scheduled", "stale"]);
     }
 
     #endregion

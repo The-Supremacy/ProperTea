@@ -4,20 +4,14 @@ using TheSupremacy.ProperSagas.Domain;
 namespace TheSupremacy.ProperSagas.Persistence.Ef.IntegrationTests;
 
 [Collection("Database")]
-public class EfSagaRepositoryTests : IAsyncLifetime
+public class EfSagaRepositoryTests(SagaDatabaseFixture fixture) : IAsyncLifetime
 {
-    private readonly SagaDatabaseFixture _fixture;
     private SagaDbContext _context = null!;
     private EfSagaRepository<SagaDbContext> _repository = null!;
 
-    public EfSagaRepositoryTests(SagaDatabaseFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
     public Task InitializeAsync()
     {
-        _context = _fixture.CreateDbContext();
+        _context = fixture.CreateDbContext();
         _repository = new EfSagaRepository<SagaDbContext>(_context);
         return Task.CompletedTask;
     }
@@ -285,6 +279,34 @@ public class EfSagaRepositoryTests : IAsyncLifetime
         var retrieved = await _repository.GetByIdAsync(saga.Id);
         retrieved!.Status.ShouldBe(SagaStatus.Running); // Should be the first update
     }
+    
+    [Fact]
+    public async Task TryUpdateAsync_WhenVersionMismatchInDatabase_ReturnsFalse()
+    {
+        // Arrange
+        var saga = new Saga { Id = Guid.NewGuid(), SagaType = "TestSaga" };
+        await _repository.AddAsync(saga);
+
+        // Simulate concurrent update
+        var sagaCopy = await _repository.GetByIdAsync(saga.Id);
+        sagaCopy!.MarkAsRunning();
+        await _repository.TryUpdateAsync(sagaCopy);
+
+        // Act - Try to update original (outdated version)
+        saga.MarkAsCompleted();
+
+        var existingSaga = await _context.Sagas.FindAsync(saga.Id);
+        existingSaga!.Version += 2;
+        await _context.SaveChangesAsync();
+        
+        var result = await _repository.TryUpdateAsync(saga);
+
+        // Assert
+        result.ShouldBeFalse();
+
+        var retrieved = await _repository.GetByIdAsync(saga.Id);
+        retrieved!.Status.ShouldBe(SagaStatus.Running); // Should be the first update
+    }
 
     [Fact]
     public async Task TryUpdateAsync_UpdatesAllModifiableFields()
@@ -446,9 +468,8 @@ public class EfSagaRepositoryTests : IAsyncLifetime
         var result = await _repository.FindSagasNeedingResumptionAsync(TimeSpan.FromMinutes(5));
 
         // Assert
-        result.Count.ShouldBe(2);
+        result.Count.ShouldBe(1);
         result.ShouldContain(s => s.Status == SagaStatus.Running);
-        result.ShouldContain(s => s.Status == SagaStatus.WaitingForCallback);
     }
 
     [Fact]

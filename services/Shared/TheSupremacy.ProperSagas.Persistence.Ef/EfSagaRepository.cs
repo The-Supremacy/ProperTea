@@ -15,19 +15,9 @@ public class EfSagaRepository<TContext>(TContext context) : ISagaRepository
 
     public async Task AddAsync(Saga saga)
     {
-        await using var transaction = await context.Database.BeginTransactionAsync();
-        try
-        {
-            var entity = MapToEntity(saga);
-            context.Sagas.Add(entity);
-            await context.SaveChangesAsync();
-            await transaction.CommitAsync();
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
+        var entity = MapToEntity(saga);
+        context.Sagas.Add(entity);
+        await context.SaveChangesAsync();
     }
 
     public async Task<bool> TryUpdateAsync(Saga saga)
@@ -41,17 +31,9 @@ public class EfSagaRepository<TContext>(TContext context) : ISagaRepository
 
         saga.Version++;
         UpdateEntity(entity, saga);
-
-        try
-        {
-            await context.SaveChangesAsync();
-            return true;
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            saga.Version--;
-            return false;
-        }
+        
+        await context.SaveChangesAsync();
+        return true;
     }
 
     public async Task<List<Saga>> FindSagasNeedingResumptionAsync(TimeSpan lockTimeout)
@@ -59,8 +41,8 @@ public class EfSagaRepository<TContext>(TContext context) : ISagaRepository
         var staleTime = DateTime.UtcNow.Add(-lockTimeout);
 
         return (await context.Sagas
-                .Where(s => (s.Status == SagaStatus.Running || s.Status == SagaStatus.WaitingForCallback) &&
-                            (!s.LockedAt.HasValue || s.LockedAt.Value < staleTime))
+                .Where(s => (s.Status == SagaStatus.Running) &&
+                    (!s.LockedAt.HasValue || s.LockedAt.Value < staleTime))
                 .ToListAsync())
             .Select(MapToSaga).ToList();
     }
@@ -71,8 +53,8 @@ public class EfSagaRepository<TContext>(TContext context) : ISagaRepository
 
         return (await context.Sagas
                 .Where(s => s.Status == SagaStatus.Running &&
-                            s.TimeoutDeadline.HasValue &&
-                            s.TimeoutDeadline.Value < now)
+                    s.TimeoutDeadline.HasValue &&
+                    s.TimeoutDeadline.Value < now)
                 .ToListAsync())
             .Select(MapToSaga).ToList();
     }
@@ -134,9 +116,11 @@ public class EfSagaRepository<TContext>(TContext context) : ISagaRepository
         {
             Id = saga.Id,
             SagaType = saga.SagaType,
+            DisplayName = saga.DisplayName,
             CreatedAt = saga.CreatedAt,
             CorrelationId = saga.CorrelationId,
             TraceId = saga.TraceId,
+            IdempotencyKey = saga.IdempotencyKey,
             Status = saga.Status,
             Version = saga.Version,
             LockToken = saga.LockToken,
@@ -165,9 +149,11 @@ public class EfSagaRepository<TContext>(TContext context) : ISagaRepository
         {
             Id = entity.Id,
             SagaType = entity.SagaType,
+            DisplayName = entity.DisplayName,
             CreatedAt = entity.CreatedAt,
             CorrelationId = entity.CorrelationId,
             TraceId = entity.TraceId,
+            IdempotencyKey = entity.IdempotencyKey,
             Timeout = timeout,
             Status = entity.Status,
             Version = entity.Version,

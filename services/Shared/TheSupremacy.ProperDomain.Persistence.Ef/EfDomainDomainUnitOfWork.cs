@@ -5,12 +5,12 @@ using TheSupremacy.ProperDomain.Events;
 
 namespace TheSupremacy.ProperDomain.Persistence.Ef;
 
-public class EfUnitOfWork<TDbContext>(
+public class EfDomainDomainUnitOfWork<TDbContext>(
     TDbContext dbContext,
     IDomainEventDispatcher dispatcher,
     IOptions<ProperDomainOptions> options,
-    ILogger<EfUnitOfWork<TDbContext>> logger)
-    : IUnitOfWork
+    ILogger<EfDomainDomainUnitOfWork<TDbContext>> logger)
+    : IDomainUnitOfWork
     where TDbContext : DbContext
 {
     private readonly ProperDomainOptions _options = options.Value;
@@ -25,6 +25,9 @@ public class EfUnitOfWork<TDbContext>(
             
             var currentIteration = 0;
             bool hasMoreEvents;
+            
+            // We run this in loop, so we can handle if the event handling produced new events.
+            // We want to save them in scope of the same transaction.
             do
             {
                 var domainEvents = CollectDomainEvents();

@@ -26,12 +26,12 @@ public class SagaResumeService(
         if (saga == null)
             throw new SagaNotFoundException(sagaId);
 
-        var orchestratorType = registry.GetOrchestratorType(saga.SagaType);
-        if (orchestratorType == null)
+        if (!registry.IsRegistered(saga.SagaType))
             throw new InvalidOperationException($"No orchestrator registered for saga type {saga.SagaType}");
-
+        
         logger.LogInformation("Resuming saga {SagaId} of type {SagaType}", sagaId, saga.SagaType);
-
+       
+        var orchestratorType = registry.GetOrchestratorType(saga.SagaType)!;
         var orchestrator = (SagaOrchestratorBase)serviceProvider.GetRequiredService(orchestratorType);
         return await orchestrator.ResumeAsync(sagaId);
     }

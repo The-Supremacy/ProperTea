@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TheSupremacy.ProperDomain.Persistence.Ef;
 
-public class EfRepository<TEntity>(DbContext dbContext) : IRepository<TEntity>
+public abstract class EfDomainRepository<TEntity>(DbContext dbContext) : IDomainRepository<TEntity>
     where TEntity : class, IAggregateRoot
 {
     protected readonly DbSet<TEntity> DbSet = dbContext.Set<TEntity>();

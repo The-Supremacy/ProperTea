@@ -10,6 +10,7 @@ public class SagaBuilder
     private readonly List<SagaStepDefinition> _definitions = [];
     private readonly List<SagaValidationDefinition> _validationDefinitions = [];
     private string? _idempotencyKey;
+    private string? _displayName;
 
     public SagaBuilder AddPreValidation(
         string name,
@@ -86,18 +87,26 @@ public class SagaBuilder
         _idempotencyKey = key;
         return this;
     }
+    
+    public SagaBuilder WithDisplayName(string name)
+    {
+        _displayName = name;
+        return this;
+    }
 
     internal Saga BuildSaga(string sagaType)
     {
         return new Saga
         {
             SagaType = sagaType,
+            DisplayName = _displayName ?? sagaType,
             Steps = _definitions.Select(d => new SagaStep
             {
                 Name = d.Name,
                 Type = d.Type,
                 CompensationName = d.CompensationAction != null ? d.Name : null
-            }).ToList()
+            }).ToList(),
+            IdempotencyKey = _idempotencyKey
         };
     }
 }

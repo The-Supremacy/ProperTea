@@ -23,8 +23,10 @@ public class TestAggregate : AggregateRoot
         Name = newName;
     }
 
-    public void DoSomething()
+    public void DoSomething(string newName = "Changed Name")
     {
+        Name = newName;
+        
         RaiseDomainEvent(new TestDomainEvent(Id, Guid.NewGuid(), DateTime.UtcNow));
     }
 }

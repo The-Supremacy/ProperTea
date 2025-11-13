@@ -7,7 +7,7 @@ using TheSupremacy.ProperDomain.Persistence.Ef.IntegrationTests.Setup;
 namespace TheSupremacy.ProperDomain.Persistence.Ef.IntegrationTests;
 
 [Collection("DatabaseCollection")]
-public class EfRepositoryTests(DatabaseFixture fixture)
+public class EfDomainRepositoryTests(DatabaseFixture fixture)
 {
     [Fact]
     public async Task AddAsync_AddsAggregateToDatabase()
@@ -82,7 +82,7 @@ public class EfRepositoryTests(DatabaseFixture fixture)
         result.ShouldBeNull();
     }
 
-    private async Task<(EfRepository<TestAggregate> repository, TestDbContext dbContext)> GetRepositoryAsync()
+    private async Task<(EfDomainRepository<TestAggregate> repository, TestDbContext dbContext)> GetRepositoryAsync()
     {
         var services = new ServiceCollection();
         services.AddDbContext<TestDbContext>(options =>
@@ -95,7 +95,11 @@ public class EfRepositoryTests(DatabaseFixture fixture)
         await dbContext.Database.EnsureDeletedAsync();
         await dbContext.Database.MigrateAsync();
 
-        var repository = new EfRepository<TestAggregate>(dbContext);
+        var repository = new TestDomainDomainRepository(dbContext);
         return (repository, dbContext);
     }
+}
+
+public class TestDomainDomainRepository(TestDbContext dbContext) : EfDomainRepository<TestAggregate>(dbContext)
+{
 }

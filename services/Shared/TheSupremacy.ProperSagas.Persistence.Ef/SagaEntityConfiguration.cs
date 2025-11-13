@@ -12,6 +12,9 @@ public class SagaEntityConfiguration : IEntityTypeConfiguration<SagaEntity>
         builder.Property(e => e.SagaType)
             .IsRequired()
             .HasMaxLength(255);
+        
+        builder.Property(e => e.DisplayName)
+            .HasMaxLength(255);
 
         builder.Property(e => e.Status)
             .HasConversion<string>() // Store as string in case enum changes

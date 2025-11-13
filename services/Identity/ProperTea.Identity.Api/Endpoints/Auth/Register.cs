@@ -17,7 +17,7 @@ public static class Register
                 UserManager<ProperTeaUser> userManager,
                 ITokenService tokenService,
                 IIntegrationEventPublisher eventPublisher,
-                IUnitOfWork unitOfWork) =>
+                IDomainUnitOfWork domainUnitOfWork) =>
             {
                 var user = new ProperTeaUser
                 {
@@ -36,7 +36,7 @@ public static class Register
                     DateTime.UtcNow,
                     user.Id,
                     user.CreatedAt));
-                await unitOfWork.SaveChangesAsync();
+                await domainUnitOfWork.SaveChangesAsync();
 
                 var token = tokenService.CreateToken(user);
                 var response = new AuthResponse(user.Id, user.Email, token);

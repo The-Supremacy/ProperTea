@@ -20,6 +20,8 @@ public abstract class SagaOrchestratorBase(
 
     protected abstract string SagaType { get; }
 
+    protected abstract void DefineSaga(SagaBuilder builder);
+
     private Dictionary<string, SagaStepDefinition> StepDefinitions
     {
         get
@@ -59,8 +61,6 @@ public abstract class SagaOrchestratorBase(
         return builder.BuildSaga(SagaType);
     }
 
-    protected abstract void DefineSaga(SagaBuilder builder);
-
     protected virtual TimeSpan GetSagaTimeout()
     {
         return _options.SagaTimeout;
@@ -79,7 +79,7 @@ public abstract class SagaOrchestratorBase(
             saga.Id, failedStep);
         return Task.CompletedTask;
     }
-
+    
     public async Task<Saga> StartAsync(object? initialData = null)
     {
         using var activity = SagaTelemetry.StartSagaActivity("Start", SagaType);
@@ -305,7 +305,7 @@ public abstract class SagaOrchestratorBase(
             await sagaRepository.TryUpdateAsync(saga);
 
             if (pipeline != null)
-                await pipeline.ExecuteAsync(async ct => await action(saga), CancellationToken.None);
+                await pipeline.ExecuteAsync(async _ => await action(saga), CancellationToken.None);
             else
                 await action(saga);
 
@@ -398,14 +398,19 @@ public abstract class SagaOrchestratorBase(
         foreach (var step in stepsToCompensate)
         {
             var definition = StepDefinitions[step.Name];
-            if (definition.CompensationAction == null)
-                continue;
-
             try
             {
                 logger.LogInformation("Compensating step {StepName} for saga {SagaId}",
                     step.Name, saga.Id);
 
+                if (definition.CompensationAction == null)
+                {
+                    logger.LogWarning("Trying to compensate {StepName} with no compensation action for saga {SagaId}",
+                        step.Name, saga.Id);
+                    
+                    continue;
+                }
+                
                 await definition.CompensationAction(saga);
 
                 step.Status = SagaStepStatus.Compensated;

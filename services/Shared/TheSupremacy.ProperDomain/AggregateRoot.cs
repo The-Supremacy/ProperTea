@@ -11,11 +11,15 @@ public interface IAggregateRoot
     void ClearDomainEvents();
 }
 
-public abstract class AggregateRoot(Guid id) : Entity(id), IAggregateRoot
+public abstract class AggregateRoot : Entity, IAggregateRoot
 {
     private readonly List<IDomainEvent> _domainEvents = [];
 
-    internal AggregateRoot() : this(Guid.Empty)
+    protected AggregateRoot(Guid id) : base(id)
+    {
+    }
+    
+    protected AggregateRoot()
     {
     }
 
