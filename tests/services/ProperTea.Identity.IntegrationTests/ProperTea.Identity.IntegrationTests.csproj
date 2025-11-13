@@ -33,9 +33,7 @@
         <ProjectReference Include="..\..\..\services\Identity\ProperTea.Identity.Api\ProperTea.Identity.Api.csproj"/>
         <ProjectReference Include="..\..\..\services\Identity\ProperTea.Identity.Kernel\ProperTea.Identity.Kernel.csproj"/>
         <ProjectReference Include="..\..\..\services\Identity\ProperTea.Identity.Api\ProperTea.Identity.Api.csproj"/>
-        <ProjectReference Include="..\..\..\services\Shared\ProperTea.ProperIntegrationEvents\ProperTea.ProperIntegrationEvents.csproj"/>
-        <ProjectReference Include="..\..\..\services\Shared\ProperTea.ProperIntegrationEvents.Kafka\ProperTea.ProperIntegrationEvents.Kafka.csproj"/>
-        <ProjectReference Include="..\..\..\services\Shared\ProperTea.ProperIntegrationEvents.Outbox\ProperTea.ProperIntegrationEvents.Outbox.csproj"/>
+        <ProjectReference Include="..\..\..\services\Shared\TheSupremacy.ProperIntegrationEvents\TheSupremacy.ProperIntegrationEvents.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -52,7 +52,8 @@ public static class ProblemDetailsHelpers
     public static ProblemDetails CreateExceptionProblemDetails(
         HttpContext httpContext,
         Exception exception,
-        string? serviceName = null)
+        string? projectDetailsType,
+        string? serviceName)
     {
         var (statusCode, title, detail) = exception switch
         {
@@ -67,18 +68,19 @@ public static class ProblemDetailsHelpers
             _ => (StatusCodes.Status500InternalServerError, "Internal Server Error", "An unexpected error occurred.")
         };
 
-        return CreateProblemDetails(httpContext, statusCode, title, detail, serviceName);
+        return CreateProblemDetails(httpContext, statusCode, title, detail, projectDetailsType, serviceName);
     }
 
     public static ProblemDetails CreateStatusCodeProblemDetails(
         HttpContext httpContext,
         int statusCode,
-        string? serviceName = null)
+        string? projectDetailsType,
+        string? serviceName)
     {
         var title = GetStatusCodeTitle(statusCode);
         var detail = GetStatusCodeDetail(statusCode);
 
-        return CreateProblemDetails(httpContext, statusCode, title, detail, serviceName);
+        return CreateProblemDetails(httpContext, statusCode, title, detail, projectDetailsType, serviceName);
     }
 
     private static ProblemDetails CreateProblemDetails(
@@ -86,10 +88,10 @@ public static class ProblemDetailsHelpers
         int statusCode,
         string title,
         string detail,
-        string? serviceName = null)
+        string? projectDetailsType,
+        string? serviceName)
     {
-        var correlationId = httpContext.Request.Headers["X-Correlation-ID"].FirstOrDefault()
-                            ?? Guid.NewGuid().ToString();
+        var correlationId = CorrelationIdProvider.GetOrCreate(httpContext);
 
         var problemDetails = new ProblemDetails
         {
@@ -97,18 +99,18 @@ public static class ProblemDetailsHelpers
             Title = title,
             Detail = detail,
             Instance = httpContext.Request.Path,
-            Type = $"https://httpstatuses.io/{statusCode}",
+            Type = projectDetailsType,
             Extensions =
             {
                 ["correlationId"] = correlationId,
-                ["timestamp"] = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                ["timestamp"] = DateTime.UtcNow.ToString("O")
             }
         };
 
         if (!string.IsNullOrEmpty(serviceName))
             problemDetails.Extensions["service"] = serviceName;
 
-        httpContext.Response.Headers.Append("X-Correlation-ID", correlationId);
+        httpContext.Response.Headers.Append(HttpHeaders.CorrelationId, correlationId);
         return problemDetails;
     }
 }

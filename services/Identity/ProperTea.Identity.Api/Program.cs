@@ -11,17 +11,17 @@ using ProperTea.Identity.Kernel.Data;
 using ProperTea.Identity.Kernel.IntegrationEvents;
 using ProperTea.Identity.Kernel.Models;
 using ProperTea.Identity.Kernel.Services;
-using TheSupremacy.ProperCqrs;
-using ProperTea.ProperDdd;
-using ProperTea.ProperDdd.Persistence.Ef;
-using TheSupremacy.ProperErrorHandling;
-using ProperTea.ProperIntegrationEvents;
-using ProperTea.ProperIntegrationEvents.Kafka;
-using ProperTea.ProperIntegrationEvents.Outbox;
-using ProperTea.ProperIntegrationEvents.Outbox.Ef;
-using ProperTea.ProperIntegrationEvents.ServiceBus;
-using TheSupremacy.ProperTelemetry;
+using TheSupremacy.ProperDomain.Persistence.Ef;
+using TheSupremacy.ProperIntegrationEvents;
+using TheSupremacy.ProperIntegrationEvents.Outbox;
+using TheSupremacy.ProperIntegrationEvents.Persistence.Ef;
+using TheSupremacy.ProperIntegrationEvents.Transport.ServiceBus;
 using Scalar.AspNetCore;
+using TheSupremacy.ProperCqrs;
+using TheSupremacy.ProperDomain;
+using TheSupremacy.ProperErrorHandling;
+using TheSupremacy.ProperIntegrationEvents.Transport.ServiceBus.Publisher;
+using TheSupremacy.ProperTelemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 var isDevelopment = builder.Environment.IsDevelopment();
@@ -31,7 +31,10 @@ builder.Services.Configure<JsonOptions>(options =>
     options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 });
 
-builder.AddProperGlobalErrorHandling("ProperTea.Identity.Api");
+builder.AddProperGlobalErrorHandling(o =>
+{
+    o.ServiceName = "ProperTea.Identity.Api";
+});
 
 // OTel.
 var otelOptions = builder.Configuration.GetSection("OpenTelemetry").Get<OpenTelemetryOptions>() ??
@@ -99,7 +102,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
 // Proper registrations.
-builder.Services.AddProperDdd()
+builder.Services.AddProperDomain()
     .UseEntityFramework<ProperTeaIdentityDbContext>();
 builder.Services.AddProperCqrs(typeof(Program).Assembly);
 
@@ -108,22 +111,15 @@ var integrationEventsBuilder = builder.Services.AddProperIntegrationEvents(e =>
 {
     e.AddEventType<UserCreatedIntegrationEvent>(UserCreatedIntegrationEvent.EventTypeName);
 });
-integrationEventsBuilder.AddOutbox().AddEntityFrameworkStores<ProperTeaIdentityDbContext>();
-
-if (isDevelopment)
-    integrationEventsBuilder.AddKafka(kafka =>
-    {
-        kafka.BootstrapServers = builder.Configuration["Kafka:BootstrapServers"] ?? "localhost:9092";
-        kafka.ClientId = "identity-api";
-        kafka.CompressionType = CompressionType.Snappy;
-    });
-else
-    integrationEventsBuilder.AddServiceBus(sb =>
+integrationEventsBuilder
+    .AddOutbox()
+    .AddEntityFrameworkStores<ProperTeaIdentityDbContext>()
+    .AddServiceBusTransport(sb =>
     {
         sb.ConnectionString = builder.Configuration["ServiceBus:ConnectionString"]!;
         sb.MaxRetries = 5;
         sb.RetryDelay = TimeSpan.FromSeconds(3);
-        sb.ClientId = "identity-api";
+        sb.ClientId = "identity-worker";
     });
 
 builder.Services.AddOpenApi();
@@ -137,8 +133,8 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-app.UseProperGlobalErrorHandling();
 app.MapProperTelemetryEndpoints();
+app.UseProperGlobalErrorHandling();
 
 app.UseRouting();
 

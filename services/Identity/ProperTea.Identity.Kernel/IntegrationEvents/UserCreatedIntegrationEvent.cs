@@ -1,4 +1,4 @@
-using ProperTea.ProperIntegrationEvents;
+using TheSupremacy.ProperIntegrationEvents;
 
 namespace ProperTea.Identity.Kernel.IntegrationEvents;
 

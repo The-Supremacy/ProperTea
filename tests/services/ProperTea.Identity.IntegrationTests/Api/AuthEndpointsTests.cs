@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using ProperTea.Identity.Api.DTOs;
 using ProperTea.Identity.IntegrationTests.Api.Setup;
-using ProperTea.Identity.IntegrationTests.Setup;
 using ProperTea.Identity.Kernel.Models;
 using Shouldly;
 

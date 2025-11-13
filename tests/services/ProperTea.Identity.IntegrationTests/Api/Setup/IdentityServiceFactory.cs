@@ -7,10 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 using ProperTea.Identity.Api;
 using ProperTea.Identity.Kernel.Data;
 using ProperTea.Identity.Kernel.IntegrationEvents;
-using ProperTea.ProperIntegrationEvents;
-using ProperTea.ProperIntegrationEvents.Kafka;
-using ProperTea.ProperIntegrationEvents.Outbox;
-using ProperTea.ProperIntegrationEvents.Outbox.Ef;
+using TheSupremacy.ProperIntegrationEvents;
+using TheSupremacy.ProperIntegrationEvents.Kafka;
+using TheSupremacy.ProperIntegrationEvents.Outbox;
+using TheSupremacy.ProperIntegrationEvents.Outbox.Ef;
 using Testcontainers.Kafka;
 using Testcontainers.PostgreSql;
 

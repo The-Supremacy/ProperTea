@@ -7,12 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.10"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10">
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.11" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.11">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.10">
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.11">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -21,14 +21,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Shared\TheSupremacy.ProperCqrs\TheSupremacy.ProperCqrs.csproj" />
-        <ProjectReference Include="..\..\Shared\ProperTea.ProperDdd.Persistence.Ef\ProperTea.ProperDdd.Persistence.Ef.csproj"/>
-        <ProjectReference Include="..\..\Shared\TheSupremacy.ProperErrorHandling\TheSupremacy.ProperErrorHandling.csproj" />
-        <ProjectReference Include="..\..\Shared\ProperTea.ProperIntegrationEvents.Kafka\ProperTea.ProperIntegrationEvents.Kafka.csproj"/>
-        <ProjectReference Include="..\..\Shared\ProperTea.ProperIntegrationEvents.Outbox.Ef\ProperTea.ProperIntegrationEvents.Outbox.Ef.csproj"/>
-        <ProjectReference Include="..\..\Shared\ProperTea.ProperIntegrationEvents.Outbox\ProperTea.ProperIntegrationEvents.Outbox.csproj"/>
-        <ProjectReference Include="..\..\Shared\ProperTea.ProperIntegrationEvents.ServiceBus\ProperTea.ProperIntegrationEvents.ServiceBus.csproj"/>
-        <ProjectReference Include="..\..\Shared\ProperTea.ProperIntegrationEvents\ProperTea.ProperIntegrationEvents.csproj"/>
-        <ProjectReference Include="..\..\Shared\TheSupremacy.ProperTelemetry\TheSupremacy.ProperTelemetry.csproj" />
+        <ProjectReference Include="..\..\Shared\TheSupremacy.ProperCqrs\TheSupremacy.ProperCqrs.csproj"/>
+        <ProjectReference Include="..\..\Shared\TheSupremacy.ProperDomain.Persistence.Ef\TheSupremacy.ProperDomain.Persistence.Ef.csproj" />
+        <ProjectReference Include="..\..\Shared\TheSupremacy.ProperErrorHandling\TheSupremacy.ProperErrorHandling.csproj"/>
+        <ProjectReference Include="..\..\Shared\TheSupremacy.ProperIntegrationEvents.Persistence.Ef\TheSupremacy.ProperIntegrationEvents.Persistence.Ef.csproj" />
+        <ProjectReference Include="..\..\Shared\TheSupremacy.ProperIntegrationEvents.Transport.ServiceBus\TheSupremacy.ProperIntegrationEvents.Transport.ServiceBus.csproj" />
+        <ProjectReference Include="..\..\Shared\TheSupremacy.ProperIntegrationEvents\TheSupremacy.ProperIntegrationEvents.csproj" />
+        <ProjectReference Include="..\..\Shared\TheSupremacy.ProperTelemetry\TheSupremacy.ProperTelemetry.csproj"/>
     </ItemGroup>
 </Project>

@@ -2,30 +2,35 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace TheSupremacy.ProperErrorHandling;
 
 public static class ErrorHandlingExtensions
 {
     public static IHostApplicationBuilder AddProperGlobalErrorHandling(this IHostApplicationBuilder builder,
-        string? serviceName = null)
+        Action<ErrorHandlingOptions>? configure = null)
     {
-        builder.Services.AddProblemDetails(options =>
+        builder.Services.Configure(configure ?? (_ => { }));
+        
+        builder.Services.AddProblemDetails(problemDetailsOptions =>
         {
-            options.CustomizeProblemDetails = context =>
+            problemDetailsOptions.CustomizeProblemDetails = context =>
             {
-                var correlationId = context.HttpContext.Request.Headers["X-Correlation-ID"].FirstOrDefault()
-                                    ?? Guid.NewGuid().ToString();
+                var options = context.HttpContext.RequestServices
+                    .GetRequiredService<IOptions<ErrorHandlingOptions>>().Value;
+                
+                var correlationId = CorrelationIdProvider.GetOrCreate(context.HttpContext);
 
                 context.ProblemDetails.Extensions["correlationId"] = correlationId;
                 context.ProblemDetails.Extensions["timestamp"] = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
                 context.ProblemDetails.Instance = context.HttpContext.Request.Path;
-
-                if (!string.IsNullOrEmpty(serviceName))
-                    context.ProblemDetails.Extensions["service"] = serviceName;
-
-                if (!string.IsNullOrEmpty(context.ProblemDetails.Status?.ToString()))
-                    context.ProblemDetails.Type = $"https://httpstatuses.io/{context.ProblemDetails.Status}";
+                
+                if (!string.IsNullOrEmpty(options.ServiceName))
+                    context.ProblemDetails.Extensions["service"] = options.ServiceName;
+            
+                if (context.ProblemDetails.Status.HasValue)
+                    context.ProblemDetails.Type = $"{options.ProblemDetailsTypeBaseUrl}/{context.ProblemDetails.Status}";
             };
         });
 
@@ -34,8 +39,10 @@ public static class ErrorHandlingExtensions
         return builder;
     }
 
-    public static WebApplication UseProperGlobalErrorHandling(this WebApplication app, string? serviceName = null)
+    public static WebApplication UseProperGlobalErrorHandling(this WebApplication app)
     {
+        var options = app.Services.GetRequiredService<IOptions<ErrorHandlingOptions>>();
+        
         app.UseExceptionHandler();
 
         app.UseStatusCodePages(async context =>
@@ -43,7 +50,8 @@ public static class ErrorHandlingExtensions
             var problemDetails = ProblemDetailsHelpers.CreateStatusCodeProblemDetails(
                 context.HttpContext,
                 context.HttpContext.Response.StatusCode,
-                serviceName);
+                options.Value.ProblemDetailsTypeBaseUrl,
+                options.Value.ServiceName);
 
             await context.HttpContext.Response.WriteAsJsonAsync(problemDetails);
         });

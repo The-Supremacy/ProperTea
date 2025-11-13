@@ -1,31 +1,19 @@
 using Microsoft.Extensions.Options;
-using ProperTea.ProperIntegrationEvents.Outbox;
+using TheSupremacy.ProperIntegrationEvents.Outbox;
 
 namespace ProperTea.Identity.Worker.Workers;
 
-/// <summary>
-///     Background worker that processes outbox messages and publishes them to the message bus.
-///     This implements the transactional outbox pattern for reliable event publishing.
-/// </summary>
-public class OutboxProcessorWorker : BackgroundService
+public class OutboxProcessorWorker(
+    IServiceProvider serviceProvider,
+    ILogger<OutboxProcessorWorker> logger,
+    IOptions<OutboxProcessorOptions>? options = null)
+    : BackgroundService
 {
-    private readonly ILogger<OutboxProcessorWorker> _logger;
-    private readonly OutboxProcessorOptions _options;
-    private readonly IServiceProvider _serviceProvider;
-
-    public OutboxProcessorWorker(
-        IServiceProvider serviceProvider,
-        ILogger<OutboxProcessorWorker> logger,
-        IOptions<OutboxProcessorOptions>? options = null)
-    {
-        _serviceProvider = serviceProvider;
-        _logger = logger;
-        _options = options?.Value ?? new OutboxProcessorOptions();
-    }
+    private readonly OutboxProcessorOptions _options = options?.Value ?? new OutboxProcessorOptions();
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Outbox Processor Worker starting...");
+        logger.LogInformation("Outbox Processor Worker starting...");
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -35,21 +23,21 @@ public class OutboxProcessorWorker : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing outbox messages");
+                logger.LogError(ex, "Error processing outbox messages");
             }
 
             await Task.Delay(_options.PollingIntervalSeconds * 1000, stoppingToken);
         }
 
-        _logger.LogInformation("Outbox Processor Worker stopping...");
+        logger.LogInformation("Outbox Processor Worker stopping...");
     }
 
     private async Task ProcessOutboxMessagesAsync(CancellationToken cancellationToken)
     {
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = serviceProvider.CreateScope();
         var outboxProcessor = scope.ServiceProvider.GetRequiredService<IIntegrationEventsOutboxProcessor>();
 
-        _logger.LogDebug("Checking for pending outbox messages...");
+        logger.LogDebug("Checking for pending outbox messages...");
 
         // Use the existing IntegrationEventsOutboxProcessor to handle all the logic
         await outboxProcessor.ProcessOutboxMessagesAsync(_options.BatchSize, cancellationToken);

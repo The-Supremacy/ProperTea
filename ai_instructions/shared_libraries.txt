@@ -1,0 +1,2 @@
+- Don't make code changes yourself, guide me and I will do them myself.
+- Don't implement BackgroundService, we want consumer to be able to use any worker service they want.

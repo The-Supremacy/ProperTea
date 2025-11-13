@@ -252,7 +252,7 @@ namespace ProperTea.Identity.Api.Migrations
                     b.ToTable("SecurityLogs");
                 });
 
-            modelBuilder.Entity("ProperTea.ProperIntegrationEvents.Outbox.OutboxMessage", b =>
+            modelBuilder.Entity("TheSupremacy.ProperIntegrationEvents.Outbox.OutboxMessage", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

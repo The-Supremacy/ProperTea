@@ -1,0 +1,7 @@
+While creating tests for the existing code I want you to follow the next criteria:
+- Don't make code changes yourself, guide me and I will do them myself
+- Use xUnit, Moq, and Shouldly. We don't use NSubstitute or FluentAssertions.
+- I want to have a separate project {name of the project}.UnitTests for fast tests: pure unit tests (single unit) or integration tests (multiple units that resolve inside the same project and don't have any io/infrasutcrure dependencies).
+- I want to have a separate project {name of the project}.IntegrationTests for slower integration tests: integration tests that involve work with data, queues or external services. API tests are also to be put here. I want each test to work as close to production as possible.
+- If there are too many integration tests, consider splitting them into multiple projects. For example, API tests are good candidate.
+- For integration tests I would prefer to avoid using InMemory databases as they don't provide complete coverage of the actual database behavior. Same goes for other infrastructure objects. Instead, we want to use TestContainers and their Fixtures.

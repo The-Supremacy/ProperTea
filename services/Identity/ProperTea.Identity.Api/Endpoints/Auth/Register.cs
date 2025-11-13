@@ -3,8 +3,8 @@ using ProperTea.Identity.Api.DTOs;
 using ProperTea.Identity.Kernel.IntegrationEvents;
 using ProperTea.Identity.Kernel.Models;
 using ProperTea.Identity.Kernel.Services;
-using ProperTea.ProperDdd;
-using ProperTea.ProperIntegrationEvents;
+using TheSupremacy.ProperIntegrationEvents;
+using TheSupremacy.ProperDomain;
 
 namespace ProperTea.Identity.Api.Endpoints.Auth;
 

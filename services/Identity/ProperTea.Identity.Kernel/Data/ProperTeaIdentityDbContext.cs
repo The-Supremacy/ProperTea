@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ProperTea.Identity.Kernel.Models;
-using ProperTea.ProperIntegrationEvents.Outbox;
-using ProperTea.ProperIntegrationEvents.Outbox.Ef;
+using TheSupremacy.ProperIntegrationEvents.Outbox;
+using TheSupremacy.ProperIntegrationEvents.Persistence.Ef;
 
 namespace ProperTea.Identity.Kernel.Data;
 

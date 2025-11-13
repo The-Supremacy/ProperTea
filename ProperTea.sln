@@ -35,17 +35,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheSupremacy.ProperErrorHan
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheSupremacy.ProperCqrs", "services\Shared\TheSupremacy.ProperCqrs\TheSupremacy.ProperCqrs.csproj", "{EB81A640-95A8-43AF-858E-0D9693FF0A30}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperDdd", "services\Shared\ProperTea.ProperDdd\ProperTea.ProperDdd.csproj", "{BCB38478-654E-452F-ABA1-488FA778105F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheSupremacy.ProperDomain", "services\Shared\TheSupremacy.ProperDomain\TheSupremacy.ProperDomain.csproj", "{BCB38478-654E-452F-ABA1-488FA778105F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperIntegrationEvents.ServiceBus", "services\Shared\ProperTea.ProperIntegrationEvents.ServiceBus\ProperTea.ProperIntegrationEvents.ServiceBus.csproj", "{38C009EB-4F50-46FA-AB5B-7C3E601F564A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheSupremacy.ProperIntegrationEvents.Transport.ServiceBus", "services\Shared\TheSupremacy.ProperIntegrationEvents.Transport.ServiceBus\TheSupremacy.ProperIntegrationEvents.Transport.ServiceBus.csproj", "{38C009EB-4F50-46FA-AB5B-7C3E601F564A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperDdd.Persistence.Ef", "services\Shared\ProperTea.ProperDdd.Persistence.Ef\ProperTea.ProperDdd.Persistence.Ef.csproj", "{42A8F7CB-98EC-4514-BDF7-96F5D3B2D913}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheSupremacy.ProperDomain.Persistence.Ef", "services\Shared\TheSupremacy.ProperDomain.Persistence.Ef\TheSupremacy.ProperDomain.Persistence.Ef.csproj", "{42A8F7CB-98EC-4514-BDF7-96F5D3B2D913}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperIntegrationEvents.Outbox", "services\Shared\ProperTea.ProperIntegrationEvents.Outbox\ProperTea.ProperIntegrationEvents.Outbox.csproj", "{2030E475-7D38-4DFA-9C6E-4754E28D4767}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheSupremacy.ProperIntegrationEvents.Persistence.Ef", "services\Shared\TheSupremacy.ProperIntegrationEvents.Persistence.Ef\TheSupremacy.ProperIntegrationEvents.Persistence.Ef.csproj", "{0427EA14-EAEB-4C53-880C-AC89F8CE7B61}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperIntegrationEvents.Outbox.Ef", "services\Shared\ProperTea.ProperIntegrationEvents.Outbox.Ef\ProperTea.ProperIntegrationEvents.Outbox.Ef.csproj", "{0427EA14-EAEB-4C53-880C-AC89F8CE7B61}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperIntegrationEvents", "services\Shared\ProperTea.ProperIntegrationEvents\ProperTea.ProperIntegrationEvents.csproj", "{2D5FD9C1-E325-44A1-BE93-ED71316790E4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheSupremacy.ProperIntegrationEvents", "services\Shared\TheSupremacy.ProperIntegrationEvents\TheSupremacy.ProperIntegrationEvents.csproj", "{2D5FD9C1-E325-44A1-BE93-ED71316790E4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{318A2161-F2D1-46F0-AB2F-6DDEE2D82865}"
 EndProject
@@ -53,31 +51,27 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity", "Identity", "{ED
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bffs", "Bffs", "{54930834-ED41-459D-9E39-46F5F183A36A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperDdd.UnitTests", "tests\services\Shared\ProperTea.ProperDdd.UnitTests\ProperTea.ProperDdd.UnitTests.csproj", "{E435AD08-C0DB-40D6-B69F-339E1DB7ED25}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheSupremacy.ProperDomain.UnitTests", "tests\services\Shared\TheSupremacy.ProperDomain.UnitTests\TheSupremacy.ProperDomain.UnitTests.csproj", "{E435AD08-C0DB-40D6-B69F-339E1DB7ED25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperDdd.Persistence.Ef.IntegrationTests", "tests\services\Shared\ProperTea.ProperDdd.Persistence.Ef.IntegrationTests\ProperTea.ProperDdd.Persistence.Ef.IntegrationTests.csproj", "{8ED0428B-4F9F-429F-9071-1771E060C74E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheSupremacy.ProperDomain.Persistence.Ef.IntegrationTests", "tests\services\Shared\TheSupremacy.ProperDomain.Persistence.Ef.IntegrationTests\TheSupremacy.ProperDomain.Persistence.Ef.IntegrationTests.csproj", "{8ED0428B-4F9F-429F-9071-1771E060C74E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheSupremacy.ProperCqrs.UnitTests", "tests\services\Shared\TheSupremacy.ProperCqrs.UnitTests\TheSupremacy.ProperCqrs.UnitTests.csproj", "{1F6CA25F-FA44-4AE7-B1D7-252994D45172}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperIntegrationEvents.Outbox.Ef.IntegrationTests", "tests\services\Shared\ProperTea.ProperIntegrationEvents.Outbox.Ef.IntegrationTests\ProperTea.ProperIntegrationEvents.Outbox.Ef.IntegrationTests.csproj", "{8BC186A9-C1E1-4D7A-9318-B4005B77A0F4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperIntegrationEvents.Outbox.UnitTests", "tests\services\Shared\ProperTea.ProperIntegrationEvents.Outbox.UnitTests\ProperTea.ProperIntegrationEvents.Outbox.UnitTests.csproj", "{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheSupremacy.ProperSagas", "services\Shared\TheSupremacy.ProperSagas\TheSupremacy.ProperSagas.csproj", "{0B93BD5E-4A65-444A-9E2E-7E0C6924CD05}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheSupremacy.ProperSagas.Ef", "services\Shared\TheSupremacy.ProperSagas.Ef\TheSupremacy.ProperSagas.Ef.csproj", "{BDC76836-26A5-4C91-B36A-39C786253B02}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheSupremacy.ProperSagas.Persistence.Ef", "services\Shared\TheSupremacy.ProperSagas.Persistence.Ef\TheSupremacy.ProperSagas.Persistence.Ef.csproj", "{BDC76836-26A5-4C91-B36A-39C786253B02}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheSupremacy.ProperSagas.UnitTests", "tests\services\Shared\TheSupremacy.ProperSagas.UnitTests\TheSupremacy.ProperSagas.UnitTests.csproj", "{0D1A4CD0-5292-47C0-A9C5-9A45F48897FB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheSupremacy.ProperSagas.Ef.IntegrationTests", "tests\services\Shared\TheSupremacy.ProperSagas.Ef.IntegrationTests\TheSupremacy.ProperSagas.Ef.IntegrationTests.csproj", "{25DBB097-EB1B-4194-BFAC-9AC692F5D42F}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.Identity.Worker", "services\Identity\ProperTea.Identity.Worker\ProperTea.Identity.Worker.csproj", "{055A74F0-70C0-477E-8A0C-518C7AC626D5}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.ProperIntegrationEvents.Kafka", "services\Shared\ProperTea.ProperIntegrationEvents.Kafka\ProperTea.ProperIntegrationEvents.Kafka.csproj", "{E4C8E5F3-ADA8-48ED-B367-2F499C9A1D01}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.Identity.Kernel", "services\Identity\ProperTea.Identity.Kernel\ProperTea.Identity.Kernel.csproj", "{6B29B2C6-92E3-4E8D-9A57-8503E6F683E2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProperTea.Identity.IntegrationTests", "tests\services\ProperTea.Identity.IntegrationTests\ProperTea.Identity.IntegrationTests.csproj", "{93F23C3A-7505-4F37-9A23-EFC5800D0189}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheSupremacy.ProperSagas.Persistence.Ef.IntegrationTests", "tests\services\Shared\TheSupremacy.ProperSagas.Persistence.Ef.IntegrationTests\TheSupremacy.ProperSagas.Persistence.Ef.IntegrationTests.csproj", "{AB256A31-3188-46C3-B459-27DBE4956894}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheSupremacy.ProperIntegrationEvents.UnitTests", "tests\services\Shared\TheSupremacy.ProperIntegrationEvents.UnitTests\TheSupremacy.ProperIntegrationEvents.UnitTests.csproj", "{C99C10AA-09F6-451C-A66E-5F04356A1A79}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -125,10 +119,6 @@ Global
 		{42A8F7CB-98EC-4514-BDF7-96F5D3B2D913}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42A8F7CB-98EC-4514-BDF7-96F5D3B2D913}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42A8F7CB-98EC-4514-BDF7-96F5D3B2D913}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2030E475-7D38-4DFA-9C6E-4754E28D4767}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2030E475-7D38-4DFA-9C6E-4754E28D4767}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2030E475-7D38-4DFA-9C6E-4754E28D4767}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2030E475-7D38-4DFA-9C6E-4754E28D4767}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0427EA14-EAEB-4C53-880C-AC89F8CE7B61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0427EA14-EAEB-4C53-880C-AC89F8CE7B61}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0427EA14-EAEB-4C53-880C-AC89F8CE7B61}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -149,14 +139,6 @@ Global
 		{1F6CA25F-FA44-4AE7-B1D7-252994D45172}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F6CA25F-FA44-4AE7-B1D7-252994D45172}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F6CA25F-FA44-4AE7-B1D7-252994D45172}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8BC186A9-C1E1-4D7A-9318-B4005B77A0F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8BC186A9-C1E1-4D7A-9318-B4005B77A0F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8BC186A9-C1E1-4D7A-9318-B4005B77A0F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8BC186A9-C1E1-4D7A-9318-B4005B77A0F4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0B93BD5E-4A65-444A-9E2E-7E0C6924CD05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0B93BD5E-4A65-444A-9E2E-7E0C6924CD05}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0B93BD5E-4A65-444A-9E2E-7E0C6924CD05}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -169,18 +151,10 @@ Global
 		{0D1A4CD0-5292-47C0-A9C5-9A45F48897FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D1A4CD0-5292-47C0-A9C5-9A45F48897FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D1A4CD0-5292-47C0-A9C5-9A45F48897FB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{25DBB097-EB1B-4194-BFAC-9AC692F5D42F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{25DBB097-EB1B-4194-BFAC-9AC692F5D42F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{25DBB097-EB1B-4194-BFAC-9AC692F5D42F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{25DBB097-EB1B-4194-BFAC-9AC692F5D42F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{055A74F0-70C0-477E-8A0C-518C7AC626D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{055A74F0-70C0-477E-8A0C-518C7AC626D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{055A74F0-70C0-477E-8A0C-518C7AC626D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{055A74F0-70C0-477E-8A0C-518C7AC626D5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E4C8E5F3-ADA8-48ED-B367-2F499C9A1D01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E4C8E5F3-ADA8-48ED-B367-2F499C9A1D01}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E4C8E5F3-ADA8-48ED-B367-2F499C9A1D01}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E4C8E5F3-ADA8-48ED-B367-2F499C9A1D01}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6B29B2C6-92E3-4E8D-9A57-8503E6F683E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6B29B2C6-92E3-4E8D-9A57-8503E6F683E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B29B2C6-92E3-4E8D-9A57-8503E6F683E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -189,6 +163,14 @@ Global
 		{93F23C3A-7505-4F37-9A23-EFC5800D0189}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{93F23C3A-7505-4F37-9A23-EFC5800D0189}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{93F23C3A-7505-4F37-9A23-EFC5800D0189}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB256A31-3188-46C3-B459-27DBE4956894}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB256A31-3188-46C3-B459-27DBE4956894}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB256A31-3188-46C3-B459-27DBE4956894}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB256A31-3188-46C3-B459-27DBE4956894}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C99C10AA-09F6-451C-A66E-5F04356A1A79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C99C10AA-09F6-451C-A66E-5F04356A1A79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C99C10AA-09F6-451C-A66E-5F04356A1A79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C99C10AA-09F6-451C-A66E-5F04356A1A79}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -211,22 +193,19 @@ Global
 		{57F31AE7-830B-45E5-B661-E37025BEF1F1} = {54930834-ED41-459D-9E39-46F5F183A36A}
 		{E435AD08-C0DB-40D6-B69F-339E1DB7ED25} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
 		{2D5FD9C1-E325-44A1-BE93-ED71316790E4} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
-		{2030E475-7D38-4DFA-9C6E-4754E28D4767} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
 		{0427EA14-EAEB-4C53-880C-AC89F8CE7B61} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
 		{38C009EB-4F50-46FA-AB5B-7C3E601F564A} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
 		{BCB38478-654E-452F-ABA1-488FA778105F} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
 		{42A8F7CB-98EC-4514-BDF7-96F5D3B2D913} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
 		{8ED0428B-4F9F-429F-9071-1771E060C74E} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
 		{1F6CA25F-FA44-4AE7-B1D7-252994D45172} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
-		{8BC186A9-C1E1-4D7A-9318-B4005B77A0F4} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
-		{6EA2E2AA-6E88-4F6C-BA2F-690ACA30FC8C} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
 		{0B93BD5E-4A65-444A-9E2E-7E0C6924CD05} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
 		{BDC76836-26A5-4C91-B36A-39C786253B02} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
 		{0D1A4CD0-5292-47C0-A9C5-9A45F48897FB} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
-		{25DBB097-EB1B-4194-BFAC-9AC692F5D42F} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
 		{055A74F0-70C0-477E-8A0C-518C7AC626D5} = {B92684CF-9BC4-4B9F-A94C-9090969F6ED2}
-		{E4C8E5F3-ADA8-48ED-B367-2F499C9A1D01} = {55D0CA1F-4073-4637-8D1F-72A965119AF4}
 		{6B29B2C6-92E3-4E8D-9A57-8503E6F683E2} = {B92684CF-9BC4-4B9F-A94C-9090969F6ED2}
 		{93F23C3A-7505-4F37-9A23-EFC5800D0189} = {ED152EE0-D059-4435-A1EC-794734BEBF37}
+		{AB256A31-3188-46C3-B459-27DBE4956894} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
+		{C99C10AA-09F6-451C-A66E-5F04356A1A79} = {318A2161-F2D1-46F0-AB2F-6DDEE2D82865}
 	EndGlobalSection
 EndGlobal

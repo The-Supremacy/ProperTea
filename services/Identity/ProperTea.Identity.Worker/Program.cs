@@ -2,12 +2,12 @@ using Microsoft.EntityFrameworkCore;
 using ProperTea.Identity.Kernel.Data;
 using ProperTea.Identity.Kernel.IntegrationEvents;
 using ProperTea.Identity.Worker.Workers;
-using ProperTea.ProperIntegrationEvents;
-using ProperTea.ProperIntegrationEvents.Kafka;
-using ProperTea.ProperIntegrationEvents.Outbox;
-using ProperTea.ProperIntegrationEvents.Outbox.Ef;
-using ProperTea.ProperIntegrationEvents.ServiceBus;
 using TheSupremacy.ProperErrorHandling;
+using TheSupremacy.ProperIntegrationEvents;
+using TheSupremacy.ProperIntegrationEvents.Outbox;
+using TheSupremacy.ProperIntegrationEvents.Persistence.Ef;
+using TheSupremacy.ProperIntegrationEvents.Transport.ServiceBus;
+using TheSupremacy.ProperIntegrationEvents.Transport.ServiceBus.Publisher;
 using TheSupremacy.ProperTelemetry;
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -17,7 +17,10 @@ var otelOptions = builder.Configuration.GetSection("OpenTelemetry").Get<OpenTele
                   new OpenTelemetryOptions();
 builder.AddProperTelemetry(otelOptions);
 
-builder.AddProperGlobalErrorHandling("ProperTea.Identity.Worker");
+builder.AddProperGlobalErrorHandling(o =>
+{
+    o.ServiceName = "ProperTea.Identity.Worker";
+});
 
 builder.Services.AddDbContext<ProperTeaIdentityDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -26,16 +29,10 @@ var integrationEventsBuilder = builder.Services.AddProperIntegrationEvents(e =>
 {
     e.AddEventType<UserCreatedIntegrationEvent>(UserCreatedIntegrationEvent.EventTypeName);
 });
-integrationEventsBuilder.AddOutbox().AddEntityFrameworkStores<ProperTeaIdentityDbContext>();
-if (isDevelopment)
-    integrationEventsBuilder.AddKafka(kafka =>
-    {
-        kafka.BootstrapServers = builder.Configuration["Kafka:BootstrapServers"] ?? "localhost:9092";
-        kafka.ClientId = "identity-worker";
-        kafka.CompressionType = CompressionType.Snappy;
-    });
-else
-    integrationEventsBuilder.AddServiceBus(sb =>
+integrationEventsBuilder
+    .AddOutbox()
+    .AddEntityFrameworkStores<ProperTeaIdentityDbContext>()
+    .AddServiceBusTransport(sb =>
     {
         sb.ConnectionString = builder.Configuration["ServiceBus:ConnectionString"]!;
         sb.MaxRetries = 5;

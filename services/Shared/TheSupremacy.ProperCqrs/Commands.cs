@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace TheSupremacy.ProperCqrs;
@@ -30,9 +31,16 @@ public class CommandBus(IServiceProvider serviceProvider) : ICommandBus
         var handlerType = typeof(ICommandHandler<,>).MakeGenericType(command.GetType(), typeof(TResult));
         var handler = serviceProvider.GetRequiredService(handlerType);
 
-        return (Task<TResult>)handler.GetType()
-            .GetMethod("HandleAsync")!
-            .Invoke(handler, [command, ct])!;
+        try
+        {
+            return (Task<TResult>)handler.GetType().GetMethod("HandleAsync")!.Invoke(handler, [command, ct])!;
+        }
+        catch (TargetInvocationException ex)
+        {
+            if (ex.InnerException != null)
+                throw ex.InnerException;
+            throw;
+        }
     }
 
     public Task SendAsync(ICommand command, CancellationToken ct = default)

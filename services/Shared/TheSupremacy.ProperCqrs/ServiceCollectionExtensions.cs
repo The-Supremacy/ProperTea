@@ -6,33 +6,48 @@ namespace TheSupremacy.ProperCqrs;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddProperCqrs(this IServiceCollection services, Assembly assembly)
+    public static IServiceCollection AddProperCqrs(this IServiceCollection services, params Assembly[] assemblies)
     {
-        services.AddValidatorsFromAssembly(assembly);
+        services.AddScoped<ICommandBus, CommandBus>();
+        services.AddScoped<IQueryBus, QueryBus>();
 
-        services.AddSingleton<ICommandBus, CommandBus>();
-        services.AddSingleton<IQueryBus, QueryBus>();
+        services.AddValidatorsFromAssemblies(assemblies);
 
         services.Scan(scan => scan
-            .FromAssemblies(assembly)
+            .FromAssemblies(assemblies)
             .AddClasses(classes => classes.AssignableTo(typeof(ICommandHandler<>)))
             .AsImplementedInterfaces()
             .WithScopedLifetime());
-        services.TryDecorate(typeof(ICommandHandler<>), typeof(ValidationCommandHandlerDecorator<>));
 
         services.Scan(scan => scan
-            .FromAssemblies(assembly)
+            .FromAssemblies(assemblies)
             .AddClasses(classes => classes.AssignableTo(typeof(ICommandHandler<,>)))
             .AsImplementedInterfaces()
             .WithScopedLifetime());
-        services.TryDecorate(typeof(ICommandHandler<,>), typeof(ValidationCommandHandlerDecorator<,>));
 
         services.Scan(scan => scan
-            .FromAssemblies(assembly)
+            .FromAssemblies(assemblies)
             .AddClasses(classes => classes.AssignableTo(typeof(IQueryHandler<,>)))
             .AsImplementedInterfaces()
             .WithScopedLifetime());
-        services.TryDecorate(typeof(IQueryHandler<,>), typeof(ValidationQueryHandlerDecorator<,>));
+
+        services.Decorate(typeof(ICommandHandler<>), (handler, sp) =>
+            DecoratorHelper.DecorateWithValidation(
+                handler, sp,
+                typeof(ICommandHandler<>),
+                typeof(ValidationCommandHandlerDecorator<>)));
+
+        services.Decorate(typeof(ICommandHandler<,>), (handler, sp) =>
+            DecoratorHelper.DecorateWithValidation(
+                handler, sp,
+                typeof(ICommandHandler<,>),
+                typeof(ValidationCommandHandlerDecorator<,>)));
+
+        services.Decorate(typeof(IQueryHandler<,>), (handler, sp) =>
+            DecoratorHelper.DecorateWithValidation(
+                handler, sp,
+                typeof(IQueryHandler<,>),
+                typeof(ValidationQueryHandlerDecorator<,>)));
 
         return services;
     }

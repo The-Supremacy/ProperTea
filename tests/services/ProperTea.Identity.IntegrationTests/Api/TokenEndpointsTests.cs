@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http.Json;
 using ProperTea.Identity.Api.DTOs;
 using ProperTea.Identity.IntegrationTests.Api.Setup;
-using ProperTea.Identity.IntegrationTests.Setup;
 using Shouldly;
 
 namespace ProperTea.Identity.IntegrationTests.Api;
