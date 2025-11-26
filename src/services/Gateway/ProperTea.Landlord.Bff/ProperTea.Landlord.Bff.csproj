@@ -8,14 +8,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.3.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.11" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.3.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.11"/>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.7"/>
-        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.11" />
-        <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
+        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.11"/>
+        <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\shared\ProperTea.Infrastructure\ProperTea.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\..\shared\ProperTea.Infrastructure\ProperTea.Infrastructure.csproj"/>
     </ItemGroup>
 </Project>

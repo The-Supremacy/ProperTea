@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,29 +35,29 @@ builder.Services.AddAuthentication(options =>
         options.Authority = builder.Configuration["Oidc:Authority"];
         options.ClientId = builder.Configuration["Oidc:ClientId"];
         options.ClientSecret = builder.Configuration["Oidc:ClientSecret"];
-        
+
         options.ResponseType = OpenIdConnectResponseType.Code;
         options.SaveTokens = true;
-        options.RequireHttpsMetadata = false; 
+        options.RequireHttpsMetadata = false;
         options.GetClaimsFromUserInfoEndpoint = true;
 
         options.Scope.Add("openid");
         options.Scope.Add("profile");
         options.Scope.Add("email");
-        
+
         options.RequireHttpsMetadata = builder.Configuration.GetValue<bool>("Oidc:SslRequired");
-        
+
         options.MapInboundClaims = false;
         options.TokenValidationParameters.NameClaimType = "preferred_username";
         options.TokenValidationParameters.RoleClaimType = "realm_access";
-        
+
         options.Events = new OpenIdConnectEvents
         {
             // Handle Logout: Redirect to Keycloak to kill the session there too
             OnRedirectToIdentityProviderForSignOut = context =>
             {
                 var logoutUri = $"{options.Authority}/protocol/openid-connect/logout";
-            
+
                 var postLogoutUri = context.Properties.RedirectUri;
                 if (!string.IsNullOrEmpty(postLogoutUri))
                 {
@@ -73,7 +72,7 @@ builder.Services.AddAuthentication(options =>
                     logoutUri += $"post_logout_redirect_uri={Uri.EscapeDataString(postLogoutUri)}";
                     logoutUri += $"&client_id={options.ClientId}";
                 }
-            
+
                 context.Response.Redirect(logoutUri);
                 context.HandleResponse();
                 return Task.CompletedTask;
@@ -100,10 +99,11 @@ app.MapHealthChecks("/health");
 app.MapGet("/login", () => Results.Challenge(new AuthenticationProperties { RedirectUri = "/" }))
     .WithName("Login");
 
-app.MapGet("/logout", async (HttpContext context) =>
+app.MapGet("/logout", async context =>
 {
     await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-    await context.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/" });
+    await context.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme,
+        new AuthenticationProperties { RedirectUri = "/" });
 }).WithName("Logout");
 
 app.MapGet("/user", (ClaimsPrincipal user) => Results.Ok(user.Claims.Select(c => new { c.Type, c.Value })))

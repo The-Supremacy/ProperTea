@@ -1,14 +1,14 @@
 <Solution>
-  <Folder Name="/Solution Items/" />
-  <Folder Name="/src/" />
-  <Folder Name="/src/frontends/" />
-  <Folder Name="/src/services/" />
-  <Folder Name="/src/services/Gateway/">
-    <Project Path="src/services/Gateway/ProperTea.Landlord.Bff/ProperTea.Landlord.Bff.csproj" />
-  </Folder>
-  <Folder Name="/src/shared/">
-    <Project Path="src/shared/ProperTea.Core/ProperTea.Core.csproj" />
-    <Project Path="src/shared/ProperTea.Infrastructure/ProperTea.Infrastructure.csproj" />
-  </Folder>
-  <Folder Name="/tests/" />
+    <Folder Name="/Solution Items/"/>
+    <Folder Name="/src/"/>
+    <Folder Name="/src/frontends/"/>
+    <Folder Name="/src/services/"/>
+    <Folder Name="/src/services/Gateway/">
+        <Project Path="src/services/Gateway/ProperTea.Landlord.Bff/ProperTea.Landlord.Bff.csproj"/>
+    </Folder>
+    <Folder Name="/src/shared/">
+        <Project Path="src/shared/ProperTea.Core/ProperTea.Core.csproj"/>
+        <Project Path="src/shared/ProperTea.Infrastructure/ProperTea.Infrastructure.csproj"/>
+    </Folder>
+    <Folder Name="/tests/"/>
 </Solution>

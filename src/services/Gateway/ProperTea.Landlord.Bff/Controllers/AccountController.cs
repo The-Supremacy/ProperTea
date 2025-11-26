@@ -10,7 +10,7 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Login(string returnUrl = "/")
     {
-        return Challenge(new AuthenticationProperties { RedirectUri = returnUrl }, 
+        return Challenge(new AuthenticationProperties { RedirectUri = returnUrl },
             OpenIdConnectDefaults.AuthenticationScheme);
     }
 
