@@ -8,11 +8,11 @@ internal sealed class TenantMiddleware(RequestDelegate next)
 {
     public async Task InvokeAsync(HttpContext context, ICurrentOrganizationProvider organizationProvider)
     {
-        var claim = context.User.FindFirstValue("organization_id");
-
-        if (Guid.TryParse(claim, out var organizationId))
+        const string orgIdHeaderName = "X-Organization-Id";
+        if (context.Request.Headers.TryGetValue(orgIdHeaderName, out var headerValue) &&
+            Guid.TryParse(headerValue, out var organizationIdFromHeader))
         {
-            organizationProvider.SetOrganization(organizationId);
+            organizationProvider.SetOrganization(organizationIdFromHeader);
         }
 
         await next(context);
