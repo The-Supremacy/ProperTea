@@ -1,7 +1,12 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace ProperTea.Landlord.Bff.Endpoints;
 
@@ -24,7 +29,10 @@ public static class AuthEndpoints
             return Results.Redirect("/");
         }).WithName("Logout");
 
-        app.MapPost("/backchannel-logout", async (HttpContext context, ITicketStore ticketStore) =>
+        app.MapPost("/backchannel-logout", async (
+            HttpContext context,
+            ITicketStore ticketStore,
+            IServiceProvider services) =>
         {
             var form = await context.Request.ReadFormAsync();
             var logoutToken = form["logout_token"].FirstOrDefault();
@@ -32,20 +40,40 @@ public static class AuthEndpoints
             {
                 return Results.BadRequest("No logout_token received.");
             }
-
-            var handler = new JwtSecurityTokenHandler();
-            if (handler.ReadToken(logoutToken) is not JwtSecurityToken token)
+            
+            var oidcOptions = services.GetRequiredService<IOptionsMonitor<OpenIdConnectOptions>>().
+                Get(OpenIdConnectDefaults.AuthenticationScheme);
+            var oidcConfig = await oidcOptions.ConfigurationManager!.GetConfigurationAsync(context.RequestAborted);
+            
+            var config = services.GetRequiredService<IConfiguration>();
+            var clientId = config["Oidc:ClientId"];
+            
+            var validationParameters = new TokenValidationParameters
             {
-                return Results.BadRequest("Invalid logout_token.");
+                ValidIssuer = oidcConfig.Issuer,
+                ValidAudience = clientId,
+                IssuerSigningKeys = oidcConfig.SigningKeys,
+                ValidateLifetime = false
+            };
+            
+            var handler = new JwtSecurityTokenHandler();
+            SecurityToken validatedToken;
+            ClaimsPrincipal principal;
+            try
+            {
+                principal = handler.ValidateToken(logoutToken, validationParameters, out validatedToken);
             }
-
-            var sid = token.Claims.FirstOrDefault(c => c.Type == "sid")?.Value;
+            catch (Exception)
+            {
+                return Results.BadRequest("Invalid logout token.");
+            }
+            
+            var sid = principal.Claims.FirstOrDefault(c => c.Type == "sid")?.Value;
             if (sid is null)
             {
                 return Results.BadRequest("logout_token is missing 'sid' claim.");
             }
 
-            // Construct the key that was used to store the ticket in RedisTicketStore
             var redisKey = $"AuthSession-{sid}";
             await ticketStore.RemoveAsync(redisKey);
             return Results.Ok();
