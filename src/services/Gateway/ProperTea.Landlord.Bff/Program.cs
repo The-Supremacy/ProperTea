@@ -1,31 +1,30 @@
-using System.Security.Claims;
+using Duende.AccessTokenManagement.OpenIdConnect;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using ProperTea.Core.Tenancy;
 using ProperTea.Infrastructure.Tenancy;
-using ProperTea.Landlord.Bff.Middleware;
+using ProperTea.Landlord.Bff.Endpoints;
 using ProperTea.Landlord.Bff.Services;
+using ProperTea.Landlord.Bff.Transforms;
+using Yarp.ReverseProxy.Transforms;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Infra.
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("Redis");
     options.InstanceName = "ProperTea_Landlord_Bff";
 });
 
-builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromMinutes(60);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-    options.Cookie.SameSite = SameSiteMode.Strict;
-});
+// YARP.
+builder.Services.AddReverseProxy()
+    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
+    .AddTransforms(builderContext => { builderContext.AddRequestTransform(OrganizationTransform.Transform); });
 
-builder.Services.AddHttpClient();
-builder.Services.AddSingleton<TokenRefreshService>();
+// Auth.
+builder.Services.AddSingleton<ITicketStore, RedisTicketStore>();
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -34,16 +33,10 @@ builder.Services.AddAuthentication(options =>
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
         options.Cookie.Name = "ProperTea.Landlord.Cookie";
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
-        options.SlidingExpiration = true;
-        options.Events = new CookieAuthenticationEvents()
-        {
-            OnValidatePrincipal = async (context) =>
-            {
-                var refreshService = context.HttpContext.RequestServices.GetRequiredService<TokenRefreshService>();
-                await refreshService.RefreshTokenAsync(context);
-            }
-        };
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Events.OnSigningOut = async e => { await e.HttpContext.RevokeRefreshTokenAsync(); };
     })
     .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
     {
@@ -54,63 +47,52 @@ builder.Services.AddAuthentication(options =>
         options.ResponseType = OpenIdConnectResponseType.Code;
         options.SaveTokens = true;
         options.GetClaimsFromUserInfoEndpoint = true;
+        options.RequireHttpsMetadata = builder.Configuration.GetValue<bool>("Oidc:SslRequired");
+        options.MapInboundClaims = false;
 
+        options.Scope.Clear();
         options.Scope.Add("openid");
         options.Scope.Add("profile");
         options.Scope.Add("email");
         options.Scope.Add("organization:*");
         options.Scope.Add("offline_access");
 
-        options.RequireHttpsMetadata = builder.Configuration.GetValue<bool>("Oidc:SslRequired");
-
-        options.MapInboundClaims = false;
-        options.TokenValidationParameters.NameClaimType = "preferred_username";
-        options.TokenValidationParameters.RoleClaimType = "realm_access";
+        options.Events.OnRedirectToIdentityProviderForSignOut = async context =>
+        {
+            var idToken = await context.HttpContext.GetTokenAsync("id_token");
+            if (idToken is not null)
+            {
+                context.ProtocolMessage.IdTokenHint = idToken;
+            }
+        };
     });
+
+builder.Services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme)
+    .Configure<ITicketStore>((options, ticketStore)
+        =>
+    {
+        options.SessionStore = ticketStore;
+    });
+builder.Services.AddOpenIdConnectAccessTokenManagement();
 
 builder.Services.AddAuthorizationBuilder()
     .AddDefaultPolicy("RequireAuthorization", options =>
         options.RequireAuthenticatedUser());
 
+// Other services.
 builder.Services.AddHealthChecks();
 builder.Services.AddMultiTenancy();
-
-builder.Services.AddReverseProxy()
-    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
 var app = builder.Build();
 
 app.UseRouting();
-app.UseSession();
+app.UseMultiTenancy();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseMiddleware<OrganizationContextMiddleware>();
-app.UseMultiTenancy();
+app.MapReverseProxy();
 
-app.MapGet("/", () => "Hello from the Landlord BFF Gateway!");
 app.MapHealthChecks("/health");
 
-app.MapGet("/login", () => Results.Challenge(new AuthenticationProperties { RedirectUri = "/" }))
-    .WithName("Login");
-
-app.MapGet("/logout", () => Results.SignOut(
-        new AuthenticationProperties { RedirectUri = "/" },
-        [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]
-    ))
-    .WithName("Logout");
-
-app.MapGet("/user", (ClaimsPrincipal user) => Results.Ok(user.Claims.Select(c => new { c.Type, c.Value })))
-    .RequireAuthorization();
-
-app.MapGet("/api/{orgId}/tenant", (string orgId, ICurrentOrganizationProvider provider) =>
-    {
-        return Results.Ok(new {
-            OrganizationFromUrl = orgId,
-            OrganizationIdFromProvider = provider.OrganizationId
-        });
-    })
-    .RequireAuthorization();
-
-app.MapReverseProxy();
+AuthEndpoints.Map(app);
 
 app.Run();
