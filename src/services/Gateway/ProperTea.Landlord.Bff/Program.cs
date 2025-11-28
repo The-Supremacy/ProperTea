@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using ProperTea.Infrastructure.OpenTelemetry;
+using ProperTea.Infrastructure.ErrorHandling;
 using ProperTea.Infrastructure.Tenancy;
 using ProperTea.Landlord.Bff.Endpoints;
 using ProperTea.Landlord.Bff.Services;
@@ -10,6 +12,18 @@ using ProperTea.Landlord.Bff.Transforms;
 using Yarp.ReverseProxy.Transforms;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Global Error Handling.
+builder.AddGlobalErrorHandling(options =>
+{
+    options.ServiceName = "Landlord.Bff";
+});
+
+// OpenTelemetry
+var otelOptions = builder.Configuration.GetSection("OpenTelemetry").Get<OpenTelemetryOptions>() 
+                  ?? new OpenTelemetryOptions();
+builder.AddOpenTelemetry(otelOptions);
+builder.AddProperHealthChecks();
 
 // Infra.
 builder.Services.AddStackExchangeRedisCache(options =>
@@ -84,14 +98,16 @@ builder.Services.AddMultiTenancy();
 
 var app = builder.Build();
 
+app.UseGlobalErrorHandling();
 app.UseRouting();
 app.UseMultiTenancy();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapReverseProxy();
 
-app.MapHealthChecks("/health");
-
+app.MapProperTelemetryEndpoints();
 AuthEndpoints.Map(app);
+
+app.MapGet("/", () => Results.Ok("Landlord.Bff"));
 
 app.Run();
