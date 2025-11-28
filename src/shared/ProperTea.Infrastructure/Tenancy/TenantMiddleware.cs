@@ -14,6 +14,6 @@ internal sealed class TenantMiddleware(RequestDelegate next)
             organizationProvider.SetOrganization(organizationIdFromHeader);
         }
 
-        await next(context);
+        await next(context).ConfigureAwait(false);
     }
 }

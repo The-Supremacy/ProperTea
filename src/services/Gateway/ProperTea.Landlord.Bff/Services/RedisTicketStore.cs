@@ -18,7 +18,7 @@ public class RedisTicketStore(IDistributedCache cache) : ITicketStore
         }
 
         var key = $"{KeyPrefix}{sid}";
-        await RenewAsync(key, ticket);
+        await RenewAsync(key, ticket).ConfigureAwait(false);
         return key;
     }
 
@@ -33,17 +33,17 @@ public class RedisTicketStore(IDistributedCache cache) : ITicketStore
         }
 
         var ticketBytes = TicketSerializer.Default.Serialize(ticket);
-        await cache.SetAsync(key, ticketBytes, options);
+        await cache.SetAsync(key, ticketBytes, options).ConfigureAwait(false);
     }
 
     public async Task<AuthenticationTicket?> RetrieveAsync(string key)
     {
-        var ticketBytes = await cache.GetAsync(key);
+        var ticketBytes = await cache.GetAsync(key).ConfigureAwait(false);
         return ticketBytes == null ? null : TicketSerializer.Default.Deserialize(ticketBytes);
     }
 
     public async Task RemoveAsync(string key)
     {
-        await cache.RemoveAsync(key);
+        await cache.RemoveAsync(key).ConfigureAwait(false);
     }
 }

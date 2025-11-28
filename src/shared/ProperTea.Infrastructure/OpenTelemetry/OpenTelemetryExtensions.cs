@@ -27,38 +27,36 @@ public static class OpenTelemetryExtensions
             .AddOpenTelemetry()
             .WithTracing(tracing =>
             {
-                if (!options.TracingEnabled) 
+                if (!options.TracingEnabled)
                     return;
-                
+
                 ConfigureTracing(tracing, appName, builder.Configuration, options);
             })
             .WithMetrics(metrics =>
             {
-                if (!options.MetricsEnabled) 
+                if (!options.MetricsEnabled)
                     return;
-                
+
                 ConfigureMetrics(metrics, builder.Configuration, options);
             });
 
         return builder;
     }
-    
-    private static void ConfigureTracing(TracerProviderBuilder tracing, string appName, IConfiguration configuration, OpenTelemetryOptions options)
+
+    private static void ConfigureTracing(TracerProviderBuilder tracing, string appName, IConfiguration configuration,
+        OpenTelemetryOptions options)
     {
         tracing.AddSource(appName)
             .SetErrorStatusOnException()
             .SetSampler(new AlwaysOnSampler())
             .AddAspNetCoreInstrumentation(o => { o.RecordException = true; })
             .AddHttpClientInstrumentation();
-        
+
         if (!string.IsNullOrWhiteSpace(options.OtlpEndpoint))
         {
-            tracing.AddOtlpExporter(otlpOptions =>
-            {
-                otlpOptions.Endpoint = new Uri(options.OtlpEndpoint);
-            });
+            tracing.AddOtlpExporter(otlpOptions => { otlpOptions.Endpoint = new Uri(options.OtlpEndpoint); });
         }
-        
+
         var azureMonitorConnectionString = configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
         if (!string.IsNullOrEmpty(azureMonitorConnectionString))
         {
@@ -66,21 +64,19 @@ public static class OpenTelemetryExtensions
         }
     }
 
-    private static void ConfigureMetrics(MeterProviderBuilder metrics, IConfiguration configuration, OpenTelemetryOptions options)
+    private static void ConfigureMetrics(MeterProviderBuilder metrics, IConfiguration configuration,
+        OpenTelemetryOptions options)
     {
         metrics
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddRuntimeInstrumentation();
-        
+
         if (!string.IsNullOrWhiteSpace(options.OtlpEndpoint))
         {
-            metrics.AddOtlpExporter(otlpOptions =>
-            {
-                otlpOptions.Endpoint = new Uri(options.OtlpEndpoint);
-            });
+            metrics.AddOtlpExporter(otlpOptions => { otlpOptions.Endpoint = new Uri(options.OtlpEndpoint); });
         }
-        
+
         var azureMonitorConnectionString = configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
         if (!string.IsNullOrEmpty(azureMonitorConnectionString))
         {
@@ -117,7 +113,7 @@ public static class OpenTelemetryExtensions
     {
         const string healthEndpointPath = "/health";
         const string alivenessEndpointPath = "/alive";
-        
+
         app.MapHealthChecks(healthEndpointPath);
         app.MapHealthChecks(alivenessEndpointPath, new HealthCheckOptions
         {

@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using ProperTea.Infrastructure.OpenTelemetry;
 using ProperTea.Infrastructure.ErrorHandling;
+using ProperTea.Infrastructure.OpenTelemetry;
 using ProperTea.Infrastructure.Tenancy;
 using ProperTea.Landlord.Bff.Endpoints;
 using ProperTea.Landlord.Bff.Services;
@@ -14,13 +14,10 @@ using Yarp.ReverseProxy.Transforms;
 var builder = WebApplication.CreateBuilder(args);
 
 // Global Error Handling.
-builder.AddGlobalErrorHandling(options =>
-{
-    options.ServiceName = "Landlord.Bff";
-});
+builder.AddGlobalErrorHandling(options => { options.ServiceName = "Landlord.Bff"; });
 
 // OpenTelemetry
-var otelOptions = builder.Configuration.GetSection("OpenTelemetry").Get<OpenTelemetryOptions>() 
+var otelOptions = builder.Configuration.GetSection("OpenTelemetry").Get<OpenTelemetryOptions>()
                   ?? new OpenTelemetryOptions();
 builder.AddOpenTelemetry(otelOptions);
 builder.AddProperHealthChecks();
@@ -35,7 +32,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
 // YARP.
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
-    .AddTransforms(builderContext => { builderContext.AddRequestTransform(OrganizationTransform.Transform); });
+    .AddTransforms(builderContext => { builderContext.AddRequestTransform(OrganizationTransform.TransformAsync); });
 
 // Auth.
 builder.Services.AddSingleton<ITicketStore, RedisTicketStore>();
@@ -72,7 +69,7 @@ builder.Services.AddAuthentication(options =>
 
         options.Events.OnRedirectToIdentityProviderForSignOut = async context =>
         {
-            var idToken = await context.HttpContext.GetTokenAsync("id_token");
+            var idToken = await context.HttpContext.GetTokenAsync("id_token").ConfigureAwait(false);
             if (idToken is not null)
             {
                 context.ProtocolMessage.IdTokenHint = idToken;

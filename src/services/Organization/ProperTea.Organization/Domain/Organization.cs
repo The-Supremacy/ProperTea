@@ -7,7 +7,7 @@ public class Organization
     public required string Alias { get; set; }
     public string? LogoUrl { get; set; }
     public required OrganizationStatus Status { get; set; }
-    public string? ExternalIdentityId { get; set; } = null;
+    public string? ExternalIdentityId { get; set; }
 }
 
 public enum OrganizationStatus

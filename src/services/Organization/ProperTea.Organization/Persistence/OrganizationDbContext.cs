@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ProperTea.Organization.Core.Persistence;
 
-public class OrganizationDbContext: DbContext
+public class OrganizationDbContext : DbContext
 {
     public OrganizationDbContext()
     {
@@ -11,13 +11,13 @@ public class OrganizationDbContext: DbContext
     public OrganizationDbContext(DbContextOptions<OrganizationDbContext> options) : base(options)
     {
     }
-    
+
     public DbSet<Organization> Organizations { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder) 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("organization");
-        
+
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(OrganizationDbContext).Assembly);
     }
 }

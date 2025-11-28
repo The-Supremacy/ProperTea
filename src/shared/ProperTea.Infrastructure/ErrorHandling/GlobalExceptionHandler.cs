@@ -13,9 +13,7 @@ public partial class GlobalExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
-        logger.LogError(exception,
-            "An unhandled exception occurred. RequestPath: {RequestPath}, Method: {Method}",
-            httpContext.Request.Path, httpContext.Request.Method);
+        LogUnexpectedError(httpContext.Request.Path, httpContext.Request.Method);
 
         var (statusCode, title, details) = ProblemDetailsHelpers.GetExceptionDetails(exception);
 
@@ -25,11 +23,16 @@ public partial class GlobalExceptionHandler(
         {
             HttpContext = httpContext,
             ProblemDetails = { Title = title, Detail = details }
-        });
+        }).ConfigureAwait(false);
 
         return true;
     }
 
-    [LoggerMessage(Level = LogLevel.Error, Message = "Did something!")]
-    private partial void Log_DidSomething();
+    [LoggerMessage(
+        EventId = 0,
+        Level = LogLevel.Error,
+        Message = "An unhandled exception occurred. RequestPath: `{RequestPath}`, Method: `{Method}`")]
+    private partial void LogUnexpectedError(
+        string requestPath,
+        string method);
 }

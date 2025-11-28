@@ -9,9 +9,9 @@ namespace ProperTea.Landlord.Bff.Transforms;
 
 public static class OrganizationTransform
 {
-    public static async ValueTask Transform(RequestTransformContext transformContext)
+    public static async ValueTask TransformAsync(RequestTransformContext transformContext)
     {
-        var token = await transformContext.HttpContext.GetUserAccessTokenAsync();
+        var token = await transformContext.HttpContext.GetUserAccessTokenAsync().ConfigureAwait(false);
         if (token.Token?.AccessToken is null)
             return;
 

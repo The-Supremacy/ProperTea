@@ -2,7 +2,7 @@
 
 namespace ProperTea.Utilities;
 
-public static class SlugGenerator
+public static partial class SlugGenerator
 {
     public static string Generate(string name)
     {
@@ -11,21 +11,21 @@ public static class SlugGenerator
             return string.Empty;
         }
 
-        // 1. Convert to lowercase and trim
         var slug = name.ToLowerInvariant().Trim();
-
-        // 2. Replace spaces and other common separators with a hyphen
-        slug = Regex.Replace(slug, @"[\s\._]+", "-");
-
-        // 3. Remove all non-alphanumeric characters except hyphens
-        slug = Regex.Replace(slug, @"[^a-z0-9-]", "");
-
-        // 4. Replace multiple hyphens with a single hyphen
-        slug = Regex.Replace(slug, @"-{2,}", "-");
-
-        // 5. Trim hyphens from the start and end
+        slug = ReplaceSeparatorsRegex().Replace(slug, "-");
+        slug = ReplaceNonAlphabeticRegex().Replace(slug, "");
+        slug = ReplaceMultipleHyphensRegex().Replace(slug, "-");
         slug = slug.Trim('-');
 
         return slug;
     }
+
+    [GeneratedRegex(@"[\s\._]+")]
+    private static partial Regex ReplaceSeparatorsRegex();
+
+    [GeneratedRegex(@"[^a-z0-9-]")]
+    private static partial Regex ReplaceNonAlphabeticRegex();
+
+    [GeneratedRegex("-{2,}")]
+    private static partial Regex ReplaceMultipleHyphensRegex();
 }

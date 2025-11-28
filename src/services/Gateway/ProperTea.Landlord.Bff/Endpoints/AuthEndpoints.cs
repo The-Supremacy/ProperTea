@@ -4,9 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace ProperTea.Landlord.Bff.Endpoints;
 
@@ -34,20 +32,22 @@ public static class AuthEndpoints
             ITicketStore ticketStore,
             IServiceProvider services) =>
         {
-            var form = await context.Request.ReadFormAsync();
+            var form = await context.Request.ReadFormAsync().ConfigureAwait(false);
             var logoutToken = form["logout_token"].FirstOrDefault();
             if (logoutToken is null)
             {
                 return Results.BadRequest("No logout_token received.");
             }
-            
-            var oidcOptions = services.GetRequiredService<IOptionsMonitor<OpenIdConnectOptions>>().
-                Get(OpenIdConnectDefaults.AuthenticationScheme);
-            var oidcConfig = await oidcOptions.ConfigurationManager!.GetConfigurationAsync(context.RequestAborted);
-            
+
+            var oidcOptions = services.GetRequiredService<IOptionsMonitor<OpenIdConnectOptions>>()
+                .Get(OpenIdConnectDefaults.AuthenticationScheme);
+            var oidcConfig =
+                await oidcOptions.ConfigurationManager!.GetConfigurationAsync(context.RequestAborted)
+                    .ConfigureAwait(false);
+
             var config = services.GetRequiredService<IConfiguration>();
             var clientId = config["Oidc:ClientId"];
-            
+
             var validationParameters = new TokenValidationParameters
             {
                 ValidIssuer = oidcConfig.Issuer,
@@ -55,19 +55,19 @@ public static class AuthEndpoints
                 IssuerSigningKeys = oidcConfig.SigningKeys,
                 ValidateLifetime = false
             };
-            
+
             var handler = new JwtSecurityTokenHandler();
-            SecurityToken validatedToken;
-            ClaimsPrincipal principal;
+            ClaimsIdentity principal;
             try
             {
-                principal = handler.ValidateToken(logoutToken, validationParameters, out validatedToken);
+                var result = await handler.ValidateTokenAsync(logoutToken, validationParameters).ConfigureAwait(false);
+                principal = result.ClaimsIdentity;
             }
             catch (Exception)
             {
                 return Results.BadRequest("Invalid logout token.");
             }
-            
+
             var sid = principal.Claims.FirstOrDefault(c => c.Type == "sid")?.Value;
             if (sid is null)
             {
@@ -75,7 +75,7 @@ public static class AuthEndpoints
             }
 
             var redisKey = $"AuthSession-{sid}";
-            await ticketStore.RemoveAsync(redisKey);
+            await ticketStore.RemoveAsync(redisKey).ConfigureAwait(false);
             return Results.Ok();
         }).AllowAnonymous();
     }

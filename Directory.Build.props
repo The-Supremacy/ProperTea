@@ -2,24 +2,32 @@
     <!-- This file is automatically imported into all projects. -->
 
     <PropertyGroup>
-        <!-- 
-          Set the C# language version for all projects. 
+        <!--
+          Set the C# language version for all projects.
           You can set this to "preview" to always use the latest SDK features.
         -->
         <LangVersion>preview</LangVersion>
 
-        <!-- 
+        <!--
           Enable the built-in .NET code analyzers.
           AnalysisLevel "latest-recommended" enables a curated set of modern rules.
         -->
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <AnalysisLevel>latest-recommended</AnalysisLevel>
 
-        <!-- 
+        <!--
           Treat all warnings as errors. This is strict but enforces high quality.
           You might want to enable this only for CI builds later on.
         -->
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
+
+    <ItemGroup>
+        <!--
+          Add analyzer packages here to apply them to all projects.
+          Microsoft.VisualStudio.Threading.Analyzers is essential for any async/await code.
+        -->
+        <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.10.48" PrivateAssets="all"/>
+    </ItemGroup>
 
 </Project>
