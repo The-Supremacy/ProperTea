@@ -6,7 +6,6 @@ using ProperTea.Infrastructure.ErrorHandling;
 using ProperTea.Infrastructure.OpenTelemetry;
 using ProperTea.Organization.Configuration;
 using ProperTea.Organization.Domain;
-using ProperTea.Organization.Features.Organizations.Endpoints;
 using ProperTea.Organization.Persistence;
 using Scalar.AspNetCore;
 using Wolverine;
@@ -76,7 +75,7 @@ var app = builder.Build();
 
 app.UseGlobalErrorHandling();
 
-app.MapOrganizationEndpoints();
+app.MapWolverineEndpoints();
 
 app.MapTelemetryEndpoints();
 app.MapOpenApi();

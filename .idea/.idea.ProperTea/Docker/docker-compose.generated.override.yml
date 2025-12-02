@@ -15,7 +15,7 @@ services:
     - "--mode=server"
     - "--frontend-port=57000"
     - "--backend-port=57200"
-    - "--roslyn-worker-port=57432"
+    - "--roslyn-worker-port=57440"
     - "--timeout=60"
     environment:
       DOTNET_USE_POLLING_FILE_WATCHER: "true"
@@ -23,16 +23,16 @@ services:
       RESHARPER_LOG_CONF: "/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
     image: "propertea.landlord.bff:dev"
     ports:
-    - "127.0.0.1:57032:57000"
-    - "127.0.0.1:57232:57200"
-    - "127.0.0.1:57432:57432"
+    - "127.0.0.1:57040:57000"
+    - "127.0.0.1:57240:57200"
+    - "127.0.0.1:57440:57440"
     volumes:
     - "/home/oxface/repos/The-Supremacy/ProperTea/src/services/Gateway/ProperTea.Landlord.Bff:/app:rw"
     - "/home/oxface/repos/The-Supremacy/ProperTea:/src:rw"
     - "/home/oxface/.nuget/packages:/home/app/.nuget/packages"
     - "/home/oxface/.local/share/JetBrains/RiderRemoteDebugger/2025.3.0.3/Linux64:/opt/JetBrains/RiderDebuggerTools"
     - "/snap/rider/674/bin/backend-log.xml:/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
-    - "/home/oxface/.cache/JetBrains/Rider2025.3/log/DebuggerWorker/JetBrains.Debugger.Worker.2025_12_02_19_04_31:/var/opt/JetBrains/RiderDebuggerTools:rw"
+    - "/home/oxface/.cache/JetBrains/Rider2025.3/log/DebuggerWorker/JetBrains.Debugger.Worker.2025_12_02_19_19_51:/var/opt/JetBrains/RiderDebuggerTools:rw"
     working_dir: "/app"
   organization-api:
     build:
@@ -49,7 +49,7 @@ services:
     - "--mode=server"
     - "--frontend-port=57000"
     - "--backend-port=57200"
-    - "--roslyn-worker-port=57433"
+    - "--roslyn-worker-port=57441"
     - "--timeout=60"
     environment:
       DOTNET_USE_POLLING_FILE_WATCHER: "true"
@@ -57,14 +57,14 @@ services:
       RESHARPER_LOG_CONF: "/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
     image: "propertea.organization:dev"
     ports:
-    - "127.0.0.1:57033:57000"
-    - "127.0.0.1:57233:57200"
-    - "127.0.0.1:57433:57433"
+    - "127.0.0.1:57041:57000"
+    - "127.0.0.1:57241:57200"
+    - "127.0.0.1:57441:57441"
     volumes:
     - "/home/oxface/repos/The-Supremacy/ProperTea/src/services/Organization/ProperTea.Organization:/app:rw"
     - "/home/oxface/repos/The-Supremacy/ProperTea:/src:rw"
     - "/home/oxface/.nuget/packages:/home/app/.nuget/packages"
     - "/home/oxface/.local/share/JetBrains/RiderRemoteDebugger/2025.3.0.3/Linux64:/opt/JetBrains/RiderDebuggerTools"
     - "/snap/rider/674/bin/backend-log.xml:/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
-    - "/home/oxface/.cache/JetBrains/Rider2025.3/log/DebuggerWorker/JetBrains.Debugger.Worker.2025_12_02_19_04_31:/var/opt/JetBrains/RiderDebuggerTools:rw"
+    - "/home/oxface/.cache/JetBrains/Rider2025.3/log/DebuggerWorker/JetBrains.Debugger.Worker.2025_12_02_19_19_51:/var/opt/JetBrains/RiderDebuggerTools:rw"
     working_dir: "/app"

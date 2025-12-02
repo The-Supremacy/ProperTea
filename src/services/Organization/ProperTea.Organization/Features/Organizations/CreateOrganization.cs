@@ -25,13 +25,30 @@ public static class CreateOrganizationHandler
     public static async Task<OrganizationCreated> HandleAsync(
         CreateOrganization command,
         OrganizationDbContext dbContext,
-        OrganizationService service,
-        IMessageBus bus)
+        OrganizationService service)
     {
         var organization = await service.CreateNewOrganizationAsync(command.Name).ConfigureAwait(false);
-
         await dbContext.Organizations.AddAsync(organization).ConfigureAwait(false);
 
         return new OrganizationCreated(organization.Id, organization.Name, organization.Alias);
+    }
+}
+
+public record OrganizationCreatedResponse(Guid Id) : CreationResponse("/api/v1/organizations/" + Id)
+{
+    public Guid Id { get; init; } = Id;
+}
+
+public static class CreateOrganizationEndpoint
+{
+    [WolverinePost("/api/v1/organizations")]
+    [EndpointSummary("Creates new organization.")]
+    public async static Task<(OrganizationCreatedResponse, OrganizationCreated)> PostAsync(CreateOrganization command, IMessageBus messageBus)
+    {
+        var result = await messageBus.InvokeAsync<OrganizationCreated>(command).ConfigureAwait(false);
+        return (
+            new OrganizationCreatedResponse(result.OrganizationId),
+            result
+        );
     }
 }

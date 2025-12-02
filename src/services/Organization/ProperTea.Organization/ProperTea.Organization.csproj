@@ -39,4 +39,8 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Features\Organizations\Endpoints\" />
+    </ItemGroup>
+
 </Project>
