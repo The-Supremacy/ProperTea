@@ -2,16 +2,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ProperTea.Organization.Persistence;
 
-public class OrganizationDbContext : DbContext
+public class OrganizationDbContext(DbContextOptions<OrganizationDbContext> options) : DbContext(options)
 {
-    public OrganizationDbContext()
-    {
-    }
-
-    public OrganizationDbContext(DbContextOptions<OrganizationDbContext> options) : base(options)
-    {
-    }
-
     public DbSet<Domain.Organization> Organizations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

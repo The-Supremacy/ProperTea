@@ -30,23 +30,25 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
 var connectionString = builder.Configuration.GetConnectionString("Database")!;
-builder.Services.AddDbContext<OrganizationDbContext>((sp, options) =>
-{
-    options.UseNpgsql(connectionString);
-}, ServiceLifetime.Singleton);
-builder.Services.AddDbContextWithWolverineIntegration<OrganizationDbContext>(
-    x => x.UseNpgsql(connectionString));
+// builder.Services.AddDbContext<OrganizationDbContext>((sp, options) =>
+// {
+//     options.UseNpgsql(connectionString);
+// }, ServiceLifetime.Singleton);
 builder.UseWolverine(opts =>
 {
     opts.UseFluentValidation();
 
+    builder.Services.AddDbContextWithWolverineIntegration<OrganizationDbContext>(
+        x => x.UseNpgsql(connectionString));
+    opts.PersistMessagesWithPostgresql(connectionString);
+    opts.UseEntityFrameworkCoreTransactions();
+    opts.Policies.AutoApplyTransactions();
+
     opts.Policies.UseDurableOutboxOnAllSendingEndpoints();
     opts.Policies.UseDurableInboxOnAllListeners();
     opts.Policies.UseDurableLocalQueues();
-
-    opts.PersistMessagesWithPostgresql(connectionString);
-
     opts.Include<MessagingExtension>();
+
     if (builder.Environment.IsDevelopment())
     {
         var rabbitMqConn = builder.Configuration.GetConnectionString("RabbitMq")!;
