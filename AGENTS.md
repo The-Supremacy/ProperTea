@@ -4,4 +4,4 @@ This project focuses on developing a microservice application using .NET and Nex
 
 # AI Agents guidelines
 
-- Don't make any code changes yourself. Just guide me and I'll do them myself.
+- IMPORTANT!!!! Don't make any code changes yourself. Just guide me and I'll do them myself.

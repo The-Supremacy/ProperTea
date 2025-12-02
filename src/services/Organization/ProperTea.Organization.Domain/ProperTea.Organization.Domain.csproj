@@ -7,7 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Update="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15" />
+      <ProjectReference Include="..\..\..\shared\ProperTea.Core\ProperTea.Core.csproj" />
+      <ProjectReference Include="..\..\..\shared\ProperTea.Utilities\ProperTea.Utilities.csproj" />
     </ItemGroup>
 
 </Project>

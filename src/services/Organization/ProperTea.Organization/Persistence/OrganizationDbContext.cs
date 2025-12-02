@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace ProperTea.Organization.Core.Persistence;
+namespace ProperTea.Organization.Persistence;
 
 public class OrganizationDbContext : DbContext
 {
@@ -12,12 +12,10 @@ public class OrganizationDbContext : DbContext
     {
     }
 
-    public DbSet<Organization> Organizations { get; set; }
+    public DbSet<Domain.Organization> Organizations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("organization");
-
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(OrganizationDbContext).Assembly);
     }
 }

@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ProperTea.Organization.Persistence.Configurations;
 
-public class OrganizationConfiguration : IEntityTypeConfiguration<Core.Organization>
+public class OrganizationConfiguration : IEntityTypeConfiguration<Domain.Organization>
 {
-    public void Configure(EntityTypeBuilder<Core.Organization> builder)
+    public void Configure(EntityTypeBuilder<Domain.Organization> builder)
     {
         builder.ToTable("Organizations");
 

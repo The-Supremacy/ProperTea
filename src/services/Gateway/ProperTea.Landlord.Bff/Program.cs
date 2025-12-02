@@ -102,7 +102,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapReverseProxy();
 
-app.MapProperTelemetryEndpoints();
+app.MapTelemetryEndpoints();
 AuthEndpoints.Map(app);
 
 app.MapGet("/", () => Results.Ok("Landlord.Bff"));

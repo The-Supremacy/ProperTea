@@ -50,7 +50,8 @@ public static class OpenTelemetryExtensions
             .SetErrorStatusOnException()
             .SetSampler(new AlwaysOnSampler())
             .AddAspNetCoreInstrumentation(o => { o.RecordException = true; })
-            .AddHttpClientInstrumentation();
+            .AddHttpClientInstrumentation()
+            .AddSource("Wolverine");
 
         if (!string.IsNullOrWhiteSpace(options.OtlpEndpoint))
         {
@@ -70,7 +71,8 @@ public static class OpenTelemetryExtensions
         metrics
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
-            .AddRuntimeInstrumentation();
+            .AddRuntimeInstrumentation()
+            .AddMeter("Wolverine");
 
         if (!string.IsNullOrWhiteSpace(options.OtlpEndpoint))
         {
@@ -109,7 +111,7 @@ public static class OpenTelemetryExtensions
         return builder;
     }
 
-    public static WebApplication MapProperTelemetryEndpoints(this WebApplication app)
+    public static WebApplication MapTelemetryEndpoints(this WebApplication app)
     {
         const string healthEndpointPath = "/health";
         const string alivenessEndpointPath = "/alive";
