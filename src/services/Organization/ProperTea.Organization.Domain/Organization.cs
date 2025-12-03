@@ -8,12 +8,12 @@ public class Organization
 
     public Guid Id { get; set; }
     public required string Name { get; set; }
-    public required string Alias { get; set; }
+    public required string OrgAlias { get; set; }
     public string? LogoUrl { get; set; }
     public required OrganizationStatus Status { get; set; }
     public string? ExternalIdentityId { get; set; }
 
-    public static Organization Create(string name)
+    public static Organization Create(string name, string orgAlias)
     {
         if (string.IsNullOrWhiteSpace(name) || name.Length < 3)
         {
@@ -24,7 +24,7 @@ public class Organization
         {
             Id = Guid.NewGuid(),
             Name = name,
-            Alias = SlugGenerator.Generate(name),
+            OrgAlias = orgAlias,
             Status = OrganizationStatus.Pending
         };
     }

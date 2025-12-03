@@ -16,6 +16,7 @@
         <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.15.0"/>
         <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0"/>
         <PackageReference Update="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15" />
+        <PackageReference Include="Scalar.AspNetCore" Version="2.11.0"/>
     </ItemGroup>
 
     <ItemGroup>

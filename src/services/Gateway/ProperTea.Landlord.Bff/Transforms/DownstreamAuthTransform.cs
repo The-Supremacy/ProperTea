@@ -7,7 +7,7 @@ using Yarp.ReverseProxy.Transforms;
 
 namespace ProperTea.Landlord.Bff.Transforms;
 
-public static class OrganizationTransform
+public static class DownstreamAuthTransform
 {
     public static async ValueTask TransformAsync(RequestTransformContext transformContext)
     {

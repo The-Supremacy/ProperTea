@@ -32,7 +32,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
 // YARP.
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
-    .AddTransforms(builderContext => { builderContext.AddRequestTransform(OrganizationTransform.TransformAsync); });
+    .AddTransforms(builderContext => { builderContext.AddRequestTransform(DownstreamAuthTransform.TransformAsync); });
 
 // Auth.
 builder.Services.AddSingleton<ITicketStore, RedisTicketStore>();

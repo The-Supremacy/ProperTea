@@ -1,4 +1,5 @@
 using ProperTea.Core.Exceptions;
+using ProperTea.Utilities;
 
 namespace ProperTea.Organization.Domain;
 
@@ -11,6 +12,7 @@ public class OrganizationService(IOrganizationRepository repository)
             throw new DomainValidationException("An organization with this name already exists.");
         }
 
-        return Organization.Create(name);
+        var alias = SlugGenerator.Generate(name);
+        return Organization.Create(name, alias);
     }
 }

@@ -13,8 +13,8 @@ public class OrganizationConfiguration : IEntityTypeConfiguration<Domain.Organiz
 
         builder.Property(o => o.Name).IsRequired().HasMaxLength(100);
 
-        builder.Property(o => o.Alias).IsRequired().HasMaxLength(100);
-        builder.HasIndex(o => o.Alias).IsUnique();
+        builder.Property(o => o.OrgAlias).IsRequired().HasMaxLength(100);
+        builder.HasIndex(o => o.OrgAlias).IsUnique();
 
         builder.Property(o => o.Status).HasConversion<string>().HasMaxLength(50);
     }

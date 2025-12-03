@@ -9,4 +9,9 @@ public class OrganizationRepository(OrganizationDbContext dbContext) : IOrganiza
     {
         return dbContext.Organizations.AllAsync(o => o.Name != name);
     }
+
+    public Task<bool> IsAliasUniqueAsync(string orgAlias)
+    {
+        return dbContext.Organizations.AllAsync(o => o.OrgAlias != orgAlias);
+    }
 }
