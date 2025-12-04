@@ -1,0 +1,181 @@
+services:
+    # --- Ingress (Traefik) ---
+    traefik:
+        image: traefik:v3.6.2
+        container_name: propertea-traefik
+        command:
+            - "--api.insecure=true"
+            - "--providers.docker=true"
+            - "--providers.docker.exposedbydefault=false"
+            - "--entrypoints.web.address=:80"
+            - "--entrypoints.websecure.address=:443"
+        ports:
+            - "80:80"
+            - "443:443"
+            - "8080:8080"
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - ../certs:/etc/certs:ro
+        networks:
+            - propertea-net
+
+    # --- Identity Provider (Authentik) ---
+    authentik-postgres:
+        image: postgres:18.1-alpine
+        container_name: propertea-authentik-postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_PASSWORD: ${PG_PASS:-postgres_secret}
+            POSTGRES_USER: authentik
+            POSTGRES_DB: authentik
+        ports:
+            - "54320:5432"
+        volumes:
+            - authentik-postgres_data:/var/lib/postgresql/data
+        networks:
+            - propertea-net
+
+    authentik-redis:
+        image: redis:alpine
+        container_name: propertea-authentik-redis
+        command: --save 60 1 --loglevel warning
+        restart: unless-stopped
+        volumes:
+            - authentik-redis_data:/data
+        networks:
+            - propertea-net
+
+    authentik-server:
+        image: ghcr.io/goauthentik/server:2025.10.2
+        container_name: propertea-authentik-server
+        restart: unless-stopped
+        command: server
+        environment:
+            AUTHENTIK_REDIS__HOST: authentik-redis
+            AUTHENTIK_POSTGRESQL__HOST: authentik-postgres
+            AUTHENTIK_POSTGRESQL__USER: authentik
+            AUTHENTIK_POSTGRESQL__NAME: authentik
+            AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS:-postgres_secret}
+            AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-generate_me_a_long_random_string_please_123456}
+            AUTHENTIK_ERROR_REPORTING__ENABLED: "true"
+        env_file:
+            - ../config/authentik/.env
+        volumes:
+            - authentik_media:/media
+            - authentik_templates:/templates
+            - ../config/authentik/blueprints:/blueprints/propertea
+        depends_on:
+            - authentik-postgres
+            - authentik-redis
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.authentik.rule=Host(`auth.propertea.localhost`)"
+            - "traefik.http.routers.authentik.entrypoints=websecure"
+            - "traefik.http.routers.authentik.tls=true"
+            - "traefik.http.services.authentik.loadbalancer.server.port=9000"
+        networks:
+            - propertea-net
+
+    authentik-worker:
+        image: ghcr.io/goauthentik/server:2025.10.2
+        container_name: propertea-authentik-worker
+        restart: unless-stopped
+        command: worker
+        environment:
+            AUTHENTIK_REDIS__HOST: authentik-redis
+            AUTHENTIK_POSTGRESQL__HOST: authentik-postgres
+            AUTHENTIK_POSTGRESQL__USER: authentik
+            AUTHENTIK_POSTGRESQL__NAME: authentik
+            AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS:-postgres_secret}
+            AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-generate_me_a_long_random_string_please_123456}=
+        env_file:
+            - ../config/authentik/.env
+        volumes:
+            - authentik_media:/media
+            - authentik_templates:/templates
+            - ../config/authentik/blueprints:/blueprints/propertea
+        depends_on:
+            - authentik-postgres
+            - authentik-redis
+        networks:
+            - propertea-net
+
+    # --- Message Broker ---
+    rabbitmq:
+        image: rabbitmq:4.0.5-management
+        container_name: propertea-rabbitmq
+        environment:
+            - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER:-guest}
+            - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS:-guest}
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        volumes:
+            - rabbitmq_data:/var/lib/rabbitmq
+        networks:
+            - propertea-net
+
+    # --- Distributed Cache (Your Service Redis) ---
+    redis:
+        image: redis:alpine
+        container_name: propertea-redis
+        ports:
+            - "6379:6379"
+        volumes:
+            - redis_data:/data
+        networks:
+            - propertea-net
+
+    # --- Organization Service ---
+    organization-postgres:
+        image: postgres:16-alpine
+        container_name: propertea-organization-postgres
+        environment:
+            - POSTGRES_USER=${POSTGRES_USER:-propertea}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-propertea_secret}
+            - POSTGRES_DB=propertea_organization_db
+        ports:
+            - "54321:5432"
+        volumes:
+            - organization-postgres_data:/var/lib/postgresql/data
+        networks:
+            - propertea-net
+
+    organization-api:
+        container_name: propertea-organization-api
+        build:
+            context: ../../..
+            dockerfile: src/services/Organization/ProperTea.Organization/Dockerfile
+        depends_on:
+            - organization-postgres
+            - rabbitmq
+        restart: always
+        environment:
+            - "ASPNETCORE_ENVIRONMENT=Development"
+            - "ConnectionStrings__Database=Host=organization-postgres;Port=5432;Database=propertea_organization_db;Username=${POSTGRES_USER:-propertea};Password=${POSTGRES_PASSWORD:-propertea_secret}"
+            - "ConnectionStrings__RabbitMq=amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672"
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.organization.rule=Host(`api.organization.propertea.localhost`)"
+            - "traefik.http.routers.organization.entrypoints=websecure"
+            - "traefik.http.routers.organization.tls=true"
+            - "traefik.http.routers.organization.middlewares=authentik"
+            - "traefik.http.services.organization.loadbalancer.server.port=8080"
+            - "traefik.http.middlewares.authentik.forwardauth.address=http://authentik-server:9000/outpost.goauthentik.io/auth/traefik"
+            - "traefik.http.middlewares.authentik.forwardauth.trustForwardHeader=true"
+            - "traefik.http.middlewares.authentik.forwardauth.authResponseHeaders=X-authentik-username,X-authentik-groups,X-authentik-email,X-authentik-name,X-authentik-uid,X-authentik-jwt,X-authentik-meta-jwks,X-authentik-meta-outpost,X-authentik-meta-provider,X-authentik-meta-app,X-authentik-meta-version"
+        networks:
+            - propertea-net
+
+volumes:
+    authentik-postgres_data:
+    authentik-redis_data:
+    authentik_media:
+    authentik_templates:
+    rabbitmq_data:
+    redis_data:
+    organization-postgres_data:
+
+networks:
+    propertea-net:
+        driver: bridge

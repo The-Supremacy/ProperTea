@@ -16,9 +16,10 @@ public class CreateOrganizationValidator : AbstractValidator<CreateOrganization>
     }
 }
 
+public record LocalOrganizationCreated(Guid OrganizationId, Guid CreatorUserId);
 public static class CreateOrganizationHandler
 {
-    public static async Task<StartOrganizationProvisioning> HandleAsync(
+    public static async Task<LocalOrganizationCreated> HandleAsync(
         CreateOrganization command,
         OrganizationDbContext dbContext,
         OrganizationService service)
@@ -26,7 +27,7 @@ public static class CreateOrganizationHandler
         var organization = await service.CreateNewOrganizationAsync(command.Name).ConfigureAwait(false);
         await dbContext.Organizations.AddAsync(organization).ConfigureAwait(false);
 
-        return new StartOrganizationProvisioning(organization.Id, command.CreatorUserId);
+        return new LocalOrganizationCreated(organization.Id, command.CreatorUserId);
     }
 }
 
@@ -45,8 +46,8 @@ public static class CreateOrganizationEndpoint
 
                     var command = new CreateOrganization(request.Name, Guid.Parse(currentUser.Id!));
 
-                    var createdEvent = await bus.InvokeAsync<OrganizationProvisioned>(command).ConfigureAwait(false);
-                    return Results.Created($"/api/v1/organizations/{createdEvent.OrganizationId}", createdEvent);
+                    var result = await bus.InvokeAsync<OrganizationProvisioned>(command).ConfigureAwait(false);
+                    return Results.Created($"/api/v1/organizations/{result.OrganizationId}", result);
                 })
             .WithTags("Organizations")
             .WithName("CreateOrganization");

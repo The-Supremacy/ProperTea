@@ -1,5 +1,3 @@
-using ProperTea.Utilities;
-
 namespace ProperTea.Organization.Domain;
 
 public class Organization

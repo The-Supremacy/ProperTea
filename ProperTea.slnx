@@ -3,9 +3,6 @@
     <Folder Name="/src/" />
     <Folder Name="/src/frontends/" />
     <Folder Name="/src/services/" />
-    <Folder Name="/src/services/Gateway/">
-        <Project Path="src/services/Gateway/ProperTea.Landlord.Bff/ProperTea.Landlord.Bff.csproj" />
-    </Folder>
     <Folder Name="/src/services/Organization/">
         <Project Path="src/services/Organization/ProperTea.Organization.Domain/ProperTea.Organization.Domain.csproj" />
         <Project Path="src\services\Organization\ProperTea.Organization\ProperTea.Organization.csproj" />

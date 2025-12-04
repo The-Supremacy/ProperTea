@@ -2,17 +2,15 @@ using JasperFx;
 using JasperFx.CodeGeneration;
 using JasperFx.Resources;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using ProperTea.Core.Auth;
 using ProperTea.Infrastructure.Auth;
 using ProperTea.Infrastructure.ErrorHandling;
 using ProperTea.Infrastructure.OpenTelemetry;
-using ProperTea.Organization.Configuration;
 using ProperTea.Organization.Domain;
 using ProperTea.Organization.Features.Organizations;
+using ProperTea.Organization.Features.Organizations.Create;
 using ProperTea.Organization.Persistence;
 using ProperTea.Organization.Utility;
 using Scalar.AspNetCore;
@@ -20,9 +18,9 @@ using Wolverine;
 using Wolverine.AzureServiceBus;
 using Wolverine.EntityFrameworkCore;
 using Wolverine.FluentValidation;
-using Wolverine.Http;
 using Wolverine.Postgresql;
 using Wolverine.RabbitMQ;
+using Wolverine.RDBMS;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,7 +62,8 @@ builder.UseWolverine(opts =>
     opts.Policies.UseDurableOutboxOnAllSendingEndpoints();
     opts.Policies.UseDurableInboxOnAllListeners();
     opts.Policies.UseDurableLocalQueues();
-    opts.Include<MessagingExtension>();
+
+    opts.AddSagaType<OrganizationProvisioningSaga>();
 
     if (builder.Environment.IsDevelopment())
     {
