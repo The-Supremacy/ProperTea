@@ -14,7 +14,7 @@ namespace ProperTea.Infrastructure.OpenTelemetry;
 
 public static class OpenTelemetryExtensions
 {
-    public static IHostApplicationBuilder AddOpenTelemetry(
+    public static IHostApplicationBuilder AddProperOpenTelemetry(
         this IHostApplicationBuilder builder,
         OpenTelemetryOptions options)
     {

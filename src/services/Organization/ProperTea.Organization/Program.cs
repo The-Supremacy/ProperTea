@@ -1,99 +1,51 @@
 using JasperFx;
-using JasperFx.CodeGeneration;
 using JasperFx.Resources;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using ProperTea.Core.Auth;
 using ProperTea.Infrastructure.Auth;
 using ProperTea.Infrastructure.ErrorHandling;
+using ProperTea.Infrastructure.OpenApi;
 using ProperTea.Infrastructure.OpenTelemetry;
+using ProperTea.Organization.Configuration;
 using ProperTea.Organization.Domain;
 using ProperTea.Organization.Features.Organizations;
-using ProperTea.Organization.Features.Organizations.Create;
 using ProperTea.Organization.Persistence;
-using ProperTea.Organization.Utility;
 using Scalar.AspNetCore;
 using Wolverine;
-using Wolverine.AzureServiceBus;
-using Wolverine.EntityFrameworkCore;
-using Wolverine.FluentValidation;
-using Wolverine.Postgresql;
-using Wolverine.RabbitMQ;
-using Wolverine.RDBMS;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddGlobalErrorHandling(options => { options.ServiceName = "Organization.Api"; });
-
-var otelOptions = builder.Configuration.GetSection("OpenTelemetry").Get<OpenTelemetryOptions>()
-                  ?? new OpenTelemetryOptions();
-builder.AddOpenTelemetry(otelOptions);
-builder.AddProperHealthChecks();
-
+// Core Services
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        builder.Configuration.Bind("JwtBearer", options);
-        options.RequireHttpsMetadata = builder.Environment.IsProduction();
-        options.TokenValidationParameters = new TokenValidationParameters()
-        {
-            ValidateAudience = false,
-        };
-    });
-builder.Services.AddAuthorization();
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi("v1", options => { options.AddDocumentTransformer<BearerSecuritySchemeTransformer>(); });
+// Observability & Health
+builder.AddProperGlobalErrorHandling(options => { options.ServiceName = "Organization.Api"; });
+var otelOptions = builder.Configuration.GetSection("OpenTelemetry").Get<OpenTelemetryOptions>()
+                  ?? new OpenTelemetryOptions();
+builder.AddProperOpenTelemetry(otelOptions);
+builder.AddProperHealthChecks();
 
-var connectionString = builder.Configuration.GetConnectionString("Database")!;
-builder.UseWolverine(opts =>
-{
-    opts.UseFluentValidation();
-
-    builder.Services.AddDbContextWithWolverineIntegration<OrganizationDbContext>(
-        x => x.UseNpgsql(connectionString));
-    opts.PersistMessagesWithPostgresql(connectionString);
-    opts.UseEntityFrameworkCoreTransactions();
-    opts.Policies.AutoApplyTransactions();
-
-    opts.Policies.UseDurableOutboxOnAllSendingEndpoints();
-    opts.Policies.UseDurableInboxOnAllListeners();
-    opts.Policies.UseDurableLocalQueues();
-
-    opts.AddSagaType<OrganizationProvisioningSaga>();
-
-    if (builder.Environment.IsDevelopment())
-    {
-        var rabbitMqConn = builder.Configuration.GetConnectionString("RabbitMq")!;
-        opts.UseRabbitMq(rabbitMqConn).AutoProvision();
-
-        opts.Durability.Mode = DurabilityMode.Solo;
-        opts.CodeGeneration.TypeLoadMode = TypeLoadMode.Dynamic;
-    }
-    else
-    {
-        var serviceBusConn = builder.Configuration.GetConnectionString("ServiceBus")!;
-        opts.UseAzureServiceBus(serviceBusConn).AutoProvision();
-
-        opts.Durability.Mode = DurabilityMode.Balanced;
-        opts.CodeGeneration.TypeLoadMode = TypeLoadMode.Static;
-    }
-});
-builder.Host.UseResourceSetupOnStartup();
-
+// Domain Services
 builder.Services.AddTransient<IOrganizationRepository, OrganizationRepository>();
-builder.Services.AddTransient<OrganizationService>();
+builder.Services.AddTransient<OrganizationDomainService>();
+
+// Infrastructure Extensions (Auth & OpenAPI)
+builder.Services.AddProperAuth(builder.Configuration);
+builder.Services.AddProperOpenApi();
+
+// Wolverine Configuration
+builder.Host.UseWolverine(opts => opts.ConfigureWolverine(builder));
+builder.Host.UseResourceSetupOnStartup();
 
 var app = builder.Build();
 
-app.UseGlobalErrorHandling();
+// Middleware Pipeline
+app.UseProperGlobalErrorHandling();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Endpoints.
 app.MapOrganizationEndpoints();
 
 app.MapTelemetryEndpoints();

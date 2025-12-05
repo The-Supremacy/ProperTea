@@ -7,7 +7,7 @@ namespace ProperTea.Infrastructure.ErrorHandling;
 
 public static class ErrorHandlingExtensions
 {
-    public static IHostApplicationBuilder AddGlobalErrorHandling(this IHostApplicationBuilder builder,
+    public static IHostApplicationBuilder AddProperGlobalErrorHandling(this IHostApplicationBuilder builder,
         Action<ErrorHandlingOptions>? configure = null)
     {
         builder.Services.Configure(configure ?? (_ => { }));
@@ -39,7 +39,7 @@ public static class ErrorHandlingExtensions
         return builder;
     }
 
-    public static WebApplication UseGlobalErrorHandling(this WebApplication app)
+    public static WebApplication UseProperGlobalErrorHandling(this WebApplication app)
     {
         app.UseExceptionHandler();
         app.UseStatusCodePages();

@@ -22,9 +22,9 @@ public static class CreateOrganizationHandler
     public static async Task<LocalOrganizationCreated> HandleAsync(
         CreateOrganization command,
         OrganizationDbContext dbContext,
-        OrganizationService service)
+        OrganizationDomainService domainService)
     {
-        var organization = await service.CreateNewOrganizationAsync(command.Name).ConfigureAwait(false);
+        var organization = await domainService.CreateNewOrganizationAsync(command.Name).ConfigureAwait(false);
         await dbContext.Organizations.AddAsync(organization).ConfigureAwait(false);
 
         return new LocalOrganizationCreated(organization.Id, command.CreatorUserId);

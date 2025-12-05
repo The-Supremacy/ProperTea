@@ -15,6 +15,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.11" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.11"/>
         <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.4.0"/>
         <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.14.0"/>
         <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.14.0"/>
@@ -22,6 +24,7 @@
         <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.14.0"/>
         <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.14.0"/>
         <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.14.0"/>
+        <PackageReference Include="Scalar.AspNetCore" Version="2.11.0"/>
         <PackageReference Update="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15" />
     </ItemGroup>
 

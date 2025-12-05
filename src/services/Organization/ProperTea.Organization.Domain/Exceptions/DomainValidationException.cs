@@ -1,4 +1,4 @@
-namespace ProperTea.Core.Exceptions;
+namespace ProperTea.Organization.Domain.Exceptions;
 
 public class DomainValidationException : Exception
 {

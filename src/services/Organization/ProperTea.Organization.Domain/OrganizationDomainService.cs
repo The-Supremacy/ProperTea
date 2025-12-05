@@ -1,8 +1,8 @@
-using ProperTea.Core.Exceptions;
+using ProperTea.Organization.Domain.Exceptions;
 
 namespace ProperTea.Organization.Domain;
 
-public class OrganizationService(IOrganizationRepository repository)
+public class OrganizationDomainService(IOrganizationRepository repository)
 {
     public async Task<Organization> CreateNewOrganizationAsync(string name)
     {
