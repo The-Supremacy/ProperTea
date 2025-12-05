@@ -9,13 +9,15 @@ services:
             - "--providers.docker.exposedbydefault=false"
             - "--entrypoints.web.address=:80"
             - "--entrypoints.websecure.address=:443"
+            - "--providers.file.filename=/etc/traefik/dynamic.yml"
         ports:
             - "80:80"
             - "443:443"
             - "8080:8080"
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock:ro
-            - ../certs:/etc/certs:ro
+            - ../certs:/etc/traefik/certs:ro
+            - ../config/traefik/traefik-dynamic.yml:/etc/traefik/dynamic.yml:ro
         networks:
             - propertea-net
 
@@ -155,7 +157,7 @@ services:
             - "ConnectionStrings__RabbitMq=amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672"
         labels:
             - "traefik.enable=true"
-            - "traefik.http.routers.organization.rule=Host(`api.organization.propertea.localhost`)"
+            - "traefik.http.routers.organization.rule=Host(`organization.propertea.localhost`)"
             - "traefik.http.routers.organization.entrypoints=websecure"
             - "traefik.http.routers.organization.tls=true"
             - "traefik.http.services.organization.loadbalancer.server.port=8080"
