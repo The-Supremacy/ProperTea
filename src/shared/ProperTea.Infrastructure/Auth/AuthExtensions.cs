@@ -1,4 +1,3 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,30 +19,14 @@ public static class AuthExtensions
                 options.MetadataAddress = authOptions.InternalMetadataAddress;
                 options.RequireHttpsMetadata = authOptions.RequireHttps;
 
-                var keyBytes = Encoding.UTF8.GetBytes(authOptions.SecretKey);
-
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = true,
                     ValidIssuer = authOptions.Authority,
-                    ValidateAudience = !string.IsNullOrEmpty(authOptions.Audience),
-                    ValidAudience = authOptions.Audience,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-                    ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
-                    ValidateLifetime = true
-                };
 
-                options.Events = new JwtBearerEvents
-                {
-                    OnMessageReceived = context =>
-                    {
-                        if (context.Request.Headers.TryGetValue("X-authentik-jwt", out var headerToken))
-                        {
-                            context.Token = headerToken;
-                        }
-                        return Task.CompletedTask;
-                    }
+                    ValidateAudience = true,
+                    ValidAudience = authOptions.Audience,
+
+                    ValidateLifetime = true
                 };
             });
 

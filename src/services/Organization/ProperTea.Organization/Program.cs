@@ -1,5 +1,6 @@
 using JasperFx;
 using JasperFx.Resources;
+using Microsoft.OpenApi.Models;
 using ProperTea.Core.Auth;
 using ProperTea.Infrastructure.Auth;
 using ProperTea.Infrastructure.ErrorHandling;
@@ -31,7 +32,14 @@ builder.Services.AddTransient<OrganizationDomainService>();
 
 // Infrastructure Extensions (Auth & OpenAPI)
 builder.Services.AddProperAuth(builder.Configuration);
-builder.Services.AddProperOpenApi();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddOpenApi("v1", options =>
+{
+    options.AddDocumentTransformer<HttpsServerSchemeTransformer>();
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+    options.AddDocumentTransformer<OAuth2SecuritySchemeTransformer>();
+});
 
 // Wolverine Configuration
 builder.Host.UseWolverine(opts => opts.ConfigureWolverine(builder));
@@ -41,6 +49,7 @@ var app = builder.Build();
 
 // Middleware Pipeline
 app.UseProperGlobalErrorHandling();
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -49,10 +58,26 @@ app.UseAuthorization();
 app.MapOrganizationEndpoints();
 
 app.MapTelemetryEndpoints();
-app.MapOpenApi();
-app.MapScalarApiReference(o => o
-    .AddPreferredSecuritySchemes("BearerAuth")
-    .AddHttpAuthentication("BearerAuth", auth => { auth.Token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; })
-);
+
+if (builder.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+
+    app.MapScalarApiReference(options =>
+    {
+        options.WithTitle("ProperTea API")
+            .AddPreferredSecuritySchemes("OAuth2")
+            .AddAuthorizationCodeFlow("oauth2", flow =>
+            {
+                flow.ClientId = "propertea-organization-api";
+                flow.Pkce = Pkce.Sha256;
+                flow.SelectedScopes = ["openid", "profile", "email"];
+            })
+            .AddHttpAuthentication("BearerAuth", auth =>
+            {
+                auth.Token = "vJs21pDJcTzuNJHJBbbp8ALPHufX4wFuoC1Kuu0mqTcCxrpfRFShoC6rujU7";
+            });;
+    });
+}
 
 return await app.RunJasperFxCommands(args).ConfigureAwait(false);

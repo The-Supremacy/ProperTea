@@ -4,36 +4,27 @@ using Microsoft.OpenApi.Models;
 
 namespace ProperTea.Infrastructure.OpenApi;
 
-internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvider authenticationSchemeProvider)
+public sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvider authenticationSchemeProvider)
     : IOpenApiDocumentTransformer
 {
     public async Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context,
         CancellationToken cancellationToken)
     {
-        var authenticationSchemes = await authenticationSchemeProvider.GetAllSchemesAsync().ConfigureAwait(false);
+        var authenticationSchemes =
+            await authenticationSchemeProvider.GetAllSchemesAsync().ConfigureAwait(false);
+
         if (authenticationSchemes.Any(authScheme => authScheme.Name == "Bearer"))
         {
-            var requirements = new Dictionary<string, OpenApiSecurityScheme>
-            {
-                ["Bearer"] = new()
-                {
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "bearer",
-                    In = ParameterLocation.Header,
-                    BearerFormat = "Json Web Token"
-                }
-            };
-            document.Components ??= new OpenApiComponents();
-            document.Components.SecuritySchemes = requirements;
+            var schemeId = "Bearer";
 
-            foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations))
+            document.Components ??= new OpenApiComponents();
+            document.Components.SecuritySchemes[schemeId] = new OpenApiSecurityScheme
             {
-                operation.Value.Security.Add(new OpenApiSecurityRequirement
-                {
-                    [new OpenApiSecurityScheme { Reference = new OpenApiReference { Id = "Bearer", Type = ReferenceType.SecurityScheme } }] =
-                        Array.Empty<string>()
-                });
-            }
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                Description = "Paste your Service Account JWT here."
+            };
         }
     }
 }
