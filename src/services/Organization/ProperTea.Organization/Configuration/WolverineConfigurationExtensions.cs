@@ -10,7 +10,7 @@ using Wolverine.RabbitMQ;
 
 namespace ProperTea.Organization.Configuration;
 
-public static class WorlverineConfigurationExtensions
+public static class WolverineConfigurationExtensions
 {
     public static void ConfigureWolverine(this WolverineOptions opts, WebApplicationBuilder builder)
     {

@@ -4,10 +4,12 @@ using ProperTea.Infrastructure.Auth;
 
 namespace ProperTea.Infrastructure.OpenApi;
 
-public sealed class OAuth2SecuritySchemeTransformer(ProperAuthOptions authOptions)
+public sealed class OAuth2SecuritySchemeTransformer(ProperOpenApiOptions openApiOptions)
     : IOpenApiDocumentTransformer
 {
-    public Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
+    public Task TransformAsync(OpenApiDocument document,
+        OpenApiDocumentTransformerContext context,
+        CancellationToken cancellationToken)
     {
         var schemeId = "oauth2";
 
@@ -19,14 +21,9 @@ public sealed class OAuth2SecuritySchemeTransformer(ProperAuthOptions authOption
             {
                 AuthorizationCode = new OpenApiOAuthFlow
                 {
-                    AuthorizationUrl = new Uri(authOptions.AuthorizationUrl),
-                    TokenUrl = new Uri(authOptions.TokenUrl),
-                    Scopes = new Dictionary<string, string>
-                    {
-                        { "openid", "OpenID" },
-                        { "profile", "Profile" },
-                        { "email", "Email" }
-                    }
+                    AuthorizationUrl = new Uri(openApiOptions.AuthorizationUrl),
+                    TokenUrl = new Uri(openApiOptions.TokenUrl),
+                    Scopes = openApiOptions.Scopes.ToDictionary(s => s, s => s)
                 }
             }
         };
@@ -39,7 +36,7 @@ public sealed class OAuth2SecuritySchemeTransformer(ProperAuthOptions authOption
             [new OpenApiSecurityScheme
             {
                 Reference = new OpenApiReference { Id = schemeId, Type = ReferenceType.SecurityScheme }
-            }] = new[] { "openid", "profile", "email" }
+            }] = openApiOptions.Scopes
         };
 
         foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations))

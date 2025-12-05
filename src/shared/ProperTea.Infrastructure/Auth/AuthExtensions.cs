@@ -16,7 +16,7 @@ public static class AuthExtensions
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                options.MetadataAddress = authOptions.InternalMetadataAddress;
+                options.MetadataAddress = authOptions.InternalMetadataAddress!;
                 options.RequireHttpsMetadata = authOptions.RequireHttps;
 
                 options.TokenValidationParameters = new TokenValidationParameters

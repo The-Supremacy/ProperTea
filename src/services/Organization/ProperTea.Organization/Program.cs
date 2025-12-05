@@ -33,12 +33,20 @@ builder.Services.AddTransient<OrganizationDomainService>();
 // Infrastructure Extensions (Auth & OpenAPI)
 builder.Services.AddProperAuth(builder.Configuration);
 
+var openApiOptions = new ProperOpenApiOptions();
+builder.Configuration.GetSection(ProperOpenApiOptions.SectionName).Bind(openApiOptions);
+builder.Services.AddSingleton(openApiOptions);
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi("v1", options =>
 {
     options.AddDocumentTransformer<HttpsServerSchemeTransformer>();
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
-    options.AddDocumentTransformer<OAuth2SecuritySchemeTransformer>();
+
+    if (!string.IsNullOrEmpty(openApiOptions.AuthorizationUrl))
+    {
+        options.AddDocumentTransformer<OAuth2SecuritySchemeTransformer>();
+    }
 });
 
 // Wolverine Configuration
@@ -59,24 +67,19 @@ app.MapOrganizationEndpoints();
 
 app.MapTelemetryEndpoints();
 
-if (builder.Environment.IsDevelopment())
+app.MapOpenApi();
+if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
-
     app.MapScalarApiReference(options =>
     {
         options.WithTitle("ProperTea API")
             .AddPreferredSecuritySchemes("OAuth2")
             .AddAuthorizationCodeFlow("oauth2", flow =>
             {
-                flow.ClientId = "propertea-organization-api";
+                flow.ClientId = openApiOptions.ClientId;
                 flow.Pkce = Pkce.Sha256;
-                flow.SelectedScopes = ["openid", "profile", "email"];
-            })
-            .AddHttpAuthentication("BearerAuth", auth =>
-            {
-                auth.Token = "vJs21pDJcTzuNJHJBbbp8ALPHufX4wFuoC1Kuu0mqTcCxrpfRFShoC6rujU7";
-            });;
+                flow.SelectedScopes = openApiOptions.Scopes;
+            });
     });
 }
 

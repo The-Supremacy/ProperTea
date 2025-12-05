@@ -3,7 +3,7 @@ using Microsoft.OpenApi.Models;
 
 namespace ProperTea.Infrastructure.OpenApi;
 
-public class HttpsServerSchemeTransformer() : IOpenApiDocumentTransformer
+public class HttpsServerSchemeTransformer : IOpenApiDocumentTransformer
 {
     public Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context,
         CancellationToken cancellationToken)
@@ -11,14 +11,19 @@ public class HttpsServerSchemeTransformer() : IOpenApiDocumentTransformer
         if (!document.Servers.Any())
             return Task.CompletedTask;
 
-        var url = document.Servers[0].Url;
+        var servers = document.Servers.ToList();
         document.Servers.Clear();
 
-        document.Servers.Add(new OpenApiServer
+        foreach (var server in servers)
         {
-            Url = url.Replace("http://", "https://"),
-            Description = "ProperTea Gateway"
-        });
+            document.Servers.Add(new OpenApiServer
+            {
+                Url = server.Url.Replace("http://", "https://"),
+                Description = server.Description,
+                Extensions = server.Extensions,
+                Variables = server.Variables
+            });
+        }
 
         return Task.CompletedTask;
     }

@@ -7,7 +7,7 @@ public static class OrganizationEndpoints
 {
     public static void MapOrganizationEndpoints(this WebApplication app)
     {
-        app.MapGet("/", (ICurrentUser user) => "Hello World! Nigga " + user.Id + "").RequireAuthorization();
+        app.MapGet("/", (ICurrentUser user) => "Hello World! User Id: " + user.Id + "").RequireAuthorization();
 
         var v1 = app.MapGroup("/api/v1").RequireAuthorization();
 
