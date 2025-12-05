@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Update="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15" />
+        <PackageReference Update="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15"/>
     </ItemGroup>
 
 </Project>

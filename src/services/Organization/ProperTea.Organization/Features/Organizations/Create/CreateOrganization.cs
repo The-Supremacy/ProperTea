@@ -17,6 +17,7 @@ public class CreateOrganizationValidator : AbstractValidator<CreateOrganization>
 }
 
 public record LocalOrganizationCreated(Guid OrganizationId, Guid CreatorUserId);
+
 public static class CreateOrganizationHandler
 {
     public static async Task<LocalOrganizationCreated> HandleAsync(
@@ -32,6 +33,7 @@ public static class CreateOrganizationHandler
 }
 
 public record CreateOrganizationRequest(string Name);
+
 public static class CreateOrganizationEndpoint
 {
     public static void Map(IEndpointRouteBuilder endpoints)

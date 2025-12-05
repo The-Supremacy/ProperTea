@@ -7,8 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\shared\ProperTea.Core\ProperTea.Core.csproj" />
-      <ProjectReference Include="..\..\..\shared\ProperTea.Utilities\ProperTea.Utilities.csproj" />
+        <ProjectReference Include="..\..\..\shared\ProperTea.Core\ProperTea.Core.csproj"/>
+        <ProjectReference Include="..\..\..\shared\ProperTea.Utilities\ProperTea.Utilities.csproj"/>
     </ItemGroup>
 
 </Project>

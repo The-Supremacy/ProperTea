@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +20,7 @@ public static class AuthExtensions
                 options.MetadataAddress = authOptions.InternalMetadataAddress;
                 options.RequireHttpsMetadata = authOptions.RequireHttps;
 
-                var keyBytes = System.Text.Encoding.UTF8.GetBytes(authOptions.SecretKey);
+                var keyBytes = Encoding.UTF8.GetBytes(authOptions.SecretKey);
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {

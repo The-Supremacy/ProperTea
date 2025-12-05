@@ -13,8 +13,6 @@ public class OrganizationProvisioningSaga : Saga
     public static OrganizationProvisioningSaga Start(
         LocalOrganizationCreated message)
     {
-        return (
-            new OrganizationProvisioningSaga { Id = message.OrganizationId }
-            );
+        return new OrganizationProvisioningSaga { Id = message.OrganizationId };
     }
 }

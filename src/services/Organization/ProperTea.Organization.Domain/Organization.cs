@@ -2,7 +2,9 @@ namespace ProperTea.Organization.Domain;
 
 public class Organization
 {
-    private Organization() {}
+    private Organization()
+    {
+    }
 
     public Guid Id { get; set; }
     public required string Name { get; set; }

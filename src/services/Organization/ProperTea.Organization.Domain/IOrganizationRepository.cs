@@ -2,7 +2,7 @@ namespace ProperTea.Organization.Domain;
 
 public interface IOrganizationRepository
 {
-    Task<bool> IsNameUniqueAsync(string name);
+    public Task<bool> IsNameUniqueAsync(string name);
 
-    Task<bool> IsAliasUniqueAsync(string orgAlias);
+    public Task<bool> IsAliasUniqueAsync(string orgAlias);
 }

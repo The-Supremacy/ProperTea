@@ -4,11 +4,11 @@ metadata:
     labels:
         type: propertea-common
 entries:
-    - model: authentik_brands.brand
-      identifiers:
-          domain: "propertea.localhost"
-      attrs:
-          branding_title: "ProperTea"
-          flow_authentication: !Find [authentik_flows.flow, [slug, "default-authentication-flow"]]
-          flow_invalidation: !Find [authentik_flows.flow, [slug, "default-provider-invalidation-flow"]]
-          flow_user_settings: !Find [authentik_flows.flow, [slug, "default-user-settings-flow"]]
+    -   model: authentik_brands.brand
+        identifiers:
+            domain: "propertea.localhost"
+        attrs:
+            branding_title: "ProperTea"
+            flow_authentication: !Find [ authentik_flows.flow, [ slug, "default-authentication-flow" ] ]
+            flow_invalidation: !Find [ authentik_flows.flow, [ slug, "default-provider-invalidation-flow" ] ]
+            flow_user_settings: !Find [ authentik_flows.flow, [ slug, "default-user-settings-flow" ] ]

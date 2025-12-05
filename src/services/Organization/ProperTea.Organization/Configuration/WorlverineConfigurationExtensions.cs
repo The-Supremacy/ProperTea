@@ -19,8 +19,8 @@ public static class WorlverineConfigurationExtensions
         opts.UseFluentValidation();
 
         // EF Core Integration
-        builder.Services.AddDbContextWithWolverineIntegration<OrganizationDbContext>(
-            x => x.UseNpgsql(connectionString));
+        builder.Services.AddDbContextWithWolverineIntegration<OrganizationDbContext>(x =>
+            x.UseNpgsql(connectionString));
 
         opts.PersistMessagesWithPostgresql(connectionString);
         opts.UseEntityFrameworkCoreTransactions();

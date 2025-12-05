@@ -52,10 +52,7 @@ app.MapTelemetryEndpoints();
 app.MapOpenApi();
 app.MapScalarApiReference(o => o
     .AddPreferredSecuritySchemes("BearerAuth")
-    .AddHttpAuthentication("BearerAuth", auth =>
-    {
-        auth.Token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
-    })
+    .AddHttpAuthentication("BearerAuth", auth => { auth.Token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; })
 );
 
 return await app.RunJasperFxCommands(args).ConfigureAwait(false);
