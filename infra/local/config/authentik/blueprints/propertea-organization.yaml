@@ -13,11 +13,11 @@ entries:
             client_secret: "skmc5rgag5h4G0ucD4OGYuUXoxoQmd7pp1xLziPSjfRaesTExAShrHw7Mc4dpuSutJ8BcSyvfPmVFVxduJ0NiVvGTCo8gFBcAsYSf8d0h1z4o926VsAIlqfaSjYZpck2"
             client_type: public
             redirect_uris:
+                -   url: "https://organization.propertea.localhost/scalar/"
+                    matching_mode: strict
                 -   url: "https://oauth.pstmn.io/v1/callback"
                     matching_mode: strict
                 -   url: "com.propertea.app://callback"
-                    matching_mode: strict
-                -   url: "https://organization.propertea.localhost/scalar/v1"
                     matching_mode: strict
             access_token_validity: "hours=24"
             signing_key: !Find [ authentik_crypto.certificatekeypair, [ name, "authentik Self-signed Certificate" ] ]
