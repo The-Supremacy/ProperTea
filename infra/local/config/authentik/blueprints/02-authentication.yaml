@@ -1,0 +1,47 @@
+version: 1
+metadata:
+    name: ProperTea - Authentication
+entries:
+    - model: authentik_stages_identification.identificationstage
+      id: propertea-stage-ident
+      identifiers:
+          name: ProperTea Identification
+      attrs:
+          user_fields:
+            - email
+          case_insensitive_matching: true
+          show_matched_user: true
+          pretend_user_exists: true
+          enable_remember_me: true
+          enrollment_flow: !Find [authentik_flows.flow, [name, "ProperTea Sign Up"]]
+
+    - model: authentik_flows.flow
+      id: propertea-authentication-flow
+      identifiers:
+          slug: propertea-authentication-flow
+      attrs:
+          name: ProperTea Login
+          title: Sign in to ProperTea
+          designation: authentication
+          authentication: require_unauthenticated
+
+    - model: authentik_flows.flowstagebinding
+      identifiers:
+          target: !KeyOf propertea-authentication-flow
+          stage: !KeyOf propertea-stage-ident
+      attrs:
+          order: 10
+
+    - model: authentik_flows.flowstagebinding
+      identifiers:
+          target: !KeyOf propertea-authentication-flow
+          stage: !Find [authentik_stages_password.passwordstage, [name, default-authentication-password]]
+      attrs:
+          order: 20
+
+    - model: authentik_flows.flowstagebinding
+      identifiers:
+          target: !KeyOf propertea-authentication-flow
+          stage: !Find [authentik_stages_user_login.userloginstage, [name, default-authentication-login]]
+      attrs:
+          order: 100

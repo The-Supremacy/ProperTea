@@ -1,0 +1,27 @@
+version: 1
+metadata:
+    name: ProperTea - Master Orchestrator
+entries:
+    - model: authentik_blueprints.metaapplyblueprint
+      attrs:
+          identifiers:
+              name: ProperTea - Enrollment
+          required: true
+
+    - model: authentik_blueprints.metaapplyblueprint
+      attrs:
+          identifiers:
+              name: ProperTea - Authentication
+          required: true
+
+    - model: authentik_blueprints.metaapplyblueprint
+      attrs:
+          identifiers:
+              name: ProperTea - Brands
+          required: true
+
+    - model: authentik_blueprints.metaapplyblueprint
+      attrs:
+          identifiers:
+              name: ProperTea - Organization Service
+          required: true
