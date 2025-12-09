@@ -16,6 +16,15 @@ entries:
           check_zxcvbn: true
           error_message: "Password must be at least 12 characters and not appear in known data breaches."
 
+    -   model: authentik_policies_expression.expressionpolicy
+        id: propertea-policy-set-username
+        identifiers:
+            name: ProperTea - Set Username to Email
+        attrs:
+            expression: |
+                context['prompt_data']['username'] = context['prompt_data']['email']
+                return True
+
     # -----------------------------------------------------------------------
     # Form Fields
     # -----------------------------------------------------------------------
@@ -28,8 +37,6 @@ entries:
             type: hidden
             required: true
             order: 0
-            placeholder: "{{ request.context.prompt_data.email }}"
-            placeholder_expression: true
 
     - model: authentik_stages_prompt.prompt
       id: propertea-prompt-field-email
@@ -80,13 +87,13 @@ entries:
           name: ProperTea - Enrollment Prompt
       attrs:
           fields:
-              - !KeyOf propertea-prompt-field-username
               - !KeyOf propertea-prompt-field-name
               - !KeyOf propertea-prompt-field-email
               - !KeyOf propertea-prompt-field-password
               - !KeyOf propertea-prompt-field-password-repeat
           validation_policies:
               - !KeyOf propertea-policy-strict-password
+              - !KeyOf propertea-policy-set-username
 
     - model: authentik_stages_user_write.userwritestage
       id: propertea-stage-user-write
