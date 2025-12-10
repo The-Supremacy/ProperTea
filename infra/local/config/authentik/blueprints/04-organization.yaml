@@ -8,7 +8,6 @@ entries:
             name: "ProperTea Organization Provider"
         attrs:
             client_id: "propertea-organization-api"
-            client_secret: "skmc5rgag5h4G0ucD4OGYuUXoxoQmd7pp1xLziPSjfRaesTExAShrHw7Mc4dpuSutJ8BcSyvfPmVFVxduJ0NiVvGTCo8gFBcAsYSf8d0h1z4o926VsAIlqfaSjYZpck2"
             client_type: public
             redirect_uris:
                 -   url: "https://organization.propertea.localhost/scalar/"
