@@ -1,0 +1,421 @@
+services:
+    # --- Log Viewer ---
+    dozzle:
+        image: amir20/dozzle:latest
+        container_name: propertea-dozzle
+        restart: unless-stopped
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.dozzle.rule=Host(`logs.propertea.localhost`)"
+            - "traefik.http.routers.dozzle.tls=true"
+            - "traefik.http.services.dozzle.loadbalancer.server.port=8080"
+        networks:
+            - propertea-net
+
+    # --- Ingress (Traefik) ---
+    traefik:
+        image: traefik:v3.6.2
+        container_name: propertea-traefik
+        command:
+            - "--api.insecure=true"
+            - "--providers.docker=true"
+            - "--providers.docker.exposedbydefault=false"
+            - "--entrypoints.web.address=:80"
+            - "--entrypoints.websecure.address=:443"
+            - "--providers.file.filename=/etc/traefik/dynamic.yml"
+        ports:
+            - "80:80"
+            - "443:443"
+            - "8080:8080"
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - ./certs:/etc/traefik/certs:ro
+            - ./traefik/traefik-dynamic.yml:/etc/traefik/dynamic.yml:ro
+        networks:
+            - propertea-net
+
+    # --- Shared Infrastructure: Database ---
+    infra-postgres:
+        image: postgres:18.1-alpine
+        container_name: propertea-infra-postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: ${INFRA_PG_USER}
+            POSTGRES_PASSWORD: ${INFRA_PG_PASS}
+            POSTGRES_DB: postgres
+            INFISICAL_DB_PASS: ${INFISICAL_DB_PASS}
+            AUTHENTIK_DB_PASS: ${AUTHENTIK_DB_PASS}
+            UNLEASH_DB_PASS: ${UNLEASH_DB_PASS}
+            OPENFGA_DB_PASS: ${OPENFGA_DB_PASS}
+        ports:
+            - "${INFRA_PG_PORT}:5432"
+        volumes:
+            - infra-postgres_data:/var/lib/postgresql/data
+            - ./postgres/infra:/docker-entrypoint-initdb.d
+        networks:
+            - propertea-net
+
+    # --- Shared Infrastructure: Cache ---
+    infra-redis:
+        image: redis:8.4.0-alpine
+        container_name: propertea-infra-redis
+        restart: unless-stopped
+        command: redis-server --requirepass ${INFRA_REDIS_PASS}
+        ports:
+            - "${INFRA_REDIS_PORT}:6379"
+        volumes:
+            - infra-redis_data:/data
+        networks:
+            - propertea-net
+
+    # --- Secrets Management ---
+    infisical:
+        image: infisical/infisical:v0.154.6
+        container_name: propertea-infisical
+        restart: unless-stopped
+        depends_on:
+            - infra-postgres
+            - infra-redis
+        environment:
+            ENCRYPTION_KEY: ${INFISICAL_ENCRYPTION_KEY}
+            AUTH_SECRET: ${INFISICAL_AUTH_SECRET}
+            DB_CONNECTION_URI: "postgres://infisical:${INFISICAL_DB_PASS}@infra-postgres:5432/infisical"
+            REDIS_URL: "redis://:${INFRA_REDIS_PASS}@infra-redis:6379"
+            TELEMETRY_ENABLED: "false"
+            SMTP_HOST: ""
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.infisical.rule=Host(`secrets.propertea.localhost`)"
+            - "traefik.http.routers.infisical.entrypoints=websecure"
+            - "traefik.http.routers.infisical.tls=true"
+            - "traefik.http.services.infisical.loadbalancer.server.port=8080"
+        networks:
+            - propertea-net
+
+    # --- Email (Mailpit) ---
+    mailpit:
+        image: axllent/mailpit:v1.28.0
+        container_name: propertea-mailpit
+        restart: unless-stopped
+        ports:
+            - "8025:8025" # UI
+            - "1025:1025" # SMTP
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.mailpit.rule=Host(`mail.propertea.localhost`)"
+            - "traefik.http.routers.mailpit.entrypoints=websecure"
+            - "traefik.http.routers.mailpit.tls=true"
+            - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
+        networks:
+            - propertea-net
+
+    # --- Azure Emulator (Azurite) ---
+    azurite:
+        image: mcr.microsoft.com/azure-storage/azurite
+        container_name: propertea-azurite
+        restart: unless-stopped
+        command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0"
+        ports:
+            - "10000:10000" # Blob
+            - "10001:10001" # Queue
+            - "10002:10002" # Table
+        volumes:
+            - azurite_data:/data
+        networks:
+            - propertea-net
+
+    # --- Feature Flags (Unleash) ---
+    unleash:
+        image: unleashorg/unleash-server:7.3.0
+        container_name: propertea-unleash
+        restart: unless-stopped
+        depends_on:
+            - infra-postgres
+        environment:
+            DATABASE_HOST: infra-postgres
+            DATABASE_NAME: unleash
+            DATABASE_USERNAME: unleash
+            DATABASE_PASSWORD: ${UNLEASH_DB_PASS}
+            DATABASE_SSL: "false"
+            INIT_ADMIN_API_TOKEN: ${UNLEASH_INIT_ADMIN_API_TOKEN}
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.unleash.rule=Host(`flags.propertea.localhost`)"
+            - "traefik.http.routers.unleash.entrypoints=websecure"
+            - "traefik.http.routers.unleash.tls=true"
+            - "traefik.http.services.unleash.loadbalancer.server.port=4242"
+        networks:
+            - propertea-net
+
+    # --- AuthZ (OpenFGA) ---
+    # 1. Migration (Ephemeral)
+    openfga-migrate:
+        image: openfga/openfga:v1.11.2
+        container_name: propertea-openfga-migrate
+        command: migrate
+        depends_on:
+            - infra-postgres
+        environment:
+            OPENFGA_DATASTORE_ENGINE: postgres
+            OPENFGA_DATASTORE_URI: postgres://openfga:${OPENFGA_DB_PASS}@infra-postgres:5432/openfga?sslmode=disable
+        networks:
+            - propertea-net
+
+    # 2. Server
+    openfga:
+        image: openfga/openfga:v1.11.2
+        container_name: propertea-openfga
+        restart: unless-stopped
+        command: run
+        depends_on:
+            infra-postgres:
+                condition: service_started
+            openfga-migrate:
+                condition: service_completed_successfully
+        ports:
+            - "3000:3000"
+        environment:
+            OPENFGA_DATASTORE_ENGINE: postgres
+            OPENFGA_DATASTORE_URI: postgres://openfga:${OPENFGA_DB_PASS}@infra-postgres:5432/openfga?sslmode=disable
+            OPENFGA_PLAYGROUND_ENABLED: "true"
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.openfga.rule=Host(`fga.propertea.localhost`)"
+            - "traefik.http.routers.openfga.entrypoints=websecure"
+            - "traefik.http.routers.openfga.tls=true"
+            - "traefik.http.services.openfga.loadbalancer.server.port=8080"
+        networks:
+            - propertea-net
+
+    # --- Identity Provider (Authentik) ---
+    authentik-server:
+        image: ghcr.io/goauthentik/server:2025.10.2
+        container_name: propertea-authentik-server
+        restart: unless-stopped
+        command: server
+        environment:
+            AUTHENTIK_REDIS__HOST: infra-redis
+            AUTHENTIK_REDIS__PASSWORD: ${INFRA_REDIS_PASS}
+            AUTHENTIK_REDIS__DB: 1
+
+            AUTHENTIK_POSTGRESQL__HOST: infra-postgres
+            AUTHENTIK_POSTGRESQL__USER: authentik
+            AUTHENTIK_POSTGRESQL__NAME: authentik
+            AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASS}
+
+            AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+            AUTHENTIK_ERROR_REPORTING__ENABLED: "true"
+
+            AUTHENTIK_EMAIL__BACKEND: "django.core.mail.backends.dummy.EmailBackend"
+        volumes:
+            - authentik_media:/media
+            - authentik_templates:/templates
+            - ../common/authentik/blueprints:/blueprints/propertea
+        depends_on:
+            - infra-postgres
+            - infra-redis
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.authentik.rule=Host(`auth.propertea.localhost`)"
+            - "traefik.http.routers.authentik.entrypoints=websecure"
+            - "traefik.http.routers.authentik.tls=true"
+            - "traefik.http.services.authentik.loadbalancer.server.port=9000"
+        networks:
+            - propertea-net
+
+    authentik-worker:
+        image: ghcr.io/goauthentik/server:2025.10.2
+        container_name: propertea-authentik-worker
+        restart: unless-stopped
+        command: worker
+        environment:
+            AUTHENTIK_REDIS__HOST: infra-redis
+            AUTHENTIK_REDIS__PASSWORD: ${INFRA_REDIS_PASS}
+            AUTHENTIK_REDIS__DB: 1
+
+            AUTHENTIK_POSTGRESQL__HOST: infra-postgres
+            AUTHENTIK_POSTGRESQL__USER: authentik
+            AUTHENTIK_POSTGRESQL__NAME: authentik
+            AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASS}
+
+            AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+            AUTHENTIK_EMAIL__BACKEND: "django.core.mail.backends.dummy.EmailBackend"
+        volumes:
+            - authentik_media:/media
+            - authentik_templates:/templates
+            - ../common/authentik/blueprints:/blueprints/propertea
+        depends_on:
+            - infra-postgres
+            - infra-redis
+        networks:
+            - propertea-net
+
+    # --- Message Broker ---
+    rabbitmq:
+        image: rabbitmq:4.1.6-management
+        container_name: propertea-rabbitmq
+        restart: unless-stopped
+        environment:
+            - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+            - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        volumes:
+            - rabbitmq_data:/var/lib/rabbitmq
+        healthcheck:
+            test: rabbitmq-diagnostics -q ping
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks:
+            - propertea-net
+
+    # --- Observability Stack ---
+
+    # 1. The Hub: OpenTelemetry Collector
+    otel-collector:
+        image: otel/opentelemetry-collector-contrib:0.141.0
+        container_name: propertea-otel-collector
+        command: ["--config=/etc/otel-collector-config.yaml"]
+        volumes:
+            - ./observability/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+        ports:
+            - "4317:4317" # OTLP gRPC (Apps send here)
+            - "4318:4318" # OTLP HTTP
+            - "8889:8889" # Prometheus Metrics Exporter
+        networks:
+            - propertea-net
+
+    # 2. Metrics: Prometheus
+    prometheus:
+        image: prom/prometheus:v3.8.0
+        container_name: propertea-prometheus
+        command:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --web.enable-lifecycle
+        volumes:
+            - ./observability/prometheus.yaml:/etc/prometheus/prometheus.yml
+            - prometheus_data:/prometheus
+        networks:
+            - propertea-net
+
+    # 3. Logs: Loki
+    loki:
+        image: grafana/loki:3.6.2
+        container_name: propertea-loki
+        command: -config.file=/etc/loki/local-config.yaml
+        ports:
+            - "3100:3100"
+        networks:
+            - propertea-net
+
+    # 4. Traces: Tempo
+    tempo:
+        image: grafana/tempo:2.9.0
+        container_name: propertea-tempo
+        command: [ "-config.file=/etc/tempo.yaml" ]
+        volumes:
+            - ./observability/tempo.yaml:/etc/tempo.yaml
+        networks:
+            - propertea-net
+
+    # 5. UI: Grafana
+    grafana:
+        image: grafana/grafana:12.3.0
+        container_name: propertea-grafana
+        restart: unless-stopped
+        environment:
+            - GF_SECURITY_ADMIN_USER=admin
+            - GF_SECURITY_ADMIN_PASSWORD=admin
+            - GF_AUTH_ANONYMOUS_ENABLED=true
+        ports:
+            - "30001:3000"
+        volumes:
+            - grafana_data:/var/lib/grafana
+            - ./observability/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.grafana.rule=Host(`grafana.propertea.localhost`)"
+            - "traefik.http.routers.grafana.entrypoints=websecure"
+            - "traefik.http.routers.grafana.tls=true"
+            - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+        networks:
+            - propertea-net
+
+    # --- Application Infrastructure: Database ---
+    apps-postgres:
+        image: postgres:16-alpine
+        container_name: propertea-apps-postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: ${APP_PG_USER}
+            POSTGRES_PASSWORD: ${APP_PG_PASS}
+            POSTGRES_DB: postgres
+            ORG_SERVICE_DB_PASS: ${ORG_SERVICE_DB_PASS}
+        ports:
+            - "${APP_PG_PORT}:5432"
+        volumes:
+            - apps-postgres_data:/var/lib/postgresql/data
+            - ./postgres/apps:/docker-entrypoint-initdb.d
+        networks:
+            - propertea-net
+
+    # --- Application Infrastructure: Cache ---
+    apps-redis:
+        image: redis:alpine
+        container_name: propertea-apps-redis
+        restart: unless-stopped
+        command: redis-server --requirepass ${APP_REDIS_PASS}
+        ports:
+            - "6379:6379"
+        volumes:
+            - apps-redis_data:/data
+        networks:
+            - propertea-net
+
+    # --- Organization Service ---
+    organization-api:
+        container_name: propertea-organization-api
+        build:
+            context: ../..
+            dockerfile: src/services/Organization/ProperTea.Organization/Dockerfile
+        depends_on:
+            - traefik
+            - authentik-server
+            - rabbitmq
+            - apps-postgres
+        restart: always
+        environment:
+            - "ASPNETCORE_ENVIRONMENT=Development"
+            - "ConnectionStrings__Database=Host=apps-postgres;Port=5432;Database=propertea_organization_db;Username=propertea;Password=${ORG_SERVICE_DB_PASS}"
+            - "ConnectionStrings__RabbitMq=amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672/"
+            - "OpenTelemetry__OtlpEndpoint=http://otel-collector:4317"
+            - "OTEL_RESOURCE_ATTRIBUTES=service.name=propertea-organization-api,service.namespace=propertea"
+            - "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317"
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.organization.rule=Host(`organization.propertea.localhost`)"
+            - "traefik.http.routers.organization.entrypoints=websecure"
+            - "traefik.http.routers.organization.tls=true"
+            - "traefik.http.services.organization.loadbalancer.server.port=8080"
+        networks:
+            - propertea-net
+
+volumes:
+    infra-postgres_data:
+    infra-redis_data:
+    apps-postgres_data:
+    apps-redis_data:
+    rabbitmq_data:
+    azurite_data:
+    authentik_media:
+    authentik_templates:
+    prometheus_data:
+    grafana_data:
+
+networks:
+    propertea-net:
+        driver: bridge

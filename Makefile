@@ -27,7 +27,7 @@ hosts:
 	@echo "✅ Hosts updated"
 
 up:
-	@docker compose --project-directory $(COMPOSE_PATH) up -d
+	@infisical run --env=dev docker compose --project-directory $(COMPOSE_PATH) up -d
 	@echo "🚀 ProperTea is running!"
 	@echo "   BFF:   https://propertea.localhost"
 	@echo "   Auth:  https://auth.propertea.localhost"

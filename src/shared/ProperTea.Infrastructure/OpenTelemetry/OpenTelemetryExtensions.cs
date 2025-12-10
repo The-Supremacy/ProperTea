@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -92,11 +93,20 @@ public static class OpenTelemetryExtensions
         if (!options.LoggingEnabled)
             return builder;
 
+        builder.Services.AddLogging();
         builder.Logging.AddOpenTelemetry(logging =>
         {
             logging.SetResourceBuilder(resourceBuilder);
             logging.IncludeFormattedMessage = true;
             logging.IncludeScopes = true;
+
+            if (!string.IsNullOrWhiteSpace(options.OtlpEndpoint))
+            {
+                logging.AddOtlpExporter(otlpOptions =>
+                {
+                    otlpOptions.Endpoint = new Uri(options.OtlpEndpoint);
+                });
+            }
         });
 
         return builder;

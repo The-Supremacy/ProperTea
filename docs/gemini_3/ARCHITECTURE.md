@@ -1,113 +1,124 @@
 # ProperTea - Technical Architecture
 
-> **Version**: 4.0 (Final)
-> **Goal**: Modern Microservices Education & Azure Parity.
+> **Version**: 5.0 (Environment-Centric)
+> **Goal**: Modern Platform Engineering & Azure Parity.
 
 ## 1. Environment Strategy (The "4-Tier" Model)
 
-We treat the "Local Cluster" as a distinct **SIT** environment on separate hardware.
+We adhere to a strict "Environment > Layer" hierarchy. Local is for speed; SIT is for platform validation.
 
-| Env | Type | Infrastructure | Purpose |
-| :--- | :--- | :--- | :--- |
-| **DEV** | **Local** | **Docker Compose** | Inner-loop logic, debugging, quick iteration. |
-| **SIT** | **Remote** | **Talos Linux** (Mini-PC) | Infrastructure testing, Helm charts, GitOps validation. |
-| **UAT** | **Cloud** | **Azure AKS** | User Acceptance Testing, Cloud parity check. |
-| **PROD**| **Cloud** | **Azure AKS** | Production traffic. |
+| Env      | Type       | Infrastructure             | Purpose                                                                 |
+| :------- | :--------- | :------------------------- | :---------------------------------------------------------------------- |
+| **DEV** | **Local** | **Docker Compose** | Inner-loop velocity. Isolated services.                                 |
+| **SIT** | **Remote** | **Talos Linux** (Mini-PC)  | **The Lab.** Integration testing, GitOps (Flux), Infra validation.      |
+| **UAT** | **Cloud** | **Azure AKS** | **The Mirror.** Cloud parity check, Azure Managed Services integration. |
+| **PROD** | **Cloud** | **Azure AKS** | **The Real Deal.** Production traffic, High Availability.               |
+
+---
 
 ## 2. Technical Stack
 
-| Area | Technology | Implementation Details |
-| :--- | :--- | :--- |
-| **Identity** | **Authentik** | **Dev:** Points to `Mailpit`.<br>**SIT/Prod:** Points to `SendGrid`. |
-| **Backend** | **.NET 10** | Vertical Slice Architecture. |
-| **Frontend** | **Next.js 15** | BFF Pattern (Server Actions) + `next-auth` v5. |
-| **Database** | **PostgreSQL 18** | **Strategy:** Single Instance, Multiple Databases (`propertea_org`, `propertea_comp`).<br>**Cloud:** Azure Flex Server (Preview). |
-| **Storage** | **Azurite** | **Dev/SIT:** Emulator (Azure Blob parity).<br>**Cloud:** Azure Storage Account. |
-| **Secrets** | **Infisical** | **Dev:** CLI Wrapper (`infisical run`).<br>**SIT/Cloud:** K8s Operator. |
-| **Flags** | **Unleash** | Self-hosted container for feature management. |
-| **Observability**| **Prometheus Stack** | **Loki** (Logs), **Tempo** (Traces), **Prometheus** (Metrics). |
+| Area          | Technology           | Implementation Details |
+| :------------ |:---------------------| :--------------------- |
+| **Identity** | **Authentik**        | **Local:** Docker container (Injected Blueprints via Volume).<br>**SIT/Cloud:** Helm Chart (Injected Blueprints via ConfigMap). |
+| **Backend** | **.NET 10**          | Vertical Slice Architecture. Transport agnostic (RabbitMQ vs Azure Service Bus). |
+| **Frontend** | **Next.js 16**       | BFF Pattern (Server Actions) + `next-auth` v5. |
+| **Database** | **PostgreSQL 18**    | **Topology:** Two physical instances.<br>1. **Infra-DB:** For Authentik, Unleash, Infisical.<br>2. **App-DB:** For `propertea_org`, `propertea_comp` (1-Instance-Many-DBs). |
+| **Storage** | **Code Abstraction** | **Pattern:** `IFileStorage` interface in .NET.<br>**SIT:** `S3Provider` -> **SeaweedFS** (Self-hosted S3).<br>**Cloud:** `AzureBlobProvider` -> **Azure Storage Account**. |
+| **Secrets** | **Infisical**        | **SSOT.** Manages Secrets *and* App Configuration.<br>**Local:** CLI Injection.<br>**Cloud:** Operator -> K8s Secrets & Azure KeyVault Sync. |
+| **Flags** | **Unleash**          | Self-hosted container. Controls feature rollouts without redeploying. |
+| **AuthZ** | **OpenFGA**          | ReBAC (Relationship-Based Access Control). "Can User X view Document Y?" |
+| **Observe** | **OpenTelemetry**    | **Collection:** OTel Collectors sidecar/daemonset.<br>**SIT:** OTel -> Loki/Tempo/Prometheus -> Grafana.<br>**Cloud:** OTel -> Azure Monitor. |
+
+---
 
 ## 3. Tooling & Development
 
-### A. Secrets (Infisical)
-We do not commit `.env` files.
+### A. Secrets Management (Infisical)
+We do not commit `.env` files. Infisical acts as the single source of truth for both secrets (API Keys) and configuration (URLs).
+
 * **Setup:** `brew install infisical`
-* **Usage:** Run `infisical run -- docker-compose up`
-* **Mechanism:** The CLI fetches secrets from the project and injects them as environment variables into the Docker process.
+* **Usage:** `infisical run -- docker-compose up`
+* **Migration:** We migrate Authentik Blueprints to use `!Env [VAR_NAME]` tags, populated by Infisical at runtime.
 
 ### B. Local HTTPS (mkcert)
 We use valid SSL certificates locally to support Secure Cookies.
-* **Setup:** `mkcert -install` (One time) -> `mkcert "*.propertea.localhost"`
-* **Usage:** Traefik mounts these certificates.
-* **Result:** Green lock in browser at `https://app.propertea.localhost`.
+
+* **Usage:** Traefik mounts certificates generated by `mkcert "*.propertea.localhost"`.
 
 ### C. Azure Emulation (Azurite)
-We use the official Microsoft emulator to avoid "S3 Wrapper" code.
-* **Container:** `mcr.microsoft.com/azure-storage/azurite`
-* **Code:** Use `new BlobServiceClient("UseDevelopmentStorage=true")`.
-* **Parity:** 100% API compatible with Azure Cloud.
+Used strictly for local development when working on Azure-specific implementations (e.g., testing the `AzureBlobProvider`).
 
-### D. Logs (Dozzle)
-A lightweight log viewer for Docker Compose.
-* **Access:** `http://localhost:8888`
-* **Benefit:** Filter logs by container (e.g., just show `propertea_org` errors) without CLI noise.
+* **Role:** Provides a local Blob/Queue endpoint that matches Azure's API signature 100%.
+
+### D. Platform Storage (SeaweedFS)
+Used in SIT to provide an S3-compatible API for platform tools (Loki, Tempo, Postgres Backups) which require object storage.
+
+* **Role:** Acts as the "S3 of the SIT Cluster."
+
+---
 
 ## 4. System Architecture
 
 ### Tenant Resolution Flow
+
 1.  **Request:** `https://acme.propertea.com` -> **Traefik** -> **Next.js BFF**.
-2.  **Identification:** BFF checks Redis for slug `acme`. Resolves to GUID.
-3.  **Propagation:** BFF adds header `X-Organization-Id: <GUID>` to all downstream API calls.
+2.  **Identification:** BFF checks Redis (App Instance) for slug `acme`. Resolves to GUID.
+3.  **Propagation:** BFF adds header `X-Organization-Id: <GUID>` to downstream API calls.
 4.  **Enforcement:** .NET Middleware reads header; sets `EF Core` Query Filter.
 
-### Authorization (ReBAC)
-* **Engine:** OpenFGA.
-* **Model:** Defined in `src/ProperTea.Permissions/model.fga`.
-* **Check:** `.NET SDK` calls OpenFGA: `Check(User:Bob, relation:can_view, object:invoice:123)`.
+### SIT Cluster Topology (Talos)
 
-### SIT Cluster (Talos Linux)
-* **Hardware:** Mini-PC (Intel NUC / Beelink).
-* **OS:** Talos (API-managed, No SSH).
-* **Management:** `talosctl` from Dev Laptop.
-* **Exposure:** **Cloudflare Tunnel** (`cloudflared`) to expose `https://sit.propertea.com` without opening router ports.
+* **Ingress:** Cloudflare Tunnel -> Traefik.
+* **Persistence:**
+    * **Postgres-Infra:** (StatefulSet) -> Local Disk.
+    * **Postgres-App:** (CloudNativePG Operator) -> Local Disk + S3 Backups (SeaweedFS).
+* **Observability:** OTel Collectors pushing to local Grafana Stack.
 
-## 5. Diagram: SIT/Prod Topology
+---
+
+## 5. Diagram: The "Hybrid" Stack
 
 ```mermaid
 graph TD
-    subgraph "External"
-        User[Developer / Tester]
-    end
+    subgraph "SIT (Talos Linux)"
+        direction TB
+        Traefik[Traefik]
 
-    subgraph "SIT Cluster (Talos)"
-        subgraph "Ingress"
-            Tunnel[Cloudflare Tunnel]
-            Traefik[Traefik Gateway]
-        end
-
-        subgraph "Platform"
-            Authentik[Authentik]
-            Unleash[Unleash]
+        subgraph "Platform Layer"
             Infisical[Infisical Operator]
+            Unleash[Unleash]
+            Seaweed[SeaweedFS]
+            PG_Infra[(Postgres Infra)]
         end
 
-        subgraph "App Services"
+        subgraph "Application Layer"
             BFF[Next.js Portal]
-            OrgSvc[Organization Svc]
-        end
-
-        subgraph "Data"
-            Postgres[(PostgreSQL 18)]
-            Azurite[(Azurite)]
-            Mailpit[(Mailpit)]
+            Backend[.NET Core]
+            PG_App[(Postgres App)]
+            Redis_App[(Redis App)]
         end
     end
 
-    User -- "[https://sit.propertea.com](https://sit.propertea.com)" --> Tunnel
+    subgraph "External"
+        Dev[Developer]
+        Tunnel[Cloudflare Tunnel]
+    end
+
+    %% Flow
+    Dev -- HTTPS --> Tunnel
     Tunnel --> Traefik
     Traefik --> BFF
-    Traefik --> Authentik
 
-    BFF -- "X-Organization-Id" --> OrgSvc
-    OrgSvc --> Postgres
-    OrgSvc --> Azurite
+    %% Config Injection
+    Infisical -- "Injects Secrets" --> Backend
+    Infisical -- "Injects Blueprints" --> PG_Infra
+
+    %% App Flow
+    BFF --> Backend
+    Backend -- "EF Core" --> PG_App
+    Backend -- "S3 SDK" --> Seaweed
+
+    %% Dependencies
+    Unleash -.-> PG_Infra
+    Authentik -.-> PG_Infra
