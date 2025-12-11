@@ -82,7 +82,12 @@ services:
             DB_CONNECTION_URI: "postgres://infisical:${INFISICAL_DB_PASS}@infra-postgres:5432/infisical"
             REDIS_URL: "redis://:${INFRA_REDIS_PASS}@infra-redis:6379"
             TELEMETRY_ENABLED: "false"
-            SMTP_HOST: ""
+            SMTP_HOST: "propertea-mailpit"
+            SMTP_PORT: 1025
+            SMTP_USERNAME: "test"
+            SMTP_PASSWORD: "test"
+            SMTP_FROM_ADDRESS: "no-reply@propertea.localhost"
+            SMTP_SECURE: "false"
         labels:
             - "traefik.enable=true"
             - "traefik.http.routers.infisical.rule=Host(`secrets.propertea.localhost`)"
@@ -168,6 +173,12 @@ services:
             AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASS}
             AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
             AUTHENTIK_ERROR_REPORTING__ENABLED: "true"
+            AUTHENTIK_EMAIL__HOST: propertea-mailpit
+            AUTHENTIK_EMAIL__PORT: 1025
+            AUTHENTIK_EMAIL__USE_TLS: "false"
+            AUTHENTIK_EMAIL__USE_SSL: "false"
+            AUTHENTIK_EMAIL__TIMEOUT: 30
+            AUTHENTIK_EMAIL__FROM: "authentik@propertea.localhost"
         volumes:
             - authentik_media:/media
             - authentik_templates:/templates
@@ -205,6 +216,12 @@ services:
             AUTHENTIK_POSTGRESQL__NAME: authentik
             AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASS}
             AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+            AUTHENTIK_EMAIL__HOST: propertea-mailpit
+            AUTHENTIK_EMAIL__PORT: 1025
+            AUTHENTIK_EMAIL__USE_TLS: "false"
+            AUTHENTIK_EMAIL__USE_SSL: "false"
+            AUTHENTIK_EMAIL__TIMEOUT: 30
+            AUTHENTIK_EMAIL__FROM: "authentik@propertea.localhost"
         volumes:
             - authentik_media:/media
             - authentik_templates:/templates

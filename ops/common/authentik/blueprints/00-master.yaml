@@ -17,6 +17,12 @@ entries:
     - model: authentik_blueprints.metaapplyblueprint
       attrs:
           identifiers:
+              name: ProperTea - Recovery
+          required: true
+
+    - model: authentik_blueprints.metaapplyblueprint
+      attrs:
+          identifiers:
               name: ProperTea - Brands
           required: true
 

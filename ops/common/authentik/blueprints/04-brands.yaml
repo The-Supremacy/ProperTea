@@ -7,6 +7,7 @@ entries:
           domain: "propertea.localhost"
       attrs:
           branding_title: "ProperTea"
-          flow_authentication: !Find [authentik_flows.flow, [slug, propertea-authentication-flow]]
+          flow_authentication: !Find [authentik_flows.flow, [slug, "propertea-authentication-flow"]]
           flow_invalidation: !Find [authentik_flows.flow, [slug, "default-provider-invalidation-flow"]]
           flow_user_settings: !Find [authentik_flows.flow, [slug, "default-user-settings-flow"]]
+          flow_recovery: !Find [authentik_flows.flow, [slug, "propertea-flow-recovery"]]

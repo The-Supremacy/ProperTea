@@ -30,9 +30,14 @@ metrics_generator:
     storage:
         path: /tmp/tempo/generator/wal
         remote_write_flush_deadline: 1m
+        remote_write:
+            - url: http://victoria-metrics:8428/api/v1/write
+              send_exemplars: true
     ring:
         kvstore:
             store: memberlist
+        instance_interface_names:
+            - eth0
 
 storage:
     trace:
@@ -49,4 +54,4 @@ memberlist:
         - tempo:7946
 
 overrides:
-    metrics_generator_processors: [service-graphs, span-metrics]
+    metrics_generator_processors: [service-graphs, span-metrics, local-blocks]

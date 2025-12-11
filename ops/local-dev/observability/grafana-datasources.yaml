@@ -5,10 +5,18 @@ datasources:
       type: victoriametrics-metrics-datasource
       access: proxy
       url: http://victoria-metrics:8428
-      isDefault: true
+      isDefault: false
       editable: false
       jsonData:
         prometheusType: Prometheus
+
+    # 2. Compatibility Mode (For Drilldown and older dashboards)
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      url: http://victoria-metrics:8428
+      isDefault: true
+      editable: false
 
     - name: Loki
       type: loki

@@ -8,7 +8,7 @@ entries:
     - model: authentik_policies_password.passwordpolicy
       id: propertea-policy-strict-password
       identifiers:
-          name: ProperTea - Password policy
+          name: "ProperTea - Password policy"
       attrs:
           length_min: 12
           check_have_i_been_pwned: true
@@ -62,6 +62,7 @@ entries:
       id: propertea-prompt-field-password
       identifiers:
           field_key: password
+          name: "ProperTea - Password"
       attrs:
           label: Password
           type: password
@@ -72,6 +73,7 @@ entries:
       id: propertea-prompt-field-password-repeat
       identifiers:
           field_key: password_repeat
+          name: "ProperTea - Password repeat"
       attrs:
           label: Repeat Password
           type: password
@@ -95,12 +97,23 @@ entries:
               - !KeyOf propertea-policy-strict-password
               - !KeyOf propertea-policy-set-username
 
+    -   model: authentik_stages_email.emailstage
+        id: propertea-stage-email-verification
+        identifiers:
+            name: ProperTea - Email Verification
+        attrs:
+            use_global_settings: true
+            activate_user_on_success: true
+            template: email/account_confirmation.html
+            subject: "Verify your ProperTea account"
+            token_expiry: "minutes=30"
+
     - model: authentik_stages_user_write.userwritestage
       id: propertea-stage-user-write
       identifiers:
           name: ProperTea - Create User
       attrs:
-          create_users_as_inactive: false
+          create_users_as_inactive: true
           user_creation_mode: always_create
 
     - model: authentik_stages_user_login.userloginstage
@@ -119,6 +132,7 @@ entries:
           name: ProperTea Sign Up
           title: Sign up for ProperTea
           designation: enrollment
+          authentication: none
 
     # -----------------------------------------------------------------------
     # Flow Bindings
@@ -138,6 +152,13 @@ entries:
           target: !KeyOf propertea-flow-enrollment
           stage: !KeyOf propertea-stage-user-write
           order: 20
+
+    -   model: authentik_flows.flowstagebinding
+        identifiers:
+            target: !KeyOf propertea-flow-enrollment
+            stage: !KeyOf propertea-stage-email-verification
+        attrs:
+            order: 25
 
     - model: authentik_flows.flowstagebinding
       id: propertea-binding-user-login

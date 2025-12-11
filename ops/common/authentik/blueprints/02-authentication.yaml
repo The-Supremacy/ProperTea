@@ -13,7 +13,8 @@ entries:
           show_matched_user: true
           pretend_user_exists: true
           enable_remember_me: true
-          enrollment_flow: !Find [authentik_flows.flow, [name, "ProperTea Sign Up"]]
+          enrollment_flow: !Find [authentik_flows.flow, [slug, "propertea-enrollment"]]
+          recovery_flow: !Find [authentik_flows.flow, [slug, "propertea-flow-recovery"]]
 
     - model: authentik_flows.flow
       id: propertea-authentication-flow
