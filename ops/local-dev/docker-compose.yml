@@ -290,15 +290,18 @@ services:
             - propertea-net
 
     # 2. Metrics: Prometheus
-    prometheus:
-        image: prom/prometheus:v3.8.0
-        container_name: propertea-prometheus
+    victoria-metrics:
+        image: victoriametrics/victoria-metrics:v1.131.0
+        container_name: propertea-vmetrics
         command:
-            - --config.file=/etc/prometheus/prometheus.yml
-            - --web.enable-lifecycle
+            - "--storageDataPath=/storage"
+            - "--httpListenAddr=:8428"
+            - "--promscrape.config=/etc/prometheus/prometheus.yml"
+        ports:
+            - "8428:8428"
         volumes:
+            - vmmetrics_data:/storage
             - ./observability/prometheus.yaml:/etc/prometheus/prometheus.yml
-            - prometheus_data:/prometheus
         networks:
             - propertea-net
 
@@ -331,6 +334,8 @@ services:
             - GF_SECURITY_ADMIN_USER=admin
             - GF_SECURITY_ADMIN_PASSWORD=admin
             - GF_AUTH_ANONYMOUS_ENABLED=true
+            - GF_INSTALL_PLUGINS=victoriametrics-metrics-datasource
+            - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=victoriametrics-metrics-datasource
         ports:
             - "30001:3000"
         volumes:
@@ -413,7 +418,7 @@ volumes:
     azurite_data:
     authentik_media:
     authentik_templates:
-    prometheus_data:
+    vmmetrics_data:
     grafana_data:
 
 networks:
