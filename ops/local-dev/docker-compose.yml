@@ -25,6 +25,7 @@ services:
     infra-postgres:
         image: postgres:18.1-alpine
         container_name: propertea-infra-postgres
+        command: postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all
         restart: unless-stopped
         environment:
             POSTGRES_USER: ${INFRA_PG_USER}
@@ -350,6 +351,7 @@ services:
         image: postgres:16-alpine
         container_name: propertea-apps-postgres
         restart: unless-stopped
+        command: postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all
         environment:
             POSTGRES_USER: ${APP_PG_USER}
             POSTGRES_PASSWORD: ${APP_PG_PASS}
@@ -461,6 +463,69 @@ services:
             - "10002:10002" # Table
         volumes:
             - azurite_data:/data
+        networks:
+            - propertea-net
+
+    pghero:
+        image: ankane/pghero
+        container_name: propertea-pghero
+        restart: unless-stopped
+        environment:
+            - DATABASE_URL_ORG=postgres://${APP_PG_USER}:${APP_PG_PASS}@apps-postgres:5432/propertea_organization_db
+            - DATABASE_URL_INFRA=postgres://${INFRA_PG_USER}:${INFRA_PG_PASS}@infra-postgres:5432/postgres
+            - PGHERO_USERNAME=${PGHERO_USERNAME}
+            - PGHERO_PASSWORD=${PGHERO_PASSWORD}
+        volumes:
+            - ./observability/pghero.yml:/app/config/pghero.yml
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.pghero.rule=Host(`pghero.propertea.localhost`)"
+            - "traefik.http.routers.pghero.tls=true"
+            - "traefik.http.services.pghero.loadbalancer.server.port=8080"
+        networks:
+            - propertea-net
+
+    # --- Exporters (Add to Observability Stack) ---
+
+    # 1. Redis Infra Exporter
+    infra-redis-exporter:
+        image: oliver006/redis_exporter:v1.67.0
+        container_name: propertea-infra-redis-exporter
+        restart: unless-stopped
+        environment:
+            - REDIS_ADDR=redis://infra-redis:6379
+            - REDIS_PASSWORD=${INFRA_REDIS_PASS}
+        networks:
+            - propertea-net
+
+    # 2. Redis Apps Exporter
+    apps-redis-exporter:
+        image: oliver006/redis_exporter:v1.67.0
+        container_name: propertea-apps-redis-exporter
+        restart: unless-stopped
+        environment:
+            - REDIS_ADDR=redis://apps-redis:6379
+            - REDIS_PASSWORD=${APP_REDIS_PASS}
+        networks:
+            - propertea-net
+
+    # 3. Postgres Infra Exporter
+    infra-postgres-exporter:
+        image: quay.io/prometheuscommunity/postgres-exporter:v0.16.0
+        container_name: propertea-infra-postgres-exporter
+        restart: unless-stopped
+        environment:
+            - DATA_SOURCE_NAME=postgresql://${INFRA_PG_USER}:${INFRA_PG_PASS}@infra-postgres:5432/postgres?sslmode=disable
+        networks:
+            - propertea-net
+
+    # 4. Postgres Apps Exporter
+    apps-postgres-exporter:
+        image: quay.io/prometheuscommunity/postgres-exporter:v0.16.0
+        container_name: propertea-apps-postgres-exporter
+        restart: unless-stopped
+        environment:
+            - DATA_SOURCE_NAME=postgresql://${APP_PG_USER}:${APP_PG_PASS}@apps-postgres:5432/postgres?sslmode=disable
         networks:
             - propertea-net
 

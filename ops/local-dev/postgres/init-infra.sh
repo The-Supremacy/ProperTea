@@ -35,6 +35,13 @@ EOSQL
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$service_name" <<-EOSQL
         GRANT ALL ON SCHEMA public TO $service_name;
 EOSQL
+
+    # --- Enable PgHero Monitoring Extension ---
+    echo "   -> Enabling pg_stat_statements for '$service_name'..."
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$service_name" <<-EOSQL
+        CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+EOSQL
+    # -----------------------------------------------
 }
 
 # --- Execute for each service ---

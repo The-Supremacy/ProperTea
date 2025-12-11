@@ -1,0 +1,8 @@
+databases:
+    organization:
+        name: Organization service
+        url: <%= ENV["DATABASE_URL_ORG"] %>
+
+    infra:
+        name: Infrastructure
+        url: <%= ENV["DATABASE_URL_INFRA"] %>

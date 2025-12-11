@@ -9,3 +9,19 @@ scrape_configs:
     - job_name: 'cadvisor'
       static_configs:
            - targets: [ 'cadvisor:8080' ]
+
+    - job_name: 'redis-infra'
+      static_configs:
+          - targets: ['infra-redis-exporter:9121']
+
+    - job_name: 'redis-apps'
+      static_configs:
+          - targets: ['apps-redis-exporter:9121']
+
+    - job_name: 'postgres-infra'
+      static_configs:
+          - targets: ['infra-postgres-exporter:9187']
+
+    - job_name: 'postgres-apps'
+      static_configs:
+          - targets: ['apps-postgres-exporter:9187']
