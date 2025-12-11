@@ -37,14 +37,15 @@ up:
 	@docker compose -f $(COMPOSE_FILE) up -d
 	@echo "✅ Stack is running!"
 	@echo "   ---------------------------------------"
-	@echo "   🌍 BFF:       https://propertea.localhost"
-	@echo "   🛡️  Auth:      https://auth.propertea.localhost"
+	@echo "   🛡️ Auth:      https://auth.propertea.localhost"
 	@echo "   🔑 Secrets:   https://secrets.propertea.localhost"
 	@echo "   🚩 Flags:     https://flags.propertea.localhost"
 	@echo "   📧 Mail:      https://mail.propertea.localhost"
 	@echo "   🚫 AuthZ:     https://fga.propertea.localhost"
 	@echo "   📊 Grafana:   https://grafana.propertea.localhost"
 	@echo "   🪵 Logs:      https://logs.propertea.localhost"
+	@echo "   🌍 Services:  "
+	@echo "   Organization: https://organization.propertea.localhost"
 	@echo "   ---------------------------------------"
 
 down:
