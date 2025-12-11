@@ -1,0 +1,170 @@
+services:
+    # --- Exporters ---
+    infra-redis-exporter:
+        image: oliver006/redis_exporter:v1.67.0
+        container_name: propertea-infra-redis-exporter
+        restart: unless-stopped
+        environment:
+            - REDIS_ADDR=redis://infra-redis:6379
+            - REDIS_PASSWORD=${INFRA_REDIS_PASS}
+        networks:
+            - propertea-net
+
+    apps-redis-exporter:
+        image: oliver006/redis_exporter:v1.67.0
+        container_name: propertea-apps-redis-exporter
+        restart: unless-stopped
+        environment:
+            - REDIS_ADDR=redis://apps-redis:6379
+            - REDIS_PASSWORD=${APP_REDIS_PASS}
+        networks:
+            - propertea-net
+
+    infra-postgres-exporter:
+        image: quay.io/prometheuscommunity/postgres-exporter:v0.16.0
+        container_name: propertea-infra-postgres-exporter
+        restart: unless-stopped
+        environment:
+            - DATA_SOURCE_NAME=postgresql://${INFRA_PG_USER}:${INFRA_PG_PASS}@infra-postgres:5432/postgres?sslmode=disable
+        networks:
+            - propertea-net
+
+    apps-postgres-exporter:
+        image: quay.io/prometheuscommunity/postgres-exporter:v0.16.0
+        container_name: propertea-apps-postgres-exporter
+        restart: unless-stopped
+        environment:
+            - DATA_SOURCE_NAME=postgresql://${APP_PG_USER}:${APP_PG_PASS}@apps-postgres:5432/postgres?sslmode=disable
+        networks:
+            - propertea-net
+
+    # --- Core Stack ---
+    otel-collector:
+        image: otel/opentelemetry-collector-contrib:0.141.0
+        container_name: propertea-otel-collector
+        command: ["--config=/etc/otel-collector-config.yaml"]
+        volumes:
+            - ./observability/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+        ports:
+            - "4317:4317"
+            - "4318:4318"
+            - "8889:8889"
+        networks:
+            - propertea-net
+
+    victoria-metrics:
+        image: victoriametrics/victoria-metrics:v1.131.0
+        container_name: propertea-vmetrics
+        command:
+            - "--storageDataPath=/storage"
+            - "--httpListenAddr=:8428"
+            - "--promscrape.config=/etc/prometheus/prometheus.yml"
+        ports:
+            - "8428:8428"
+        volumes:
+            - vmmetrics_data:/storage
+            - ./observability/prometheus.yaml:/etc/prometheus/prometheus.yml
+        networks:
+            - propertea-net
+
+    loki:
+        image: grafana/loki:3.6.2
+        container_name: propertea-loki
+        command: -config.file=/etc/loki/local-config.yaml
+        ports:
+            - "3100:3100"
+        networks:
+            - propertea-net
+
+    tempo:
+        image: grafana/tempo:2.9.0
+        container_name: propertea-tempo
+        command: [ "-config.file=/etc/tempo.yaml" ]
+        volumes:
+            - ./observability/tempo.yaml:/etc/tempo.yaml
+        networks:
+            - propertea-net
+
+    grafana:
+        image: grafana/grafana:12.3.0
+        container_name: propertea-grafana
+        restart: unless-stopped
+        environment:
+            - GF_SECURITY_ADMIN_USER=admin
+            - GF_SECURITY_ADMIN_PASSWORD=admin
+            - GF_AUTH_ANONYMOUS_ENABLED=true
+            - GF_INSTALL_PLUGINS=victoriametrics-metrics-datasource
+            - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=victoriametrics-metrics-datasource
+        ports:
+            - "30001:3000"
+        volumes:
+            - grafana_data:/var/lib/grafana
+            - ./observability/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+        depends_on:
+            victoria-metrics:
+                condition: service_started
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.grafana.rule=Host(`grafana.propertea.localhost`)"
+            - "traefik.http.routers.grafana.tls=true"
+            - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+        networks:
+            - propertea-net
+
+    # --- Dashboards ---
+    cadvisor:
+        image: gcr.io/cadvisor/cadvisor:v0.47.2
+        container_name: propertea-cadvisor
+        restart: unless-stopped
+        privileged: true
+        devices:
+            - /dev/kmsg
+        volumes:
+            - /:/rootfs:ro
+            - /var/run:/var/run:ro
+            - /sys:/sys:ro
+            - /var/lib/docker/:/var/lib/docker:ro
+            - /dev/disk/:/dev/disk:ro
+        networks:
+            - propertea-net
+
+    dozzle:
+        image: amir20/dozzle:latest
+        container_name: propertea-dozzle
+        restart: unless-stopped
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.dozzle.rule=Host(`logs.propertea.localhost`)"
+            - "traefik.http.routers.dozzle.tls=true"
+            - "traefik.http.services.dozzle.loadbalancer.server.port=8080"
+        networks:
+            - propertea-net
+
+    pghero:
+        image: ankane/pghero
+        container_name: propertea-pghero
+        restart: unless-stopped
+        environment:
+            - DATABASE_URL_ORG=postgres://${APP_PG_USER}:${APP_PG_PASS}@apps-postgres:5432/propertea_organization_db
+            - DATABASE_URL_INFRA=postgres://${INFRA_PG_USER}:${INFRA_PG_PASS}@infra-postgres:5432/postgres
+            - PGHERO_USERNAME=${PGHERO_USERNAME}
+            - PGHERO_PASSWORD=${PGHERO_PASSWORD}
+        volumes:
+            - ./observability/pghero.yml:/app/config/pghero.yml
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.pghero.rule=Host(`pghero.propertea.localhost`)"
+            - "traefik.http.routers.pghero.tls=true"
+            - "traefik.http.services.pghero.loadbalancer.server.port=8080"
+        networks:
+            - propertea-net
+
+volumes:
+    vmmetrics_data:
+    grafana_data:
+
+networks:
+    propertea-net:
+        external: true

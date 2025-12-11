@@ -1,0 +1,37 @@
+services:
+    mailpit:
+        image: axllent/mailpit:v1.28.0
+        container_name: propertea-mailpit
+        restart: unless-stopped
+        ports:
+            - "8025:8025" # UI
+            - "1025:1025" # SMTP
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.mailpit.rule=Host(`mail.propertea.localhost`)"
+            - "traefik.http.routers.mailpit.entrypoints=websecure"
+            - "traefik.http.routers.mailpit.tls=true"
+            - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
+        networks:
+            - propertea-net
+
+    azurite:
+        image: mcr.microsoft.com/azure-storage/azurite
+        container_name: propertea-azurite
+        restart: unless-stopped
+        command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0"
+        ports:
+            - "10000:10000" # Blob
+            - "10001:10001" # Queue
+            - "10002:10002" # Table
+        volumes:
+            - azurite_data:/data
+        networks:
+            - propertea-net
+
+volumes:
+    azurite_data:
+
+networks:
+    propertea-net:
+        external: true

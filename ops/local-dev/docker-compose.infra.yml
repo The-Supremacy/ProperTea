@@ -1,0 +1,147 @@
+name: propertea
+
+services:
+    # --- Ingress ---
+    traefik:
+        image: traefik:v3.6.2
+        container_name: propertea-traefik
+        command:
+            - "--api.insecure=true"
+            - "--providers.docker=true"
+            - "--providers.docker.exposedbydefault=false"
+            - "--entrypoints.web.address=:80"
+            - "--entrypoints.websecure.address=:443"
+            - "--providers.file.filename=/etc/traefik/dynamic.yml"
+        ports:
+            - "80:80"
+            - "443:443"
+            - "8080:8080"
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - ./certs:/etc/traefik/certs:ro
+            - ./traefik/traefik-dynamic.yml:/etc/traefik/dynamic.yml:ro
+        networks:
+            - propertea-net
+
+    # --- Shared Infra DB (Vendors) ---
+    infra-postgres:
+        image: postgres:18.1-alpine
+        container_name: propertea-infra-postgres
+        command: postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: ${INFRA_PG_USER}
+            POSTGRES_PASSWORD: ${INFRA_PG_PASS}
+            POSTGRES_DB: postgres
+            INFISICAL_DB_PASS: ${INFISICAL_DB_PASS}
+            AUTHENTIK_DB_PASS: ${AUTHENTIK_DB_PASS}
+            UNLEASH_DB_PASS: ${UNLEASH_DB_PASS}
+            OPENFGA_DB_PASS: ${OPENFGA_DB_PASS}
+        ports:
+            - "${INFRA_PG_PORT}:5432"
+        volumes:
+            - infra-postgres_data:/var/lib/postgresql/data
+            - ./postgres/init-infra.sh:/docker-entrypoint-initdb.d/init-infra.sh
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -U ${INFRA_PG_USER} -d postgres" ]
+            interval: 5s
+            timeout: 5s
+            retries: 10
+            start_period: 10s
+        networks:
+            - propertea-net
+
+    # --- Shared Infra Cache ---
+    infra-redis:
+        image: redis:8.4.0-alpine
+        container_name: propertea-infra-redis
+        restart: unless-stopped
+        command: redis-server --requirepass ${INFRA_REDIS_PASS}
+        ports:
+            - "${INFRA_REDIS_PORT}:6379"
+        volumes:
+            - infra-redis_data:/data
+        healthcheck:
+            test: [ "CMD", "redis-cli", "-a", "${INFRA_REDIS_PASS}", "ping" ]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        networks:
+            - propertea-net
+
+    # --- Apps DB (Business Data) ---
+    apps-postgres:
+        image: postgres:16-alpine
+        container_name: propertea-apps-postgres
+        restart: unless-stopped
+        command: postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all
+        environment:
+            POSTGRES_USER: ${APP_PG_USER}
+            POSTGRES_PASSWORD: ${APP_PG_PASS}
+            POSTGRES_DB: postgres
+            ORG_SERVICE_DB_PASS: ${ORG_SERVICE_DB_PASS}
+        ports:
+            - "${APP_PG_PORT}:5432"
+        volumes:
+            - apps-postgres_data:/var/lib/postgresql/data
+            - ./postgres/init-apps.sh:/docker-entrypoint-initdb.d/init-apps.sh
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -U ${APP_PG_USER} -d postgres" ]
+            interval: 5s
+            timeout: 5s
+            retries: 10
+            start_period: 10s
+        networks:
+            - propertea-net
+
+    # --- Apps Cache ---
+    apps-redis:
+        image: redis:alpine
+        container_name: propertea-apps-redis
+        restart: unless-stopped
+        command: redis-server --requirepass ${APP_REDIS_PASS}
+        ports:
+            - "6379:6379"
+        volumes:
+            - apps-redis_data:/data
+        healthcheck:
+            test: [ "CMD", "redis-cli", "-a", "${APP_REDIS_PASS}", "ping" ]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        networks:
+            - propertea-net
+
+    # --- Message Broker ---
+    rabbitmq:
+        image: rabbitmq:4.1.6-management
+        container_name: propertea-rabbitmq
+        restart: unless-stopped
+        environment:
+            - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+            - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        volumes:
+            - rabbitmq_data:/var/lib/rabbitmq
+        healthcheck:
+            test: rabbitmq-diagnostics -q ping
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 20s
+        networks:
+            - propertea-net
+
+# Define volumes and networks once here (or in every file, Docker merges them)
+volumes:
+    infra-postgres_data:
+    infra-redis_data:
+    apps-postgres_data:
+    apps-redis_data:
+    rabbitmq_data:
+
+networks:
+    propertea-net:
+        driver: bridge

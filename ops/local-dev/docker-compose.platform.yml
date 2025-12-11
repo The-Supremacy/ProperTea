@@ -1,0 +1,176 @@
+services:
+    # --- Secrets Management ---
+    infisical:
+        image: infisical/infisical:v0.154.6
+        container_name: propertea-infisical
+        restart: unless-stopped
+        depends_on:
+            infra-postgres:
+                condition: service_healthy
+            infra-redis:
+                condition: service_healthy
+        environment:
+            ENCRYPTION_KEY: ${INFISICAL_ENCRYPTION_KEY}
+            AUTH_SECRET: ${INFISICAL_AUTH_SECRET}
+            DB_CONNECTION_URI: "postgres://infisical:${INFISICAL_DB_PASS}@infra-postgres:5432/infisical"
+            REDIS_URL: "redis://:${INFRA_REDIS_PASS}@infra-redis:6379"
+            TELEMETRY_ENABLED: "false"
+            SMTP_HOST: "propertea-mailpit"
+            SMTP_PORT: 1025
+            SMTP_USERNAME: "test"
+            SMTP_PASSWORD: "test"
+            SMTP_FROM_ADDRESS: "no-reply@propertea.localhost"
+            SMTP_SECURE: "false"
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.infisical.rule=Host(`secrets.propertea.localhost`)"
+            - "traefik.http.routers.infisical.tls=true"
+            - "traefik.http.services.infisical.loadbalancer.server.port=8080"
+        networks:
+            - propertea-net
+
+    # --- Feature Flags ---
+    unleash:
+        image: unleashorg/unleash-server:7.3.0
+        container_name: propertea-unleash
+        restart: unless-stopped
+        depends_on:
+            infra-postgres:
+                condition: service_healthy
+        environment:
+            DATABASE_HOST: infra-postgres
+            DATABASE_NAME: unleash
+            DATABASE_USERNAME: unleash
+            DATABASE_PASSWORD: ${UNLEASH_DB_PASS}
+            DATABASE_SSL: "false"
+            INIT_ADMIN_API_TOKEN: ${UNLEASH_INIT_ADMIN_API_TOKEN}
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.unleash.rule=Host(`flags.propertea.localhost`)"
+            - "traefik.http.routers.unleash.tls=true"
+            - "traefik.http.services.unleash.loadbalancer.server.port=4242"
+        networks:
+            - propertea-net
+
+    # --- AuthZ ---
+    openfga-migrate:
+        image: openfga/openfga:v1.11.2
+        container_name: propertea-openfga-migrate
+        command: migrate
+        depends_on:
+            infra-postgres:
+                condition: service_healthy
+        environment:
+            OPENFGA_DATASTORE_ENGINE: postgres
+            OPENFGA_DATASTORE_URI: postgres://openfga:${OPENFGA_DB_PASS}@infra-postgres:5432/openfga?sslmode=disable
+        networks:
+            - propertea-net
+
+    openfga:
+        image: openfga/openfga:v1.11.2
+        container_name: propertea-openfga
+        restart: unless-stopped
+        command: run
+        depends_on:
+            infra-postgres:
+                condition: service_healthy
+            openfga-migrate:
+                condition: service_completed_successfully
+        ports:
+            - "3000:3000"
+        environment:
+            OPENFGA_DATASTORE_ENGINE: postgres
+            OPENFGA_DATASTORE_URI: postgres://openfga:${OPENFGA_DB_PASS}@infra-postgres:5432/openfga?sslmode=disable
+            OPENFGA_PLAYGROUND_ENABLED: "true"
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.openfga.rule=Host(`fga.propertea.localhost`)"
+            - "traefik.http.routers.openfga.tls=true"
+            - "traefik.http.services.openfga.loadbalancer.server.port=8080"
+        networks:
+            - propertea-net
+
+    # --- Identity Provider ---
+    authentik-server:
+        image: ghcr.io/goauthentik/server:2025.10.2
+        container_name: propertea-authentik-server
+        restart: unless-stopped
+        command: server
+        environment:
+            AUTHENTIK_REDIS__HOST: infra-redis
+            AUTHENTIK_REDIS__PASSWORD: ${INFRA_REDIS_PASS}
+            AUTHENTIK_REDIS__DB: 1
+            AUTHENTIK_POSTGRESQL__HOST: infra-postgres
+            AUTHENTIK_POSTGRESQL__USER: authentik
+            AUTHENTIK_POSTGRESQL__NAME: authentik
+            AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASS}
+            AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+            AUTHENTIK_ERROR_REPORTING__ENABLED: "true"
+            AUTHENTIK_EMAIL__HOST: propertea-mailpit
+            AUTHENTIK_EMAIL__PORT: 1025
+            AUTHENTIK_EMAIL__USE_TLS: "false"
+            AUTHENTIK_EMAIL__USE_SSL: "false"
+            AUTHENTIK_EMAIL__TIMEOUT: 30
+            AUTHENTIK_EMAIL__FROM: "authentik@propertea.localhost"
+        volumes:
+            - authentik_media:/media
+            - authentik_templates:/templates
+            - ../common/authentik/blueprints:/blueprints/propertea
+        depends_on:
+            infra-postgres:
+                condition: service_healthy
+            infra-redis:
+                condition: service_healthy
+        healthcheck:
+            test: [ "CMD", "ak", "healthcheck" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 20s
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.authentik.rule=Host(`auth.propertea.localhost`)"
+            - "traefik.http.routers.authentik.tls=true"
+            - "traefik.http.services.authentik.loadbalancer.server.port=9000"
+        networks:
+            - propertea-net
+
+    authentik-worker:
+        image: ghcr.io/goauthentik/server:2025.10.2
+        container_name: propertea-authentik-worker
+        restart: unless-stopped
+        command: worker
+        environment:
+            AUTHENTIK_REDIS__HOST: infra-redis
+            AUTHENTIK_REDIS__PASSWORD: ${INFRA_REDIS_PASS}
+            AUTHENTIK_REDIS__DB: 1
+            AUTHENTIK_POSTGRESQL__HOST: infra-postgres
+            AUTHENTIK_POSTGRESQL__USER: authentik
+            AUTHENTIK_POSTGRESQL__NAME: authentik
+            AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASS}
+            AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+            AUTHENTIK_EMAIL__HOST: propertea-mailpit
+            AUTHENTIK_EMAIL__PORT: 1025
+            AUTHENTIK_EMAIL__USE_TLS: "false"
+            AUTHENTIK_EMAIL__USE_SSL: "false"
+            AUTHENTIK_EMAIL__TIMEOUT: 30
+            AUTHENTIK_EMAIL__FROM: "authentik@propertea.localhost"
+        volumes:
+            - authentik_media:/media
+            - authentik_templates:/templates
+            - ../common/authentik/blueprints:/blueprints/propertea
+        depends_on:
+            infra-postgres:
+                condition: service_healthy
+            infra-redis:
+                condition: service_healthy
+        networks:
+            - propertea-net
+
+volumes:
+    authentik_media:
+    authentik_templates:
+
+networks:
+    propertea-net:
+        external: true

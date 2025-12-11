@@ -1,13 +1,13 @@
 # Variables
-# Update path to match new structure
-COMPOSE_FILE := ./ops/local-dev/docker-compose.yml
 CERTS_DIR := ./ops/local-dev/certs
 CERT_NAME := local-cert.pem
 KEY_NAME := local-key.pem
-# Added the wildcard for subdomains to cover everything
-DOMAINS := "propertea.localhost" "*.propertea.localhost" "localhost" 127.0.0.1 ::1
 
-HOSTS_ENTRIES := propertea.localhost auth.propertea.localhost organization.propertea.localhost secrets.propertea.localhost mail.propertea.localhost flags.propertea.localhost fga.propertea.localhost grafana.propertea.localhost logs.propertea.localhost
+# Added pghero to the host list
+HOSTS_ENTRIES := propertea.localhost auth.propertea.localhost organization.propertea.localhost secrets.propertea.localhost mail.propertea.localhost flags.propertea.localhost fga.propertea.localhost grafana.propertea.localhost logs.propertea.localhost pghero.propertea.localhost
+
+# Added wildcard for subdomains
+DOMAINS := "propertea.localhost" "*.propertea.localhost" "localhost" 127.0.0.1 ::1
 
 # --- Certificates & Host Management ---
 
@@ -34,7 +34,8 @@ hosts:
 
 up:
 	@echo "🚀 Starting ProperTea Local Stack..."
-	@docker compose -f $(COMPOSE_FILE) up -d
+	@echo "   Docker will auto-load files defined in COMPOSE_FILE from .env"
+	@docker compose --project-directory ./ops/local-dev up -d
 	@echo "✅ Stack is running!"
 	@echo "   ---------------------------------------"
 	@echo "   🛡️ Auth:      https://auth.propertea.localhost"
@@ -44,28 +45,30 @@ up:
 	@echo "   🚫 AuthZ:     https://fga.propertea.localhost"
 	@echo "   📊 Grafana:   https://grafana.propertea.localhost"
 	@echo "   🪵 Logs:      https://logs.propertea.localhost"
+	@echo "   🐘 PgHero:    https://pghero.propertea.localhost"
 	@echo "   🌍 Services:  "
 	@echo "   Organization: https://organization.propertea.localhost"
 	@echo "   ---------------------------------------"
 
 down:
-	@docker compose -f $(COMPOSE_FILE) down
+	@echo "🛑 Stopping ProperTea Local Stack..."
+	@docker compose --project-directory ./ops/local-dev down
 
 restart: down up
 
 logs:
-	@docker compose -f $(COMPOSE_FILE) logs -f
+	@docker compose --project-directory ./ops/local-dev logs -f
 
 # --- Utilities ---
 
-# Run the Idempotent DB Script (Use this when you add new tools/databases!)
+# Run the Idempotent DB Script
 init-db:
 	@echo "⚙️  Running Idempotent Infra DB Init Script..."
-	@docker exec propertea-infra-postgres /bin/bash /docker-entrypoint-initdb.d/01-init-infra.sh
+	@docker exec propertea-infra-postgres /bin/bash /docker-entrypoint-initdb.d/init-infra.sh
 
-# Nuke everything (Volumes included) - CAREFUL!
+# Nuke everything (Volumes included)
 clean: down
 	@echo "🧹 Cleaning up containers and volumes..."
-	@docker compose -f $(COMPOSE_FILE) down -v
+	@docker compose --project-directory ./ops/local-dev down -v
 	@rm -rf $(CERTS_DIR)
 	@echo "✅ Cleaned up certificates and volumes."
