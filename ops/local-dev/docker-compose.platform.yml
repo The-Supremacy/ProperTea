@@ -155,6 +155,10 @@ services:
             AUTHENTIK_EMAIL__USE_SSL: "false"
             AUTHENTIK_EMAIL__TIMEOUT: 30
             AUTHENTIK_EMAIL__FROM: "authentik@propertea.localhost"
+
+            PROPERTEA_DEV_MODE: true
+            PROPERTEA_DOMAIN: ${DOMAIN_ROOT}
+
         volumes:
             - authentik_media:/media
             - authentik_templates:/templates

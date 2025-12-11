@@ -4,7 +4,7 @@ metadata:
 entries:
     - model: authentik_brands.brand
       identifiers:
-          domain: "propertea.localhost"
+          domain: !Env [PROPERTEA_DOMAIN, "propertea.localhost"]
       attrs:
           branding_title: "ProperTea"
           flow_authentication: !Find [authentik_flows.flow, [slug, "propertea-authentication-flow"]]

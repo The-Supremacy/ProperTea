@@ -9,13 +9,22 @@ entries:
         attrs:
             client_id: "propertea-organization-api"
             client_type: public
-            redirect_uris:
-                -   url: "https://organization.propertea.localhost/scalar/"
-                    matching_mode: strict
-                -   url: "https://oauth.pstmn.io/v1/callback"
-                    matching_mode: strict
-                -   url: "com.propertea.app://callback"
-                    matching_mode: strict
+            redirect_uris: !If [ !Env [ PROPERTEA_DEV_MODE, "" ],
+                [
+                    {
+                        url: !Format [ "https://organization.%s/scalar/", !Env [ PROPERTEA_DOMAIN, "propertea.localhost" ] ],
+                        matching_mode: strict
+                    },
+                    { url: "https://oauth.pstmn.io/v1/callback", matching_mode: strict },
+                    { url: "com.propertea.app://callback", matching_mode: strict }
+                ],
+                [
+                    {
+                        url: !Format [ "https://organization.%s/scalar/", !Env [ PROPERTEA_DOMAIN, "propertea.localhost" ] ],
+                        matching_mode: strict
+                    }
+                ]
+            ]
             access_token_validity: "hours=24"
             signing_key: !Find [ authentik_crypto.certificatekeypair, [ name, "authentik Self-signed Certificate" ] ]
             authorization_flow: !Find [ authentik_flows.flow, [ slug, "default-provider-authorization-implicit-consent" ] ]
