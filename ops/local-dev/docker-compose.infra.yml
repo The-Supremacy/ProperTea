@@ -3,7 +3,7 @@ name: propertea
 services:
     # --- Ingress ---
     traefik:
-        image: traefik:v3.6.2
+        image: traefik:v3.6.5
         container_name: propertea-traefik
         command:
             - "--api.insecure=true"
@@ -23,9 +23,9 @@ services:
         networks:
             - propertea-net
 
-    # --- Shared Infra DB (Vendors) ---
+    # --- Shared Infra DB ---
     infra-postgres:
-        image: postgres:18.1-alpine
+        image: postgres:17.7-alpine
         container_name: propertea-infra-postgres
         command: postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all
         restart: unless-stopped
@@ -69,9 +69,9 @@ services:
         networks:
             - propertea-net
 
-    # --- Apps DB (Business Data) ---
+    # --- Apps DB ---
     apps-postgres:
-        image: postgres:16-alpine
+        image: postgres:17.7-alpine
         container_name: propertea-apps-postgres
         restart: unless-stopped
         command: postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all
@@ -96,7 +96,7 @@ services:
 
     # --- Apps Cache ---
     apps-redis:
-        image: redis:alpine
+        image: redis:8.4.0-alpine
         container_name: propertea-apps-redis
         restart: unless-stopped
         command: redis-server --requirepass ${APP_REDIS_PASS}
@@ -134,7 +134,6 @@ services:
         networks:
             - propertea-net
 
-# Define volumes and networks once here (or in every file, Docker merges them)
 volumes:
     infra-postgres_data:
     infra-redis_data:

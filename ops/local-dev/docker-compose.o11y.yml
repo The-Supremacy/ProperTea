@@ -1,7 +1,7 @@
 services:
     # --- Exporters ---
     infra-redis-exporter:
-        image: oliver006/redis_exporter:v1.67.0
+        image: oliver006/redis_exporter:v1.80.1
         container_name: propertea-infra-redis-exporter
         restart: unless-stopped
         environment:
@@ -11,7 +11,7 @@ services:
             - propertea-net
 
     apps-redis-exporter:
-        image: oliver006/redis_exporter:v1.67.0
+        image: oliver006/redis_exporter:v1.80.1
         container_name: propertea-apps-redis-exporter
         restart: unless-stopped
         environment:
@@ -21,7 +21,7 @@ services:
             - propertea-net
 
     infra-postgres-exporter:
-        image: quay.io/prometheuscommunity/postgres-exporter:v0.16.0
+        image: quay.io/prometheuscommunity/postgres-exporter:v0.18.1
         container_name: propertea-infra-postgres-exporter
         restart: unless-stopped
         environment:
@@ -30,7 +30,7 @@ services:
             - propertea-net
 
     apps-postgres-exporter:
-        image: quay.io/prometheuscommunity/postgres-exporter:v0.16.0
+        image: quay.io/prometheuscommunity/postgres-exporter:v0.18.1
         container_name: propertea-apps-postgres-exporter
         restart: unless-stopped
         environment:
@@ -40,7 +40,7 @@ services:
 
     # --- Core Stack ---
     otel-collector:
-        image: otel/opentelemetry-collector-contrib:0.141.0
+        image: otel/opentelemetry-collector-contrib:0.142.0
         container_name: propertea-otel-collector
         command: ["--config=/etc/otel-collector-config.yaml"]
         volumes:
@@ -53,7 +53,7 @@ services:
             - propertea-net
 
     victoria-metrics:
-        image: victoriametrics/victoria-metrics:v1.131.0
+        image: victoriametrics/victoria-metrics:v1.132.0
         container_name: propertea-vmetrics
         command:
             - "--storageDataPath=/storage"
@@ -68,7 +68,7 @@ services:
             - propertea-net
 
     loki:
-        image: grafana/loki:3.6.2
+        image: grafana/loki:3.6.3
         container_name: propertea-loki
         command: -config.file=/etc/loki/local-config.yaml
         ports:
@@ -86,7 +86,7 @@ services:
             - propertea-net
 
     grafana:
-        image: grafana/grafana:12.3.0
+        image: grafana/grafana:12.3.1
         container_name: propertea-grafana
         restart: unless-stopped
         environment:
@@ -105,7 +105,7 @@ services:
                 condition: service_started
         labels:
             - "traefik.enable=true"
-            - "traefik.http.routers.grafana.rule=Host(`grafana.propertea.localhost`)"
+            - "traefik.http.routers.grafana.rule=Host(`grafana.${DOMAIN_ROOT}`)"
             - "traefik.http.routers.grafana.tls=true"
             - "traefik.http.services.grafana.loadbalancer.server.port=3000"
         networks:
@@ -113,7 +113,7 @@ services:
 
     # --- Dashboards ---
     cadvisor:
-        image: gcr.io/cadvisor/cadvisor:v0.47.2
+        image: gcr.io/cadvisor/cadvisor:v0.52.1
         container_name: propertea-cadvisor
         restart: unless-stopped
         privileged: true
@@ -125,25 +125,30 @@ services:
             - /sys:/sys:ro
             - /var/lib/docker/:/var/lib/docker:ro
             - /dev/disk/:/dev/disk:ro
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.cadvisor.rule=Host(`cadvisor.${DOMAIN_ROOT}`)"
+            - "traefik.http.routers.cadvisor.tls=true"
+            - "traefik.http.services.cadvisor.loadbalancer.server.port=8080"
         networks:
             - propertea-net
 
     dozzle:
-        image: amir20/dozzle:latest
+        image: amir20/dozzle:v8.14.12
         container_name: propertea-dozzle
         restart: unless-stopped
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
         labels:
             - "traefik.enable=true"
-            - "traefik.http.routers.dozzle.rule=Host(`logs.propertea.localhost`)"
+            - "traefik.http.routers.dozzle.rule=Host(`logs.${DOMAIN_ROOT}`)"
             - "traefik.http.routers.dozzle.tls=true"
             - "traefik.http.services.dozzle.loadbalancer.server.port=8080"
         networks:
             - propertea-net
 
     pghero:
-        image: ankane/pghero
+        image: ankane/pghero:v3.7.0
         container_name: propertea-pghero
         restart: unless-stopped
         environment:
@@ -155,7 +160,7 @@ services:
             - ./observability/pghero.yml:/app/config/pghero.yml
         labels:
             - "traefik.enable=true"
-            - "traefik.http.routers.pghero.rule=Host(`pghero.propertea.localhost`)"
+            - "traefik.http.routers.pghero.rule=Host(`pghero.${DOMAIN_ROOT}`)"
             - "traefik.http.routers.pghero.tls=true"
             - "traefik.http.services.pghero.loadbalancer.server.port=8080"
         networks:
@@ -167,4 +172,3 @@ volumes:
 
 networks:
     propertea-net:
-        external: true

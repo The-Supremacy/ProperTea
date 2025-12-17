@@ -4,11 +4,10 @@ services:
         container_name: propertea-mailpit
         restart: unless-stopped
         ports:
-            - "8025:8025" # UI
             - "1025:1025" # SMTP
         labels:
             - "traefik.enable=true"
-            - "traefik.http.routers.mailpit.rule=Host(`mail.propertea.localhost`)"
+            - "traefik.http.routers.mailpit.rule=Host(`mail.${DOMAIN_ROOT}`)"
             - "traefik.http.routers.mailpit.entrypoints=websecure"
             - "traefik.http.routers.mailpit.tls=true"
             - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
@@ -34,4 +33,3 @@ volumes:
 
 networks:
     propertea-net:
-        external: true

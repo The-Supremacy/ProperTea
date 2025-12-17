@@ -19,11 +19,11 @@ services:
             SMTP_PORT: 1025
             SMTP_USERNAME: "test"
             SMTP_PASSWORD: "test"
-            SMTP_FROM_ADDRESS: "no-reply@propertea.localhost"
+            SMTP_FROM_ADDRESS: "no-reply@propertea.local"
             SMTP_SECURE: "false"
         labels:
             - "traefik.enable=true"
-            - "traefik.http.routers.infisical.rule=Host(`secrets.propertea.localhost`)"
+            - "traefik.http.routers.infisical.rule=Host(`secrets.${DOMAIN_ROOT}`)"
             - "traefik.http.routers.infisical.tls=true"
             - "traefik.http.services.infisical.loadbalancer.server.port=8080"
         networks:
@@ -31,7 +31,7 @@ services:
 
     # --- Feature Flags ---
     unleash:
-        image: unleashorg/unleash-server:7.3.0
+        image: unleashorg/unleash-server:7.4.0
         container_name: propertea-unleash
         restart: unless-stopped
         depends_on:
@@ -46,7 +46,7 @@ services:
             INIT_ADMIN_API_TOKEN: ${UNLEASH_INIT_ADMIN_API_TOKEN}
         labels:
             - "traefik.enable=true"
-            - "traefik.http.routers.unleash.rule=Host(`flags.propertea.localhost`)"
+            - "traefik.http.routers.unleash.rule=Host(`flags.${DOMAIN_ROOT}`)"
             - "traefik.http.routers.unleash.tls=true"
             - "traefik.http.services.unleash.loadbalancer.server.port=4242"
         networks:
@@ -84,90 +84,52 @@ services:
             OPENFGA_PLAYGROUND_ENABLED: "true"
         labels:
             - "traefik.enable=true"
-            - "traefik.http.routers.openfga.rule=Host(`fga.propertea.localhost`)"
+            - "traefik.http.routers.openfga.rule=Host(`fga.${DOMAIN_ROOT}`)"
             - "traefik.http.routers.openfga.tls=true"
             - "traefik.http.services.openfga.loadbalancer.server.port=8080"
         networks:
             - propertea-net
 
     # --- Identity Provider ---
-    authentik-server:
-        image: ghcr.io/goauthentik/server:2025.10.2
-        container_name: propertea-authentik-server
+    zitadel:
+        image: ghcr.io/zitadel/zitadel:v4.7.6
+        container_name: propertea-zitadel
         restart: unless-stopped
-        command: server
-        environment:
-            AUTHENTIK_REDIS__HOST: infra-redis
-            AUTHENTIK_REDIS__PASSWORD: ${INFRA_REDIS_PASS}
-            AUTHENTIK_REDIS__DB: 1
-            AUTHENTIK_POSTGRESQL__HOST: infra-postgres
-            AUTHENTIK_POSTGRESQL__USER: authentik
-            AUTHENTIK_POSTGRESQL__NAME: authentik
-            AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASS}
-            AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
-            AUTHENTIK_ERROR_REPORTING__ENABLED: "true"
-            AUTHENTIK_EMAIL__HOST: propertea-mailpit
-            AUTHENTIK_EMAIL__PORT: 1025
-            AUTHENTIK_EMAIL__USE_TLS: "false"
-            AUTHENTIK_EMAIL__USE_SSL: "false"
-            AUTHENTIK_EMAIL__TIMEOUT: 30
-            AUTHENTIK_EMAIL__FROM: "authentik@propertea.localhost"
-        volumes:
-            - authentik_media:/media
-            - authentik_templates:/templates
-            - ../common/authentik/blueprints:/blueprints/propertea
+        command: 'start-from-init --masterkeyFromEnv --tlsMode external'
         depends_on:
             infra-postgres:
                 condition: service_healthy
-            infra-redis:
-                condition: service_healthy
-        healthcheck:
-            test: [ "CMD", "ak", "healthcheck" ]
-            interval: 10s
-            timeout: 5s
-            retries: 5
-            start_period: 20s
+        environment:
+            - ZITADEL_DATABASE_POSTGRES_HOST=infra-postgres
+            - ZITADEL_DATABASE_POSTGRES_PORT=5432
+            - ZITADEL_DATABASE_POSTGRES_DATABASE=zitadel
+            - ZITADEL_DATABASE_POSTGRES_USER_USERNAME=zitadel
+            - ZITADEL_DATABASE_POSTGRES_USER_PASSWORD=${ZITADEL_DB_PASS}
+            - ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE=disable
+            - ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME=${INFRA_PG_USER}
+            - ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD=${INFRA_PG_PASS}
+            - ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE=disable
+
+            - ZITADEL_EXTERNALSECURE=true
+            - ZITADEL_EXTERNALDOMAIN=auth.${DOMAIN_ROOT}
+            - ZITADEL_EXTERNALPORT=443
+            - ZITADEL_TLS_ENABLED=false
+            - ZITADEL_MASTERKEY=${ZITADEL_MASTERKEY}
+
+            - ZITADEL_FIRSTINSTANCE_ORG_NAME=${ZITADEL_FIRSTINSTANCE_ORG_NAME}
+            - ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME=${ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME}
+            - ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD=${ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD}
+            - ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL=${ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL}
+            - ZITADEL_FIRSTINSTANCE_ORG_HUMAN_FIRSTNAME=${ZITADEL_FIRSTINSTANCE_ORG_HUMAN_FIRSTNAME}
+            - ZITADEL_FIRSTINSTANCE_ORG_HUMAN_LASTNAME=${ZITADEL_FIRSTINSTANCE_ORG_HUMAN_LASTNAME}
+            - ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED=false
+            - ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_VERIFIED=true
+            - ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED=false
         labels:
             - "traefik.enable=true"
-            - "traefik.http.routers.authentik.rule=Host(`auth.propertea.localhost`)"
-            - "traefik.http.routers.authentik.tls=true"
-            - "traefik.http.services.authentik.loadbalancer.server.port=9000"
-        networks:
-            - propertea-net
-
-    authentik-worker:
-        image: ghcr.io/goauthentik/server:2025.10.2
-        container_name: propertea-authentik-worker
-        restart: unless-stopped
-        command: worker
-        environment:
-            AUTHENTIK_REDIS__HOST: infra-redis
-            AUTHENTIK_REDIS__PASSWORD: ${INFRA_REDIS_PASS}
-            AUTHENTIK_REDIS__DB: 1
-            AUTHENTIK_POSTGRESQL__HOST: infra-postgres
-            AUTHENTIK_POSTGRESQL__USER: authentik
-            AUTHENTIK_POSTGRESQL__NAME: authentik
-            AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASS}
-            AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
-            AUTHENTIK_EMAIL__HOST: propertea-mailpit
-            AUTHENTIK_EMAIL__PORT: 1025
-            AUTHENTIK_EMAIL__USE_TLS: "false"
-            AUTHENTIK_EMAIL__USE_SSL: "false"
-            AUTHENTIK_EMAIL__TIMEOUT: 30
-            AUTHENTIK_EMAIL__FROM: "authentik@propertea.localhost"
-
-            PROPERTEA_DEV_MODE: true
-            PROPERTEA_DOMAIN: ${DOMAIN_ROOT}
-
-        volumes:
-            - authentik_media:/media
-            - authentik_templates:/templates
-            - ../common/authentik/blueprints:/blueprints/propertea
-        depends_on:
-            infra-postgres:
-                condition: service_healthy
-            infra-redis:
-                condition: service_healthy
+            - "traefik.http.routers.zitadel.rule=Host(`auth.${DOMAIN_ROOT}`)"
+            - "traefik.http.routers.zitadel.tls=true"
+            - "traefik.http.services.zitadel.loadbalancer.server.port=8080"
         networks:
             - propertea-net
 
@@ -177,4 +139,3 @@ volumes:
 
 networks:
     propertea-net:
-        external: true

@@ -422,3 +422,5 @@ fabric.properties
 
 .idea/*/Docker/
 docker-compose.generated.override.yml
+
+*/certs
