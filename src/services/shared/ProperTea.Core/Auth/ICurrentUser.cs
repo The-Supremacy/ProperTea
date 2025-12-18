@@ -1,7 +1,8 @@
-namespace ProperTea.Core.Auth;
-
-public interface ICurrentUser
+namespace ProperTea.Core.Auth
 {
-    public string? Id { get; }
-    public bool IsAuthenticated { get; }
+    public interface ICurrentUser
+    {
+        public string? Id { get; }
+        public bool IsAuthenticated { get; }
+    }
 }

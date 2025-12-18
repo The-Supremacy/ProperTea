@@ -4,7 +4,7 @@ CERT_NAME := local-cert.pem
 KEY_NAME := local-key.pem
 
 # Added pghero to the host list
-HOSTS_ENTRIES := propertea.localhost auth.propertea.localhost organization.propertea.localhost secrets.propertea.localhost mail.propertea.localhost flags.propertea.localhost fga.propertea.localhost grafana.propertea.localhost logs.propertea.localhost pghero.propertea.localhost cadvisor.propertea.localhost
+HOSTS_ENTRIES := propertea.localhost auth.propertea.localhost secrets.propertea.localhost mail.propertea.localhost flags.propertea.localhost fga.propertea.localhost grafana.propertea.localhost logs.propertea.localhost pghero.propertea.localhost cadvisor.propertea.localhost
 
 # Added wildcard for subdomains
 DOMAINS := "propertea.localhost" "*.propertea.localhost" "localhost" 127.0.0.1 ::1
@@ -38,7 +38,6 @@ up:
 	@echo "   📊 cAdvisor:  https://cadvisor.propertea.localhost"
 	@echo "   🐘 PgHero:    https://pghero.propertea.localhost"
 	@echo "   🌍 Services:  "
-	@echo "   Organization: https://organization.propertea.localhost"
 	@echo "   ---------------------------------------"
 
 down:
