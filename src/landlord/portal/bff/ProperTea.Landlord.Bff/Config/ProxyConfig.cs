@@ -24,7 +24,7 @@ public static class ProxyConfig
                     // 2. Inject Organization ID from header sent by FE
                     if (transformContext.HttpContext.Request.Headers.TryGetValue("X-Organization-Id", out var orgId))
                     {
-                        transformContext.ProxyRequest.Headers.Add("X-Organization-Id", orgId.ToArray());
+                        transformContext.ProxyRequest.Headers.Add("X-Organization-Id", [.. orgId]);
                     }
                 });
             });

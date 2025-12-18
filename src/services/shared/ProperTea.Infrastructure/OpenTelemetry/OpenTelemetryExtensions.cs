@@ -22,9 +22,9 @@ public static class OpenTelemetryExtensions
         var appName = builder.Environment.ApplicationName;
         var resourceBuilder = ResourceBuilder.CreateDefault().AddService(appName);
 
-        builder.AddLogging(options, resourceBuilder);
+        _ = builder.AddLogging(options, resourceBuilder);
 
-        builder.Services
+        _ = builder.Services
             .AddOpenTelemetry()
             .WithTracing(tracing =>
             {
@@ -47,7 +47,7 @@ public static class OpenTelemetryExtensions
     private static void ConfigureTracing(TracerProviderBuilder tracing, string appName, IConfiguration configuration,
         OpenTelemetryOptions options)
     {
-        tracing.AddSource(appName)
+        _ = tracing.AddSource(appName)
             .SetErrorStatusOnException()
             .SetSampler(new AlwaysOnSampler())
             .AddAspNetCoreInstrumentation(o => { o.RecordException = true; })
@@ -56,20 +56,20 @@ public static class OpenTelemetryExtensions
 
         if (!string.IsNullOrWhiteSpace(options.OtlpEndpoint))
         {
-            tracing.AddOtlpExporter(otlpOptions => { otlpOptions.Endpoint = new Uri(options.OtlpEndpoint); });
+            _ = tracing.AddOtlpExporter(otlpOptions => { otlpOptions.Endpoint = new Uri(options.OtlpEndpoint); });
         }
 
         var azureMonitorConnectionString = configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
         if (!string.IsNullOrEmpty(azureMonitorConnectionString))
         {
-            tracing.AddAzureMonitorTraceExporter(o => o.ConnectionString = azureMonitorConnectionString);
+            _ = tracing.AddAzureMonitorTraceExporter(o => o.ConnectionString = azureMonitorConnectionString);
         }
     }
 
     private static void ConfigureMetrics(MeterProviderBuilder metrics, IConfiguration configuration,
         OpenTelemetryOptions options)
     {
-        metrics
+        _ = metrics
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddRuntimeInstrumentation()
@@ -77,13 +77,13 @@ public static class OpenTelemetryExtensions
 
         if (!string.IsNullOrWhiteSpace(options.OtlpEndpoint))
         {
-            metrics.AddOtlpExporter(otlpOptions => { otlpOptions.Endpoint = new Uri(options.OtlpEndpoint); });
+            _ = metrics.AddOtlpExporter(otlpOptions => { otlpOptions.Endpoint = new Uri(options.OtlpEndpoint); });
         }
 
         var azureMonitorConnectionString = configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
         if (!string.IsNullOrEmpty(azureMonitorConnectionString))
         {
-            metrics.AddAzureMonitorMetricExporter(o => o.ConnectionString = azureMonitorConnectionString);
+            _ = metrics.AddAzureMonitorMetricExporter(o => o.ConnectionString = azureMonitorConnectionString);
         }
     }
 
@@ -93,16 +93,16 @@ public static class OpenTelemetryExtensions
         if (!options.LoggingEnabled)
             return builder;
 
-        builder.Services.AddLogging();
-        builder.Logging.AddOpenTelemetry(logging =>
+        _ = builder.Services.AddLogging();
+        _ = builder.Logging.AddOpenTelemetry(logging =>
         {
-            logging.SetResourceBuilder(resourceBuilder);
+            _ = logging.SetResourceBuilder(resourceBuilder);
             logging.IncludeFormattedMessage = true;
             logging.IncludeScopes = true;
 
             if (!string.IsNullOrWhiteSpace(options.OtlpEndpoint))
             {
-                logging.AddOtlpExporter(otlpOptions =>
+                _ = logging.AddOtlpExporter(otlpOptions =>
                 {
                     otlpOptions.Endpoint = new Uri(options.OtlpEndpoint);
                 });
@@ -115,7 +115,7 @@ public static class OpenTelemetryExtensions
     public static TBuilder AddProperHealthChecks<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder
     {
-        builder.Services.AddHealthChecks()
+        _ = builder.Services.AddHealthChecks()
             .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 
         return builder;
@@ -126,8 +126,8 @@ public static class OpenTelemetryExtensions
         const string healthEndpointPath = "/health";
         const string alivenessEndpointPath = "/alive";
 
-        app.MapHealthChecks(healthEndpointPath);
-        app.MapHealthChecks(alivenessEndpointPath, new HealthCheckOptions
+        _ = app.MapHealthChecks(healthEndpointPath);
+        _ = app.MapHealthChecks(alivenessEndpointPath, new HealthCheckOptions
         {
             Predicate = r => r.Tags.Contains("live")
         });

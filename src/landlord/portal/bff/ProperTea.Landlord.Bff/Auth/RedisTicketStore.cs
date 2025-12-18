@@ -51,14 +51,9 @@ namespace ProperTea.Landlord.Bff.Auth
         private async Task SetAsync(string key, AuthenticationTicket ticket)
         {
             var serialized = TicketSerializer.Default.Serialize(ticket);
-
-            var expiry = ticket.Properties.ExpiresUtc.HasValue
-                ? ticket.Properties.ExpiresUtc.Value - DateTimeOffset.UtcNow
-                : TimeSpan.FromHours(8);
-
             var options = new DistributedCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = expiry
+                SlidingExpiration = TimeSpan.FromHours(8),
             };
 
             await _cache.SetAsync(KeyPrefix + key, serialized, options).ConfigureAwait(false);

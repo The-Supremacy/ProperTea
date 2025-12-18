@@ -3,34 +3,35 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
-namespace ProperTea.Infrastructure.Auth;
-
-public static class AuthExtensions
+namespace ProperTea.Infrastructure.Auth
 {
-    public static IServiceCollection AddProperAuth(this IServiceCollection services, IConfiguration configuration)
+    public static class AuthExtensions
     {
-        var authOptions = new ProperAuthOptions();
-        configuration.GetSection(ProperAuthOptions.SectionName).Bind(authOptions);
-        services.AddSingleton(authOptions);
+        public static IServiceCollection AddProperAuth(this IServiceCollection services, IConfiguration configuration)
+        {
+            var authOptions = new ProperAuthOptions();
+            configuration.GetSection(ProperAuthOptions.SectionName).Bind(authOptions);
+            _ = services.AddSingleton(authOptions);
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
-            {
-                options.MetadataAddress = authOptions.InternalMetadataAddress!;
-                options.RequireHttpsMetadata = authOptions.RequireHttps;
-
-                options.TokenValidationParameters = new TokenValidationParameters
+            _ = services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
                 {
-                    ValidIssuer = authOptions.Authority,
+                    options.MetadataAddress = authOptions.InternalMetadataAddress!;
+                    options.RequireHttpsMetadata = authOptions.RequireHttps;
 
-                    ValidateAudience = true,
-                    ValidAudience = authOptions.Audience,
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidIssuer = authOptions.Authority,
 
-                    ValidateLifetime = true
-                };
-            });
+                        ValidateAudience = true,
+                        ValidAudience = authOptions.Audience,
 
-        services.AddAuthorization();
-        return services;
+                        ValidateLifetime = true
+                    };
+                });
+
+            _ = services.AddAuthorization();
+            return services;
+        }
     }
 }

@@ -10,7 +10,7 @@ public static class AuthEndpoints
     {
         var group = endpoints.MapGroup("/bff");
 
-        group.MapGet("/user", (HttpContext context) =>
+        _ = group.MapGet("/user", (HttpContext context) =>
         {
             var claims = context.User.Claims.Select(c => new { c.Type, c.Value });
             return Results.Ok(new
@@ -21,11 +21,11 @@ public static class AuthEndpoints
         })
         .RequireAuthorization();
 
-        group.MapGet("/login", (string? returnUrl) =>
+        _ = group.MapGet("/login", (string? returnUrl) =>
             Results.Challenge(new AuthenticationProperties { RedirectUri = returnUrl ?? "/" }))
             .AllowAnonymous();
 
-        group.MapGet("/logout", () =>
+        _ = group.MapGet("/logout", () =>
             Results.SignOut(new AuthenticationProperties { RedirectUri = "/" },
                 [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]))
             .RequireAuthorization();
