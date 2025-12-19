@@ -20,25 +20,12 @@ namespace ProperTea.Landlord.Bff.Config
             .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
             {
                 options.Cookie.Name = "landlord-session";
-                options.Cookie.SameSite = SameSiteMode.Strict; // BFF and FE are on the same host
+                options.Cookie.SameSite = SameSiteMode.Strict;
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 
                 var ticketStore = services.BuildServiceProvider().GetRequiredService<ITicketStore>();
                 options.SessionStore = ticketStore;
-
-                options.Events.OnRedirectToLogin = context =>
-                {
-                    if (context.Request.Path.StartsWithSegments("/api") || context.Request.Path.StartsWithSegments("/bff"))
-                    {
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    }
-                    else
-                    {
-                        context.Response.Redirect(context.RedirectUri);
-                    }
-                    return Task.CompletedTask;
-                };
             })
             .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
             {

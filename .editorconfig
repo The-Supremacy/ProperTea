@@ -61,10 +61,13 @@ dotnet_analyzer_diagnostic.category-Usage.severity = warning
 dotnet_diagnostic.CA1848.severity = suggestion
 
 # IDE0160: Convert to block scoped namespace
-dotnet_diagnostic.IDE0160.severity = suggestion
+dotnet_diagnostic.IDE0160.severity = none
 
 # IDE0290: Use primary constructor
 dotnet_diagnostic.IDE0290.severity = suggestion
 
 # IDE0011: Add braces
 dotnet_diagnostic.IDE0011.severity = suggestion
+
+# IDE0059: Unnecessary assignment of a value
+dotnet_diagnostic.IDE0059.severity = suggestion

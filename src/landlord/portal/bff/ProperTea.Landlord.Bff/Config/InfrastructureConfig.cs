@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.DataProtection;
-using ProperTea.Infrastructure.ErrorHandling;
-using ProperTea.Infrastructure.OpenTelemetry;
+using ProperTea.ServiceDefaults;
 using StackExchange.Redis;
 
 namespace ProperTea.Landlord.Bff.Config
@@ -9,19 +8,9 @@ namespace ProperTea.Landlord.Bff.Config
     {
         public static IHostApplicationBuilder AddBffInfrastructure(this IHostApplicationBuilder builder)
         {
-            // 1. Shared Error Handling
-            _ = builder.AddProperGlobalErrorHandling(options =>
-            {
-                options.ServiceName = "Landlord.Bff";
-            });
+            _ = builder.AddServiceDefaults();
 
-            // 2. Shared OpenTelemetry
-            var otelOptions = new OpenTelemetryOptions();
-            builder.Configuration.GetSection("OpenTelemetry").Bind(otelOptions);
-            _ = builder.AddProperOpenTelemetry(otelOptions);
-
-            // 3. Redis & Data Protection
-            var redisConnectionString = builder.Configuration.GetConnectionString("Redis")
+            var redisConnectionString = builder.Configuration.GetConnectionString("redis")
                                         ?? throw new InvalidOperationException("Redis connection string is missing.");
 
             var redisConnection = ConnectionMultiplexer.Connect(redisConnectionString);

@@ -22,6 +22,11 @@ hosts:
 	done
 	@echo "✅ Hosts updated"
 
+# Compose file groups
+COMPOSE_BASE = -f ops/local-dev/docker-compose.infra.yml -f ops/local-dev/docker-compose.platform.yml
+COMPOSE_LANDLORD = -f ops/local-dev/docker-compose.landlord.yml
+COMPOSE_LANDLORD_DEBUG = -f ops/local-dev/docker-compose.landlord.debug.yml
+
 up:
 	@echo "🚀 Starting ProperTea Local Stack..."
 	@echo "   Docker will auto-load files defined in COMPOSE_FILE from .env"
@@ -39,6 +44,25 @@ up:
 	@echo "   🐘 PgHero:    https://pghero.propertea.localhost"
 	@echo "   🌍 Services:  "
 	@echo "   ---------------------------------------"
+
+# === Debug Mode: Hot Reload ===
+up-debug:
+	@echo "🔧 Starting ProperTea in DEBUG mode (hot reload)..."
+	@docker compose $(COMPOSE_BASE) $(COMPOSE_LANDLORD) $(COMPOSE_LANDLORD_DEBUG) up -d
+	@echo "✅ Debug stack running! Hot reload enabled."
+	@echo "   🐳 Attach debugger via VS Code: 'Docker: Attach to BFF'"
+
+# === Debug Mode: Wait for Debugger (Startup Debug) ===
+up-debug-wait:
+	@echo "⏳ Starting ProperTea in DEBUG-WAIT mode..."
+	WAIT_FOR_DEBUGGER=true docker compose $(COMPOSE_BASE) $(COMPOSE_LANDLORD) $(COMPOSE_LANDLORD_DEBUG) up -d
+	@echo "✅ Container waiting for debugger! Attach via VS Code."
+
+# === Run BFF locally against Docker infrastructure ===
+metal-bff:
+	@echo "🔧 Starting infrastructure only..."
+	@docker compose $(COMPOSE_BASE) up -d
+	@echo "✅ Infrastructure ready. Run BFF locally with F5 in VS Code."
 
 down:
 	@echo "🛑 Stopping ProperTea Local Stack..."

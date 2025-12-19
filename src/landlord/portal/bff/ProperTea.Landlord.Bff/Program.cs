@@ -1,6 +1,6 @@
-using ProperTea.Infrastructure.ErrorHandling;
 using ProperTea.Landlord.Bff.Config;
 using ProperTea.Landlord.Bff.Endpoints;
+using ProperTea.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +10,6 @@ builder.Services.AddBffProxy(builder.Configuration);
 
 var app = builder.Build();
 
-app.UseProperGlobalErrorHandling();
 if (app.Environment.IsDevelopment())
 {
     _ = app.UseDeveloperExceptionPage();
@@ -22,7 +21,6 @@ app.UseAuthorization();
 
 app.MapAuthEndpoints();
 app.MapReverseProxy();
-
-app.MapFallbackToFile("index.html");
+app.MapDefaultEndpoints();
 
 app.Run();
