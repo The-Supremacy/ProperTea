@@ -29,11 +29,11 @@ namespace ProperTea.Landlord.Bff.Config
             })
             .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
             {
-                var oidc = configuration.GetSection("OIDC");
+                var oidcSection = configuration.GetSection("OIDC");
 
-                options.Authority = oidc["Authority"];
-                options.ClientId = oidc["ClientId"];
-                options.ClientSecret = oidc["ClientSecret"];
+                options.Authority = oidcSection["Authority"] ?? throw new InvalidOperationException("OIDC:Authority not configured");
+                options.ClientId = oidcSection["ClientId"] ?? throw new InvalidOperationException("OIDC:ClientId not configured");
+                options.ClientSecret = oidcSection["ClientSecret"] ?? throw new InvalidOperationException("OIDC:ClientSecret not configured");
                 options.ResponseType = OpenIdConnectResponseType.Code;
                 options.ResponseMode = OpenIdConnectResponseMode.Query;
 
@@ -47,17 +47,15 @@ namespace ProperTea.Landlord.Bff.Config
                 options.Scope.Add("email");
                 options.Scope.Add("offline_access");
 
-                // ZITADEL specific scopes for orgs/roles
                 options.Scope.Add("urn:zitadel:iam:user:resourceowner");
                 options.Scope.Add("urn:zitadel:iam:org:project:roles");
                 options.Scope.Add("urn:zitadel:iam:org:project:id:zitadel:aud");
 
-                // Standard OIDC paths
-                options.CallbackPath = "/signin-oidc";
-                options.SignedOutCallbackPath = "/signout-callback-oidc";
-
                 options.TokenValidationParameters.NameClaimType = "name";
                 options.TokenValidationParameters.RoleClaimType = "role";
+
+                options.CallbackPath = "/auth/signin-oidc";
+                options.SignedOutCallbackPath = "/auth/signout-callback-oidc";
             });
 
             _ = services.AddAuthorization();

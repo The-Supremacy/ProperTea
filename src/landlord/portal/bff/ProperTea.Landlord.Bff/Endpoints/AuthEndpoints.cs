@@ -8,7 +8,7 @@ public static class AuthEndpoints
 {
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/bff");
+        var group = endpoints.MapGroup("/auth");
 
         _ = group.MapGet("/user", (HttpContext context) =>
         {
