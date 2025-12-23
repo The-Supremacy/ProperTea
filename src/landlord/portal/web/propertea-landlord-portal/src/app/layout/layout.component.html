@@ -12,7 +12,7 @@
 
       <div class="user-profile">
         <span>{{ authService.userName() }}</span>
-        <p-avatar icon="pi pi-user" shape="circle"></p-avatar>
+        <p-avatar icon="pi pi-user" shape="circle" (click)="authService.editProfile()"></p-avatar>
       </div>
     </div>
   </header>
