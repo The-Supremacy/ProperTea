@@ -1,0 +1,40 @@
+<div class="erp-layout">
+  <header class="erp-header">
+    <div class="left">
+      <p-button icon="pi pi-bars" (onClick)="sidebarVisible.set(true)" [text]="true" styleClass="lg:hidden"></p-button>
+      <span class="logo">ProperTea Landlord</span>
+    </div>
+
+    <div class="right">
+      <div class="health-indicator" [pTooltip]="'System: ' + healthStatus()">
+        <div class="status-dot" [ngClass]="healthStatus() === 'Healthy' ? 'bg-green-500' : 'bg-red-500'"></div>
+      </div>
+
+      <div class="user-profile">
+        <span>{{ authService.userName() }}</span>
+        <p-avatar icon="pi pi-user" shape="circle"></p-avatar>
+      </div>
+    </div>
+  </header>
+
+  <div class="erp-container">
+    <p-drawer [(visible)]="sidebarVisible" [modal]="false" [dismissible]="true"
+              styleClass="erp-sidebar border-right-1 surface-border w-16rem shadow-none lg:block">
+      <nav class="nav-menu">
+        <a routerLink="/dashboard" routerLinkActive="active" class="menu-item">
+          <i class="pi pi-home"></i> <span>Dashboard</span>
+        </a>
+        <a routerLink="/properties" routerLinkActive="active" class="menu-item">
+          <i class="pi pi-building"></i> <span>Properties</span>
+        </a>
+        <a routerLink="/tenants" routerLinkActive="active" class="menu-item">
+          <i class="pi pi-users"></i> <span>Tenants</span>
+        </a>
+      </nav>
+    </p-drawer>
+
+    <main class="erp-main">
+      <ng-content></ng-content>
+    </main>
+  </div>
+</div>

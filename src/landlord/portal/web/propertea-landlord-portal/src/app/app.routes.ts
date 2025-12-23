@@ -1,23 +1,17 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   {
-    path: '',
-    redirectTo: '/organizations',
-    pathMatch: 'full'
+    path: 'auth',
+    loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)
+  },
+  {
+    path: 'dashboard',
+    loadChildren: () => import('./features/dashboard/dashboard.routes').then(m => m.DASHBOARD_ROUTES)
   },
   {
     path: 'organizations',
-    loadChildren: () => import('./features/organizations/routes')
-      .then(m => m.organizationsRoutes)
+    loadChildren: () => import('./features/organizations/organizations.routes').then(m => m.ORGANIZATION_ROUTES)
   }
-  // TODO: Add more feature routes here as they are developed
-  // {
-  //   path: 'properties',
-  //   loadChildren: () => import('./features/properties/routes').then(m => m.propertiesRoutes)
-  // },
-  // {
-  //   path: 'tenants',
-  //   loadChildren: () => import('./features/tenants/routes').then(m => m.tenantsRoutes)
-  // }
 ];

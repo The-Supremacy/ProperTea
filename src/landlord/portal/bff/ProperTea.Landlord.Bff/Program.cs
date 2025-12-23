@@ -5,7 +5,7 @@ using ProperTea.ServiceDefaults;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddBffInfrastructure();
-builder.Services.AddBffAuthentication(builder.Configuration);
+builder.Services.AddBffAuthentication(builder.Configuration, builder.Environment.IsDevelopment());
 builder.Services.AddBffProxy(builder.Configuration);
 
 var app = builder.Build();

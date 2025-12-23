@@ -13,7 +13,7 @@
       "@shared/*": ["src/app/shared/*"],
       "@features": ["src/app/features/index.ts"],
       "@features/*": ["src/app/features/*"],
-      "@layout": ["src/app/layout/index.ts"],
+      "@layout": ["src/app/layout/layout.component.ts"],
       "@layout/*": ["src/app/layout/*"]
     }
   },

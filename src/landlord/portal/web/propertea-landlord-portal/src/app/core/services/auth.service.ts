@@ -14,12 +14,16 @@ export class AuthService {
   private readonly refreshTrigger = signal(0);
 
   readonly userResource: ResourceRef<UserInfo | undefined> = resource({
-    params: () => { this.refreshTrigger() },
+    params: () => ({ refreshTrigger: this.refreshTrigger() }),
     loader: async () => {
       try {
         const response = await fetch('/auth/user', {
           credentials: 'include'
         });
+
+        if (response.status === 401 || response.status === 403) {
+          return { isAuthenticated: false, claims: [] };
+        }
 
         if (!response.ok) {
           return { isAuthenticated: false, claims: [] };
@@ -66,16 +70,26 @@ export class AuthService {
   login(returnUrl?: string): void {
     const url = returnUrl
       ? `/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`
-      : '/auth/login';
+      : `/auth/login?returnUrl=${encodeURIComponent(window.location.href)}`;
     window.location.href = url;
   }
 
-  logout(): void {
-    window.location.href = '/auth/logout';
+  logout(returnUrl?: string): void {
+    const url = returnUrl
+      ? `/auth/logout?returnUrl=${encodeURIComponent(returnUrl)}`
+      : `/auth/logout?returnUrl=${encodeURIComponent(window.location.href)}`;
+    window.location.href = url;
   }
 
   editProfile(): void {
     window.open(`${this.config.zitadelUrl}/ui/console/users/me`, '_blank');
+  }
+
+  register(returnUrl?: string): void {
+    const url = returnUrl
+      ? `/auth/register?returnUrl=${encodeURIComponent(returnUrl)}`
+      : `/auth/register?returnUrl=${encodeURIComponent(window.location.href)}`;
+    window.location.href = url;
   }
 
   refresh(): void {

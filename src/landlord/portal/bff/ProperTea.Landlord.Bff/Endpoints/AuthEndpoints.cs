@@ -18,17 +18,23 @@ public static class AuthEndpoints
                 IsAuthenticated = context.User.Identity?.IsAuthenticated ?? false,
                 Claims = claims
             });
-        })
-        .RequireAuthorization();
+        }).RequireAuthorization();
 
         _ = group.MapGet("/login", (string? returnUrl) =>
             Results.Challenge(new AuthenticationProperties { RedirectUri = returnUrl ?? "/" }))
             .AllowAnonymous();
 
-        _ = group.MapGet("/logout", () =>
-            Results.SignOut(new AuthenticationProperties { RedirectUri = "/" },
+        _ = group.MapGet("/logout", (string? returnUrl) =>
+            Results.SignOut(new AuthenticationProperties { RedirectUri = returnUrl ?? "/" },
                 [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]))
             .RequireAuthorization();
+
+        _ = group.MapGet("/register", (string? returnUrl) =>
+        {
+            var props = new AuthenticationProperties { RedirectUri = returnUrl ?? "/" };
+            props.Parameters.Add("prompt", "create");
+            return Results.Challenge(props);
+        }).AllowAnonymous();
 
         return endpoints;
     }

@@ -7,7 +7,7 @@ namespace ProperTea.Landlord.Bff.Config
 {
     public static class AuthenticationConfig
     {
-        public static IServiceCollection AddBffAuthentication(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddBffAuthentication(this IServiceCollection services, IConfiguration configuration, bool isDev)
         {
             _ = services.AddTransient<ITicketStore, RedisTicketStore>();
 
@@ -36,6 +36,7 @@ namespace ProperTea.Landlord.Bff.Config
                 options.ClientSecret = oidcSection["ClientSecret"] ?? throw new InvalidOperationException("OIDC:ClientSecret not configured");
                 options.ResponseType = OpenIdConnectResponseType.Code;
                 options.ResponseMode = OpenIdConnectResponseMode.Query;
+                options.RequireHttpsMetadata = !isDev;
 
                 options.SaveTokens = true;
                 options.GetClaimsFromUserInfoEndpoint = true;
