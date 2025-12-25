@@ -424,3 +424,5 @@ fabric.properties
 docker-compose.generated.override.yml
 
 */certs
+**/Config/zitadel/*.json
+**/Config/zitadel/*.pat

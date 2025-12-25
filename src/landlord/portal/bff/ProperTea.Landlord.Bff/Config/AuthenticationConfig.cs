@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using ProperTea.Landlord.Bff.Auth;
+using Zitadel.Extensions;
 
 namespace ProperTea.Landlord.Bff.Config
 {
@@ -27,20 +27,17 @@ namespace ProperTea.Landlord.Bff.Config
                 var ticketStore = services.BuildServiceProvider().GetRequiredService<ITicketStore>();
                 options.SessionStore = ticketStore;
             })
-            .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
+            .AddZitadel(OpenIdConnectDefaults.AuthenticationScheme, options =>
             {
                 var oidcSection = configuration.GetSection("OIDC");
 
                 options.Authority = oidcSection["Authority"] ?? throw new InvalidOperationException("OIDC:Authority not configured");
                 options.ClientId = oidcSection["ClientId"] ?? throw new InvalidOperationException("OIDC:ClientId not configured");
                 options.ClientSecret = oidcSection["ClientSecret"] ?? throw new InvalidOperationException("OIDC:ClientSecret not configured");
-                options.ResponseType = OpenIdConnectResponseType.Code;
-                options.ResponseMode = OpenIdConnectResponseMode.Query;
                 options.RequireHttpsMetadata = !isDev;
 
                 options.SaveTokens = true;
-                options.GetClaimsFromUserInfoEndpoint = true;
-                options.MapInboundClaims = false; // Use standard OIDC claims
+                options.MapInboundClaims = false;
 
                 options.Scope.Clear();
                 options.Scope.Add("openid");

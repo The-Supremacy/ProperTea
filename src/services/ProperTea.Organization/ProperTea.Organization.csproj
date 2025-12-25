@@ -7,7 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+    <PackageReference Include="Marten.AspNetCore" Version="8.17.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />
+    <PackageReference Include="Npgsql.OpenTelemetry" Version="10.0.1" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.11.10" />
+    <PackageReference Include="WolverineFx" Version="5.9.2" />
+    <PackageReference Include="WolverineFx.AzureServiceBus" Version="5.9.2" />
+    <PackageReference Include="WolverineFx.FluentValidation" Version="5.9.2" />
+    <PackageReference Include="WolverineFx.Marten" Version="5.9.2" />
+    <PackageReference Include="WolverineFx.RabbitMQ" Version="5.9.2" />
+    <PackageReference Include="Zitadel" Version="7.0.41" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,7 +25,9 @@
 
   <ItemGroup>
     <Folder Include="Config/" />
-    <Folder Include="Endpoints/" />
+    <Folder Include="Features/Organization/Create/" />
+    <Folder Include="Infrastructure/" />
+    <Folder Include="Infrastructure/Zitadel/" />
   </ItemGroup>
 
 </Project>

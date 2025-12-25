@@ -6,7 +6,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddBffInfrastructure();
 builder.Services.AddBffAuthentication(builder.Configuration, builder.Environment.IsDevelopment());
-builder.Services.AddBffProxy(builder.Configuration);
+
+builder.Services.AddHttpClient("organization", client =>
+{
+    var orgServiceUrl = builder.Configuration["services:organization:http:0"]
+        ?? builder.Configuration["services:organization:https:0"]
+        ?? throw new InvalidOperationException("Organization service URL not configured");
+    client.BaseAddress = new Uri(orgServiceUrl);
+});
 
 var app = builder.Build();
 
@@ -20,7 +27,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAuthEndpoints();
-app.MapReverseProxy();
 app.MapDefaultEndpoints();
 
 app.Run();
