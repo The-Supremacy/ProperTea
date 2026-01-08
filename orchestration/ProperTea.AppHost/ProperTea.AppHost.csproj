@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../landlord/portal/bff/ProperTea.Landlord.Bff/ProperTea.Landlord.Bff.csproj" />
-    <ProjectReference Include="../services/ProperTea.Organization/ProperTea.Organization.csproj" />
+    <ProjectReference Include="..\..\apps\portals\landlord\bff\ProperTea.Landlord.Bff\ProperTea.Landlord.Bff.csproj" />
+    <ProjectReference Include="..\..\apps\services\ProperTea.Organization\ProperTea.Organization.csproj" />
   </ItemGroup>
 
   <ItemGroup>

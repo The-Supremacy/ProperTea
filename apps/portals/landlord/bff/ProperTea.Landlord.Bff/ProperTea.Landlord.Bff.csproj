@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../../../ProperTea.ServiceDefaults/ProperTea.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\..\..\..\shared\ProperTea.ServiceDefaults\ProperTea.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>
