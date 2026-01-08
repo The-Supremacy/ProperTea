@@ -74,3 +74,9 @@ dotnet_diagnostic.IDE0059.severity = suggestion
 
 # IDE0060: Remove unused parameter
 dotnet_diagnostic.IDE0060.severity = suggestion
+
+# IDE0046: Convert to conditional expression
+dotnet_diagnostic.IDE0046.severity = suggestion
+
+# IDE0046: Convert to conditional expression
+dotnet_diagnostic.IDE0046.severity = suggestion

@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Marten" Version="8.17.0" />
+    <PackageReference Include="Marten.AspNetCore" Version="8.17.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />
+    <PackageReference Include="Npgsql.OpenTelemetry" Version="10.0.1" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.11.10" />
+    <PackageReference Include="WolverineFx" Version="5.9.2" />
+    <PackageReference Include="WolverineFx.AzureServiceBus" Version="5.9.2" />
+    <PackageReference Include="WolverineFx.FluentValidation" Version="5.9.2" />
+    <PackageReference Include="WolverineFx.Marten" Version="5.9.2" />
+    <PackageReference Include="WolverineFx.RabbitMQ" Version="5.9.2" />
+    <PackageReference Include="Zitadel" Version="7.0.41" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../ProperTea.ServiceDefaults/ProperTea.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Config/" />
+    <Folder Include="Infrastructure/" />
+    <Folder Include="Infrastructure/Zitadel/" />
+  </ItemGroup>
+
+</Project>

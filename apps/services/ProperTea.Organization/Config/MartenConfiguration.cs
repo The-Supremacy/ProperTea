@@ -1,0 +1,61 @@
+using JasperFx;
+using JasperFx.Events;
+using Marten;
+using Marten.Events.Projections;
+using Npgsql;
+using ProperTea.Organization.Features.Organizations;
+using Wolverine.Marten;
+
+namespace ProperTea.Organization.Config;
+
+public static class MartenConfiguration
+{
+    public static IServiceCollection AddMartenConfiguration(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IHostEnvironment environment)
+    {
+        _ = services.AddMarten(opts =>
+        {
+            var connectionString = configuration.GetConnectionString("organization-db")
+                ?? throw new InvalidOperationException("Connection string 'organization-db' not found");
+            opts.Connection(connectionString);
+
+            _ = opts.Policies.AllDocumentsAreMultiTenanted();
+            opts.Events.TenancyStyle = Marten.Storage.TenancyStyle.Conjoined;
+            opts.Events.StreamIdentity = StreamIdentity.AsGuid;
+            opts.Events.EventNamingStyle = EventNamingStyle.SmarterTypeName;
+            opts.Events.AppendMode = EventAppendMode.Quick;
+            opts.Events.UseMandatoryStreamTypeDeclaration = true;
+            opts.Events.UseArchivedStreamPartitioning = true;
+
+            opts.DatabaseSchemaName = "organization";
+            opts.AutoCreateSchemaObjects = environment.IsDevelopment()
+                ? AutoCreate.All
+                : AutoCreate.CreateOrUpdate;
+
+            opts.Projections.UseIdentityMapForAggregates = true;
+            _ = opts.Projections.Snapshot<OrganizationAggregate>(SnapshotLifecycle.Inline);
+
+            opts.Events.AddEventTypes(
+            [
+                typeof(OrganizationEvents.Created),
+                typeof(OrganizationEvents.ZitadelProvisioningSucceeded),
+                typeof(OrganizationEvents.ZitadelProvisioningFailed),
+                typeof(OrganizationEvents.Activated),
+                typeof(OrganizationEvents.ActivationFailed)
+            ]);
+        })
+        .UseLightweightSessions()
+        .IntegrateWithWolverine(
+            cfg =>
+            {
+                cfg.UseWolverineManagedEventSubscriptionDistribution = true;
+            });
+
+        _ = services.AddOpenTelemetry()
+            .WithTracing(tracing => tracing.AddNpgsql());
+
+        return services;
+    }
+}
