@@ -2,7 +2,6 @@ using JasperFx;
 using ProperTea.Organization.Config;
 using ProperTea.Organization.Features.Organizations;
 
-//using ProperTea.Organization.Features.Organizations.Create;
 using ProperTea.Organization.Infrastructure.Zitadel;
 using ProperTea.ServiceDefaults;
 using Zitadel.Credentials;

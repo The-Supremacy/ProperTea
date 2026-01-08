@@ -1,3 +1,17 @@
 <Solution>
-    <Folder Name="/Solution Items/" />
+  <Folder Name="/apps/" />
+  <Folder Name="/apps/portals/" />
+  <Folder Name="/apps/portals/landlord/" />
+  <Folder Name="/apps/portals/landlord/bff/">
+    <Project Path="apps/portals/landlord/bff/ProperTea.Landlord.Bff/ProperTea.Landlord.Bff.csproj" />
+  </Folder>
+  <Folder Name="/apps/services/">
+    <Project Path="apps/services/ProperTea.Organization/ProperTea.Organization.csproj" />
+  </Folder>
+  <Folder Name="/orchestration/">
+    <Project Path="orchestration/ProperTea.AppHost/ProperTea.AppHost.csproj" />
+  </Folder>
+  <Folder Name="/shared/">
+    <Project Path="shared/ProperTea.ServiceDefaults/ProperTea.ServiceDefaults.csproj" />
+  </Folder>
 </Solution>

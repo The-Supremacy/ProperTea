@@ -62,13 +62,13 @@ public class RegisterOrganizationSaga : Saga
     }
 
     [AggregateHandler]
-    public async Task<Created> HandleAsync(CreateOrganization command)
+    public Task<Created> HandleAsync(CreateOrganization command)
     {
-        return new Created(
+        return Task.FromResult(new Created(
             command.OrganizationId,
             command.Name,
             command.Slug,
-            DateTimeOffset.UtcNow);
+            DateTimeOffset.UtcNow));
     }
 
     public async Task<object> HandleAsync(
