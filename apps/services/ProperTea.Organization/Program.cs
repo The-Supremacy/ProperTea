@@ -1,10 +1,7 @@
 using JasperFx;
 using ProperTea.Organization.Config;
 using ProperTea.Organization.Features.Organizations;
-
-using ProperTea.Organization.Infrastructure.Zitadel;
 using ProperTea.ServiceDefaults;
-using Zitadel.Credentials;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,21 +14,8 @@ builder.Host.AddWolverineConfiguration();
 builder.Services.AddAuthenticationConfiguration(builder.Configuration);
 builder.Services.AddOpenApiConfiguration(builder.Configuration);
 
-builder.Services.AddSingleton<IZitadelClient>(sp =>
-{
-    var config = sp.GetRequiredService<IConfiguration>();
-    var logger = sp.GetRequiredService<ILogger<ZitadelClient>>();
-
-    var apiUrl = config["OIDC:Authority"]
-        ?? throw new InvalidOperationException("OIDC:Authority not configured");
-
-    var serviceAccountPath = config["Zitadel:ServiceAccountPath"]
-        ?? throw new InvalidOperationException("Zitadel:ServiceAccountPath not configured");
-
-    var serviceAccount = ServiceAccount.LoadFromJsonFile(serviceAccountPath);
-
-    return new ZitadelClient(apiUrl, serviceAccount, logger);
-});
+// Feature registrations
+builder.Services.AddOrganizationFeature(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 

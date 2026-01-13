@@ -8,19 +8,35 @@ public static class OrganizationEvents
         string Slug,
         DateTimeOffset CreatedAt);
 
-    public record ZitadelProvisioningSucceeded(
+    public record ZitadelOrganizationCreated(
         Guid OrganizationId,
         string ZitadelOrganizationId);
-
-    public record ZitadelProvisioningFailed(
-        Guid OrganizationId,
-        string Reason);
 
     public record Activated(
         Guid OrganizationId,
         DateTimeOffset ActivatedAt);
 
-    public record ActivationFailed(
+    public record NameChanged(
         Guid OrganizationId,
-        string Reason);
+        string NewName,
+        DateTimeOffset ChangedAt);
+
+    public record SlugChanged(
+        Guid OrganizationId,
+        string NewSlug,
+        DateTimeOffset ChangedAt);
+
+    public record Deactivated(
+        Guid OrganizationId,
+        string Reason,
+        DateTimeOffset DeactivatedAt);
+
+    public record DomainAdded(
+        Guid OrganizationId,
+        string EmailDomain,
+        DateTimeOffset AddedAt);
+
+    public record DomainVerified(
+        Guid OrganizationId,
+        DateTimeOffset VerifiedAt);
 }

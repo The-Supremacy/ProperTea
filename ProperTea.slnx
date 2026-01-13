@@ -7,6 +7,7 @@
   </Folder>
   <Folder Name="/apps/services/">
     <Project Path="apps/services/ProperTea.Organization/ProperTea.Organization.csproj" />
+    <Project Path="apps/services/ProperTea.User/ProperTea.User.csproj" />
   </Folder>
   <Folder Name="/orchestration/">
     <Project Path="orchestration/ProperTea.AppHost/ProperTea.AppHost.csproj" />

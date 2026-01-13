@@ -76,7 +76,7 @@ var zitadel = builder.AddContainer("zitadel", "ghcr.io/zitadel/zitadel", "v4.7.6
     .WithArgs("start-from-init", "--masterkeyFromEnv", "--tlsMode", "disabled")
     .WaitFor(postgres)
     .WaitFor(mailpit);
-var zitadelLogin = builder.AddContainer("zitadel-login", "ghcr.io/zitadel/zitadel-login", "v4.7.6")
+_ = builder.AddContainer("zitadel-login", "ghcr.io/zitadel/zitadel-login", "v4.7.6")
     .WithHttpEndpoint(port: zitadelLoginUiPort, targetPort: 3000)
     .WithEnvironment("ZITADEL_API_URL", "http://zitadel:8080")
     .WithEnvironment("CUSTOM_REQUEST_HEADERS", "Host:localhost")
@@ -97,29 +97,46 @@ var scalarClientId = builder.Configuration["Configs:ScalarClientId"];
 //
 // Organization.
 //
-var organizationClientId = builder.Configuration["Configs:OrganizationClientId"];
-var organizationClientSecret = builder.Configuration["Configs:OrganizationClientSecret"];
 var organizationServiceAccountPath = Path.GetFullPath("Config/zitadel/organization-service.json");
 var organizationDb = postgres.AddDatabase("organization-db");
 var organizationService = builder.AddProject<Projects.ProperTea_Organization>("organization")
     .WithEnvironment("OIDC__Authority", zitadelUrl)
-    .WithEnvironment("OIDC__ClientId", organizationClientId)
-    .WithEnvironment("OIDC__ClientSecret", organizationClientSecret)
     .WithEnvironment("Zitadel__ServiceAccountPath", organizationServiceAccountPath)
     .WithEnvironment("Scalar__ClientId", scalarClientId)
     .WithReference(organizationDb)
     .WithReference(rabbitmq)
     .WaitFor(postgres)
-    .WaitFor(rabbitmq);
+    .WaitFor(rabbitmq)
+    .WaitFor(zitadel)
+    .WithExternalHttpEndpoints()
+    .WithDeveloperCertificateTrust(true);
+
+//
+// User.
+//
+var userServiceAccountPath = Path.GetFullPath("Config/zitadel/user-service.json");
+var userDb = postgres.AddDatabase("user-db");
+var userService = builder.AddProject<Projects.ProperTea_User>("user")
+    .WithEnvironment("OIDC__Authority", zitadelUrl)
+    .WithEnvironment("Zitadel__ServiceAccountPath", userServiceAccountPath)
+    .WithEnvironment("Scalar__ClientId", scalarClientId)
+    .WithReference(userDb)
+    .WithReference(rabbitmq)
+    .WaitFor(postgres)
+    .WaitFor(rabbitmq)
+    .WaitFor(zitadel)
+    .WithExternalHttpEndpoints()
+    .WithDeveloperCertificateTrust(true);
 
 //
 // Landlord Portal.
 //
 var landlordClientId = builder.Configuration["Configs:LandlordClientId"];
 var landlordClientSecret = builder.Configuration["Configs:LandlordClientSecret"];
-var landlordBff = builder.AddProject<Projects.ProperTea_Landlord_Bff>("landlord-bff")
+_ = builder.AddProject<Projects.ProperTea_Landlord_Bff>("landlord-bff")
     .WithReference(redis)
     .WithReference(organizationService)
+    .WithReference(userService)
     .WithEnvironment("OIDC__Authority", zitadelUrl)
     .WithEnvironment("OIDC__ClientId", landlordClientId)
     .WithEnvironment("OIDC__ClientSecret", landlordClientSecret)

@@ -1,4 +1,4 @@
-
+using Zitadel.Credentials;
 using Zitadel.Extensions;
 
 namespace ProperTea.Organization.Config;
@@ -12,18 +12,14 @@ public static class AuthenticationConfig
         var authority = configuration["OIDC:Authority"]
             ?? throw new InvalidOperationException("OIDC:Authority not configured");
 
-        var clientId = configuration["OIDC:ClientId"]
-            ?? throw new InvalidOperationException("OIDC:ClientId not configured");
-
-        var clientSecret = configuration["OIDC:ClientSecret"]
-            ?? throw new InvalidOperationException("OIDC:ClientSecret not configured");
+        var serviceAccountPath = configuration["Zitadel:ServiceAccountPath"]
+            ?? throw new InvalidOperationException("Zitadel:ServiceAccountPath not configured");
 
         _ = services.AddAuthentication("Zitadel")
             .AddZitadelIntrospection("Zitadel", options =>
             {
                 options.Authority = authority;
-                options.ClientId = clientId;
-                options.ClientSecret = clientSecret;
+                options.JwtProfile = Application.LoadFromJsonFile(serviceAccountPath);
             });
 
         _ = services.AddAuthorization();

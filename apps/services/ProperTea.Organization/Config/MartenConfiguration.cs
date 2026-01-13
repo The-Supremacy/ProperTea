@@ -1,13 +1,16 @@
 using JasperFx;
 using JasperFx.Events;
 using Marten;
-using Marten.Events.Projections;
 using Npgsql;
 using ProperTea.Organization.Features.Organizations;
 using Wolverine.Marten;
 
 namespace ProperTea.Organization.Config;
 
+/// <summary>
+/// Cross-cutting Marten infrastructure configuration.
+/// Feature-specific projections and events are configured in their respective feature folders.
+/// </summary>
 public static class MartenConfiguration
 {
     public static IServiceCollection AddMartenConfiguration(
@@ -21,6 +24,7 @@ public static class MartenConfiguration
                 ?? throw new InvalidOperationException("Connection string 'organization-db' not found");
             opts.Connection(connectionString);
 
+            // Cross-cutting policies
             _ = opts.Policies.AllDocumentsAreMultiTenanted();
             opts.Events.TenancyStyle = Marten.Storage.TenancyStyle.Conjoined;
             opts.Events.StreamIdentity = StreamIdentity.AsGuid;
@@ -35,16 +39,9 @@ public static class MartenConfiguration
                 : AutoCreate.CreateOrUpdate;
 
             opts.Projections.UseIdentityMapForAggregates = true;
-            _ = opts.Projections.Snapshot<OrganizationAggregate>(SnapshotLifecycle.Inline);
 
-            opts.Events.AddEventTypes(
-            [
-                typeof(OrganizationEvents.Created),
-                typeof(OrganizationEvents.ZitadelProvisioningSucceeded),
-                typeof(OrganizationEvents.ZitadelProvisioningFailed),
-                typeof(OrganizationEvents.Activated),
-                typeof(OrganizationEvents.ActivationFailed)
-            ]);
+            // Feature-specific configurations
+            opts.ConfigureOrganizationMarten();
         })
         .UseLightweightSessions()
         .IntegrateWithWolverine(

@@ -10,27 +10,29 @@ namespace ProperTea.ServiceDefaults;
 
 public static class Extensions
 {
-    public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder)
-        where TBuilder : IHostApplicationBuilder
+    extension<TBuilder>(TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
-        _ = builder.AddOpenTelemetry();
-        _ = builder.AddDefaultHealthChecks();
-        _ = builder.AddGlobalErrorHandling();
-        _ = builder.Services.AddServiceDiscovery();
-        _ = builder.Services.ConfigureHttpClientDefaults(http =>
+        public TBuilder AddServiceDefaults()
+        {
+            _ = builder.AddOpenTelemetry();
+            _ = builder.AddDefaultHealthChecks();
+            _ = builder.AddGlobalErrorHandling();
+            _ = builder.Services.AddServiceDiscovery();
+            _ = builder.Services.ConfigureHttpClientDefaults(http =>
             {
                 _ = http.AddServiceDiscovery();
             });
 
-        return builder;
-    }
+            return builder;
+        }
 
-    public static TBuilder AddDefaultHealthChecks<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
-    {
-        _ = builder.Services.AddHealthChecks()
-            .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+        public TBuilder AddDefaultHealthChecks()
+        {
+            _ = builder.Services.AddHealthChecks()
+                .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 
-        return builder;
+            return builder;
+        }
     }
 
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
