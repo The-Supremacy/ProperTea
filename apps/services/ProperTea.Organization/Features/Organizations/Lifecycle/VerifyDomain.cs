@@ -1,6 +1,7 @@
 using Marten;
 using ProperTea.Organization.Features.Organizations.Infrastructure;
 using ProperTea.ServiceDefaults.Exceptions;
+using Wolverine;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
@@ -16,6 +17,8 @@ public static class VerifyDomainHandler
         VerifyDomainCommand command,
         IDocumentSession session,
         IZitadelClient zitadelClient,
+        IMessageBus messageBus,
+        ILogger logger,
         CancellationToken ct)
     {
         // Load aggregate
@@ -48,5 +51,16 @@ public static class VerifyDomainHandler
         _ = session.Events.Append(org.Id, domainVerified);
 
         await session.SaveChangesAsync(ct);
+
+        var integrationEvent = new OrganizationIntegrationEvents.OrganizationDomainVerified(
+                command.OrganizationId,
+                org.EmailDomain,
+                DateTimeOffset.UtcNow);
+        await messageBus.PublishAsync(integrationEvent);
+
+        logger.LogInformation(
+            "Verified domain for organization: {OrgId} - Domain: {Domain}",
+            command.OrganizationId,
+            org.EmailDomain);
     }
 }

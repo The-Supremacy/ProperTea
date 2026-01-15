@@ -17,6 +17,7 @@ public static class WolverineConfiguration
             _ = opts.UseFluentValidation();
 
             _ = opts.UseRabbitMqUsingNamedConnection("rabbitmq")
+                .EnableWolverineControlQueues()
                 .AutoProvision();
 
             _ = opts.Services.AddResourceSetupOnStartup();

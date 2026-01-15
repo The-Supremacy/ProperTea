@@ -1,5 +1,6 @@
 using Marten;
 using ProperTea.ServiceDefaults.Exceptions;
+using Wolverine;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
@@ -8,6 +9,7 @@ public static class ActivateHandler
     public static async Task Handle(
         ActivateCommand command,
         IDocumentSession session,
+        IMessageBus messageBus,
         ILogger logger)
     {
         var org =
@@ -18,6 +20,11 @@ public static class ActivateHandler
 
         _ = session.Events.Append(command.OrganizationId, activated);
         await session.SaveChangesAsync(command.CancellationToken);
+
+        var integrationEvent = new OrganizationIntegrationEvents.OrganizationActivated(
+                command.OrganizationId,
+                DateTimeOffset.UtcNow);
+        await messageBus.PublishAsync(integrationEvent);
 
         logger.LogInformation(
             "Activated organization: {OrgId}",

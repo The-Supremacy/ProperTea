@@ -11,7 +11,8 @@ var password = builder.AddParameter("password", builder.Configuration["Configs:P
 var redis = builder.AddRedis("redis", 6379, password)
             .WithRedisInsight(op =>
             {
-                _ = op.WithHostPort(63790);
+                _ = op.WithHostPort(63790)
+                    .WithLifetime(ContainerLifetime.Persistent);
             })
             .WithDataVolume("redis-data")
             .WithLifetime(ContainerLifetime.Persistent);
@@ -23,7 +24,8 @@ var postgresPort = 5432;
 var postgres = builder.AddPostgres("postgres", username, password, postgresPort)
                 .WithPgAdmin(op =>
                 {
-                    _ = op.WithHostPort(54320);
+                    _ = op.WithHostPort(54320)
+                        .WithLifetime(ContainerLifetime.Persistent);
                 })
                 .WithDataVolume("postgres-data")
                 .WithLifetime(ContainerLifetime.Persistent);
@@ -75,7 +77,8 @@ var zitadel = builder.AddContainer("zitadel", "ghcr.io/zitadel/zitadel", "v4.7.6
     .WithEnvironment("ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI", $"{zitadelLoginUiUrl}/ui/v2/login")
     .WithArgs("start-from-init", "--masterkeyFromEnv", "--tlsMode", "disabled")
     .WaitFor(postgres)
-    .WaitFor(mailpit);
+    .WaitFor(mailpit)
+    .WithLifetime(ContainerLifetime.Persistent);
 _ = builder.AddContainer("zitadel-login", "ghcr.io/zitadel/zitadel-login", "v4.7.6")
     .WithHttpEndpoint(port: zitadelLoginUiPort, targetPort: 3000)
     .WithEnvironment("ZITADEL_API_URL", "http://zitadel:8080")
@@ -83,14 +86,16 @@ _ = builder.AddContainer("zitadel-login", "ghcr.io/zitadel/zitadel-login", "v4.7
     .WithEnvironment("NEXT_PUBLIC_BASE_PATH", "/ui/v2/login")
     .WithBindMount(tokenPath, "/opt/zitadel/login-ui-client.pat")
     .WithEnvironment("ZITADEL_SERVICE_USER_TOKEN_FILE", "/opt/zitadel/login-ui-client.pat")
-    .WaitFor(zitadel);
+    .WaitFor(zitadel)
+    .WithLifetime(ContainerLifetime.Persistent);
 
 //
 // Applications.
 //
 var rabbitmq = builder.AddRabbitMQ("rabbitmq", username, password, 5672)
                 .WithManagementPlugin(56720)
-                .WithDataVolume("rabbitmq-data");
+                .WithDataVolume("rabbitmq-data")
+                .WithLifetime(ContainerLifetime.Persistent);
 
 var scalarClientId = builder.Configuration["Configs:ScalarClientId"];
 

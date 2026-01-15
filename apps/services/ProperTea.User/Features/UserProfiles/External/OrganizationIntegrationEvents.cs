@@ -1,7 +1,7 @@
 using ProperTea.Contracts.Events;
 using Wolverine.Attributes;
 
-namespace ProperTea.Organization.Features.Organizations;
+namespace ProperTea.User.Features.UserProfiles.External;
 
 public static class OrganizationIntegrationEvents
 {

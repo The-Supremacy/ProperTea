@@ -1,9 +1,5 @@
 namespace ProperTea.Contracts.Events;
 
-/// <summary>
-/// Framework-agnostic interface contracts for Organization integration events.
-/// Services can implement these using their own messaging framework.
-/// </summary>
 public interface IOrganizationRegistered
 {
     public Guid OrganizationId { get; }

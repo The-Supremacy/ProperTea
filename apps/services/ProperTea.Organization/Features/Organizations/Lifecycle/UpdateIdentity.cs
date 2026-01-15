@@ -2,6 +2,7 @@ using FluentValidation;
 using Marten;
 using ProperTea.Organization.Features.Organizations.Infrastructure;
 using ProperTea.ServiceDefaults.Exceptions;
+using Wolverine;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
@@ -11,6 +12,7 @@ public static class UpdateIdentityHandler
         UpdateIdentityCommand command,
         IDocumentSession session,
         IZitadelClient zitadelClient,
+        IMessageBus messageBus,
         ILogger logger)
     {
         var org = await session.Events.AggregateStreamAsync<OrganizationAggregate>(command.OrganizationId)
@@ -74,6 +76,13 @@ public static class UpdateIdentityHandler
                 "Updated organization identity: {OrgId} ({EventCount} events)",
                 command.OrganizationId,
                 events.Count);
+
+            var integrationEvent = new OrganizationIntegrationEvents.OrganizationIdentityUpdated(
+                command.OrganizationId,
+                command.NewName ?? org.Name,
+                command.NewSlug ?? org.Slug,
+                DateTimeOffset.UtcNow);
+            await messageBus.PublishAsync(integrationEvent);
         }
     }
 }

@@ -1,6 +1,7 @@
 using FluentValidation;
 using Marten;
 using ProperTea.ServiceDefaults.Exceptions;
+using Wolverine;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
@@ -9,6 +10,7 @@ public static class DeactivateHandler
     public static async Task Handle(
         DeactivateCommand command,
         IDocumentSession session,
+        IMessageBus messageBus,
         ILogger logger)
     {
         var org =
@@ -19,6 +21,12 @@ public static class DeactivateHandler
 
         _ = session.Events.Append(command.OrganizationId, deactivated);
         await session.SaveChangesAsync(command.CancellationToken);
+
+        var integrationEvent = new OrganizationIntegrationEvents.OrganizationDeactivated(
+                command.OrganizationId,
+                command.Reason,
+                DateTimeOffset.UtcNow);
+        await messageBus.PublishAsync(integrationEvent);
 
         logger.LogInformation(
             "Deactivated organization: {OrgId} - Reason: {Reason}",

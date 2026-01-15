@@ -14,24 +14,19 @@ public static class OrganizationMessagingConfiguration
     private static void ConfigurePublications(WolverineOptions opts)
     {
         opts.PublishIntegrationEvent<OrganizationIntegrationEvents.OrganizationRegistered>(
-            "organization.events",
-            "organizations.registered.v1");
+            "organization.events");
 
         opts.PublishIntegrationEvent<OrganizationIntegrationEvents.OrganizationIdentityUpdated>(
-            "organization.events",
-            "organizations.identity-updated.v1");
+            "organization.events");
 
         opts.PublishIntegrationEvent<OrganizationIntegrationEvents.OrganizationDeactivated>(
-            "organization.events",
-            "organizations.deactivated.v1");
+            "organization.events");
 
         opts.PublishIntegrationEvent<OrganizationIntegrationEvents.OrganizationActivated>(
-            "organization.events",
-            "organizations.activated.v1");
+            "organization.events");
 
         opts.PublishIntegrationEvent<OrganizationIntegrationEvents.OrganizationDomainVerified>(
-            "organization.events",
-            "organizations.domain-verified.v1");
+            "organization.events");
     }
 
     private static void ConfigureSubscriptions(WolverineOptions opts)

@@ -1,21 +1,12 @@
 using Marten;
-using ProperTea.Contracts.Events;
 using static ProperTea.User.Features.UserProfiles.UserProfileEvents;
 
 namespace ProperTea.User.Features.UserProfiles.External;
 
-/// <summary>
-/// Handlers for organization lifecycle events from Organization service.
-/// These handlers update user profiles based on organization state changes.
-/// </summary>
-public static class OrganizationEventHandlers
+public static class OrganizationDeactivatedHandler
 {
-    /// <summary>
-    /// When an organization is deactivated, mark all user profiles as deactivated.
-    /// This allows tracking which users are affected by org deactivation.
-    /// </summary>
     public static async Task Handle(
-        IOrganizationDeactivated @event,
+        OrganizationIntegrationEvents.OrganizationDeactivated @event,
         IDocumentSession session,
         CancellationToken ct)
     {
@@ -36,13 +27,12 @@ public static class OrganizationEventHandlers
 
         await session.SaveChangesAsync(ct);
     }
+}
 
-    /// <summary>
-    /// When an organization is activated/reactivated, clear the deactivation flag.
-    /// This restores user access when the organization is back online.
-    /// </summary>
+public static class OrganizationActivatedHandler
+{
     public static async Task Handle(
-        IOrganizationActivated @event,
+        OrganizationIntegrationEvents.OrganizationActivated @event,
         IDocumentSession session,
         CancellationToken ct)
     {

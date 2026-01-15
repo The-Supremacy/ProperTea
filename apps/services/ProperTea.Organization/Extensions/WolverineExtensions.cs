@@ -11,15 +11,15 @@ public static class WolverineExtensions
 {
     /// <summary>
     /// Configure an integration event for RabbitMQ publication with durable outbox.
+    /// Uses Fanout exchange - all bound queues receive all messages.
+    /// Message identity is determined by [MessageIdentity] attribute on the type.
     /// </summary>
     public static void PublishIntegrationEvent<T>(
         this WolverineOptions opts,
-        string exchange,
-        string messageIdentity) where T : class
+        string exchange) where T : class
     {
         _ = opts.PublishMessage<T>()
-            .ToRabbitExchange(exchange, e => e.ExchangeType = ExchangeType.Topic)
-            .CustomizeOutgoing(env => env.MessageType = messageIdentity)
+            .ToRabbitExchange(exchange, e => e.ExchangeType = ExchangeType.Fanout)
             .UseDurableOutbox();
     }
 

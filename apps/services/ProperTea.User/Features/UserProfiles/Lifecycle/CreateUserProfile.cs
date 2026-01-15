@@ -1,13 +1,9 @@
 using FluentValidation;
 using Marten;
 using Wolverine;
-using ProperTea.Contracts.Events;
 
 namespace ProperTea.User.Features.UserProfiles.Lifecycle;
 
-/// <summary>
-/// Command to create a new user profile on first login
-/// </summary>
 public record CreateProfileCommand(string ZitadelUserId);
 
 public class CreateProfileValidator : AbstractValidator<CreateProfileCommand>
@@ -19,25 +15,7 @@ public class CreateProfileValidator : AbstractValidator<CreateProfileCommand>
     }
 }
 
-/// <summary>
-/// Result returned from CreateProfile handler (Wolverine cascade pattern)
-/// </summary>
 public record CreateProfileResult(Guid ProfileId);
-
-/// <summary>
-/// Integration event for user profile creation.
-/// Implements IUserProfileCreated contract from shared Contracts.
-/// Published via IMessageBus.PublishAsync() to RabbitMQ.
-/// </summary>
-public class UserProfileCreatedEvent(
-    Guid profileId,
-    string zitadelUserId,
-    DateTimeOffset createdAt) : IUserProfileCreated
-{
-    public Guid ProfileId { get; } = profileId;
-    public string ZitadelUserId { get; } = zitadelUserId;
-    public DateTimeOffset CreatedAt { get; } = createdAt;
-}
 
 public static class CreateProfileHandler
 {
@@ -47,7 +25,6 @@ public static class CreateProfileHandler
         IMessageBus messageBus,
         CancellationToken cancellationToken)
     {
-        // Check if profile already exists (idempotency)
         var existingProfile = await session.Query<UserProfileAggregate>()
             .FirstOrDefaultAsync(x => x.ZitadelUserId == command.ZitadelUserId, cancellationToken);
 
@@ -62,8 +39,7 @@ public static class CreateProfileHandler
         _ = session.Events.StartStream<UserProfileAggregate>(profileId, created);
         await session.SaveChangesAsync(cancellationToken);
 
-        // Publish integration event
-        var integrationEvent = new UserProfileCreatedEvent(
+        var integrationEvent = new UserProfileIntegrationEvents.UserProfileCreatedEvent(
             profileId,
             command.ZitadelUserId,
             created.CreatedAt

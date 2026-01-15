@@ -1,7 +1,7 @@
 using Wolverine;
 using Wolverine.RabbitMQ;
 
-namespace ProperTea.User.Config;
+namespace ProperTea.User.Extensions;
 
 /// <summary>
 /// Helper extensions to reduce boilerplate for message configuration.
