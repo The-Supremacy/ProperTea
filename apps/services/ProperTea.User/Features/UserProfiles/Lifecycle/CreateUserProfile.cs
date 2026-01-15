@@ -3,16 +3,16 @@ using Marten;
 using Wolverine;
 using ProperTea.Contracts.Events;
 
-namespace ProperTea.User.Features.UserProfiles.CreateUserProfile;
+namespace ProperTea.User.Features.UserProfiles.Lifecycle;
 
 /// <summary>
 /// Command to create a new user profile on first login
 /// </summary>
-public record CreateUserProfileCommand(string ZitadelUserId);
+public record CreateProfileCommand(string ZitadelUserId);
 
-public class CreateUserProfileValidator : AbstractValidator<CreateUserProfileCommand>
+public class CreateProfileValidator : AbstractValidator<CreateProfileCommand>
 {
-    public CreateUserProfileValidator()
+    public CreateProfileValidator()
     {
         _ = RuleFor(x => x.ZitadelUserId)
             .NotEmpty().WithMessage("Zitadel user ID is required");
@@ -20,9 +20,9 @@ public class CreateUserProfileValidator : AbstractValidator<CreateUserProfileCom
 }
 
 /// <summary>
-/// Result returned from CreateUserProfile handler (Wolverine cascade pattern)
+/// Result returned from CreateProfile handler (Wolverine cascade pattern)
 /// </summary>
-public record CreateUserProfileResult(Guid ProfileId);
+public record CreateProfileResult(Guid ProfileId);
 
 /// <summary>
 /// Integration event for user profile creation.
@@ -39,10 +39,10 @@ public class UserProfileCreatedEvent(
     public DateTimeOffset CreatedAt { get; } = createdAt;
 }
 
-public static class CreateUserProfileHandler
+public static class CreateProfileHandler
 {
-    public static async Task<CreateUserProfileResult> Handle(
-        CreateUserProfileCommand command,
+    public static async Task<CreateProfileResult> Handle(
+        CreateProfileCommand command,
         IDocumentSession session,
         IMessageBus messageBus,
         CancellationToken cancellationToken)
@@ -53,7 +53,7 @@ public static class CreateUserProfileHandler
 
         if (existingProfile is not null)
         {
-            return new CreateUserProfileResult(existingProfile.Id);
+            return new CreateProfileResult(existingProfile.Id);
         }
 
         var profileId = Guid.NewGuid();
@@ -70,6 +70,6 @@ public static class CreateUserProfileHandler
         );
         await messageBus.PublishAsync(integrationEvent);
 
-        return new CreateUserProfileResult(profileId);
+        return new CreateProfileResult(profileId);
     }
 }

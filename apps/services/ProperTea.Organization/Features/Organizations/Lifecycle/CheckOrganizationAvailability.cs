@@ -1,10 +1,6 @@
 using Marten;
 
-namespace ProperTea.Organization.Features.Organizations.CheckAvailability;
-
-public record CheckAvailabilityQuery(string? Name, string? Slug);
-
-public record CheckAvailabilityResult(bool NameAvailable, bool SlugAvailable);
+namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
 public static class CheckAvailabilityHandler
 {
@@ -31,3 +27,7 @@ public static class CheckAvailabilityHandler
         return new CheckAvailabilityResult(nameAvailable, slugAvailable);
     }
 }
+
+public record CheckAvailabilityQuery(string? Name, string? Slug);
+
+public record CheckAvailabilityResult(bool NameAvailable, bool SlugAvailable);

@@ -10,6 +10,7 @@ public class UserProfileAggregate : IRevisioned
     public string ZitadelUserId { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? LastSeenAt { get; set; }
+    public DateTimeOffset? OrganizationDeactivatedAt { get; set; }
     public int Version { get; set; }
 
     #region Factory Methods
@@ -47,6 +48,16 @@ public class UserProfileAggregate : IRevisioned
     public void Apply(LastSeenUpdated e)
     {
         LastSeenAt = e.LastSeenAt;
+    }
+
+    public void Apply(OrganizationDeactivatedMarked e)
+    {
+        OrganizationDeactivatedAt = e.DeactivatedAt;
+    }
+
+    public void Apply(OrganizationDeactivatedCleared e)
+    {
+        OrganizationDeactivatedAt = null;
     }
 
     #endregion

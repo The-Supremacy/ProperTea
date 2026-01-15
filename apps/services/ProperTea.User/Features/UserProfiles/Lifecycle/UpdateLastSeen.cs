@@ -1,6 +1,6 @@
 using Marten;
 
-namespace ProperTea.User.Features.UserProfiles.UpdateLastSeen;
+namespace ProperTea.User.Features.UserProfiles.Lifecycle;
 
 /// <summary>
 /// Internal command for updating last seen timestamp.

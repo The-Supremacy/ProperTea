@@ -3,7 +3,7 @@ using Marten;
 using ProperTea.Organization.Features.Organizations.Infrastructure;
 using ProperTea.ServiceDefaults.Exceptions;
 
-namespace ProperTea.Organization.Features.Organizations.UpdateIdentity;
+namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
 public static class UpdateIdentityHandler
 {

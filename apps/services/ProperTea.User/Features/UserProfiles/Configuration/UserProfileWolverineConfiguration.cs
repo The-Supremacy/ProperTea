@@ -1,8 +1,9 @@
 using Wolverine;
+using Wolverine.RabbitMQ;
 using ProperTea.User.Config;
-using ProperTea.User.Features.UserProfiles.CreateUserProfile;
+using ProperTea.User.Features.UserProfiles.Lifecycle;
 
-namespace ProperTea.User.Features.UserProfiles;
+namespace ProperTea.User.Features.UserProfiles.Configuration;
 
 /// <summary>
 /// Explicit configuration for UserProfile feature messaging.
@@ -34,13 +35,14 @@ public static class UserProfileMessagingConfiguration
     /// </summary>
     private static void ConfigureSubscriptions(WolverineOptions opts)
     {
-        // Example: If User service needs to listen to organization events
-        // opts.ListenToRabbitQueue("user.organization-events")
-        //     .UseDurableInbox()
-        //     .Named("OrganizationSubscriptions");
-
-        // For now, User service doesn't consume external events
-        // Add subscriptions here when needed
+        // Listen to organization lifecycle events
+        _ = opts.ListenToRabbitQueue("user.organization-events", q =>
+            {
+                // Bind to organization.events exchange to receive org lifecycle events
+                _ = q.BindExchange("organization.events");
+            })
+            .UseDurableInbox()
+            .Named("OrganizationEventSubscriptions");
     }
 
     /// <summary>

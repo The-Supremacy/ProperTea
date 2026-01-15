@@ -1,11 +1,4 @@
-using ProperTea.Organization.Features.Organizations.CheckAvailability;
-using ProperTea.Organization.Features.Organizations.Deactivate;
-using ProperTea.Organization.Features.Organizations.GetAuditLog;
-using ProperTea.Organization.Features.Organizations.GetMyOrganization;
-using ProperTea.Organization.Features.Organizations.GetOrganization;
-using ProperTea.Organization.Features.Organizations.RegisterOrganization;
-using ProperTea.Organization.Features.Organizations.UpdateIdentity;
-using ProperTea.Organization.Features.Organizations.VerifyDomain;
+using ProperTea.Organization.Features.Organizations.Lifecycle;
 using Wolverine;
 
 namespace ProperTea.Organization.Features.Organizations;
@@ -45,6 +38,10 @@ public static class OrganizationEndpoints
             .WithName("DeactivateOrganization")
             .RequireAuthorization();
 
+        _ = group.MapPost("/{id:guid}/activate", ActivateOrganization)
+            .WithName("ActivateOrganization")
+            .RequireAuthorization();
+
         _ = group.MapPost("/{id:guid}/verify-domain", VerifyDomain)
             .WithName("VerifyOrganizationDomain")
             .RequireAuthorization();
@@ -76,7 +73,7 @@ public static class OrganizationEndpoints
         CancellationToken ct)
     {
         var query = new GetOrganizationQuery(id);
-        var response = await bus.InvokeAsync<OrganizationResponse>(query, ct);
+        var response = await bus.InvokeAsync<GetOrganizationResponse>(query, ct);
         return Results.Ok(response);
     }
 
@@ -95,7 +92,6 @@ public static class OrganizationEndpoints
         IMessageBus bus,
         HttpContext context)
     {
-        // Extract user ID from claims (required for adding as org owner)
         var userId = context.User.FindFirst("sub")?.Value;
         if (string.IsNullOrEmpty(userId))
         {
@@ -143,6 +139,16 @@ public static class OrganizationEndpoints
         CancellationToken ct)
     {
         var command = new DeactivateCommand(id, request.Reason, ct);
+        await bus.InvokeAsync(command, ct);
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> ActivateOrganization(
+        Guid id,
+        IMessageBus bus,
+        CancellationToken ct)
+    {
+        var command = new ActivateCommand(id, ct);
         await bus.InvokeAsync(command, ct);
         return Results.NoContent();
     }

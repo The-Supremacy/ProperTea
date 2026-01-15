@@ -7,7 +7,6 @@ namespace ProperTea.Organization.Features.Organizations;
 
 public partial class OrganizationAggregate : IRevisioned
 {
-    // URL-safe slug: lowercase letters, numbers, hyphens. 3-50 chars. No leading/trailing hyphens.
     [GeneratedRegex("^[a-z0-9]+(?:-[a-z0-9]+)*$", RegexOptions.Compiled)]
     private static partial Regex SlugPattern();
 
@@ -25,10 +24,6 @@ public partial class OrganizationAggregate : IRevisioned
     public int Version { get; set; }
 
     #region Factory Methods
-
-    /// <summary>
-    /// Creates a new organization.
-    /// </summary>
     public static Created Create(Guid id, string name, string slug)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -39,10 +34,6 @@ public partial class OrganizationAggregate : IRevisioned
         return new Created(id, name, slug, DateTimeOffset.UtcNow);
     }
 
-    /// <summary>
-    /// Validates that a slug is URL-safe.
-    /// Rules: lowercase letters, numbers, hyphens only. 3-50 chars. No leading/trailing/consecutive hyphens.
-    /// </summary>
     public static void ValidateSlug(string slug)
     {
         if (string.IsNullOrWhiteSpace(slug))
@@ -60,9 +51,6 @@ public partial class OrganizationAggregate : IRevisioned
                 "Cannot start or end with a hyphen, or have consecutive hyphens.");
     }
 
-    /// <summary>
-    /// Links the organization to a ZITADEL organization.
-    /// </summary>
     public static ZitadelOrganizationCreated LinkZitadel(Guid organizationId, string zitadelOrganizationId)
     {
         if (string.IsNullOrWhiteSpace(zitadelOrganizationId))
@@ -71,17 +59,11 @@ public partial class OrganizationAggregate : IRevisioned
         return new ZitadelOrganizationCreated(organizationId, zitadelOrganizationId);
     }
 
-    /// <summary>
-    /// Activates the organization.
-    /// </summary>
     public static Activated Activate(Guid organizationId)
     {
         return new Activated(organizationId, DateTimeOffset.UtcNow);
     }
 
-    /// <summary>
-    /// Changes the organization name. Caller must validate uniqueness externally.
-    /// </summary>
     public NameChanged Rename(string newName)
     {
         if (string.IsNullOrWhiteSpace(newName))
@@ -93,9 +75,6 @@ public partial class OrganizationAggregate : IRevisioned
         return new NameChanged(Id, newName, DateTimeOffset.UtcNow);
     }
 
-    /// <summary>
-    /// Changes the organization slug. Caller must validate uniqueness externally.
-    /// </summary>
     public SlugChanged ChangeSlug(string newSlug)
     {
         ValidateSlug(newSlug);
@@ -106,9 +85,6 @@ public partial class OrganizationAggregate : IRevisioned
         return new SlugChanged(Id, newSlug, DateTimeOffset.UtcNow);
     }
 
-    /// <summary>
-    /// Deactivates the organization.
-    /// </summary>
     public Deactivated Deactivate(string reason)
     {
         if (CurrentStatus == Status.Deactivated)
@@ -120,9 +96,14 @@ public partial class OrganizationAggregate : IRevisioned
         return new Deactivated(Id, reason, DateTimeOffset.UtcNow);
     }
 
-    /// <summary>
-    /// Adds an email domain to the organization for auto-join.
-    /// </summary>
+    public Activated Activate()
+    {
+        if (CurrentStatus == Status.Active)
+            throw new BusinessRuleViolationException("Organization is already active");
+
+        return new Activated(Id, DateTimeOffset.UtcNow);
+    }
+
     public static DomainAdded AddDomain(Guid organizationId, string emailDomain)
     {
         if (string.IsNullOrWhiteSpace(emailDomain))
@@ -135,9 +116,6 @@ public partial class OrganizationAggregate : IRevisioned
         return new DomainAdded(organizationId, emailDomain, DateTimeOffset.UtcNow);
     }
 
-    /// <summary>
-    /// Marks the domain as verified in ZITADEL.
-    /// </summary>
     public DomainVerified VerifyDomain()
     {
         if (string.IsNullOrEmpty(EmailDomain))

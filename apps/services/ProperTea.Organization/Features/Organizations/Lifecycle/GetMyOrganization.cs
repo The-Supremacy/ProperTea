@@ -2,7 +2,7 @@ using Marten;
 using ProperTea.Organization.Features.Organizations.Infrastructure;
 using ProperTea.ServiceDefaults.Exceptions;
 
-namespace ProperTea.Organization.Features.Organizations.GetMyOrganization;
+namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
 public record GetMyOrganizationQuery;
 

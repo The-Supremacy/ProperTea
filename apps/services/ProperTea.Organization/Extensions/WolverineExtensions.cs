@@ -1,7 +1,7 @@
 using Wolverine;
 using Wolverine.RabbitMQ;
 
-namespace ProperTea.Organization.Config;
+namespace ProperTea.Organization.Extensions;
 
 /// <summary>
 /// Helper extensions to reduce boilerplate for message configuration.
@@ -18,7 +18,7 @@ public static class WolverineExtensions
         string messageIdentity) where T : class
     {
         _ = opts.PublishMessage<T>()
-            .ToRabbitExchange(exchange)
+            .ToRabbitExchange(exchange, e => e.ExchangeType = ExchangeType.Topic)
             .CustomizeOutgoing(env => env.MessageType = messageIdentity)
             .UseDurableOutbox();
     }

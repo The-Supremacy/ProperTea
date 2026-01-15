@@ -10,4 +10,11 @@ public static class UserProfileEvents
     public record LastSeenUpdated(
         Guid ProfileId,
         DateTimeOffset LastSeenAt);
+
+    public record OrganizationDeactivatedMarked(
+        Guid ProfileId,
+        DateTimeOffset DeactivatedAt);
+
+    public record OrganizationDeactivatedCleared(
+        Guid ProfileId);
 }

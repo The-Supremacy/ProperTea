@@ -2,9 +2,9 @@ using FluentValidation;
 using Marten;
 using ProperTea.ServiceDefaults.Exceptions;
 
-namespace ProperTea.Organization.Features.Organizations.Deactivate;
+namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
-public static class DeactivateOrganizationHandler
+public static class DeactivateHandler
 {
     public static async Task Handle(
         DeactivateCommand command,

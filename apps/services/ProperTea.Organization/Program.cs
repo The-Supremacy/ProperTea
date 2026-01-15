@@ -1,6 +1,7 @@
 using JasperFx;
 using ProperTea.Organization.Config;
 using ProperTea.Organization.Features.Organizations;
+using ProperTea.Organization.Features.Organizations.Configuration;
 using ProperTea.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);

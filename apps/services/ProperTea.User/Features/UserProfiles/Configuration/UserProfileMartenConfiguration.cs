@@ -1,7 +1,7 @@
 using Marten;
 using Marten.Events.Projections;
 
-namespace ProperTea.User.Features.UserProfiles;
+namespace ProperTea.User.Features.UserProfiles.Configuration;
 
 public static class UserProfileConfiguration
 {

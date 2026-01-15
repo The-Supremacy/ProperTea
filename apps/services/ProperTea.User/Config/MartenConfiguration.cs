@@ -3,6 +3,7 @@ using JasperFx.Events;
 using Marten;
 using Npgsql;
 using ProperTea.User.Features.UserProfiles;
+using ProperTea.User.Features.UserProfiles.Configuration;
 using Wolverine.Marten;
 
 namespace ProperTea.User.Config;
@@ -42,6 +43,8 @@ public static class MartenConfiguration
             // Convention: {aggregate}.{event-name}.v{version}
             opts.Events.MapEventType<UserProfileEvents.Created>("user-profile.created.v1");
             opts.Events.MapEventType<UserProfileEvents.LastSeenUpdated>("user-profile.last-seen-updated.v1");
+            opts.Events.MapEventType<UserProfileEvents.OrganizationDeactivatedMarked>("user-profile.org-deactivated-marked.v1");
+            opts.Events.MapEventType<UserProfileEvents.OrganizationDeactivatedCleared>("user-profile.org-deactivated-cleared.v1");
 
             // Feature-specific configurations
             opts.ConfigureUserProfileMarten();

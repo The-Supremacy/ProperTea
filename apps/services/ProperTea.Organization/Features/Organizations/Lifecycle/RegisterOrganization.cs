@@ -4,7 +4,7 @@ using Wolverine;
 using ProperTea.Organization.Features.Organizations.Infrastructure;
 using ProperTea.ServiceDefaults.Exceptions;
 
-namespace ProperTea.Organization.Features.Organizations.RegisterOrganization;
+namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
 public record RegisterOrganizationCommand(
     Guid OrganizationId,
@@ -26,7 +26,7 @@ public class RegisterOrganizationValidator : AbstractValidator<RegisterOrganizat
             .NotEmpty().WithMessage("Slug is required")
             .MinimumLength(3).WithMessage("Slug must be at least 3 characters")
             .MaximumLength(50).WithMessage("Slug cannot exceed 50 characters")
-            .Matches(@"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+            .Matches("^[a-z0-9]+(?:-[a-z0-9]+)*$")
             .WithMessage("Slug must contain only lowercase letters, numbers, and hyphens");
 
         _ = RuleFor(x => x.CreatorUserId)

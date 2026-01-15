@@ -1,5 +1,5 @@
 using JasperFx.Resources;
-using ProperTea.User.Features.UserProfiles;
+using ProperTea.User.Features.UserProfiles.Configuration;
 using Wolverine;
 using Wolverine.FluentValidation;
 using Wolverine.RabbitMQ;

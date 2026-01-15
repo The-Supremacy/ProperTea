@@ -1,13 +1,8 @@
 using Wolverine;
-using ProperTea.Organization.Config;
+using ProperTea.Organization.Extensions;
 
-namespace ProperTea.Organization.Features.Organizations;
+namespace ProperTea.Organization.Features.Organizations.Configuration;
 
-/// <summary>
-/// Explicit configuration for Organization feature messaging.
-/// All integration event publications and subscriptions are defined here.
-/// No auto-discovery - every external message must be explicitly configured.
-/// </summary>
 public static class OrganizationMessagingConfiguration
 {
     public static void ConfigureOrganizationMessaging(this WolverineOptions opts)
@@ -16,10 +11,6 @@ public static class OrganizationMessagingConfiguration
         ConfigureSubscriptions(opts);
     }
 
-    /// <summary>
-    /// Configure outgoing integration events.
-    /// Convention: organizations.{event-name}.v{version}
-    /// </summary>
     private static void ConfigurePublications(WolverineOptions opts)
     {
         opts.PublishIntegrationEvent<OrganizationIntegrationEvents.OrganizationRegistered>(
@@ -34,15 +25,15 @@ public static class OrganizationMessagingConfiguration
             "organization.events",
             "organizations.deactivated.v1");
 
+        opts.PublishIntegrationEvent<OrganizationIntegrationEvents.OrganizationActivated>(
+            "organization.events",
+            "organizations.activated.v1");
+
         opts.PublishIntegrationEvent<OrganizationIntegrationEvents.OrganizationDomainVerified>(
             "organization.events",
             "organizations.domain-verified.v1");
     }
 
-    /// <summary>
-    /// Configure incoming message subscriptions.
-    /// Explicitly define which external events this service consumes.
-    /// </summary>
     private static void ConfigureSubscriptions(WolverineOptions opts)
     {
         // Example: If Organization service needs to listen to user events
@@ -54,16 +45,11 @@ public static class OrganizationMessagingConfiguration
         // Add subscriptions here when needed
     }
 
-    /// <summary>
-    /// Validates that all integration events are properly configured.
-    /// Called on startup to fail fast if configuration is incomplete.
-    /// </summary>
     public static void ValidateConfiguration()
     {
-        // Get all nested integration event types
         var integrationEventTypes = typeof(OrganizationIntegrationEvents)
             .GetNestedTypes()
-            .Where(t => t.IsClass && !t.IsAbstract)
+            .Where(t => t is { IsClass: true, IsAbstract: false })
             .ToList();
 
         var expectedEventNames = new HashSet<string>(integrationEventTypes.Select(t => t.Name));
@@ -72,6 +58,7 @@ public static class OrganizationMessagingConfiguration
             nameof(OrganizationIntegrationEvents.OrganizationRegistered),
             nameof(OrganizationIntegrationEvents.OrganizationIdentityUpdated),
             nameof(OrganizationIntegrationEvents.OrganizationDeactivated),
+            nameof(OrganizationIntegrationEvents.OrganizationActivated),
             nameof(OrganizationIntegrationEvents.OrganizationDomainVerified)
         };
 

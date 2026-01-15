@@ -29,6 +29,12 @@ public interface IOrganizationDeactivated
     public DateTimeOffset DeactivatedAt { get; }
 }
 
+public interface IOrganizationActivated
+{
+    public Guid OrganizationId { get; }
+    public DateTimeOffset ActivatedAt { get; }
+}
+
 public interface IOrganizationDomainVerified
 {
     public Guid OrganizationId { get; }

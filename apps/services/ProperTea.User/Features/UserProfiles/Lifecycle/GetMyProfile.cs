@@ -1,17 +1,13 @@
 using Marten;
 
-namespace ProperTea.User.Features.UserProfiles.GetMyProfile;
+namespace ProperTea.User.Features.UserProfiles.Lifecycle;
 
-/// <summary>
-/// Pure query - returns null if profile doesn't exist.
-/// No side effects (no creation, no last seen update).
-/// </summary>
-public record GetMyProfileQuery(string ZitadelUserId);
+public record GetProfileQuery(string ZitadelUserId);
 
-public static class GetMyProfileHandler
+public static class GetProfileHandler
 {
     public static async Task<UserProfileResponse?> Handle(
-        GetMyProfileQuery query,
+        GetProfileQuery query,
         IDocumentSession session,
         CancellationToken ct)
     {
