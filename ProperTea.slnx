@@ -13,6 +13,7 @@
     <Project Path="orchestration/ProperTea.AppHost/ProperTea.AppHost.csproj" />
   </Folder>
   <Folder Name="/shared/">
+    <Project Path="shared/ProperTea.Contracts/ProperTea.Contracts.csproj" />
     <Project Path="shared/ProperTea.ServiceDefaults/ProperTea.ServiceDefaults.csproj" />
   </Folder>
 </Solution>

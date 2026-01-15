@@ -1,5 +1,7 @@
-using ProperTea.User.Features.UserProfiles.GetMyProfile;
 using Wolverine;
+using ProperTea.User.Features.UserProfiles.CreateUserProfile;
+using ProperTea.User.Features.UserProfiles.GetMyProfile;
+using ProperTea.User.Features.UserProfiles.UpdateLastSeen;
 
 namespace ProperTea.User.Features.UserProfiles;
 
@@ -28,15 +30,35 @@ public static class UserProfileEndpoints
         IMessageBus bus,
         CancellationToken ct)
     {
-        // Extract ZITADEL user ID from claims
         var zitadelUserId = context.User.FindFirst("sub")?.Value;
         if (string.IsNullOrEmpty(zitadelUserId))
         {
             return Results.Unauthorized();
         }
 
+        // Pure read query
         var query = new GetMyProfileQuery(zitadelUserId);
-        var response = await bus.InvokeAsync<UserProfileResponse>(query, ct);
-        return Results.Ok(response);
+        var result = await bus.InvokeAsync<UserProfileResponse?>(query, ct);
+
+        // If profile doesn't exist, create it (first login)
+        if (result is null)
+        {
+            var createCommand = new CreateUserProfileCommand(zitadelUserId);
+            var createResult = await bus.InvokeAsync<CreateUserProfileResult>(createCommand, ct);
+
+            // Re-query to get the created profile
+            result = await bus.InvokeAsync<UserProfileResponse?>(query, ct);
+
+            if (result is null)
+            {
+                return Results.Problem("Failed to create user profile");
+            }
+        }
+
+        // Update last seen asynchronously using Wolverine's durable local messaging
+        // PublishAsync stores command in outbox transactionally, guarantees delivery
+        await bus.PublishAsync(new UpdateLastSeenCommand(zitadelUserId));
+
+        return Results.Ok(result);
     }
 }

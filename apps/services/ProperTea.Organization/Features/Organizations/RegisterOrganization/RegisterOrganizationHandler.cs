@@ -1,16 +1,58 @@
+using FluentValidation;
 using Marten;
+using Wolverine;
 using ProperTea.Organization.Features.Organizations.Infrastructure;
 using ProperTea.ServiceDefaults.Exceptions;
-using static ProperTea.Organization.Features.Organizations.OrganizationMessages;
 
 namespace ProperTea.Organization.Features.Organizations.RegisterOrganization;
+
+public record RegisterOrganizationCommand(
+    Guid OrganizationId,
+    string Name,
+    string Slug,
+    string CreatorUserId,
+    string? EmailDomain);
+
+public class RegisterOrganizationValidator : AbstractValidator<RegisterOrganizationCommand>
+{
+    public RegisterOrganizationValidator()
+    {
+        _ = RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Organization name is required")
+            .MinimumLength(3).WithMessage("Organization name must be at least 3 characters")
+            .MaximumLength(100).WithMessage("Organization name cannot exceed 100 characters");
+
+        _ = RuleFor(x => x.Slug)
+            .NotEmpty().WithMessage("Slug is required")
+            .MinimumLength(3).WithMessage("Slug must be at least 3 characters")
+            .MaximumLength(50).WithMessage("Slug cannot exceed 50 characters")
+            .Matches(@"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+            .WithMessage("Slug must contain only lowercase letters, numbers, and hyphens");
+
+        _ = RuleFor(x => x.CreatorUserId)
+            .NotEmpty().WithMessage("Creator user ID is required");
+
+        _ = When(x => !string.IsNullOrWhiteSpace(x.EmailDomain), () =>
+        {
+            _ = RuleFor(x => x.EmailDomain)
+                .Matches(@"^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$")
+                .WithMessage("Email domain must be a valid domain name (e.g., example.com)");
+        });
+    }
+}
+
+public record RegistrationResult(
+    Guid OrganizationId,
+    bool IsSuccess,
+    string? Reason);
 
 public static class RegisterOrganizationHandler
 {
     public static async Task<RegistrationResult> Handle(
-        StartRegistration command,
+        RegisterOrganizationCommand command,
         IDocumentSession session,
         IZitadelClient zitadelClient,
+        IMessageBus messageBus,
         ILogger logger)
     {
         // 1. Validate uniqueness (application-level concern - requires query)
@@ -88,6 +130,16 @@ public static class RegisterOrganizationHandler
             [.. events]);
 
         await session.SaveChangesAsync();
+
+        var integrationEvent = new OrganizationIntegrationEvents.OrganizationRegistered(
+            command.OrganizationId,
+            command.Name,
+            command.Slug,
+            zitadelOrgId,
+            command.EmailDomain,
+            DateTimeOffset.UtcNow
+        );
+        await messageBus.PublishAsync(integrationEvent);
 
         return new RegistrationResult(command.OrganizationId, IsSuccess: true, Reason: null);
     }

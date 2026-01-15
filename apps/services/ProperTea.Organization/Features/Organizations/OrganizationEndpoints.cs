@@ -3,6 +3,7 @@ using ProperTea.Organization.Features.Organizations.Deactivate;
 using ProperTea.Organization.Features.Organizations.GetAuditLog;
 using ProperTea.Organization.Features.Organizations.GetMyOrganization;
 using ProperTea.Organization.Features.Organizations.GetOrganization;
+using ProperTea.Organization.Features.Organizations.RegisterOrganization;
 using ProperTea.Organization.Features.Organizations.UpdateIdentity;
 using ProperTea.Organization.Features.Organizations.VerifyDomain;
 using Wolverine;
@@ -101,7 +102,7 @@ public static class OrganizationEndpoints
             return Results.Unauthorized();
         }
 
-        var command = new OrganizationMessages.StartRegistration(
+        var command = new RegisterOrganizationCommand(
             Guid.NewGuid(),
             request.Name,
             request.Slug,
@@ -109,7 +110,7 @@ public static class OrganizationEndpoints
             request.EmailDomain
         );
 
-        var result = await bus.InvokeAsync<OrganizationMessages.RegistrationResult>(command);
+        var result = await bus.InvokeAsync<RegistrationResult>(command);
 
         if (!result.IsSuccess)
         {

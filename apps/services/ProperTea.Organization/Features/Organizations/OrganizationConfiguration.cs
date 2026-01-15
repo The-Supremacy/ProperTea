@@ -52,11 +52,15 @@ public static class OrganizationConfiguration
         _ = opts.Projections.Snapshot<OrganizationAggregate>(SnapshotLifecycle.Inline);
 
         // Event types
-        opts.Events.AddEventTypes(
-        [
-            typeof(OrganizationEvents.Created),
-            typeof(OrganizationEvents.ZitadelOrganizationCreated),
-            typeof(OrganizationEvents.Activated)
-        ]);
+        // Explicit event type mapping (stable names independent of namespace/assembly)
+        // Convention: {aggregate}.{event-name}.v{version}
+        opts.Events.MapEventType<OrganizationEvents.Created>("organization.created.v1");
+        opts.Events.MapEventType<OrganizationEvents.ZitadelOrganizationCreated>("organization.zitadel-linked.v1");
+        opts.Events.MapEventType<OrganizationEvents.Activated>("organization.activated.v1");
+        opts.Events.MapEventType<OrganizationEvents.NameChanged>("organization.name-changed.v1");
+        opts.Events.MapEventType<OrganizationEvents.SlugChanged>("organization.slug-changed.v1");
+        opts.Events.MapEventType<OrganizationEvents.Deactivated>("organization.deactivated.v1");
+        opts.Events.MapEventType<OrganizationEvents.DomainAdded>("organization.domain-added.v1");
+        opts.Events.MapEventType<OrganizationEvents.DomainVerified>("organization.domain-verified.v1");
     }
 }

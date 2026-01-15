@@ -38,6 +38,11 @@ public static class MartenConfiguration
                 ? AutoCreate.All
                 : AutoCreate.CreateOrUpdate;
 
+            // Explicit event type mapping (stable names independent of namespace/assembly)
+            // Convention: {aggregate}.{event-name}.v{version}
+            opts.Events.MapEventType<UserProfileEvents.Created>("user-profile.created.v1");
+            opts.Events.MapEventType<UserProfileEvents.LastSeenUpdated>("user-profile.last-seen-updated.v1");
+
             // Feature-specific configurations
             opts.ConfigureUserProfileMarten();
         })
