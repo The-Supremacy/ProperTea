@@ -14,28 +14,24 @@ public static class WolverineConfiguration
         _ = builder.UseWolverine(opts =>
         {
             _ = opts.ApplicationAssembly = typeof(Program).Assembly;
-            _ = opts.UseFluentValidation();
 
-            _ = opts.UseRabbitMqUsingNamedConnection("rabbitmq")
-                .DeclareExchange("organization.events", exchange =>
-                {
-                    // Fanout exchange - all bound queues receive all messages
-                    exchange.ExchangeType = ExchangeType.Fanout;
-                    exchange.BindQueue("user.organization-events");
-                })
-                .EnableWolverineControlQueues()
-                .AutoProvision();
+            _ = opts.UseFluentValidation();
 
             _ = opts.Services.AddResourceSetupOnStartup();
 
             opts.Policies.UseDurableLocalQueues();
             opts.Policies.AutoApplyTransactions();
 
-            opts.ConfigureUserProfileMessaging();
+            _ = opts.UseRabbitMqUsingNamedConnection("rabbitmq")
+                .DeclareExchange("organization.events", exchange =>
+                {
+                    _ = exchange.BindQueue("user.organization-events");
+                })
+                .EnableWolverineControlQueues()
+                .AutoProvision();
+            _ = opts.ListenToRabbitQueue("user.organization-events").UseDurableInbox();
 
-#if DEBUG
-            UserProfileMessagingConfiguration.ValidateConfiguration();
-#endif
+            opts.ConfigureUserProfileIntegrationEvents();
         });
 
         return builder;
