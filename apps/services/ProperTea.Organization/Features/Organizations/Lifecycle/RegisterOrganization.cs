@@ -46,9 +46,9 @@ public record RegistrationResult(
     bool IsSuccess,
     string? Reason);
 
-public static class RegisterOrganizationHandler
+public class RegisterOrganizationHandler : IWolverineHandler
 {
-    public static async Task<RegistrationResult> Handle(
+    public async Task<RegistrationResult> Handle(
         RegisterOrganizationCommand command,
         IDocumentSession session,
         IZitadelClient zitadelClient,

@@ -1,6 +1,9 @@
+using JasperFx;
+using JasperFx.Core;
 using JasperFx.Resources;
 using ProperTea.Organization.Features.Organizations.Configuration;
 using Wolverine;
+using Wolverine.ErrorHandling;
 using Wolverine.FluentValidation;
 using Wolverine.RabbitMQ;
 
@@ -22,6 +25,7 @@ public static class WolverineConfiguration
             opts.Policies.UseDurableLocalQueues();
             opts.Policies.AutoApplyTransactions();
 
+            opts.UnknownMessageBehavior = UnknownMessageBehavior.DeadLetterQueue;
             _ = opts.UseRabbitMqUsingNamedConnection("rabbitmq")
                 .DeclareExchange("user.events", exchange =>
                 {
@@ -32,6 +36,11 @@ public static class WolverineConfiguration
             _ = opts.ListenToRabbitQueue("organization.user-events").UseDurableInbox();
 
             opts.ConfigureOrganizationIntegrationEvents();
+
+            _ = opts
+                .OnException<ConcurrencyException>()
+                .RetryWithCooldown(100.Milliseconds(), 250.Milliseconds(), 500.Milliseconds())
+                .Then.MoveToErrorQueue();
         });
 
         return builder;

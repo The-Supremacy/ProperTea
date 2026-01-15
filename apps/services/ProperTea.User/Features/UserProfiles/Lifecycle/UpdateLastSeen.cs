@@ -1,4 +1,5 @@
 using Marten;
+using Wolverine;
 
 namespace ProperTea.User.Features.UserProfiles.Lifecycle;
 
@@ -8,9 +9,9 @@ namespace ProperTea.User.Features.UserProfiles.Lifecycle;
 /// </summary>
 public record UpdateLastSeenCommand(string ZitadelUserId);
 
-public static class UpdateLastSeenHandler
+public class UpdateLastSeenHandler : IWolverineHandler
 {
-    public static async Task Handle(
+    public async Task Handle(
         UpdateLastSeenCommand command,
         IDocumentSession session,
         CancellationToken cancellationToken)

@@ -1,5 +1,6 @@
 using Marten;
 using ProperTea.ServiceDefaults.Exceptions;
+using Wolverine;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
@@ -28,9 +29,9 @@ public record GetOrganizationResponse(
     }
 }
 
-public static class GetOrganizationHandler
+public class GetOrganizationHandler : IWolverineHandler
 {
-    public static async Task<GetOrganizationResponse> Handle(
+    public async Task<GetOrganizationResponse> Handle(
         GetOrganizationQuery query,
         IDocumentSession session,
         CancellationToken ct)

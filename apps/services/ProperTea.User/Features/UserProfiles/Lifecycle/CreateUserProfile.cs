@@ -17,9 +17,9 @@ public class CreateProfileValidator : AbstractValidator<CreateProfileCommand>
 
 public record CreateProfileResult(Guid ProfileId);
 
-public static class CreateProfileHandler
+public class CreateProfileHandler : IWolverineHandler
 {
-    public static async Task<CreateProfileResult> Handle(
+    public async Task<CreateProfileResult> Handle(
         CreateProfileCommand command,
         IDocumentSession session,
         IMessageBus messageBus,

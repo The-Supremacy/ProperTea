@@ -1,10 +1,11 @@
 using Marten;
+using Wolverine;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
-public static class CheckAvailabilityHandler
+public class CheckAvailabilityHandler : IWolverineHandler
 {
-    public static async Task<CheckAvailabilityResult> Handle(
+    public async Task<CheckAvailabilityResult> Handle(
         CheckAvailabilityQuery query,
         IDocumentSession session,
         CancellationToken ct)

@@ -5,9 +5,9 @@ using Wolverine;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
-public static class DeactivateHandler
+public class DeactivateHandler : IWolverineHandler
 {
-    public static async Task Handle(
+    public async Task Handle(
         DeactivateCommand command,
         IDocumentSession session,
         IMessageBus messageBus,

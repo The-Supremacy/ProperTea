@@ -6,9 +6,9 @@ using Wolverine;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
-public static class UpdateIdentityHandler
+public class UpdateIdentityHandler : IWolverineHandler
 {
-    public static async Task Handle(
+    public async Task Handle(
         UpdateIdentityCommand command,
         IDocumentSession session,
         IZitadelClient zitadelClient,

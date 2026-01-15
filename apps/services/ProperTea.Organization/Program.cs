@@ -3,6 +3,7 @@ using ProperTea.Organization.Config;
 using ProperTea.Organization.Features.Organizations;
 using ProperTea.Organization.Features.Organizations.Configuration;
 using ProperTea.ServiceDefaults;
+using Wolverine.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapDefaultEndpoints();
+app.MapDeadLettersEndpoints().RequireAuthorization();
 
 app.MapOrganizationEndpoints();
 

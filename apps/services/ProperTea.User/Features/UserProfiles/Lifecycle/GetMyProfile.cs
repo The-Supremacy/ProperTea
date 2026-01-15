@@ -1,12 +1,13 @@
 using Marten;
+using Wolverine;
 
 namespace ProperTea.User.Features.UserProfiles.Lifecycle;
 
 public record GetProfileQuery(string ZitadelUserId);
 
-public static class GetProfileHandler
+public class GetProfileHandler : IWolverineHandler
 {
-    public static async Task<UserProfileResponse?> Handle(
+    public async Task<UserProfileResponse?> Handle(
         GetProfileQuery query,
         IDocumentSession session,
         CancellationToken ct)

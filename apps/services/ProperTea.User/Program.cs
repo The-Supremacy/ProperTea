@@ -2,6 +2,7 @@ using JasperFx;
 using ProperTea.ServiceDefaults;
 using ProperTea.User.Config;
 using ProperTea.User.Features.UserProfiles;
+using Wolverine.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapDefaultEndpoints();
+app.MapDeadLettersEndpoints().RequireAuthorization();
 
 app.MapUserProfileEndpoints();
 

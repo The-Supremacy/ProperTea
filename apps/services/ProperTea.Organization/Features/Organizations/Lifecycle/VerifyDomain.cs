@@ -7,13 +7,9 @@ namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
 public record VerifyDomainCommand(Guid OrganizationId, CancellationToken Ct = default);
 
-/// <summary>
-/// Verifies domain ownership by checking DNS TXT record in ZITADEL.
-/// Call this after the admin has added the TXT record to their DNS.
-/// </summary>
-public static class VerifyDomainHandler
+public class VerifyDomainHandler : IWolverineHandler
 {
-    public static async Task Handle(
+    public async Task Handle(
         VerifyDomainCommand command,
         IDocumentSession session,
         IZitadelClient zitadelClient,
@@ -21,7 +17,6 @@ public static class VerifyDomainHandler
         ILogger logger,
         CancellationToken ct)
     {
-        // Load aggregate
         var org = await session.Events.AggregateStreamAsync<OrganizationAggregate>(
             command.OrganizationId,
             token: ct) ?? throw new NotFoundException(nameof(OrganizationAggregate), command.OrganizationId);

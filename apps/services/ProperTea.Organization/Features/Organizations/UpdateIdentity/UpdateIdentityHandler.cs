@@ -2,12 +2,13 @@ using FluentValidation;
 using Marten;
 using ProperTea.Organization.Features.Organizations.Infrastructure;
 using ProperTea.ServiceDefaults.Exceptions;
+using Wolverine;
 
 namespace ProperTea.Organization.Features.Organizations.UpdateIdentity;
 
-public static class UpdateIdentityHandler
+public class UpdateIdentityHandler : IWolverineHandler
 {
-    public static async Task Handle(
+    public async Task Handle(
         UpdateIdentityCommand command,
         IDocumentSession session,
         IZitadelClient zitadelClient,
