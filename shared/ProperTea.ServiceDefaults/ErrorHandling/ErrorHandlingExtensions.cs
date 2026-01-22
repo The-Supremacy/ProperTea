@@ -40,7 +40,7 @@ public static class ErrorHandlingExtensions
         return builder;
     }
 
-    public static WebApplication UseProperGlobalErrorHandling(this WebApplication app)
+    public static WebApplication UseGlobalErrorHandling(this WebApplication app)
     {
         _ = app.UseExceptionHandler();
         _ = app.UseStatusCodePages();

@@ -10,7 +10,7 @@ public static class OrganizationIntegrationEvents
         Guid OrganizationId,
         string Name,
         string Slug,
-        string ZitadelOrganizationId,
+        string ExternalOrganizationId,
         string? EmailDomain,
         DateTimeOffset RegisteredAt) : IOrganizationRegistered;
 

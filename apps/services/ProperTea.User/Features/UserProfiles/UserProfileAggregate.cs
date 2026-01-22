@@ -7,7 +7,7 @@ namespace ProperTea.User.Features.UserProfiles;
 public class UserProfileAggregate : IRevisioned
 {
     public Guid Id { get; set; }
-    public string ZitadelUserId { get; set; } = string.Empty;
+    public string ExternalUserId { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? LastSeenAt { get; set; }
     public DateTimeOffset? OrganizationDeactivatedAt { get; set; }
@@ -18,12 +18,12 @@ public class UserProfileAggregate : IRevisioned
     /// <summary>
     /// Creates a new user profile.
     /// </summary>
-    public static Created Create(Guid profileId, string zitadelUserId)
+    public static Created Create(Guid profileId, string externalUserId)
     {
-        if (string.IsNullOrWhiteSpace(zitadelUserId))
-            throw new ValidationException(nameof(zitadelUserId), "ZITADEL User ID is required");
+        if (string.IsNullOrWhiteSpace(externalUserId))
+            throw new BusinessViolationException(nameof(externalUserId), "External User ID is required");
 
-        return new Created(profileId, zitadelUserId, DateTimeOffset.UtcNow);
+        return new Created(profileId, externalUserId, DateTimeOffset.UtcNow);
     }
 
     /// <summary>
@@ -41,7 +41,7 @@ public class UserProfileAggregate : IRevisioned
     public void Apply(Created e)
     {
         Id = e.ProfileId;
-        ZitadelUserId = e.ZitadelUserId;
+        ExternalUserId = e.ExternalUserId;
         CreatedAt = e.CreatedAt;
     }
 

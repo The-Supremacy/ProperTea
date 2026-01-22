@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="FluentValidation" Version="8.3.0" />
 
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.2" />
@@ -26,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Auth/" />
     <Folder Include="OpenApi/" />
   </ItemGroup>
 

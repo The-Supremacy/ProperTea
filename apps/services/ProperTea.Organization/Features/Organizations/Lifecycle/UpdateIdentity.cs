@@ -1,71 +1,88 @@
 using FluentValidation;
 using Marten;
 using ProperTea.Organization.Features.Organizations.Infrastructure;
+using ProperTea.ServiceDefaults.Auth;
 using ProperTea.ServiceDefaults.Exceptions;
 using Wolverine;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
+
+public record UpdateIdentityCommand(
+    Guid OrganizationId,
+    string? NewName,
+    string? NewSlug,
+    List<string>? UpdatedDomains,
+    CancellationToken CancellationToken = default);
+
+public class UpdateIdentityValidator : AbstractValidator<UpdateIdentityCommand>
+{
+    public UpdateIdentityValidator()
+    {
+        _ = RuleFor(x => x).Must(x => x.NewName != null || x.NewSlug != null || x.UpdatedDomains != null)
+            .WithMessage("At least one field (Name, Slug, or Domains) must be provided");
+
+        _ = When(x => x.NewName != null, () => RuleFor(x => x.NewName).MinimumLength(3));
+        _ = When(x => x.NewSlug != null, () => RuleFor(x => x.NewSlug).Matches("^[a-z0-9]+(?:-[a-z0-9]+)*$"));
+    }
+}
 
 public class UpdateIdentityHandler : IWolverineHandler
 {
     public async Task Handle(
         UpdateIdentityCommand command,
         IDocumentSession session,
-        IZitadelClient zitadelClient,
+        IExternalOrganizationClient externalOrganizationClient,
+        IUserContext userContext,
         IMessageBus messageBus,
         ILogger logger)
     {
         var org = await session.Events.AggregateStreamAsync<OrganizationAggregate>(command.OrganizationId)
             ?? throw new NotFoundException(nameof(OrganizationAggregate), command.OrganizationId);
 
-        if (!string.IsNullOrWhiteSpace(command.NewName) && command.NewName != org.Name)
+        // 1. Uniqueness Checks
+        if (command.NewName != null && command.NewName != org.Name)
         {
-            var nameExists = await session.Query<OrganizationAggregate>()
-                .AnyAsync(x => x.Name == command.NewName && x.Id != command.OrganizationId);
-
-            if (nameExists)
-            {
-                throw new ConflictException($"Organization name '{command.NewName}' already exists");
-            }
+            if (await session.Query<OrganizationAggregate>().AnyAsync(x => x.Name == command.NewName && x.Id != command.OrganizationId))
+                throw new ConflictException($"Name '{command.NewName}' taken");
+        }
+        if (command.NewSlug != null && command.NewSlug != org.Slug)
+        {
+            if (await session.Query<OrganizationAggregate>().AnyAsync(x => x.Slug == command.NewSlug && x.Id != command.OrganizationId))
+                throw new ConflictException($"Slug '{command.NewSlug}' taken");
         }
 
-        if (!string.IsNullOrWhiteSpace(command.NewSlug) && command.NewSlug != org.Slug)
-        {
-            var slugExists = await session.Query<OrganizationAggregate>()
-                .AnyAsync(x => x.Slug == command.NewSlug && x.Id != command.OrganizationId);
+        var finalDomainsList = command.UpdatedDomains ?? [.. org.Domains];
 
-            if (slugExists)
-            {
-                throw new ConflictException($"Organization slug '{command.NewSlug}' already exists");
-            }
+        var userEmail = userContext.Email;
+        var domainsPayload = new Dictionary<string, bool>();
+
+        foreach (var domain in finalDomainsList)
+        {
+            var isVerified = !string.IsNullOrEmpty(userEmail) &&
+                              userEmail.EndsWith($"@{domain}", StringComparison.OrdinalIgnoreCase);
+
+            domainsPayload[domain] = isVerified;
+        }
+
+        if (org.ExternalOrganizationId != null)
+        {
+            await externalOrganizationClient.UpdateOrganizationAsync(
+                org.ExternalOrganizationId,
+                command.NewName ?? org.Name,
+                domainsPayload,
+                command.CancellationToken);
         }
 
         var events = new List<object>();
-        if (!string.IsNullOrWhiteSpace(command.NewName) && command.NewName != org.Name)
-        {
-            if (string.IsNullOrWhiteSpace(org.ZitadelOrganizationId))
-            {
-                throw new BusinessRuleViolationException("Organization is not linked to ZITADEL");
-            }
 
-            logger.LogInformation(
-                "Updating organization name in ZITADEL: {OrgId} → {NewName}",
-                org.ZitadelOrganizationId,
-                command.NewName);
+        if (command.NewName != null && command.NewName != org.Name)
+            events.Add(org.Rename(command.NewName));
 
-            await zitadelClient.UpdateOrganizationAsync(
-                org.ZitadelOrganizationId,
-                command.NewName,
-                command.CancellationToken);
+        if (command.NewSlug != null && command.NewSlug != org.Slug)
+            events.Add(org.ChangeSlug(command.NewSlug));
 
-            var nameChanged = org.Rename(command.NewName);
-            events.Add(nameChanged);
-        }
-        if (!string.IsNullOrWhiteSpace(command.NewSlug) && command.NewSlug != org.Slug)
-        {
-            var slugChanged = org.ChangeSlug(command.NewSlug);
-            events.Add(slugChanged);
-        }
+        if (command.UpdatedDomains != null && !org.Domains.SetEquals(command.UpdatedDomains))
+            events.Add(org.UpdateDomains(command.UpdatedDomains));
 
         if (events.Count > 0)
         {
@@ -84,37 +101,5 @@ public class UpdateIdentityHandler : IWolverineHandler
                 DateTimeOffset.UtcNow);
             await messageBus.PublishAsync(integrationEvent);
         }
-    }
-}
-
-public record UpdateIdentityCommand(
-    Guid OrganizationId,
-    string? NewName,
-    string? NewSlug,
-    CancellationToken CancellationToken = default);
-
-public class UpdateIdentityCommandValidator : AbstractValidator<UpdateIdentityCommand>
-{
-    public UpdateIdentityCommandValidator()
-    {
-        _ = RuleFor(x => x)
-            .Must(x => !string.IsNullOrWhiteSpace(x.NewName) || !string.IsNullOrWhiteSpace(x.NewSlug))
-            .WithMessage("At least one of NewName or NewSlug must be provided");
-
-        _ = When(x => !string.IsNullOrWhiteSpace(x.NewName), () =>
-        {
-            _ = RuleFor(x => x.NewName)
-                .MinimumLength(3).WithMessage("Organization name must be at least 3 characters")
-                .MaximumLength(100).WithMessage("Organization name cannot exceed 100 characters");
-        });
-
-        _ = When(x => !string.IsNullOrWhiteSpace(x.NewSlug), () =>
-        {
-            _ = RuleFor(x => x.NewSlug)
-                .MinimumLength(3).WithMessage("Slug must be at least 3 characters")
-                .MaximumLength(50).WithMessage("Slug cannot exceed 50 characters")
-                .Matches("^[a-z0-9]+(?:-[a-z0-9]+)*$")
-                .WithMessage("Slug must contain only lowercase letters, numbers, and hyphens");
-        });
     }
 }

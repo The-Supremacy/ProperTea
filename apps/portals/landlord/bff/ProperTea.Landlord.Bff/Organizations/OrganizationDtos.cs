@@ -8,14 +8,14 @@ public record OrganizationDto(
     string Name,
     string Slug,
     string Status,
-    string? ZitadelOrganizationId,
+    string? ExternalOrganizationId,
     DateTimeOffset CreatedAt,
     int Version
 );
 
 public record OrganizationContextDto(
     Guid? LocalOrgId,
-    string? ZitadelOrgId,
+    string? ExternalOrganizationId,
     string? OrgName,
     bool IsSynced
 );

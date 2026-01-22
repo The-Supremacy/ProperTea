@@ -11,7 +11,7 @@ public record GetOrganizationResponse(
     string Name,
     string Slug,
     OrganizationAggregate.Status Status,
-    string? ZitadelOrganizationId,
+    string? ExternalOrganizationId,
     DateTimeOffset CreatedAt,
     int Version)
 {
@@ -22,7 +22,7 @@ public record GetOrganizationResponse(
             aggregate.Name,
             aggregate.Slug,
             aggregate.CurrentStatus,
-            aggregate.ZitadelOrganizationId,
+            aggregate.ExternalOrganizationId,
             aggregate.CreatedAt,
             aggregate.Version
         );

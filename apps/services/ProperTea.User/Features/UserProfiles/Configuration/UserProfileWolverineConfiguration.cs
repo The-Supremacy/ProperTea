@@ -8,7 +8,6 @@ public static class UserProfileMessagingConfiguration
     public static void ConfigureUserProfileIntegrationEvents(this WolverineOptions opts)
     {
         opts.PublishIntegrationEvent<UserProfileIntegrationEvents.UserProfileCreatedEvent>(
-            "user.events",
-            "user.profile-created.v1");
+            "user.events");
     }
 }

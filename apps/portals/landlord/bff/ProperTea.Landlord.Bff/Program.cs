@@ -1,5 +1,5 @@
+using ProperTea.Landlord.Bff.Auth;
 using ProperTea.Landlord.Bff.Config;
-using ProperTea.Landlord.Bff.Endpoints;
 using ProperTea.Landlord.Bff.Organizations;
 using ProperTea.Landlord.Bff.Users;
 using ProperTea.ServiceDefaults;
@@ -34,7 +34,7 @@ builder.Services.AddScoped<UserClient>();
 
 var app = builder.Build();
 
-app.UseOpenApi(builder.Configuration, builder.Environment);
+app.UseOpenApi(app.Configuration, app.Environment);
 
 if (app.Environment.IsDevelopment())
 {

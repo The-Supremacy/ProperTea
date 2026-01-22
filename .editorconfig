@@ -80,3 +80,6 @@ dotnet_diagnostic.IDE0046.severity = suggestion
 
 # IDE0046: Convert to conditional expression
 dotnet_diagnostic.IDE0046.severity = suggestion
+
+# IDE0072: Add missing cases
+dotnet_diagnostic.IDE0072.severity = suggestion

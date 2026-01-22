@@ -1,3 +1,4 @@
+// OrganizationEvents.cs
 namespace ProperTea.Organization.Features.Organizations;
 
 public static class OrganizationEvents
@@ -6,15 +7,19 @@ public static class OrganizationEvents
         Guid OrganizationId,
         string Name,
         string Slug,
+        List<string> Domains,
         DateTimeOffset CreatedAt);
 
-    public record ZitadelOrganizationCreated(
+    public record ExternalOrganizationCreated(
         Guid OrganizationId,
-        string ZitadelOrganizationId);
+        string ExternalOrganizationId);
 
     public record Activated(
         Guid OrganizationId,
         DateTimeOffset ActivatedAt);
+
+    public record OrganizationRegistered(
+        Guid OrganizationId);
 
     public record NameChanged(
         Guid OrganizationId,
@@ -26,17 +31,13 @@ public static class OrganizationEvents
         string NewSlug,
         DateTimeOffset ChangedAt);
 
+    public record DomainsUpdated(
+        Guid OrganizationId,
+        List<string> NewDomains,
+        DateTimeOffset ChangedAt);
+
     public record Deactivated(
         Guid OrganizationId,
         string Reason,
         DateTimeOffset DeactivatedAt);
-
-    public record DomainAdded(
-        Guid OrganizationId,
-        string EmailDomain,
-        DateTimeOffset AddedAt);
-
-    public record DomainVerified(
-        Guid OrganizationId,
-        DateTimeOffset VerifiedAt);
 }

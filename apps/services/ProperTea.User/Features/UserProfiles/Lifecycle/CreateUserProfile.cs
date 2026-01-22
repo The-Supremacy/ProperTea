@@ -4,14 +4,14 @@ using Wolverine;
 
 namespace ProperTea.User.Features.UserProfiles.Lifecycle;
 
-public record CreateProfileCommand(string ZitadelUserId);
+public record CreateProfileCommand(string ExternalUserId);
 
 public class CreateProfileValidator : AbstractValidator<CreateProfileCommand>
 {
     public CreateProfileValidator()
     {
-        _ = RuleFor(x => x.ZitadelUserId)
-            .NotEmpty().WithMessage("Zitadel user ID is required");
+        _ = RuleFor(x => x.ExternalUserId)
+            .NotEmpty().WithMessage("External user ID is required");
     }
 }
 
@@ -26,7 +26,7 @@ public class CreateProfileHandler : IWolverineHandler
         CancellationToken cancellationToken)
     {
         var existingProfile = await session.Query<UserProfileAggregate>()
-            .FirstOrDefaultAsync(x => x.ZitadelUserId == command.ZitadelUserId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.ExternalUserId == command.ExternalUserId, cancellationToken);
 
         if (existingProfile is not null)
         {
@@ -34,14 +34,14 @@ public class CreateProfileHandler : IWolverineHandler
         }
 
         var profileId = Guid.NewGuid();
-        var created = UserProfileAggregate.Create(profileId, command.ZitadelUserId);
+        var created = UserProfileAggregate.Create(profileId, command.ExternalUserId);
 
         _ = session.Events.StartStream<UserProfileAggregate>(profileId, created);
         await session.SaveChangesAsync(cancellationToken);
 
         var integrationEvent = new UserProfileIntegrationEvents.UserProfileCreatedEvent(
             profileId,
-            command.ZitadelUserId,
+            command.ExternalUserId,
             created.CreatedAt
         );
         await messageBus.PublishAsync(integrationEvent);

@@ -12,13 +12,12 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.2" />
     <PackageReference Include="Npgsql.OpenTelemetry" Version="10.0.1" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.11.10" />
-    <PackageReference Include="WolverineFx" Version="5.9.2" />
-    <PackageReference Include="WolverineFx.AzureServiceBus" Version="5.9.2" />
-    <PackageReference Include="WolverineFx.FluentValidation" Version="5.9.2" />
+    <PackageReference Include="WolverineFx" Version="5.10.0" />
+    <PackageReference Include="WolverineFx.AzureServiceBus" Version="5.10.0" />
+    <PackageReference Include="WolverineFx.FluentValidation" Version="5.10.0" />
     <PackageReference Include="WolverineFx.Http" Version="5.10.0" />
-    <PackageReference Include="WolverineFx.Marten" Version="5.9.2" />
-    <PackageReference Include="WolverineFx.RabbitMQ" Version="5.9.2" />
-    <PackageReference Include="Zitadel" Version="7.0.41" />
+    <PackageReference Include="WolverineFx.Marten" Version="5.10.0" />
+    <PackageReference Include="WolverineFx.RabbitMQ" Version="5.10.0" />
   </ItemGroup>
 
   <ItemGroup>

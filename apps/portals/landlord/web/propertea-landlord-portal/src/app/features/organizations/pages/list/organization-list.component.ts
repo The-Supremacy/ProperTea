@@ -10,6 +10,7 @@ import { CardModule } from 'primeng/card';
   imports: [CommonModule, ButtonModule, InputTextModule, CardModule],
   template: `
     <div>
+      list
     </div>
   `
 })

@@ -1,15 +1,19 @@
 import { Injectable } from '@angular/core';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ConfigService {
-  get zitadelUrl(): string {
+  get idpUrl(): string {
     if (window.location.hostname === 'localhost') {
       return 'http://localhost:9080';
     }
 
-    return 'http://zitadel:8080';
+    return 'http://keycloak:8080';
+  }
+
+  get realm(): string {
+    return 'ProperTea';
   }
 
   get environment(): string {

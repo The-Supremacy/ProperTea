@@ -1,0 +1,11 @@
+[data-testid="applications"],
+[data-testid="organizations"],
+[data-testid="resources"] {
+    display: none !important;
+}
+
+#applications-list,
+#organizations-list,
+#resources-list {
+    display: none !important;
+}

@@ -14,10 +14,6 @@ public static class OrganizationEndpoints
             .WithName("RegisterOrganization")
             .RequireAuthorization();
 
-        _ = group.MapGet("/my-organization", GetMyOrganization)
-            .WithName("GetMyOrganization")
-            .RequireAuthorization();
-
         _ = group.MapGet("/{id:guid}", GetOrganization)
             .WithName("GetOrganization")
             .RequireAuthorization();
@@ -42,10 +38,6 @@ public static class OrganizationEndpoints
             .WithName("ActivateOrganization")
             .RequireAuthorization();
 
-        _ = group.MapPost("/{id:guid}/verify-domain", VerifyDomain)
-            .WithName("VerifyOrganizationDomain")
-            .RequireAuthorization();
-
         return group;
     }
 
@@ -56,15 +48,6 @@ public static class OrganizationEndpoints
     {
         var result = await bus.InvokeAsync<CheckAvailabilityResult>(query, ct);
         return Results.Ok(result);
-    }
-
-    private static async Task<IResult> GetMyOrganization(
-        IMessageBus bus,
-        CancellationToken ct)
-    {
-        var query = new GetMyOrganizationQuery();
-        var response = await bus.InvokeAsync<MyOrganizationResponse>(query, ct);
-        return Results.Ok(response);
     }
 
     private static async Task<IResult> GetOrganization(
@@ -92,18 +75,12 @@ public static class OrganizationEndpoints
         IMessageBus bus,
         HttpContext context)
     {
-        var userId = context.User.FindFirst("sub")?.Value;
-        if (string.IsNullOrEmpty(userId))
-        {
-            return Results.Unauthorized();
-        }
-
         var command = new RegisterOrganizationCommand(
             Guid.NewGuid(),
             request.Name,
             request.Slug,
-            userId,
-            request.EmailDomain
+            request.Slug,
+            request.Domains
         );
 
         var result = await bus.InvokeAsync<RegistrationResult>(command);
@@ -127,7 +104,7 @@ public static class OrganizationEndpoints
         IMessageBus bus,
         CancellationToken ct)
     {
-        var command = new UpdateIdentityCommand(id, request.NewName, request.NewSlug, ct);
+        var command = new UpdateIdentityCommand(id, request.NewName, request.NewSlug, request.UpdatedDomains, ct);
         await bus.InvokeAsync(command, ct);
         return Results.NoContent();
     }
@@ -152,26 +129,16 @@ public static class OrganizationEndpoints
         await bus.InvokeAsync(command, ct);
         return Results.NoContent();
     }
-
-    private static async Task<IResult> VerifyDomain(
-        Guid id,
-        IMessageBus bus,
-        CancellationToken ct)
-    {
-        var command = new VerifyDomainCommand(id, ct);
-        await bus.InvokeAsync(command, ct);
-        return Results.NoContent();
-    }
 }
 
-public record UpdateIdentityRequest(string? NewName, string? NewSlug);
+public record UpdateIdentityRequest(string? NewName, string? NewSlug, List<string> UpdatedDomains);
 
 public record DeactivateRequest(string Reason);
 
 public record CreateOrganizationRequest(
     string Name,
     string Slug,
-    string? EmailDomain = null,
+    List<string> Domains,
     OrganizationAggregate.SubscriptionTier? Tier = null
 );
 

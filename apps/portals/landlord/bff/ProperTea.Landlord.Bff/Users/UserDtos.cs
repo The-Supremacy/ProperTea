@@ -5,7 +5,7 @@ namespace ProperTea.Landlord.Bff.Users;
 /// </summary>
 public record UserProfileDto(
     Guid Id,
-    string ZitadelUserId,
+    string ExternalUserId,
     DateTimeOffset CreatedAt,
     DateTimeOffset? LastSeenAt
 );

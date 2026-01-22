@@ -3,11 +3,7 @@ using Wolverine;
 
 namespace ProperTea.User.Features.UserProfiles.Lifecycle;
 
-/// <summary>
-/// Internal command for updating last seen timestamp.
-/// Executed asynchronously via Wolverine's durable local messaging (PublishAsync).
-/// </summary>
-public record UpdateLastSeenCommand(string ZitadelUserId);
+public record UpdateLastSeenCommand(string ExternalUserId);
 
 public class UpdateLastSeenHandler : IWolverineHandler
 {
@@ -17,7 +13,7 @@ public class UpdateLastSeenHandler : IWolverineHandler
         CancellationToken cancellationToken)
     {
         var profile = await session.Query<UserProfileAggregate>()
-            .FirstOrDefaultAsync(x => x.ZitadelUserId == command.ZitadelUserId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.ExternalUserId == command.ExternalUserId, cancellationToken);
 
         if (profile is null)
         {

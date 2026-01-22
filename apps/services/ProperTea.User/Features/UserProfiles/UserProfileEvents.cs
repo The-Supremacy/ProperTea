@@ -4,7 +4,7 @@ public static class UserProfileEvents
 {
     public record Created(
         Guid ProfileId,
-        string ZitadelUserId,
+        string ExternalUserId,
         DateTimeOffset CreatedAt);
 
     public record LastSeenUpdated(

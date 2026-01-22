@@ -1,3 +1,3 @@
 // Core services barrel export
-export * from './services/auth.service';
+export * from '../features/auth/services/auth.service';
 export * from './services/config.service';

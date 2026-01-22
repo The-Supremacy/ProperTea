@@ -14,12 +14,10 @@ public static class WolverineExtensions
     /// </summary>
     public static void PublishIntegrationEvent<T>(
         this WolverineOptions opts,
-        string exchange,
-        string messageIdentity) where T : class
+        string exchange) where T : class
     {
         _ = opts.PublishMessage<T>()
-            .ToRabbitExchange(exchange, e => e.ExchangeType = ExchangeType.Topic)
-            .CustomizeOutgoing(env => env.MessageType = messageIdentity)
+            .ToRabbitExchange(exchange, e => e.ExchangeType = ExchangeType.Fanout)
             .UseDurableOutbox();
     }
 

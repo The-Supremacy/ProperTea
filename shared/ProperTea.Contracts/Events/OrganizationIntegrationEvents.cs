@@ -5,7 +5,7 @@ public interface IOrganizationRegistered
     public Guid OrganizationId { get; }
     public string Name { get; }
     public string Slug { get; }
-    public string ZitadelOrganizationId { get; }
+    public string ExternalOrganizationId { get; }
     public string? EmailDomain { get; }
     public DateTimeOffset RegisteredAt { get; }
 }

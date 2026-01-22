@@ -7,6 +7,6 @@ export const ORGANIZATION_ROUTES: Routes = [
   },
   {
     path: 'setup',
-    loadComponent: () => import('./pages/onboarding/organization-setup.component').then(m => m.OrganizationSetupComponent)
+    loadComponent: () => import('./components/organization-setup/organization-setup.component').then(m => m.OrganizationSetupComponent)
   }
 ];

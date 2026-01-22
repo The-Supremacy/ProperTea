@@ -9,22 +9,22 @@ public static class ProblemDetailsHelpers
     {
         return exception switch
         {
-            // Domain exceptions (most specific first)
-            ValidationException ex => (StatusCodes.Status400BadRequest, "Validation Error",
+            BusinessViolationException ex => (StatusCodes.Status422UnprocessableEntity, "Validation Error",
                 ex.FieldName != null ? $"{ex.FieldName}: {ex.Message}" : ex.Message),
+            System.ComponentModel.DataAnnotations.ValidationException ex => (StatusCodes.Status422UnprocessableEntity, "Validation Error",
+                ex.Message),
+            FluentValidation.ValidationException ex => (StatusCodes.Status422UnprocessableEntity, "Validation Error",
+                ex.Message),
             ConflictException ex => (StatusCodes.Status409Conflict, "Conflict", ex.Message),
             NotFoundException ex => (StatusCodes.Status404NotFound, "Not Found", ex.Message),
-            BusinessRuleViolationException ex => (StatusCodes.Status422UnprocessableEntity,
-                "Business Rule Violation", ex.Message),
 
-            // Framework exceptions
             UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "Unauthorized",
                 "Authentication is required to access this resource."),
             ArgumentException ex => (StatusCodes.Status400BadRequest, "Bad Request", ex.Message),
             InvalidOperationException ex => (StatusCodes.Status400BadRequest, "Bad Request", ex.Message),
             TimeoutException => (StatusCodes.Status408RequestTimeout, "Request Timeout", "The request has timed out."),
-            HttpRequestException => (StatusCodes.Status502BadGateway, "Bad Gateway",
-                "An error occurred while processing the upstream request."),
+            HttpRequestException httpEx => ((int?)httpEx.StatusCode ?? StatusCodes.Status502BadGateway, "Bad Gateway",
+                httpEx.Message),
 
             _ => (StatusCodes.Status500InternalServerError, "Internal Server Error", "")
         };

@@ -25,7 +25,7 @@ public static class OpenApiConfig
         if (environment.IsDevelopment())
         {
             var clientId = configuration["Scalar:ClientId"]
-                ?? throw new InvalidOperationException("OIDC:ClientId not configured");
+                ?? throw new InvalidOperationException("Scalar:ClientId not configured");
 
             _ = app.MapScalarApiReference(options =>
             {
@@ -40,7 +40,7 @@ public static class OpenApiConfig
                             "openid",
                             "profile",
                             "email",
-                            "urn:zitadel:iam:org:project:id:zitadel:aud"
+                            "organization:*"
                         ];
                     });
             });

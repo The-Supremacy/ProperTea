@@ -5,7 +5,7 @@ namespace ProperTea.User.Features.UserProfiles;
 
 public record UserProfileResponse(
     Guid Id,
-    string ZitadelUserId,
+    string ExternalUserId,
     DateTimeOffset CreatedAt,
     DateTimeOffset? LastSeenAt
 );
@@ -28,23 +28,20 @@ public static class UserProfileEndpoints
         IMessageBus bus,
         CancellationToken ct)
     {
-        var zitadelUserId = context.User.FindFirst("sub")?.Value;
-        if (string.IsNullOrEmpty(zitadelUserId))
+        var externalUserId = context.User.FindFirst("sub")?.Value;
+        if (string.IsNullOrEmpty(externalUserId))
         {
             return Results.Unauthorized();
         }
 
-        // Pure read query
-        var query = new GetProfileQuery(zitadelUserId);
+        var query = new GetProfileQuery(externalUserId);
         var result = await bus.InvokeAsync<UserProfileResponse?>(query, ct);
 
-        // If profile doesn't exist, create it (first login)
         if (result is null)
         {
-            var createCommand = new CreateProfileCommand(zitadelUserId);
+            var createCommand = new CreateProfileCommand(externalUserId);
             _ = await bus.InvokeAsync<CreateProfileResult>(createCommand, ct);
 
-            // Re-query to get the created profile
             result = await bus.InvokeAsync<UserProfileResponse?>(query, ct);
 
             if (result is null)
@@ -53,9 +50,7 @@ public static class UserProfileEndpoints
             }
         }
 
-        // Update last seen asynchronously using Wolverine's durable local messaging
-        // PublishAsync stores command in outbox transactionally, guarantees delivery
-        await bus.PublishAsync(new UpdateLastSeenCommand(zitadelUserId));
+        await bus.PublishAsync(new UpdateLastSeenCommand(externalUserId));
 
         return Results.Ok(result);
     }

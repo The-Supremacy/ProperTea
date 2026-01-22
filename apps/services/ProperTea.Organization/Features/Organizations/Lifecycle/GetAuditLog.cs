@@ -21,7 +21,7 @@ public static class AuditEventData
 {
     public record OrganizationCreated(string Name, string Slug);
 
-    public record ZitadelLinked(string ZitadelOrganizationId);
+    public record ExternalOrganizationCreated(string ExternalOrganizationId);
 
     public record OrganizationActivated;
 
@@ -56,7 +56,7 @@ public class GetAuditLogHandler(IDocumentSession session)
             var data = evt.Data switch
             {
                 Created e => (object)new AuditEventData.OrganizationCreated(e.Name, e.Slug),
-                ZitadelOrganizationCreated e => new AuditEventData.ZitadelLinked(e.ZitadelOrganizationId),
+                ExternalOrganizationCreated e => new AuditEventData.ExternalOrganizationCreated(e.ExternalOrganizationId),
                 Activated => new AuditEventData.OrganizationActivated(),
                 NameChanged e => new AuditEventData.NameChanged(previousState?.Name ?? "", e.NewName),
                 SlugChanged e => new AuditEventData.SlugChanged(previousState?.Slug ?? "", e.NewSlug),
@@ -77,7 +77,7 @@ public class GetAuditLogHandler(IDocumentSession session)
             switch (evt.Data)
             {
                 case Created e: previousState.Apply(e); break;
-                case ZitadelOrganizationCreated e: previousState.Apply(e); break;
+                case ExternalOrganizationCreated e: previousState.Apply(e); break;
                 case Activated e: previousState.Apply(e); break;
                 case NameChanged e: previousState.Apply(e); break;
                 case SlugChanged e: previousState.Apply(e); break;

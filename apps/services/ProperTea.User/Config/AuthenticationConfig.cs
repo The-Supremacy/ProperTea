@@ -1,5 +1,6 @@
-using Zitadel.Credentials;
-using Zitadel.Extensions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using ProperTea.ServiceDefaults.Auth;
 
 namespace ProperTea.User.Config;
 
@@ -7,22 +8,35 @@ public static class AuthenticationConfig
 {
     public static IServiceCollection AddAuthenticationConfiguration(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
-        var authority = configuration["OIDC:Authority"]
-            ?? throw new InvalidOperationException("OIDC:Authority not configured");
-
-        var serviceAccountPath = configuration["Zitadel:ServiceAccountPath"]
-            ?? throw new InvalidOperationException("Zitadel:ServiceAccountPath not configured");
-
-        _ = services.AddAuthentication("Zitadel")
-            .AddZitadelIntrospection("Zitadel", options =>
+        _ = services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
             {
+                var oidcSection = configuration.GetSection("OIDC");
+                var authority = oidcSection["Authority"]
+                    ?? throw new InvalidOperationException("OIDC:Authority not configured");
+                var issuer = oidcSection["Issuer"]
+                    ?? throw new InvalidOperationException("OIDC:Issuer not configured");
+
                 options.Authority = authority;
-                options.JwtProfile = Application.LoadFromJsonFile(serviceAccountPath);
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = issuer,
+
+                    ValidateAudience = false,
+
+                    ValidateIssuerSigningKey = true,
+                    ClockSkew = TimeSpan.FromSeconds(5)
+                };
+                options.RequireHttpsMetadata = environment.IsProduction();
             });
 
         _ = services.AddAuthorization();
+
+        _ = services.AddTransient<IUserContext, UserContext>();
 
         return services;
     }
