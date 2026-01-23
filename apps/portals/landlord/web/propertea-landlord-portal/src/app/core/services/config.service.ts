@@ -9,11 +9,7 @@ export class ConfigService {
       return 'http://localhost:9080';
     }
 
-    return 'http://keycloak:8080';
-  }
-
-  get realm(): string {
-    return 'ProperTea';
+    return 'http://zitadel:8080';
   }
 
   get environment(): string {

@@ -11,7 +11,6 @@ public static class OrganizationIntegrationEvents
         string Name,
         string Slug,
         string ExternalOrganizationId,
-        string? EmailDomain,
         DateTimeOffset RegisteredAt) : IOrganizationRegistered;
 
     [MessageIdentity("organizations.identity-updated.v1")]

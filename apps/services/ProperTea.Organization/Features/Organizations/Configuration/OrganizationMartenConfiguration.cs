@@ -1,5 +1,7 @@
 using Marten;
 using Marten.Events.Projections;
+using ProperTea.Organization.Features.Organizations.Infrastructure;
+using Zitadel.Credentials;
 
 namespace ProperTea.Organization.Features.Organizations.Configuration;
 
@@ -10,6 +12,24 @@ public static class OrganizationConfiguration
         IConfiguration configuration,
         IHostEnvironment environment)
     {
+        _ = services.AddSingleton<IExternalOrganizationClient>(sp =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>();
+                var logger = sp.GetRequiredService<ILogger<ZitadelOrganizationClient>>();
+
+                var apiUrl = config["OIDC:Authority"]
+                    ?? throw new InvalidOperationException("OIDC:Authority not configured");
+
+                var serviceAccountPath = config["Zitadel:ServiceAccountPath"]
+                    ?? throw new InvalidOperationException("Zitadel:ServiceAccountPath not configured");
+
+                var serviceAccount = ServiceAccount.LoadFromJsonFile(serviceAccountPath);
+
+                var allowInsecure = environment.IsDevelopment();
+
+                return new ZitadelOrganizationClient(apiUrl, serviceAccount, logger, allowInsecure);
+            });
+
         return services;
     }
 

@@ -18,25 +18,18 @@ public partial class OrganizationAggregate : IRevisioned
     public string Slug { get; set; } = string.Empty;
     public Status CurrentStatus { get; set; }
     public string? ExternalOrganizationId { get; set; }
-    public HashSet<string> Domains { get; set; } = [];
     public DateTimeOffset CreatedAt { get; set; }
     public int Version { get; set; }
 
     #region Factory Methods
-    public static Created Create(Guid id, string name, string slug, IEnumerable<string>? domains)
+    public static Created Create(Guid id, string name, string slug)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new BusinessViolationException(nameof(name), "Name is required");
 
         ValidateSlug(slug);
 
-        var domainList = domains?
-            .Where(d => !string.IsNullOrWhiteSpace(d))
-            .Select(d => d.ToLowerInvariant())
-            .Distinct()
-            .ToList() ?? [];
-
-        return new Created(id, name, slug, domainList, DateTimeOffset.UtcNow);
+        return new Created(id, name, slug, DateTimeOffset.UtcNow);
     }
 
     public static void ValidateSlug(string slug)
@@ -66,17 +59,6 @@ public partial class OrganizationAggregate : IRevisioned
     public Activated Activate()
     {
         return new Activated(Id, DateTimeOffset.UtcNow);
-    }
-
-    public DomainsUpdated UpdateDomains(IEnumerable<string>? newDomains)
-    {
-        var normalized = newDomains?
-            .Where(d => !string.IsNullOrWhiteSpace(d))
-            .Select(d => d.ToLowerInvariant())
-            .Distinct()
-            .ToList() ?? [];
-
-        return new DomainsUpdated(Id, normalized, DateTimeOffset.UtcNow);
     }
 
     public NameChanged Rename(string newName)
@@ -111,7 +93,6 @@ public partial class OrganizationAggregate : IRevisioned
         Id = e.OrganizationId;
         Name = e.Name;
         Slug = e.Slug;
-        Domains = [.. e.Domains];
         CurrentStatus = Status.Pending;
         CreatedAt = e.CreatedAt;
     }
@@ -140,10 +121,6 @@ public partial class OrganizationAggregate : IRevisioned
         CurrentStatus = Status.Deactivated;
     }
 
-    public void Apply(DomainsUpdated e)
-    {
-        Domains = [.. e.NewDomains];
-    }
     #endregion
 
     public enum Status

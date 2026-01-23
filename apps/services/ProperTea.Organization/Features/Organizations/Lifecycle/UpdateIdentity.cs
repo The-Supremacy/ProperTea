@@ -1,7 +1,6 @@
 using FluentValidation;
 using Marten;
 using ProperTea.Organization.Features.Organizations.Infrastructure;
-using ProperTea.ServiceDefaults.Auth;
 using ProperTea.ServiceDefaults.Exceptions;
 using Wolverine;
 
@@ -11,16 +10,12 @@ public record UpdateIdentityCommand(
     Guid OrganizationId,
     string? NewName,
     string? NewSlug,
-    List<string>? UpdatedDomains,
     CancellationToken CancellationToken = default);
 
 public class UpdateIdentityValidator : AbstractValidator<UpdateIdentityCommand>
 {
     public UpdateIdentityValidator()
     {
-        _ = RuleFor(x => x).Must(x => x.NewName != null || x.NewSlug != null || x.UpdatedDomains != null)
-            .WithMessage("At least one field (Name, Slug, or Domains) must be provided");
-
         _ = When(x => x.NewName != null, () => RuleFor(x => x.NewName).MinimumLength(3));
         _ = When(x => x.NewSlug != null, () => RuleFor(x => x.NewSlug).Matches("^[a-z0-9]+(?:-[a-z0-9]+)*$"));
     }
@@ -32,7 +27,6 @@ public class UpdateIdentityHandler : IWolverineHandler
         UpdateIdentityCommand command,
         IDocumentSession session,
         IExternalOrganizationClient externalOrganizationClient,
-        IUserContext userContext,
         IMessageBus messageBus,
         ILogger logger)
     {
@@ -51,25 +45,11 @@ public class UpdateIdentityHandler : IWolverineHandler
                 throw new ConflictException($"Slug '{command.NewSlug}' taken");
         }
 
-        var finalDomainsList = command.UpdatedDomains ?? [.. org.Domains];
-
-        var userEmail = userContext.Email;
-        var domainsPayload = new Dictionary<string, bool>();
-
-        foreach (var domain in finalDomainsList)
-        {
-            var isVerified = !string.IsNullOrEmpty(userEmail) &&
-                              userEmail.EndsWith($"@{domain}", StringComparison.OrdinalIgnoreCase);
-
-            domainsPayload[domain] = isVerified;
-        }
-
         if (org.ExternalOrganizationId != null)
         {
             await externalOrganizationClient.UpdateOrganizationAsync(
                 org.ExternalOrganizationId,
                 command.NewName ?? org.Name,
-                domainsPayload,
                 command.CancellationToken);
         }
 
@@ -80,9 +60,6 @@ public class UpdateIdentityHandler : IWolverineHandler
 
         if (command.NewSlug != null && command.NewSlug != org.Slug)
             events.Add(org.ChangeSlug(command.NewSlug));
-
-        if (command.UpdatedDomains != null && !org.Domains.SetEquals(command.UpdatedDomains))
-            events.Add(org.UpdateDomains(command.UpdatedDomains));
 
         if (events.Count > 0)
         {

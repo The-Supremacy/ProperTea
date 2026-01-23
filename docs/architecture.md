@@ -2,52 +2,61 @@
 
 ## System Overview
 ProperTea is a multi-tenant Real Estate ERP built on .NET 10 using a microservices architecture.
-- [cite_start]**Orchestration**: .NET Aspire (`ProperTea.AppHost`) manages local development containers (PostgreSQL, Redis, RabbitMQ, Keycloak, MailPit)[cite: 580, 582, 587, 590].
-- [cite_start]**Communication**: Wolverine (CQRS + Messaging) over RabbitMQ[cite: 10, 103].
-- [cite_start]**Persistence**: Marten (PostgreSQL) as an Event Store and Document DB[cite: 21, 112].
-- [cite_start]**Identity**: Keycloak (External IdP) synced via API[cite: 14, 291].
-- [cite_start]**Frontend Gateway**: BFF Pattern (YARP + Typed Clients)[cite: 365, 373].
+- **Orchestration**: .NET Aspire (`ProperTea.AppHost`) manages local development containers (PostgreSQL, Redis, RabbitMQ, ZITADEL, MailPit).
+- **Communication**: Wolverine (CQRS + Messaging) over RabbitMQ.
+- **Persistence**: Marten (PostgreSQL) as an Event Store and Document DB.
+- **Identity**: ZITADEL (External IdP) used for authentication and organization management.
+- **Authorization**: OpenFGA (Relationship-Based Access Control) using contextual tuples for fine-grained resource permissions.
+- **Frontend Gateway**: BFF Pattern (YARP + Typed Clients).
 
 ## Service Boundaries
 
 ### Organization Service (`ProperTea.Organization`)
-**Responsibility**: The "Tenant Master". Manages organization lifecycles, domains, and Keycloak synchronization.
-- [cite_start]**Aggregate**: `OrganizationAggregate` (Implements `IRevisioned`)[cite: 248].
-- **Persistence**: Event Sourcing with Marten. [cite_start]Events are defined in `OrganizationEvents.cs`[cite: 281].
-- [cite_start]**Integration**: Uses `KeycloakClient` to provision organizations and users remotely[cite: 218, 290].
-- [cite_start]**Messaging**: Publishes `organization.events` exchange[cite: 10].
+**Responsibility**: The "Tenant Master". Orchestrates headless registration and manages organization lifecycles.
+- **Registration Flow**: Uses a **Reliable Handler** to call ZITADEL v2 APIs (atomic Org + User creation) and persists the local `OrganizationAggregate`.
+- **Persistence**: Event Sourcing with Marten.
+- **Messaging**: Publishes `organizations.registered.v1` and other lifecycle events.
 
 ### User Service (`ProperTea.User`)
 **Responsibility**: Manages user profiles and "Last Seen" tracking.
-- [cite_start]**Aggregate**: `UserProfileAggregate`[cite: 52].
-- [cite_start]**Flow**: Auto-creates profile on first login via `GetMyProfile`[cite: 43, 47].
-- [cite_start]**Messaging**: Listens to `organization.events` to build local read models[cite: 11].
+- **Aggregate**: `UserProfileAggregate`.
+- **Flow**: Listens to `organizations.registered.v1` to build local profile read models asynchronously.
+
+### Property Service (`ProperTea.Property`)
+**Responsibility**: Owns the "Physical Reality" of the estate.
+- **Data**: Manages physical attributes, inventory, and building structures.
+- **Isolation**: Separated from commercial concerns to allow asset tracking without active rentals.
+
+### Rental Service (`ProperTea.Rental`)
+**Responsibility**: Owns the "Commercial Reality" of the estate.
+- **Logic**: Manages internal schedules, base financials, rentable status, and blocks (e.g., renovations).
+- **Calculations**: Determines "Lost Rent" based on base rent vs. actual contracts.
+
+### Work Order Service (`ProperTea.WorkOrder`)
+**Responsibility**: Manages the lifecycle of maintenance tasks and inspections.
+- **Visibility**: Uses cross-tenant projections to allow contractor organizations to view assigned tasks.
+- **Authorization**: Implements **OpenFGA Contextual Tuples** to verify contractor access based on the `ExecutorOrganizationId` stored in the database.
 
 ### Landlord BFF (`ProperTea.Landlord.Bff`)
-**Responsibility**: Backend-for-Frontend to secure the Frontend application.
-- **Auth**: Handles OIDC (Code Flow) with Keycloak. [cite_start]Stores sessions in Redis[cite: 410, 419].
-- [cite_start]**Token Forwarding**: `TokenForwardingHandler` injects the Access Token into downstream HTTP calls[cite: 425].
-- **Business Logic**: None. [cite_start]Acts as a pass-through mapper only[cite: 364, 373].
+**Responsibility**: Secures the Frontend application and provides session context.
+- **Auth**: Handles OIDC Code Flow with ZITADEL. Stores sessions in Redis.
+- **Session Metadata**: Exposes a `/session` endpoint for the Angular app to retrieve branding (Logo URL, Primary Color) and current organization context.
+- **Token Forwarding**: Injects Access Tokens into downstream calls.
 
 ## Development Patterns
 
 ### Vertical Slice Architecture
 Code is organized by **Feature**, not by Layer.
-- [cite_start]**Path**: `Features/{FeatureName}/` (e.g., `Features/Organizations/Lifecycle/RegisterOrganization.cs`)[cite: 209].
-- **Components**: A feature file typically contains the Command, Handler, Validator, and Result types.
+- **Path**: `Features/{FeatureName}/`.
 
 ### Wolverine Handlers
-- [cite_start]Implement `IWolverineHandler`[cite: 65, 135].
-- [cite_start]Inject `IDocumentSession` (Marten) for persistence transactions[cite: 75, 135].
-- [cite_start]**Side Effects**: Use `IMessageBus.PublishAsync` only for integration events or cross-boundary communication[cite: 79, 156].
-- [cite_start]**Integration Events**: Must use `[MessageIdentity]` attributes in `IntegrationEvents.cs` files to ensure contract stability across services[cite: 87, 129].
+- Implement `IWolverineHandler`.
+- Inject `IDocumentSession` (Marten) for persistence transactions.
+- **Side Effects**: Use `IMessageBus.PublishAsync` only for integration events.
 
 ### Marten Configuration
-- [cite_start]**Aggregates**: Must be `internal` or `public` classes implementing `IRevisioned`[cite: 52, 248].
-- [cite_start]**Events**: Defined as `public record` inside a static `Events` class[cite: 84, 281].
-- [cite_start]**Tenancy**: `opts.Policies.AllDocumentsAreMultiTenanted()` is enabled globally[cite: 21, 112].
+- **Aggregates**: Implement `IRevisioned`.
+- **Tenancy**: `opts.Policies.AllDocumentsAreMultiTenanted()` enabled globally.
 
 ## Shared Contracts
-[cite_start]The source of truth for integration models is located in `/shared/ProperTea.Contracts`[cite: 504].
-- [cite_start]Interfaces define the event contracts (e.g., `IOrganizationRegistered`)[cite: 504].
-- Services implement these interfaces in their specific integration event classes.
+The source of truth for integration models is located in `/shared/ProperTea.Contracts`.

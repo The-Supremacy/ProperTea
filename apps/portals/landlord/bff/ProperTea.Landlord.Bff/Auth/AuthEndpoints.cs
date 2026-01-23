@@ -22,12 +22,10 @@ public static class AuthEndpoints
 
         _ = group.MapGet("/login", (string? returnUrl) =>
         {
-            var props = new AuthenticationProperties
+            return Results.Challenge(new AuthenticationProperties
             {
                 RedirectUri = returnUrl ?? "/"
-            };
-
-            return Results.Challenge(props, [OpenIdConnectDefaults.AuthenticationScheme]);
+            });
         })
         .AllowAnonymous();
 

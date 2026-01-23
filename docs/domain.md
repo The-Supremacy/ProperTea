@@ -3,29 +3,28 @@
 ## Ubiquitous Language
 
 ### Property Management (The "Physical" Reality)
-* **Property (Aggregate Root)**: The legal entity or complex (e.g., "Sunset Towers").
-  - **Context**: Tenant-specific. Two organizations owning units in the same building will have *different* Property records.
-* **Unit (Aggregate Root)**: The distinct physical space (e.g., "Apt 4B").
-  - **Role**: Physical existence only.
+* **Property (Aggregate Root)**: The legal entity or complex.
+* **Unit (Aggregate Root)**: The distinct physical space.
+
+### Maintenance & Operations (The "Actionable" Reality)
+* **Work Order (Aggregate Root)**: The primary entity for maintenance and inspections.
+  - **Fault Report**: Reactive maintenance for tenant-reported issues.
+  - **Rounds**: Preventive maintenance or scheduled routine checks.
+  - **Property Inspection**: Condition assessments (e.g., Move-in/Move-out).
+  - **Legal Audit**: Statutory compliance checks (e.g., Fire safety, Elevator certs).
+* **Competence**: Skill categories assigned to an Organization (e.g., Plumbing, Electrical).
 
 ### Rental Management (The "Commercial" Reality)
 * **Rentable Unit**: The commercial view of a Unit.
-  - **Base Rent**: The internal target price.
-  - **Vacancy**: A computed period where the unit is free.
-* **Block**: A manual reservation of time (e.g., Renovation, Maintenance).
+* **Block**: A manual reservation of time for renovations or maintenance.
 
-### Location & Analytics (The "Global" Reality)
-* **Place**: A normalized physical location (e.g., Google Place ID) shared across tenants.
-* **Heatmap**: Aggregated analytics showing density of ProperTea units in a city.
-
-### Marketing (Public Reality)
-* **Publication**: A snapshot of a *Rentable Unit* exposed to the Market Portal.
-* **Application**: A request from an Applicant.
+### Visibility & Roles
+* **Owner Organization**: The landlord/management org owning the property.
+* **Executor Organization**: The contractor org assigned to a Work Order.
 
 ## Primary User Flow
-1. **Definition**: User creates `Property` and `Unit` in *Property Service*.
-   - *System*: *Location Service* normalizes the address to a global `PlaceId`.
-2. **Setup**: User marks Unit as "Rentable" in *Rental Service*.
-3. **Marketing**: User clicks "Advertise". *Market Service* creates a **Publication**.
-4. **Acquisition**: Applicant applies on Market Portal. Landlord accepts.
-5. **Closing**: Contract signed. *Rental Service* closes the time slot.
+1. **Onboarding**: User registers via the Headless flow. Org and Admin are created in ZITADEL and local state.
+2. **Definition**: User creates `Property` and `Unit` in *Property Service*.
+3. **Setup**: User marks Unit as "Rentable" in *Rental Service*.
+4. **Maintenance**: A **Fault Report** is created. Landlord assigns an **Executor Organization**.
+5. **Execution**: Contractor views the **Work Order** on their dashboard and updates status.

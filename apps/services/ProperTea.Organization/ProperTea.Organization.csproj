@@ -6,9 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Duende.AccessTokenManagement" Version="4.1.0" />
-    <PackageReference Include="Keycloak.AuthServices.Sdk" Version="2.8.0" />
-    <PackageReference Include="Keycloak.AuthServices.Sdk.Kiota" Version="26.3.3" />
     <PackageReference Include="Marten" Version="8.17.0" />
     <PackageReference Include="Marten.AspNetCore" Version="8.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.2" />
@@ -21,6 +18,7 @@
     <PackageReference Include="WolverineFx.Http" Version="5.10.0" />
     <PackageReference Include="WolverineFx.Marten" Version="5.10.0" />
     <PackageReference Include="WolverineFx.RabbitMQ" Version="5.10.0" />
+    <PackageReference Include="Zitadel" Version="7.0.41" />
   </ItemGroup>
 
   <ItemGroup>

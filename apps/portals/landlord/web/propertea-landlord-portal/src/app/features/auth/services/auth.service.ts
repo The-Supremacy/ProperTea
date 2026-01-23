@@ -71,15 +71,7 @@ export class AuthService {
   }
 
   editProfile(): void {
-    const profileUrl = `${this.config.idpUrl}/realms/${this.config.realm}/account/#/personal-info`;
-    const ref = window.open(profileUrl, '_blank');
-
-    const checkClosed = setInterval(() => {
-      if (ref?.closed) {
-        clearInterval(checkClosed);
-        this.refresh();
-      }
-    }, 1000);
+    window.open(`${this.config.idpUrl}/ui/console/users/me`, '_blank');
   }
 
   register(returnUrl?: string): void {

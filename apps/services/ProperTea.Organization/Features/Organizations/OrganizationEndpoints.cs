@@ -79,8 +79,7 @@ public static class OrganizationEndpoints
             Guid.NewGuid(),
             request.Name,
             request.Slug,
-            request.Slug,
-            request.Domains
+            request.Slug
         );
 
         var result = await bus.InvokeAsync<RegistrationResult>(command);
@@ -104,7 +103,7 @@ public static class OrganizationEndpoints
         IMessageBus bus,
         CancellationToken ct)
     {
-        var command = new UpdateIdentityCommand(id, request.NewName, request.NewSlug, request.UpdatedDomains, ct);
+        var command = new UpdateIdentityCommand(id, request.NewName, request.NewSlug, ct);
         await bus.InvokeAsync(command, ct);
         return Results.NoContent();
     }
@@ -131,14 +130,13 @@ public static class OrganizationEndpoints
     }
 }
 
-public record UpdateIdentityRequest(string? NewName, string? NewSlug, List<string> UpdatedDomains);
+public record UpdateIdentityRequest(string? NewName, string? NewSlug);
 
 public record DeactivateRequest(string Reason);
 
 public record CreateOrganizationRequest(
     string Name,
     string Slug,
-    List<string> Domains,
     OrganizationAggregate.SubscriptionTier? Tier = null
 );
 

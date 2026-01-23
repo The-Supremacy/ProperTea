@@ -7,7 +7,6 @@ public static class OrganizationEvents
         Guid OrganizationId,
         string Name,
         string Slug,
-        List<string> Domains,
         DateTimeOffset CreatedAt);
 
     public record ExternalOrganizationCreated(
@@ -31,13 +30,17 @@ public static class OrganizationEvents
         string NewSlug,
         DateTimeOffset ChangedAt);
 
-    public record DomainsUpdated(
-        Guid OrganizationId,
-        List<string> NewDomains,
-        DateTimeOffset ChangedAt);
-
     public record Deactivated(
         Guid OrganizationId,
         string Reason,
         DateTimeOffset DeactivatedAt);
+
+    public record DomainAdded(
+        Guid OrganizationId,
+        string EmailDomain,
+        DateTimeOffset AddedAt);
+
+    public record DomainVerified(
+        Guid OrganizationId,
+        DateTimeOffset VerifiedAt);
 }

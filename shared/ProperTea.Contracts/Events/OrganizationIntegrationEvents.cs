@@ -6,7 +6,6 @@ public interface IOrganizationRegistered
     public string Name { get; }
     public string Slug { get; }
     public string ExternalOrganizationId { get; }
-    public string? EmailDomain { get; }
     public DateTimeOffset RegisteredAt { get; }
 }
 
