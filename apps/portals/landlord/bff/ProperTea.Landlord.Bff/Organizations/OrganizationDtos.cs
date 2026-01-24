@@ -1,8 +1,5 @@
 namespace ProperTea.Landlord.Bff.Organizations;
 
-/// <summary>
-/// Organization DTOs matching backend contracts
-/// </summary>
 public record OrganizationDto(
     Guid Id,
     string Name,
@@ -20,22 +17,15 @@ public record OrganizationContextDto(
     bool IsSynced
 );
 
-public record CreateOrganizationRequest(
-    string Name,
-    string Slug
-);
+public record RegisterOrganizationRequest(
+    string OrganizationName,
+    string UserEmail,
+    string UserFirstName,
+    string UserLastName,
+    string Slug);
 
-public record CreateOrganizationResponse(
+public record RegisterOrganizationResponse(
     Guid OrganizationId
-);
-
-public record UpdateOrganizationRequest(
-    string? NewName,
-    string? NewSlug
-);
-
-public record DeactivateOrganizationRequest(
-    string Reason
 );
 
 public record CheckAvailabilityResponse(
@@ -46,7 +36,7 @@ public record CheckAvailabilityResponse(
 public record AuditLogEntryDto(
     string EventType,
     DateTimeOffset Timestamp,
-    string? UserId,
+    string? Username,
     int Version,
     object Data
 );

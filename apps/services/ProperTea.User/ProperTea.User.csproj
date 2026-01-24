@@ -18,6 +18,7 @@
     <PackageReference Include="WolverineFx.Http" Version="5.10.0" />
     <PackageReference Include="WolverineFx.Marten" Version="5.10.0" />
     <PackageReference Include="WolverineFx.RabbitMQ" Version="5.10.0" />
+    <PackageReference Include="Zitadel" Version="7.0.41" />
   </ItemGroup>
 
   <ItemGroup>

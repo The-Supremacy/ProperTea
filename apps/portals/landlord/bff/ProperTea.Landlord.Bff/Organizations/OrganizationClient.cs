@@ -1,9 +1,5 @@
 namespace ProperTea.Landlord.Bff.Organizations;
 
-/// <summary>
-/// Client for calling Organization service backend.
-/// Provides typed methods for all organization operations.
-/// </summary>
 public class OrganizationClient(IHttpClientFactory httpClientFactory)
 {
     private readonly HttpClient _client = httpClientFactory.CreateClient("organization");
@@ -20,36 +16,13 @@ public class OrganizationClient(IHttpClientFactory httpClientFactory)
         }
     }
 
-    public async Task<OrganizationContextDto> GetOrganizationContextAsync(CancellationToken ct = default)
-    {
-        return (await _client.GetFromJsonAsync<OrganizationContextDto>("/organizations/context", ct))!;
-    }
-
-    public async Task<CreateOrganizationResponse> CreateOrganizationAsync(
-        CreateOrganizationRequest request,
+    public async Task<RegisterOrganizationResponse> RegisterOrganizationAsync(
+        RegisterOrganizationRequest request,
         CancellationToken ct = default)
     {
         var response = await _client.PostAsJsonAsync("/organizations", request, ct);
         _ = response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<CreateOrganizationResponse>(ct))!;
-    }
-
-    public async Task UpdateOrganizationAsync(
-        Guid id,
-        UpdateOrganizationRequest request,
-        CancellationToken ct = default)
-    {
-        var response = await _client.PatchAsJsonAsync($"/organizations/{id}", request, ct);
-        _ = response.EnsureSuccessStatusCode();
-    }
-
-    public async Task DeactivateOrganizationAsync(
-        Guid id,
-        DeactivateOrganizationRequest request,
-        CancellationToken ct = default)
-    {
-        var response = await _client.PostAsJsonAsync($"/organizations/{id}/deactivate", request, ct);
-        _ = response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<RegisterOrganizationResponse>(ct))!;
     }
 
     public async Task<CheckAvailabilityResponse> CheckAvailabilityAsync(

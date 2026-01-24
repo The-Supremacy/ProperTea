@@ -20,10 +20,10 @@ public static class OrganizationConfiguration
                 var apiUrl = config["OIDC:Authority"]
                     ?? throw new InvalidOperationException("OIDC:Authority not configured");
 
-                var serviceAccountPath = config["Zitadel:ServiceAccountPath"]
-                    ?? throw new InvalidOperationException("Zitadel:ServiceAccountPath not configured");
+                var serviceAccountJwtPath = config["Zitadel:ServiceAccountJwtPath"]
+                    ?? throw new InvalidOperationException("Zitadel:ServiceAccountJwtPath not configured");
 
-                var serviceAccount = ServiceAccount.LoadFromJsonFile(serviceAccountPath);
+                var serviceAccount = ServiceAccount.LoadFromJsonFile(serviceAccountJwtPath);
 
                 var allowInsecure = environment.IsDevelopment();
 
@@ -41,8 +41,5 @@ public static class OrganizationConfiguration
         opts.Events.MapEventType<OrganizationEvents.Created>("organization.created.v1");
         opts.Events.MapEventType<OrganizationEvents.ExternalOrganizationCreated>("organization.external-linked.v1");
         opts.Events.MapEventType<OrganizationEvents.Activated>("organization.activated.v1");
-        opts.Events.MapEventType<OrganizationEvents.NameChanged>("organization.name-changed.v1");
-        opts.Events.MapEventType<OrganizationEvents.SlugChanged>("organization.slug-changed.v1");
-        opts.Events.MapEventType<OrganizationEvents.Deactivated>("organization.deactivated.v1");
     }
 }

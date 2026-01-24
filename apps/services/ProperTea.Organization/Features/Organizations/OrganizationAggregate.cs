@@ -8,7 +8,7 @@ namespace ProperTea.Organization.Features.Organizations;
 public partial class OrganizationAggregate : IRevisioned
 {
     [GeneratedRegex("^[a-z0-9]+(?:-[a-z0-9]+)*$", RegexOptions.Compiled)]
-    private static partial Regex SlugPattern();
+    public static partial Regex SlugPattern();
 
     private const int MinSlugLength = 2;
     private const int MaxSlugLength = 50;
@@ -17,6 +17,7 @@ public partial class OrganizationAggregate : IRevisioned
     public string Name { get; set; } = string.Empty;
     public string Slug { get; set; } = string.Empty;
     public Status CurrentStatus { get; set; }
+    public SubscriptionTier CurrentTier { get; set; }
     public string? ExternalOrganizationId { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public int Version { get; set; }
@@ -29,7 +30,7 @@ public partial class OrganizationAggregate : IRevisioned
 
         ValidateSlug(slug);
 
-        return new Created(id, name, slug, DateTimeOffset.UtcNow);
+        return new Created(id, name, slug, SubscriptionTier.Trial, DateTimeOffset.UtcNow);
     }
 
     public static void ValidateSlug(string slug)
@@ -61,30 +62,6 @@ public partial class OrganizationAggregate : IRevisioned
         return new Activated(Id, DateTimeOffset.UtcNow);
     }
 
-    public NameChanged Rename(string newName)
-    {
-        if (string.IsNullOrWhiteSpace(newName))
-            throw new BusinessViolationException(nameof(newName), "Name is required");
-        if (newName == Name)
-            throw new BusinessViolationException("New name is the same as current name");
-        return new NameChanged(Id, newName, DateTimeOffset.UtcNow);
-    }
-
-    public SlugChanged ChangeSlug(string newSlug)
-    {
-        ValidateSlug(newSlug);
-        if (newSlug == Slug) throw new BusinessViolationException("New slug is the same as current slug");
-        return new SlugChanged(Id, newSlug, DateTimeOffset.UtcNow);
-    }
-
-    public Deactivated Deactivate(string reason)
-    {
-        if (CurrentStatus == Status.Deactivated)
-            throw new BusinessViolationException("Organization is already deactivated");
-        if (string.IsNullOrWhiteSpace(reason))
-            throw new BusinessViolationException(nameof(reason), "Reason is required");
-        return new Deactivated(Id, reason, DateTimeOffset.UtcNow);
-    }
     #endregion
 
     #region Event Appliers
@@ -95,6 +72,7 @@ public partial class OrganizationAggregate : IRevisioned
         Slug = e.Slug;
         CurrentStatus = Status.Pending;
         CreatedAt = e.CreatedAt;
+        CurrentTier = e.Tier;
     }
 
     public void Apply(ExternalOrganizationCreated e)
@@ -105,20 +83,6 @@ public partial class OrganizationAggregate : IRevisioned
     public void Apply(Activated e)
     {
         CurrentStatus = Status.Active;
-    }
-
-    public void Apply(NameChanged e)
-    {
-        Name = e.NewName;
-    }
-
-    public void Apply(SlugChanged e)
-    {
-        Slug = e.NewSlug;
-    }
-    public void Apply(Deactivated e)
-    {
-        CurrentStatus = Status.Deactivated;
     }
 
     #endregion
@@ -132,9 +96,7 @@ public partial class OrganizationAggregate : IRevisioned
 
     public enum SubscriptionTier
     {
-        Demo = 1,
-        Trial = 2,
-        Active = 3,
-        Deactivated = 4
+        Trial = 1,
+        Basic = 2,
     }
 }

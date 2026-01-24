@@ -2,6 +2,7 @@ using JasperFx;
 using JasperFx.Core;
 using JasperFx.Resources;
 using ProperTea.Organization.Features.Organizations.Configuration;
+using ProperTea.ServiceDefaults.Auth;
 using Wolverine;
 using Wolverine.ErrorHandling;
 using Wolverine.FluentValidation;
@@ -24,6 +25,7 @@ public static class WolverineConfiguration
 
             opts.Policies.UseDurableLocalQueues();
             opts.Policies.AutoApplyTransactions();
+            opts.Policies.AddMiddleware<UserIdMiddleware>();
 
             opts.UnknownMessageBehavior = UnknownMessageBehavior.DeadLetterQueue;
             _ = opts.UseRabbitMqUsingNamedConnection("rabbitmq")
@@ -41,6 +43,8 @@ public static class WolverineConfiguration
                 .OnException<ConcurrencyException>()
                 .RetryWithCooldown(100.Milliseconds(), 250.Milliseconds(), 500.Milliseconds())
                 .Then.MoveToErrorQueue();
+
+
         });
 
         return builder;

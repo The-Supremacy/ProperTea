@@ -8,17 +8,21 @@ using ProperTea.ServiceDefaults.Auth;
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
 public record RegisterOrganizationCommand(
-    Guid OrganizationId,
-    string Name,
-    string Alias,
+    string OrganizationName,
+    string UserEmail,
+    string UserFirstName,
+    string UserLastName,
     string Slug);
 
 public class RegisterOrganizationValidator : AbstractValidator<RegisterOrganizationCommand>
 {
     public RegisterOrganizationValidator()
     {
-        _ = RuleFor(x => x.Name).NotEmpty().MinimumLength(3).MaximumLength(100);
-        _ = RuleFor(x => x.Alias).NotEmpty().Matches("^[a-z0-9]+(?:-[a-z0-9]+)*$");
+        _ = RuleFor(x => x.OrganizationName).NotEmpty().MinimumLength(2).MaximumLength(100);
+        _ = RuleFor(x => x.UserEmail).NotEmpty().EmailAddress();
+        _ = RuleFor(x => x.UserFirstName).NotEmpty().MinimumLength(1).MaximumLength(100);
+        _ = RuleFor(x => x.UserLastName).NotEmpty().MinimumLength(1).MaximumLength(100);
+        _ = RuleFor(x => x.Slug).NotEmpty().Matches(OrganizationAggregate.SlugPattern());
     }
 }
 
@@ -26,56 +30,55 @@ public record RegistrationResult(Guid OrganizationId, bool IsSuccess, string? Re
 
 public class RegisterOrganizationHandler : IWolverineHandler
 {
-    public async Task<(OrganizationEvents.OrganizationRegistered, RegistrationResult)> Handle(
+    public async Task<(OrganizationEvents.OrganizationRegistered, RegistrationResult, OrganizationIntegrationEvents.OrganizationRegistered)> Handle(
         RegisterOrganizationCommand command,
         IDocumentSession session,
         IExternalOrganizationClient externalOrgClient,
         IUserContext userContext,
-        IMessageBus messageBus,
         ILogger logger)
     {
         var userId = userContext.UserId
             ?? throw new UnauthorizedAccessException("User must be logged in to register an organization");
 
         var exists = await session.Query<OrganizationAggregate>()
-            .AnyAsync(x => x.Slug == command.Alias || x.Name == command.Name);
+            .AnyAsync(x => x.Name == command.OrganizationName);
 
         if (exists)
-            throw new ConflictException($"Organization with alias '{command.Alias}' or name '{command.Name}' already exists");
+            throw new ConflictException($"Organization with name '{command.OrganizationName}' already exists");
 
-        logger.LogInformation("Provisioning org {OrganizationId}", command.OrganizationId);
-
-        var externalOrgId = await externalOrgClient.CreateOrganizationAsync(
-            command.Name,
+        var externalOrgId = await externalOrgClient.CreateOrganizationWithAdminAsync(
+            command.OrganizationName,
+            command.UserEmail,
+            command.UserFirstName,
+            command.UserLastName,
             CancellationToken.None);
 
-        await externalOrgClient.AddUserToOrganizationAsync(
-            externalOrgId,
-            userId,
-            [],
-            CancellationToken.None);
-
+        var orgId = Guid.NewGuid();
         var events = new List<object>
         {
-            OrganizationAggregate.Create(command.OrganizationId, command.Name, command.Slug),
-            OrganizationAggregate.LinkExternalOrganization(command.OrganizationId, externalOrgId),
-            new OrganizationEvents.Activated(command.OrganizationId, DateTime.UtcNow)
+            OrganizationAggregate.Create(orgId, command.OrganizationName, command.Slug),
+            OrganizationAggregate.LinkExternalOrganization(orgId, externalOrgId),
+            new OrganizationEvents.Activated(orgId, DateTime.UtcNow)
         };
-
-        _ = session.Events.StartStream<OrganizationAggregate>(command.OrganizationId, [.. events]);
+        _ = session.Events.StartStream<OrganizationAggregate>(orgId, [.. events]);
         await session.SaveChangesAsync();
 
-        await messageBus.PublishAsync(new OrganizationIntegrationEvents.OrganizationRegistered(
-            command.OrganizationId,
-            command.Name,
+        logger.LogInformation("Registered new organization {OrganizationId} with external ID {ExternalOrgId}",
+            orgId,
+            externalOrgId);
+
+        var integrationEvent = new OrganizationIntegrationEvents.OrganizationRegistered(
+            orgId,
+            command.OrganizationName,
             command.Slug,
             externalOrgId,
             DateTimeOffset.UtcNow
-        ));
+        );
 
         return (
-            new OrganizationEvents.OrganizationRegistered(command.OrganizationId),
-            new RegistrationResult(command.OrganizationId, IsSuccess: true, Reason: null)
+            new OrganizationEvents.OrganizationRegistered(orgId),
+            new RegistrationResult(orgId, IsSuccess: true, Reason: null),
+            integrationEvent
         );
     }
 }

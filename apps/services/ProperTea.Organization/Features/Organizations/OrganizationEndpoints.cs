@@ -14,28 +14,12 @@ public static class OrganizationEndpoints
             .WithName("RegisterOrganization")
             .RequireAuthorization();
 
-        _ = group.MapGet("/{id:guid}", GetOrganization)
-            .WithName("GetOrganization")
-            .RequireAuthorization();
-
         _ = group.MapGet("/{id:guid}/audit-log", GetAuditLog)
             .WithName("GetOrganizationAuditLog")
             .RequireAuthorization();
 
         _ = group.MapGet("/check-availability", CheckAvailability)
             .WithName("CheckAvailability")
-            .RequireAuthorization();
-
-        _ = group.MapPatch("/{id:guid}", UpdateIdentity)
-            .WithName("UpdateOrganizationIdentity")
-            .RequireAuthorization();
-
-        _ = group.MapPost("/{id:guid}/deactivate", DeactivateOrganization)
-            .WithName("DeactivateOrganization")
-            .RequireAuthorization();
-
-        _ = group.MapPost("/{id:guid}/activate", ActivateOrganization)
-            .WithName("ActivateOrganization")
             .RequireAuthorization();
 
         return group;
@@ -48,16 +32,6 @@ public static class OrganizationEndpoints
     {
         var result = await bus.InvokeAsync<CheckAvailabilityResult>(query, ct);
         return Results.Ok(result);
-    }
-
-    private static async Task<IResult> GetOrganization(
-        Guid id,
-        IMessageBus bus,
-        CancellationToken ct)
-    {
-        var query = new GetOrganizationQuery(id);
-        var response = await bus.InvokeAsync<GetOrganizationResponse>(query, ct);
-        return Results.Ok(response);
     }
 
     private static async Task<IResult> GetAuditLog(
@@ -76,9 +50,10 @@ public static class OrganizationEndpoints
         HttpContext context)
     {
         var command = new RegisterOrganizationCommand(
-            Guid.NewGuid(),
-            request.Name,
-            request.Slug,
+            request.OrganizationName,
+            request.UserEmail,
+            request.UserFirstName,
+            request.UserLastName,
             request.Slug
         );
 
@@ -96,48 +71,14 @@ public static class OrganizationEndpoints
             result.OrganizationId
         ));
     }
-
-    private static async Task<IResult> UpdateIdentity(
-        Guid id,
-        UpdateIdentityRequest request,
-        IMessageBus bus,
-        CancellationToken ct)
-    {
-        var command = new UpdateIdentityCommand(id, request.NewName, request.NewSlug, ct);
-        await bus.InvokeAsync(command, ct);
-        return Results.NoContent();
-    }
-
-    private static async Task<IResult> DeactivateOrganization(
-        Guid id,
-        DeactivateRequest request,
-        IMessageBus bus,
-        CancellationToken ct)
-    {
-        var command = new DeactivateCommand(id, request.Reason, ct);
-        await bus.InvokeAsync(command, ct);
-        return Results.NoContent();
-    }
-
-    private static async Task<IResult> ActivateOrganization(
-        Guid id,
-        IMessageBus bus,
-        CancellationToken ct)
-    {
-        var command = new ActivateCommand(id, ct);
-        await bus.InvokeAsync(command, ct);
-        return Results.NoContent();
-    }
 }
 
-public record UpdateIdentityRequest(string? NewName, string? NewSlug);
-
-public record DeactivateRequest(string Reason);
-
 public record CreateOrganizationRequest(
-    string Name,
-    string Slug,
-    OrganizationAggregate.SubscriptionTier? Tier = null
+    string OrganizationName,
+    string UserEmail,
+    string UserFirstName,
+    string UserLastName,
+    string Slug
 );
 
 public record CreateOrganizationResult(

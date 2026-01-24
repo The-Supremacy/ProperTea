@@ -45,8 +45,9 @@ var zitadelPort = 9080;
 var zitadelLoginUiPort = 9081;
 var zitadelUrl = $"http://localhost:{zitadelPort}";
 var zitadelLoginUiUrl = $"http://localhost:{zitadelLoginUiPort}";
-var tokenPath = Path.GetFullPath("Config/zitadel/login-ui-client.pat");
-var zitadel = builder.AddContainer("zitadel", "ghcr.io/zitadel/zitadel", "v4.7.6")
+var zitadelConfigPath = Path.GetFullPath("Config/zitadel");
+var zitadelTokenPath = "/opt/zitadel/config/login-ui-client.pat";
+var zitadel = builder.AddContainer("zitadel", "ghcr.io/zitadel/zitadel", "v4.10.0")
     .WithHttpEndpoint(port: zitadelPort, targetPort: 8080, name: "http")
     .WithEnvironment("ZITADEL_DATABASE_POSTGRES_HOST", "postgres")
     .WithEnvironment("ZITADEL_DATABASE_POSTGRES_PORT", postgresPort.ToString(CultureInfo.InvariantCulture))
@@ -59,9 +60,13 @@ var zitadel = builder.AddContainer("zitadel", "ghcr.io/zitadel/zitadel", "v4.7.6
     .WithEnvironment("ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE", "disable")
     .WithEnvironment("ZITADEL_EXTERNALSECURE", "false")
     .WithEnvironment("ZITADEL_EXTERNALDOMAIN", "localhost")
-    .WithEnvironment("ZITADEL_EXTERNALPORT", "8080")
+    .WithEnvironment("ZITADEL_EXTERNALPORT", "9080")
     .WithEnvironment("ZITADEL_TLS_ENABLED", "false")
     .WithEnvironment("ZITADEL_MASTERKEY", "MasterkeyNeedsToHave32Characters")
+    .WithEnvironment("ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH", zitadelTokenPath)
+    .WithEnvironment("ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME", "login-client")
+    .WithEnvironment("ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME", "Automatically Initialized IAM_LOGIN_CLIENT")
+    .WithEnvironment("ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE", "2029-01-01T00:00:00Z")
     .WithEnvironment("ZITADEL_FIRSTINSTANCE_ORG_NAME", "ProperTea")
     .WithEnvironment("ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME", "admin")
     .WithEnvironment("ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_ADDRESS", "admin@propertea.localhost")
@@ -73,23 +78,26 @@ var zitadel = builder.AddContainer("zitadel", "ghcr.io/zitadel/zitadel", "v4.7.6
     .WithEnvironment("ZITADEL_NOTIFICATIONS_PROVIDERS_SMTP_TLS", "false")
     .WithEnvironment("ZITADEL_NOTIFICATIONS_PROVIDERS_SMTP_FROM", "noreply@propertea.localhost")
     .WithEnvironment("ZITADEL_NOTIFICATIONS_PROVIDERS_SMTP_FROMNAME", "ProperTea")
-    .WithEnvironment("ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED", "true") // v2
+    .WithEnvironment("ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED", "true")
     .WithEnvironment("ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI", $"{zitadelLoginUiUrl}/ui/v2/login")
+    .WithEnvironment("ZITADEL_OIDC_DEFAULTLOGINURLV2", $"{zitadelLoginUiUrl}/ui/v2/login/login?authRequest=")
+    .WithEnvironment("ZITADEL_OIDC_DEFAULTLOGOUTURLV2", $"{zitadelLoginUiUrl}/ui/v2/login/logout?post_logout_redirect=")
+    .WithEnvironment("ZITADEL_SAML_DEFAULTLOGINURLV2", $"{zitadelLoginUiUrl}/ui/v2/login/login?samlRequest=")
     .WithArgs("start-from-init", "--masterkeyFromEnv", "--tlsMode", "disabled")
+    .WithBindMount(zitadelConfigPath, "/opt/zitadel/config")
     .WaitFor(postgres)
-    .WaitFor(mailpit)
-    .WithLifetime(ContainerLifetime.Persistent);
-_ = builder.AddContainer("zitadel-login", "ghcr.io/zitadel/zitadel-login", "v4.7.6")
+    .WaitFor(mailpit);
+_ = builder.AddContainer("zitadel-login", "ghcr.io/zitadel/zitadel-login", "v4.10.0")
     .WithHttpEndpoint(port: zitadelLoginUiPort, targetPort: 3000)
     .WithEnvironment("ZITADEL_API_URL", "http://zitadel:8080")
+    .WithEnvironment("ZITADEL_SERVICE_USER_TOKEN_FILE", zitadelTokenPath)
     .WithEnvironment("CUSTOM_REQUEST_HEADERS", "Host:localhost")
     .WithEnvironment("NEXT_PUBLIC_BASE_PATH", "/ui/v2/login")
-    .WithBindMount(tokenPath, "/opt/zitadel/login-ui-client.pat")
-    .WithEnvironment("ZITADEL_SERVICE_USER_TOKEN_FILE", "/opt/zitadel/login-ui-client.pat")
-    .WaitFor(zitadel)
-    .WithLifetime(ContainerLifetime.Persistent);
+    .WithBindMount(zitadelConfigPath, "/opt/zitadel/config")
+    .WaitFor(zitadel);
 
 var scalarClientId = builder.Configuration["Configs:ScalarClientId"];
+var audience = builder.Configuration["Configs:ProjectId"];
 
 //
 // Applications.
@@ -102,11 +110,15 @@ var rabbitmq = builder.AddRabbitMQ("rabbitmq", username, password, 5672)
 //
 // Organization.
 //
-var organizationServiceAccountPath = Path.GetFullPath("Config/zitadel/organization-service.json");
+var organizationServiceAccountJwtPath = Path.GetFullPath("Config/zitadel/organization-service.json");
+var organizationServiceAppJwtPath = Path.GetFullPath("Config/zitadel/organization-app.json");
 var organizationDb = postgres.AddDatabase("organization-db");
 var organizationService = builder.AddProject<Projects.ProperTea_Organization>("organization")
     .WithEnvironment("OIDC__Authority", zitadelUrl)
-    .WithEnvironment("Zitadel__ServiceAccountPath", organizationServiceAccountPath)
+    .WithEnvironment("OIDC__Issuer", zitadelUrl)
+    .WithEnvironment("OIDC__Audience", audience)
+    .WithEnvironment("Zitadel__ServiceAccountJwtPath", organizationServiceAccountJwtPath)
+    .WithEnvironment("Zitadel__AppJwtPath", organizationServiceAppJwtPath)
     .WithEnvironment("Scalar__ClientId", scalarClientId)
     .WithReference(organizationDb)
     .WithReference(rabbitmq)
@@ -119,11 +131,15 @@ var organizationService = builder.AddProject<Projects.ProperTea_Organization>("o
 //
 // User.
 //
-var userServiceAccountPath = Path.GetFullPath("Config/zitadel/user-service.json");
+var userServiceAccountJwtPath = Path.GetFullPath("Config/zitadel/user-service.json");
+var userServiceAppJwtPath = Path.GetFullPath("Config/zitadel/user-app.json");
 var userDb = postgres.AddDatabase("user-db");
 var userService = builder.AddProject<Projects.ProperTea_User>("user")
     .WithEnvironment("OIDC__Authority", zitadelUrl)
-    .WithEnvironment("Zitadel__ServiceAccountPath", userServiceAccountPath)
+    .WithEnvironment("OIDC__Issuer", zitadelUrl)
+    .WithEnvironment("OIDC__Audience", audience)
+    .WithEnvironment("Zitadel__ServiceAccountJwtPath", userServiceAccountJwtPath)
+    .WithEnvironment("Zitadel__AppJwtPath", userServiceAppJwtPath)
     .WithEnvironment("Scalar__ClientId", scalarClientId)
     .WithReference(userDb)
     .WithReference(rabbitmq)
@@ -137,14 +153,12 @@ var userService = builder.AddProject<Projects.ProperTea_User>("user")
 // Landlord Portal.
 //
 var landlordClientId = builder.Configuration["Configs:LandlordClientId"];
-var landlordClientSecret = builder.Configuration["Configs:LandlordClientSecret"];
 _ = builder.AddProject<Projects.ProperTea_Landlord_Bff>("landlord-bff")
     .WithReference(redis)
     .WithReference(organizationService)
     .WithReference(userService)
     .WithEnvironment("OIDC__Authority", zitadelUrl)
     .WithEnvironment("OIDC__ClientId", landlordClientId)
-    .WithEnvironment("OIDC__ClientSecret", landlordClientSecret)
     .WithEnvironment("Scalar__ClientId", scalarClientId)
     .WaitFor(redis)
     .WaitFor(zitadel)

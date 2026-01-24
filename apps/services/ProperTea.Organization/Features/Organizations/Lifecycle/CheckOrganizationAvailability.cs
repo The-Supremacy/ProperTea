@@ -7,7 +7,7 @@ public class CheckAvailabilityHandler : IWolverineHandler
 {
     public async Task<CheckAvailabilityResult> Handle(
         CheckAvailabilityQuery query,
-        IDocumentSession session,
+        IQuerySession session,
         CancellationToken ct)
     {
         var nameAvailable = true;

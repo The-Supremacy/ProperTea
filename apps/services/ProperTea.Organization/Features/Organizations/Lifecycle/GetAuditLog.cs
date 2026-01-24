@@ -9,14 +9,11 @@ public record GetAuditLogQuery(Guid OrganizationId);
 public record AuditLogEntry(
     string EventType,
     DateTimeOffset Timestamp,
-    string? UserId,
+    string? Username,
     int Version,
-    object Data // Event-specific data for interpolation
+    object Data
 );
 
-/// <summary>
-/// Event-specific data objects for frontend interpolation
-/// </summary>
 public static class AuditEventData
 {
     public record OrganizationCreated(string Name, string Slug);
@@ -37,17 +34,15 @@ public record AuditLogResponse(
     IReadOnlyList<AuditLogEntry> Entries
 );
 
-public class GetAuditLogHandler(IDocumentSession session)
+public class GetAuditLogHandler(IQuerySession session)
 {
     public async Task<AuditLogResponse> Handle(GetAuditLogQuery query, CancellationToken ct)
     {
-        // Fetch all events for the stream
         var events = await session.Events.FetchStreamAsync(query.OrganizationId, token: ct);
 
         if (events.Count == 0)
             throw new NotFoundException(nameof(OrganizationAggregate), query.OrganizationId);
 
-        // Build state progressively to provide "old value" context
         var entries = new List<AuditLogEntry>();
         OrganizationAggregate? previousState = null;
 
@@ -58,16 +53,13 @@ public class GetAuditLogHandler(IDocumentSession session)
                 Created e => (object)new AuditEventData.OrganizationCreated(e.Name, e.Slug),
                 ExternalOrganizationCreated e => new AuditEventData.ExternalOrganizationCreated(e.ExternalOrganizationId),
                 Activated => new AuditEventData.OrganizationActivated(),
-                NameChanged e => new AuditEventData.NameChanged(previousState?.Name ?? "", e.NewName),
-                SlugChanged e => new AuditEventData.SlugChanged(previousState?.Slug ?? "", e.NewSlug),
-                Deactivated e => new AuditEventData.OrganizationDeactivated(e.Reason),
                 _ => new { EventData = evt.Data }
             };
 
             entries.Add(new AuditLogEntry(
                 EventType: evt.Data.GetType().Name,
                 Timestamp: evt.Timestamp,
-                UserId: null, // TODO: Extract from metadata if needed
+                Username: evt.UserName,
                 Version: (int)evt.Version,
                 Data: data
             ));
@@ -79,9 +71,6 @@ public class GetAuditLogHandler(IDocumentSession session)
                 case Created e: previousState.Apply(e); break;
                 case ExternalOrganizationCreated e: previousState.Apply(e); break;
                 case Activated e: previousState.Apply(e); break;
-                case NameChanged e: previousState.Apply(e); break;
-                case SlugChanged e: previousState.Apply(e); break;
-                case Deactivated e: previousState.Apply(e); break;
                 default:
                     break;
             }

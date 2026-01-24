@@ -28,6 +28,10 @@ public static class MartenConfiguration
             opts.Events.UseMandatoryStreamTypeDeclaration = true;
             opts.Events.UseArchivedStreamPartitioning = true;
 
+            opts.Events.MetadataConfig.UserNameEnabled = true;
+            opts.Events.MetadataConfig.CorrelationIdEnabled = true;
+            opts.Events.MetadataConfig.CausationIdEnabled = true;
+
             opts.DatabaseSchemaName = "organization";
             opts.AutoCreateSchemaObjects = environment.IsDevelopment()
                 ? AutoCreate.All

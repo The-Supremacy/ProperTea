@@ -83,3 +83,6 @@ dotnet_diagnostic.IDE0046.severity = suggestion
 
 # IDE0072: Add missing cases
 dotnet_diagnostic.IDE0072.severity = suggestion
+
+# CA1822: Mark members as static
+dotnet_diagnostic.CA1822.severity = suggestion

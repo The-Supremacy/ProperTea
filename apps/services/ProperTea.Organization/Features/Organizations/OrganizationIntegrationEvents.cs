@@ -13,27 +13,8 @@ public static class OrganizationIntegrationEvents
         string ExternalOrganizationId,
         DateTimeOffset RegisteredAt) : IOrganizationRegistered;
 
-    [MessageIdentity("organizations.identity-updated.v1")]
-    public record OrganizationIdentityUpdated(
-        Guid OrganizationId,
-        string NewName,
-        string NewSlug,
-        DateTimeOffset UpdatedAt) : IOrganizationIdentityUpdated;
-
-    [MessageIdentity("organizations.deactivated.v1")]
-    public record OrganizationDeactivated(
-        Guid OrganizationId,
-        string Reason,
-        DateTimeOffset DeactivatedAt) : IOrganizationDeactivated;
-
     [MessageIdentity("organizations.activated.v1")]
     public record OrganizationActivated(
         Guid OrganizationId,
         DateTimeOffset ActivatedAt) : IOrganizationActivated;
-
-    [MessageIdentity("organizations.domain-verified.v1")]
-    public record OrganizationDomainVerified(
-        Guid OrganizationId,
-        string EmailDomain,
-        DateTimeOffset VerifiedAt) : IOrganizationDomainVerified;
 }

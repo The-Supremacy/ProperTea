@@ -40,7 +40,7 @@ public static class OpenApiConfig
                             "openid",
                             "profile",
                             "email",
-                            "organization:*"
+                            "urn:zitadel:iam:org:project:id:zitadel:aud"
                         ];
                     });
             });

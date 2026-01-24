@@ -10,16 +10,7 @@ public static class OrganizationMessagingConfiguration
         opts.PublishIntegrationEvent<OrganizationIntegrationEvents.OrganizationRegistered>(
             "organization.events");
 
-        opts.PublishIntegrationEvent<OrganizationIntegrationEvents.OrganizationIdentityUpdated>(
-            "organization.events");
-
-        opts.PublishIntegrationEvent<OrganizationIntegrationEvents.OrganizationDeactivated>(
-            "organization.events");
-
         opts.PublishIntegrationEvent<OrganizationIntegrationEvents.OrganizationActivated>(
-            "organization.events");
-
-        opts.PublishIntegrationEvent<OrganizationIntegrationEvents.OrganizationDomainVerified>(
             "organization.events");
     }
 }

@@ -1,3 +1,6 @@
+using System.Text.Json;
+using Duende.AccessTokenManagement.OpenIdConnect;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using ProperTea.Landlord.Bff.Auth;
@@ -31,9 +34,8 @@ namespace ProperTea.Landlord.Bff.Config
             {
                 var oidcSection = configuration.GetSection("OIDC");
 
-                options.Authority = oidcSection["Authority"] ?? throw new InvalidOperationException("OIDC:Authority not configured"); ;
+                options.Authority = oidcSection["Authority"] ?? throw new InvalidOperationException("OIDC:Authority not configured");
                 options.ClientId = oidcSection["ClientId"] ?? throw new InvalidOperationException("OIDC:ClientId not configured");
-                options.ClientSecret = oidcSection["ClientSecret"] ?? throw new InvalidOperationException("OIDC:ClientSecret not configured");
                 options.ResponseType = "code";
                 options.SaveTokens = true;
                 options.MapInboundClaims = false;
@@ -57,6 +59,11 @@ namespace ProperTea.Landlord.Bff.Config
                 options.SignedOutCallbackPath = "/auth/signout-callback-oidc";
 
                 options.RequireHttpsMetadata = !isDev;
+            });
+
+            _ = services.AddOpenIdConnectAccessTokenManagement(options =>
+            {
+                options.RefreshBeforeExpiration = TimeSpan.FromMinutes(5);
             });
 
             _ = services.AddAuthorization();

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using ProperTea.ServiceDefaults.Auth;
+using Zitadel.Credentials;
+using Zitadel.Extensions;
 
 namespace ProperTea.User.Config;
 
@@ -11,27 +12,17 @@ public static class AuthenticationConfig
         IConfiguration configuration,
         IHostEnvironment environment)
     {
+        var authority = configuration["OIDC:Authority"]
+            ?? throw new InvalidOperationException("OIDC:Authority not configured");
+
+        var appJwtPath = configuration["Zitadel:AppJwtPath"]
+            ?? throw new InvalidOperationException("Zitadel:AppJwtPath not configured");
+
         _ = services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
+            .AddZitadelIntrospection(JwtBearerDefaults.AuthenticationScheme, options =>
             {
-                var oidcSection = configuration.GetSection("OIDC");
-                var authority = oidcSection["Authority"]
-                    ?? throw new InvalidOperationException("OIDC:Authority not configured");
-                var issuer = oidcSection["Issuer"]
-                    ?? throw new InvalidOperationException("OIDC:Issuer not configured");
-
                 options.Authority = authority;
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidIssuer = issuer,
-
-                    ValidateAudience = false,
-
-                    ValidateIssuerSigningKey = true,
-                    ClockSkew = TimeSpan.FromSeconds(5)
-                };
-                options.RequireHttpsMetadata = environment.IsProduction();
+                options.JwtProfile = Application.LoadFromJsonFile(appJwtPath);
             });
 
         _ = services.AddAuthorization();
