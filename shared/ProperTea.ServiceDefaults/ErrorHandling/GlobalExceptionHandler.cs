@@ -13,19 +13,29 @@ public partial class GlobalExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
-        LogUnexpectedError(httpContext.Request.Path, httpContext.Request.Method);
-
         var (statusCode, title, details) = ProblemDetailsHelpers.GetExceptionDetails(exception);
 
+        logger.LogInformation(
+            "Handling exception {ExceptionType} -> Status {StatusCode}",
+            exception.GetType().Name,
+            statusCode);
+
+        LogUnexpectedError(httpContext.Request.Path, httpContext.Request.Method, exception);
+
+        // Set status code on response before writing problem details
         httpContext.Response.StatusCode = statusCode;
 
-        await problemDetailsService.WriteAsync(new ProblemDetailsContext
+        return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
         {
             HttpContext = httpContext,
-            ProblemDetails = { Title = title, Detail = details }
+            ProblemDetails =
+            {
+                Status = statusCode,
+                Title = title,
+                Detail = details
+            },
+            Exception = exception
         }).ConfigureAwait(false);
-
-        return true;
     }
 
     [LoggerMessage(
@@ -34,5 +44,6 @@ public partial class GlobalExceptionHandler(
         Message = "An unhandled exception occurred. RequestPath: `{RequestPath}`, Method: `{Method}`")]
     private partial void LogUnexpectedError(
         string requestPath,
-        string method);
+        string method,
+        Exception exception);
 }

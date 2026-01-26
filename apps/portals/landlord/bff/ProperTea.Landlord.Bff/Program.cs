@@ -1,8 +1,10 @@
+using Duende.AccessTokenManagement.OpenIdConnect;
 using ProperTea.Landlord.Bff.Auth;
 using ProperTea.Landlord.Bff.Config;
 using ProperTea.Landlord.Bff.Organizations;
 using ProperTea.Landlord.Bff.Users;
 using ProperTea.ServiceDefaults;
+using ProperTea.ServiceDefaults.ErrorHandling;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,33 +15,29 @@ builder.Services.AddOpenApiConfiguration();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<TokenForwardingHandler>();
 
-builder.Services.AddHttpClient("organization", client =>
+builder.Services.AddHttpClient<OrganizationClient>(client =>
 {
     var orgServiceUrl = builder.Configuration["services:organization:http:0"]
         ?? builder.Configuration["services:organization:https:0"]
         ?? throw new InvalidOperationException("Organization service URL not configured");
     client.BaseAddress = new Uri(orgServiceUrl);
-}).AddHttpMessageHandler<TokenForwardingHandler>();
+})
+.AddUserAccessTokenHandler();
 
-builder.Services.AddHttpClient("user", client =>
+builder.Services.AddHttpClient<UserClient>(client =>
 {
     var userServiceUrl = builder.Configuration["services:user:http:0"]
         ?? builder.Configuration["services:user:https:0"]
         ?? throw new InvalidOperationException("User service URL not configured");
     client.BaseAddress = new Uri(userServiceUrl);
-}).AddHttpMessageHandler<TokenForwardingHandler>();
-
-builder.Services.AddScoped<OrganizationClient>();
-builder.Services.AddScoped<UserClient>();
+})
+.AddUserAccessTokenHandler();
 
 var app = builder.Build();
 
 app.UseOpenApi(app.Configuration, app.Environment);
 
-if (app.Environment.IsDevelopment())
-{
-    _ = app.UseDeveloperExceptionPage();
-}
+app.UseGlobalErrorHandling();
 
 app.UseRouting();
 app.UseAuthentication();

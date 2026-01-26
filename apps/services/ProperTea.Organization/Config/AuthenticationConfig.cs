@@ -14,6 +14,10 @@ public static class AuthenticationConfig
     {
         var authority = configuration["OIDC:Authority"]
             ?? throw new InvalidOperationException("OIDC:Authority not configured");
+        var issuer = configuration["OIDC:Issuer"]
+            ?? throw new InvalidOperationException("OIDC:Issuer not configured");
+        var audience = configuration["OIDC:Audience"]
+            ?? throw new InvalidOperationException("OIDC:Audience not configured");
 
         var appJwtPath = configuration["Zitadel:AppJwtPath"]
             ?? throw new InvalidOperationException("Zitadel:AppJwtPath not configured");

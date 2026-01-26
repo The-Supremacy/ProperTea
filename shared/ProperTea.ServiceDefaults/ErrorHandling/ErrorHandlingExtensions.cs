@@ -15,6 +15,8 @@ public static class ErrorHandlingExtensions
             {
                 var options = context.HttpContext.RequestServices
                     .GetRequiredService<IOptions<ErrorHandlingOptions>>().Value;
+                var env = context.HttpContext.RequestServices
+                    .GetRequiredService<IHostEnvironment>();
 
                 var correlationId = CorrelationIdProvider.GetOrCreate(context.HttpContext);
 
@@ -25,6 +27,17 @@ public static class ErrorHandlingExtensions
                 if (!string.IsNullOrEmpty(options.ServiceName))
                 {
                     context.ProblemDetails.Extensions["service"] = options.ServiceName;
+                }
+
+                if (env.IsDevelopment() && context.Exception != null)
+                {
+                    context.ProblemDetails.Extensions["exception"] = new
+                    {
+                        type = context.Exception.GetType().FullName,
+                        message = context.Exception.Message,
+                        stackTrace = context.Exception.StackTrace,
+                        innerException = context.Exception.InnerException?.Message
+                    };
                 }
 
                 if (context.ProblemDetails.Status.HasValue)

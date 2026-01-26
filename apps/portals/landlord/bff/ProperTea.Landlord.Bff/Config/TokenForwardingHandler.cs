@@ -3,9 +3,6 @@ using Microsoft.AspNetCore.Authentication;
 
 namespace ProperTea.Landlord.Bff.Config;
 
-/// <summary>
-/// Forwards the Authorization bearer token from the current request to downstream service calls.
-/// </summary>
 public class TokenForwardingHandler(IHttpContextAccessor httpContextAccessor) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(

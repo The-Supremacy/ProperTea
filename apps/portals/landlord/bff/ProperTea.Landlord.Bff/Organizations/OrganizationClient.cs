@@ -1,14 +1,14 @@
+using ProperTea.ServiceDefaults.ErrorHandling;
+
 namespace ProperTea.Landlord.Bff.Organizations;
 
-public class OrganizationClient(IHttpClientFactory httpClientFactory)
+public class OrganizationClient(HttpClient httpClient)
 {
-    private readonly HttpClient _client = httpClientFactory.CreateClient("organization");
-
     public async Task<OrganizationDto?> GetOrganizationAsync(Guid id, CancellationToken ct = default)
     {
         try
         {
-            return await _client.GetFromJsonAsync<OrganizationDto>($"/organizations/{id}", ct);
+            return await httpClient.GetFromJsonAsync<OrganizationDto>($"/organizations/{id}", ct);
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
@@ -20,8 +20,8 @@ public class OrganizationClient(IHttpClientFactory httpClientFactory)
         RegisterOrganizationRequest request,
         CancellationToken ct = default)
     {
-        var response = await _client.PostAsJsonAsync("/organizations", request, ct);
-        _ = response.EnsureSuccessStatusCode();
+        var response = await httpClient.PostAsJsonAsync("/organizations", request, ct);
+        await response.EnsureDownstreamSuccessAsync(ct: ct);
         return (await response.Content.ReadFromJsonAsync<RegisterOrganizationResponse>(ct))!;
     }
 
@@ -37,7 +37,7 @@ public class OrganizationClient(IHttpClientFactory httpClientFactory)
             query.Add($"slug={Uri.EscapeDataString(slug)}");
 
         var queryString = query.Count > 0 ? "?" + string.Join("&", query) : "";
-        return (await _client.GetFromJsonAsync<CheckAvailabilityResponse>(
+        return (await httpClient.GetFromJsonAsync<CheckAvailabilityResponse>(
             $"/organizations/check-availability{queryString}", ct))!;
     }
 
@@ -45,7 +45,7 @@ public class OrganizationClient(IHttpClientFactory httpClientFactory)
     {
         try
         {
-            return await _client.GetFromJsonAsync<AuditLogResponse>($"/organizations/{id}/audit-log", ct);
+            return await httpClient.GetFromJsonAsync<AuditLogResponse>($"/organizations/{id}/audit-log", ct);
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
