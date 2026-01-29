@@ -1,6 +1,6 @@
 using JasperFx;
+using ProperTea.Infrastructure.Common.ErrorHandling;
 using ProperTea.ServiceDefaults;
-using ProperTea.ServiceDefaults.ErrorHandling;
 using ProperTea.User.Config;
 using ProperTea.User.Features.UserProfiles;
 using Wolverine.Http;
@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 _ = builder.Services.AddHttpContextAccessor();
 _ = builder.AddServiceDefaults();
+builder.AddGlobalErrorHandling();
 
 builder.Host.ApplyJasperFxExtensions();
 builder.Services.AddMartenConfiguration(builder.Configuration, builder.Environment);

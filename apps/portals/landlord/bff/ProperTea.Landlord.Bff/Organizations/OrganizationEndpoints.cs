@@ -7,24 +7,28 @@ public static class OrganizationEndpoints
     public static IEndpointRouteBuilder MapOrganizationEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/organizations")
-            .WithTags("Organizations")
-            .RequireAuthorization();
+            .WithTags("Organizations");
 
-        _ = group.MapGet("/{id:guid}/audit-log", GetAuditLog)
-            .WithName("GetOrganizationAuditLog");
-
+        // Anonymous endpoints for registration flow
         _ = group.MapGet("/check-availability", CheckAvailability)
-            .WithName("CheckAvailability");
+            .WithName("CheckAvailability")
+            .AllowAnonymous();
 
         _ = group.MapPost("/", RegisterOrganization)
-            .WithName("RegisterOrganization");
+            .WithName("RegisterOrganization")
+            .AllowAnonymous();
+
+        // Authenticated endpoints
+        _ = group.MapGet("/{id:guid}/audit-log", GetAuditLog)
+            .WithName("GetOrganizationAuditLog")
+            .RequireAuthorization();
 
         return endpoints;
     }
 
     private static async Task<IResult> RegisterOrganization(
         RegisterOrganizationRequest request,
-        OrganizationClient client,
+        OrganizationClientAnonymous client,
         CancellationToken ct)
     {
         var result = await client.RegisterOrganizationAsync(request, ct);
@@ -33,11 +37,10 @@ public static class OrganizationEndpoints
 
     private static async Task<IResult> CheckAvailability(
         [FromQuery] string? name,
-        [FromQuery] string? slug,
-        OrganizationClient client,
+        OrganizationClientAnonymous client,
         CancellationToken ct)
     {
-        var result = await client.CheckAvailabilityAsync(name, slug, ct);
+        var result = await client.CheckAvailabilityAsync(name, ct);
         return Results.Ok(result);
     }
 

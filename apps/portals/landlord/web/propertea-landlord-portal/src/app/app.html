@@ -1,9 +1,13 @@
 @if (authService.isLoading()) {
-       <div class="flex justify-content-center p-8"><p-progress-spinner /></div>
-} @else if (authService.isAuthenticated()) {
-  <app-layout>
-    <router-outlet />
-  </app-layout>
+  <div class="flex justify-center items-center min-h-screen">
+    <p-progress-spinner />
+  </div>
 } @else {
-  <app-login-page />
+  @if (authService.isAuthenticated()) {
+    <app-layout>
+      <router-outlet />
+    </app-layout>
+  } @else {
+    <router-outlet />
+  }
 }

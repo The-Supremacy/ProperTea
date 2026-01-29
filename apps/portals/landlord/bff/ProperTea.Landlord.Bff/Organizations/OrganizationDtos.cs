@@ -3,7 +3,6 @@ namespace ProperTea.Landlord.Bff.Organizations;
 public record OrganizationDto(
     Guid Id,
     string Name,
-    string Slug,
     string Status,
     string? ExternalOrganizationId,
     DateTimeOffset CreatedAt,
@@ -22,15 +21,14 @@ public record RegisterOrganizationRequest(
     string UserEmail,
     string UserFirstName,
     string UserLastName,
-    string Slug);
+    string UserPassword);
 
 public record RegisterOrganizationResponse(
     Guid OrganizationId
 );
 
 public record CheckAvailabilityResponse(
-    bool NameAvailable,
-    bool SlugAvailable
+    bool NameAvailable
 );
 
 public record AuditLogEntryDto(

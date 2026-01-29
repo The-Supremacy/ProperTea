@@ -12,7 +12,7 @@ public static class OrganizationEndpoints
 
         _ = group.MapPost("/", RegisterOrganization)
             .WithName("RegisterOrganization")
-            .RequireAuthorization();
+            .AllowAnonymous();
 
         _ = group.MapGet("/{id:guid}/audit-log", GetAuditLog)
             .WithName("GetOrganizationAuditLog")
@@ -20,7 +20,7 @@ public static class OrganizationEndpoints
 
         _ = group.MapGet("/check-availability", CheckAvailability)
             .WithName("CheckAvailability")
-            .RequireAuthorization();
+            .AllowAnonymous();
 
         return group;
     }
@@ -54,7 +54,7 @@ public static class OrganizationEndpoints
             request.UserEmail,
             request.UserFirstName,
             request.UserLastName,
-            request.Slug
+            request.UserPassword
         );
 
         var result = await bus.InvokeAsync<RegistrationResult>(command);
@@ -78,7 +78,7 @@ public record CreateOrganizationRequest(
     string UserEmail,
     string UserFirstName,
     string UserLastName,
-    string Slug
+    string UserPassword
 );
 
 public record CreateOrganizationResult(

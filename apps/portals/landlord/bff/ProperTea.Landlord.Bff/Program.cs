@@ -1,19 +1,20 @@
 using Duende.AccessTokenManagement.OpenIdConnect;
+using ProperTea.Infrastructure.Common.ErrorHandling;
 using ProperTea.Landlord.Bff.Auth;
 using ProperTea.Landlord.Bff.Config;
 using ProperTea.Landlord.Bff.Organizations;
 using ProperTea.Landlord.Bff.Users;
 using ProperTea.ServiceDefaults;
-using ProperTea.ServiceDefaults.ErrorHandling;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddBffInfrastructure();
 builder.Services.AddBffAuthentication(builder.Configuration, builder.Environment.IsDevelopment());
 builder.Services.AddOpenApiConfiguration();
+builder.AddGlobalErrorHandling();
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddTransient<TokenForwardingHandler>();
+builder.Services.AddTransient<OrganizationHeaderHandler>();
 
 builder.Services.AddHttpClient<OrganizationClient>(client =>
 {
@@ -22,7 +23,17 @@ builder.Services.AddHttpClient<OrganizationClient>(client =>
         ?? throw new InvalidOperationException("Organization service URL not configured");
     client.BaseAddress = new Uri(orgServiceUrl);
 })
-.AddUserAccessTokenHandler();
+.AddUserAccessTokenHandler()
+.AddHttpMessageHandler<OrganizationHeaderHandler>();
+
+// Separate anon service because Duende doesn't support anonymous clients.
+builder.Services.AddHttpClient<OrganizationClientAnonymous>(client =>
+{
+    var orgServiceUrl = builder.Configuration["services:organization:http:0"]
+        ?? builder.Configuration["services:organization:https:0"]
+        ?? throw new InvalidOperationException("Organization service URL not configured");
+    client.BaseAddress = new Uri(orgServiceUrl);
+});
 
 builder.Services.AddHttpClient<UserClient>(client =>
 {
@@ -31,7 +42,8 @@ builder.Services.AddHttpClient<UserClient>(client =>
         ?? throw new InvalidOperationException("User service URL not configured");
     client.BaseAddress = new Uri(userServiceUrl);
 })
-.AddUserAccessTokenHandler();
+.AddUserAccessTokenHandler()
+.AddHttpMessageHandler<OrganizationHeaderHandler>();
 
 var app = builder.Build();
 

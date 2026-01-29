@@ -1,12 +1,9 @@
 import { Routes } from '@angular/router';
+import { RegisterOrganizationComponent } from './pages/register/register-organization.component';
 
 export const ORGANIZATION_ROUTES: Routes = [
   {
     path: '',
-    loadComponent: () => import('./pages/list/organization-list.component').then(m => m.OrganizationListComponent)
+    component: RegisterOrganizationComponent,
   },
-  {
-    path: 'setup',
-    loadComponent: () => import('./components/organization-setup/organization-setup.component').then(m => m.OrganizationSetupComponent)
-  }
 ];

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
-using ProperTea.ServiceDefaults.ErrorHandling;
 using ProperTea.ServiceDefaults.OpenTelemetry;
 
 namespace ProperTea.ServiceDefaults;
@@ -16,7 +15,6 @@ public static class Extensions
         {
             _ = builder.AddOpenTelemetry();
             _ = builder.AddDefaultHealthChecks();
-            _ = builder.AddGlobalErrorHandling();
             _ = builder.Services.AddServiceDiscovery();
             _ = builder.Services.ConfigureHttpClientDefaults(http =>
             {

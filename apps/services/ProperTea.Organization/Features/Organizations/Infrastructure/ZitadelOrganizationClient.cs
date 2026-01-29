@@ -39,6 +39,7 @@ namespace ProperTea.Organization.Features.Organizations.Infrastructure
             string email,
             string firstName,
             string lastName,
+            string password,
             CancellationToken ct = default)
         {
             try
@@ -57,6 +58,11 @@ namespace ProperTea.Organization.Features.Organizations.Infrastructure
                                 {
                                     GivenName = firstName,
                                     FamilyName = lastName
+                                },
+                                Password = new Password
+                                {
+                                    Password_ = password,
+                                    ChangeRequired = false
                                 }
                             }
                         }
@@ -80,6 +86,48 @@ namespace ProperTea.Organization.Features.Organizations.Infrastructure
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to create organization in Zitadel: {Name}", orgName);
+                throw;
+            }
+        }
+
+        public async Task<bool> CheckOrganizationExistsAsync(
+            string orgName,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                var request = new ListOrganizationsRequest
+                {
+                    Query = new Zitadel.Object.V2.ListQuery
+                    {
+                        Limit = 1
+                    },
+                    Queries =
+                    {
+                        new Zitadel.Org.V2.SearchQuery
+                        {
+                            NameQuery = new OrganizationNameQuery
+                            {
+                                Name = orgName,
+                                Method = Zitadel.Object.V2.TextQueryMethod.Equals
+                            }
+                        }
+                    }
+                };
+
+                var response = await _orgClient.ListOrganizationsAsync(request, cancellationToken: ct);
+                var exists = response.Result.Count > 0;
+
+                _logger.LogDebug(
+                    "Checked organization existence in ZITADEL: {Name} = {Exists}",
+                    orgName,
+                    exists);
+
+                return exists;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to check organization existence in ZITADEL: {Name}", orgName);
                 throw;
             }
         }

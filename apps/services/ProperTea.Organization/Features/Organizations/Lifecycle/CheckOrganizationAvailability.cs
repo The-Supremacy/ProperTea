@@ -1,4 +1,4 @@
-using Marten;
+using ProperTea.Organization.Features.Organizations.Infrastructure;
 using Wolverine;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
@@ -7,28 +7,21 @@ public class CheckAvailabilityHandler : IWolverineHandler
 {
     public async Task<CheckAvailabilityResult> Handle(
         CheckAvailabilityQuery query,
-        IQuerySession session,
+        IExternalOrganizationClient externalOrgClient,
         CancellationToken ct)
     {
         var nameAvailable = true;
-        var slugAvailable = true;
 
         if (!string.IsNullOrWhiteSpace(query.Name))
         {
-            nameAvailable = !await session.Query<OrganizationAggregate>()
-                .AnyAsync(x => x.Name == query.Name, token: ct);
+            var exists = await externalOrgClient.CheckOrganizationExistsAsync(query.Name, ct);
+            nameAvailable = !exists;
         }
 
-        if (!string.IsNullOrWhiteSpace(query.Slug))
-        {
-            slugAvailable = !await session.Query<OrganizationAggregate>()
-                .AnyAsync(x => x.Slug == query.Slug, token: ct);
-        }
-
-        return new CheckAvailabilityResult(nameAvailable, slugAvailable);
+        return new CheckAvailabilityResult(nameAvailable);
     }
 }
 
-public record CheckAvailabilityQuery(string? Name, string? Slug);
+public record CheckAvailabilityQuery(string? Name);
 
-public record CheckAvailabilityResult(bool NameAvailable, bool SlugAvailable);
+public record CheckAvailabilityResult(bool NameAvailable);

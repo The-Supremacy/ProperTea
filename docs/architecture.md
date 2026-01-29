@@ -35,13 +35,14 @@ ProperTea is a multi-tenant Real Estate ERP built on .NET 10 using a microservic
 ### Work Order Service (`ProperTea.WorkOrder`)
 **Responsibility**: Manages the lifecycle of maintenance tasks and inspections.
 - **Visibility**: Uses cross-tenant projections to allow contractor organizations to view assigned tasks.
-- **Authorization**: Implements **OpenFGA Contextual Tuples** to verify contractor access based on the `ExecutorOrganizationId` stored in the database.
+- **Authorization**: Checks **OpenFGA** permissions before allowing access. Marten multi-tenancy provides org-level isolation.
 
 ### Landlord BFF (`ProperTea.Landlord.Bff`)
-**Responsibility**: Secures the Frontend application and provides session context.
+**Responsibility**: Secures the Frontend application and forwards authenticated requests to services.
 - **Auth**: Handles OIDC Code Flow with ZITADEL. Stores sessions in Redis.
-- **Session Metadata**: Exposes a `/session` endpoint for the Angular app to retrieve branding (Logo URL, Primary Color) and current organization context.
-- **Token Forwarding**: Injects Access Tokens into downstream calls.
+- **Token Forwarding**: Extracts user context (user_id, org_id) from token and injects as headers into downstream calls.
+- **Pass-Through**: No business logic or authorization checks (handled by services).
+- **Session**: Provides `/session` endpoint for Angular app to retrieve user and organization context.
 
 ## Development Patterns
 
@@ -57,6 +58,14 @@ Code is organized by **Feature**, not by Layer.
 ### Marten Configuration
 - **Aggregates**: Implement `IRevisioned`.
 - **Tenancy**: `opts.Policies.AllDocumentsAreMultiTenanted()` enabled globally.
+- **Tenant Scoping**: Services extract `org_id` from token headers and set Marten tenant per request.
+- **Data Isolation**: All queries automatically scoped to organization via Marten tenancy.
+
+### Authorization Pattern
+- **Organization Isolation**: Marten multi-tenancy enforces org-level data isolation.
+- **Resource Permissions**: Services check OpenFGA for fine-grained access control.
+- **Pattern**: `ListObjects` from OpenFGA → Filter database query with authorized IDs.
+- **Defense-in-Depth**: Services verify org_id from token matches requested resources.
 
 ## Shared Contracts
 The source of truth for integration models is located in `/shared/ProperTea.Contracts`.

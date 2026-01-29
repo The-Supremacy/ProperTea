@@ -14,6 +14,7 @@
   </Folder>
   <Folder Name="/shared/">
     <Project Path="shared/ProperTea.Contracts/ProperTea.Contracts.csproj" />
+    <Project Path="shared/ProperTea.Infrastructure.Common/ProperTea.Infrastructure.Common.csproj" />
     <Project Path="shared/ProperTea.ServiceDefaults/ProperTea.ServiceDefaults.csproj" />
   </Folder>
 </Solution>

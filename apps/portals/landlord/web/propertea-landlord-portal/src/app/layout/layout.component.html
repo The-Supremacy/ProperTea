@@ -1,40 +1,59 @@
-<div class="erp-layout">
-  <header class="erp-header">
-    <div class="left">
-      <p-button icon="pi pi-bars" (onClick)="sidebarVisible.set(true)" [text]="true" styleClass="lg:hidden"></p-button>
-      <span class="logo">ProperTea Landlord</span>
-    </div>
+<div class="flex flex-col h-screen">
+  <!-- Header -->
+  <app-header (menuToggle)="toggleMenu()" />
 
-    <div class="right">
-      <div class="health-indicator" [pTooltip]="'System: ' + healthStatus()">
-        <div class="status-dot" [ngClass]="healthStatus() === 'Healthy' ? 'bg-green-500' : 'bg-red-500'"></div>
-      </div>
+  <div class="flex flex-1 overflow-hidden">
+    <!-- Desktop Sidebar -->
+    <aside class="hidden lg:flex w-64 border-r border-surface bg-surface-card overflow-y-auto">
+      <nav class="flex flex-col gap-2 p-4 w-full">
+        @for (item of navigationItems; track item.route) {
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="active"
+            class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-hover hover:text-surface-900 dark:hover:text-surface-0 transition-colors"
+          >
+            <i [class]="item.icon"></i>
+            <span class="font-medium">{{ item.labelKey | transloco }}</span>
+          </a>
+        }
+      </nav>
+    </aside>
 
-      <div class="user-profile">
-        <span>{{ authService.userName() }}</span>
-        <p-avatar icon="pi pi-user" shape="circle" (click)="authService.editProfile()"></p-avatar>
-      </div>
-    </div>
-  </header>
-
-  <div class="erp-container">
-    <p-drawer [(visible)]="sidebarVisible" [modal]="false" [dismissible]="true"
-              styleClass="erp-sidebar border-right-1 surface-border w-16rem shadow-none lg:block">
-      <nav class="nav-menu">
-        <a routerLink="/dashboard" routerLinkActive="active" class="menu-item">
-          <i class="pi pi-home"></i> <span>Dashboard</span>
-        </a>
-        <a routerLink="/properties" routerLinkActive="active" class="menu-item">
-          <i class="pi pi-building"></i> <span>Properties</span>
-        </a>
-        <a routerLink="/tenants" routerLinkActive="active" class="menu-item">
-          <i class="pi pi-users"></i> <span>Tenants</span>
-        </a>
+    <!-- Mobile Drawer -->
+    <p-drawer
+      [(visible)]="mobileMenuVisible"
+      [modal]="true"
+      [style]="{'width': '280px'}"
+      header="Menu"
+    >
+      <nav class="flex flex-col gap-2">
+        @for (item of navigationItems; track item.route) {
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="active"
+            class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-hover hover:text-surface-900 dark:hover:text-surface-0 transition-colors"
+            (click)="mobileMenuVisible.set(false)"
+          >
+            <i [class]="item.icon"></i>
+            <span class="font-medium">{{ item.labelKey | transloco }}</span>
+          </a>
+        }
       </nav>
     </p-drawer>
 
-    <main class="erp-main">
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto bg-surface-ground">
       <ng-content></ng-content>
+
+      <!-- Footer -->
+      <footer class="border-top-1 border-surface bg-surface-card px-4 py-3 mt-auto" *transloco="let t">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-2 text-sm text-surface-600 dark:text-surface-400">
+          <span>{{ t('footer.copyright', { year: currentYear }) }}</span>
+          <div class="flex gap-3">
+            <span>{{ t('footer.status', { status: healthStatus() }) }}</span>
+          </div>
+        </div>
+      </footer>
     </main>
   </div>
 </div>

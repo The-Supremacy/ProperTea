@@ -7,6 +7,11 @@ namespace ProperTea.Organization.Features.Organizations.Infrastructure
             string email,
             string firstName,
             string lastName,
+            string password,
+            CancellationToken ct = default);
+
+        public Task<bool> CheckOrganizationExistsAsync(
+            string orgName,
             CancellationToken ct = default);
     }
 }

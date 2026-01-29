@@ -4,8 +4,6 @@ public static class OrganizationEvents
 {
     public record Created(
         Guid OrganizationId,
-        string Name,
-        string Slug,
         OrganizationAggregate.SubscriptionTier Tier,
         DateTimeOffset CreatedAt);
 

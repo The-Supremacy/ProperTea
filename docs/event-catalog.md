@@ -9,7 +9,7 @@ This document tracks all integration events exchanged between services via Wolve
 | Message Identity | Payload Interface | Trigger | Subscribers |
 | :--- | :--- | :--- | :--- |
 | `organizations.registered.v1` | `IOrganizationRegistered` | **RegisterOrganizationHandler**<br>New tenant created via headless flow. | **User Service** |
-| `organizations.identity-updated.v1` | `IOrganizationIdentityUpdated` | When an org is renamed or slug changes. | **User Service** |
+| `organizations.updated.v1` | `IOrganizationUpdated` | When organization details are updated. | **User Service** |
 
 ## Exchange: `workorder.events`
 **Publisher**: Work Order Service (`ProperTea.WorkOrder`)

@@ -1,5 +1,5 @@
 using Marten;
-using ProperTea.ServiceDefaults.Exceptions;
+using ProperTea.Infrastructure.Common.Exceptions;
 using static ProperTea.Organization.Features.Organizations.OrganizationEvents;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
@@ -16,7 +16,7 @@ public record AuditLogEntry(
 
 public static class AuditEventData
 {
-    public record OrganizationCreated(string Name, string Slug);
+    public record OrganizationCreated(DateTimeOffset CreatedAt);
 
     public record ExternalOrganizationCreated(string ExternalOrganizationId);
 
@@ -50,14 +50,14 @@ public class GetAuditLogHandler(IQuerySession session)
         {
             var data = evt.Data switch
             {
-                Created e => (object)new AuditEventData.OrganizationCreated(e.Name, e.Slug),
+                Created e => (object)new AuditEventData.OrganizationCreated(e.CreatedAt),
                 ExternalOrganizationCreated e => new AuditEventData.ExternalOrganizationCreated(e.ExternalOrganizationId),
                 Activated => new AuditEventData.OrganizationActivated(),
                 _ => new { EventData = evt.Data }
             };
 
             entries.Add(new AuditLogEntry(
-                EventType: evt.Data.GetType().Name,
+                EventType: evt.EventTypeName,
                 Timestamp: evt.Timestamp,
                 Username: evt.UserName,
                 Version: (int)evt.Version,

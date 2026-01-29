@@ -9,7 +9,6 @@ public static class OrganizationIntegrationEvents
     public record OrganizationRegistered(
         Guid OrganizationId,
         string Name,
-        string Slug,
         string ExternalOrganizationId,
         DateTimeOffset RegisteredAt) : IOrganizationRegistered;
 

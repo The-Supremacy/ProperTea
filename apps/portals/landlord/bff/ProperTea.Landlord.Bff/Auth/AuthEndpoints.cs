@@ -12,13 +12,32 @@ public static class AuthEndpoints
 
         _ = group.MapGet("/user", (HttpContext context) =>
         {
-            var claims = context.User.Claims.Select(c => new { c.Type, c.Value });
-            return Results.Ok(new
+            var isAuthenticated = context.User.Identity?.IsAuthenticated ?? false;
+
+            if (!isAuthenticated)
             {
-                IsAuthenticated = context.User.Identity?.IsAuthenticated ?? false,
-                Claims = claims
-            });
-        }).RequireAuthorization();
+                return Results.Ok(new CurrentUserDto(
+                    IsAuthenticated: false,
+                    EmailAddress: string.Empty,
+                    FirstName: string.Empty,
+                    LastName: string.Empty,
+                    OrganizationName: string.Empty
+                ));
+            }
+
+            var email = context.User.FindFirst("email")?.Value ?? string.Empty;
+            var firstName = context.User.FindFirst("given_name")?.Value ?? string.Empty;
+            var lastName = context.User.FindFirst("family_name")?.Value ?? string.Empty;
+            var orgName = context.User.FindFirst("urn:zitadel:iam:user:resourceowner:name")?.Value ?? string.Empty;
+
+            return Results.Ok(new CurrentUserDto(
+                IsAuthenticated: true,
+                EmailAddress: email,
+                FirstName: firstName,
+                LastName: lastName,
+                OrganizationName: orgName
+            ));
+        }).AllowAnonymous();
 
         _ = group.MapGet("/login", (string? returnUrl) =>
         {
@@ -34,13 +53,25 @@ public static class AuthEndpoints
                 [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]))
             .RequireAuthorization();
 
-        _ = group.MapGet("/register", (string? returnUrl) =>
+        _ = group.MapGet("/select_account", (string? returnUrl) =>
         {
-            var props = new AuthenticationProperties { RedirectUri = returnUrl ?? "/" };
-            props.Parameters.Add("prompt", "create");
-            return Results.Challenge(props);
-        }).AllowAnonymous();
+            return Results.Challenge(new AuthenticationProperties
+            {
+                RedirectUri = returnUrl ?? "/",
+                Items = {
+                    { "prompt", "select_account" }
+                }
+            });
+        }).RequireAuthorization();
 
         return endpoints;
     }
 }
+
+public record CurrentUserDto(
+    bool IsAuthenticated,
+    string EmailAddress,
+    string FirstName,
+    string LastName,
+    string OrganizationName
+);

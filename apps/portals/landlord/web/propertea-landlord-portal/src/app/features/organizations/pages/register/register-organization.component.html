@@ -1,0 +1,176 @@
+<div class="min-h-screen flex items-center justify-center px-3 sm:px-4 py-6 sm:py-8 bg-surface-ground">
+  <p-card class="w-full max-w-lg">
+    <ng-template pTemplate="header">
+      <div class="p-4 text-center">
+        <i class="pi pi-building text-5xl sm:text-6xl text-primary mb-3" aria-hidden="true"></i>
+        <h1 class="text-2xl sm:text-3xl font-bold m-0">{{ 'register.title' | transloco }}</h1>
+        <p class="text-sm sm:text-base text-surface-600 dark:text-surface-400 mt-2">
+          {{ 'register.subtitle' | transloco }}
+        </p>
+      </div>
+    </ng-template>
+
+    <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+      <!-- Organization Name -->
+      <app-form-field
+        fieldId="orgName"
+        errorId="orgName-error"
+        [required]="true"
+        [error]="isFieldInvalid('organizationName') ? ('register.field.error.orgName' | transloco) : null">
+        <span label>{{ 'register.field.orgName' | transloco }}</span>
+        <input input
+          pInputText
+          id="orgName"
+          formControlName="organizationName"
+          [placeholder]="'register.field.placeholder.orgName' | transloco"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('organizationName')"
+          [class.ng-dirty]="registrationForm.get('organizationName')?.dirty"
+          aria-required="true"
+          [attr.aria-invalid]="isFieldInvalid('organizationName')"
+          [attr.aria-describedby]="isFieldInvalid('organizationName') ? 'orgName-error' : null"
+        />
+      </app-form-field>
+      @if (nameAvailabilityChecking()) {
+        <small class="block -mt-3 text-sm text-surface-500" role="status" aria-live="polite">
+          <i class="pi pi-spin pi-spinner mr-1" aria-hidden="true"></i> {{ 'register.field.checking' | transloco }}
+        </small>
+      }
+      @if (nameAvailabilityMessage(); as msg) {
+        <small class="block -mt-3 text-sm" [class.text-green-600]="msg.available" [class.text-red-600]="!msg.available" role="status" aria-live="polite">
+          <i [class.pi-check]="msg.available" [class.pi-times]="!msg.available" class="pi mr-1" aria-hidden="true"></i>
+          {{ msg.text }}
+        </small>
+      }
+
+      <!-- User Information -->
+      <app-form-field
+        fieldId="firstName"
+        errorId="firstName-error"
+        [required]="true"
+        [error]="isFieldInvalid('userFirstName') ? ('register.field.error.firstName' | transloco) : null">
+        <span label>{{ 'register.field.firstName' | transloco }}</span>
+        <input input
+          pInputText
+          id="firstName"
+          formControlName="userFirstName"
+          [placeholder]="'register.field.placeholder.firstName' | transloco"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('userFirstName')"
+          [class.ng-dirty]="registrationForm.get('userFirstName')?.dirty"
+          aria-required="true"
+          [attr.aria-invalid]="isFieldInvalid('userFirstName')"
+          [attr.aria-describedby]="isFieldInvalid('userFirstName') ? 'firstName-error' : null"
+        />
+      </app-form-field>
+
+      <app-form-field
+        fieldId="lastName"
+        errorId="lastName-error"
+        [required]="true"
+        [error]="isFieldInvalid('userLastName') ? ('register.field.error.lastName' | transloco) : null">
+        <span label>{{ 'register.field.lastName' | transloco }}</span>
+        <input input
+          pInputText
+          id="lastName"
+          formControlName="userLastName"
+          [placeholder]="'register.field.placeholder.lastName' | transloco"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('userLastName')"
+          [class.ng-dirty]="registrationForm.get('userLastName')?.dirty"
+          aria-required="true"
+          [attr.aria-invalid]="isFieldInvalid('userLastName')"
+          [attr.aria-describedby]="isFieldInvalid('userLastName') ? 'lastName-error' : null"
+        />
+      </app-form-field>
+
+      <app-form-field
+        fieldId="email"
+        errorId="email-error"
+        [required]="true"
+        [error]="isFieldInvalid('userEmail') ? ('register.field.error.email' | transloco) : null">
+        <span label>{{ 'register.field.email' | transloco }}</span>
+        <input input
+          pInputText
+          type="email"
+          id="email"
+          formControlName="userEmail"
+          [placeholder]="'register.field.placeholder.email' | transloco"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('userEmail')"
+          [class.ng-dirty]="registrationForm.get('userEmail')?.dirty"
+          aria-required="true"
+          [attr.aria-invalid]="isFieldInvalid('userEmail')"
+          [attr.aria-describedby]="isFieldInvalid('userEmail') ? 'email-error' : null"
+        />
+      </app-form-field>
+
+      <app-form-field
+        fieldId="password"
+        errorId="password-error"
+        [required]="true"
+        [error]="getPasswordError()">
+        <span label>{{ 'register.field.password' | transloco }}</span>
+        <input input
+          pInputText
+          type="password"
+          id="password"
+          formControlName="userPassword"
+          [placeholder]="'register.field.placeholder.password' | transloco"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('userPassword')"
+          [class.ng-dirty]="registrationForm.get('userPassword')?.dirty"
+          aria-required="true"
+          [attr.aria-invalid]="isFieldInvalid('userPassword')"
+          [attr.aria-describedby]="isFieldInvalid('userPassword') ? 'password-error' : null"
+        />
+      </app-form-field>
+
+      <app-form-field
+        fieldId="confirmPassword"
+        errorId="confirmPassword-error"
+        [required]="true"
+        [error]="getConfirmPasswordError()">
+        <span label>{{ 'register.field.confirmPassword' | transloco }}</span>
+        <input input
+          pInputText
+          type="password"
+          id="confirmPassword"
+          formControlName="confirmPassword"
+          [placeholder]="'register.field.placeholder.confirmPassword' | transloco"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('confirmPassword') || registrationForm.errors?.['passwordMismatch']"
+          [class.ng-dirty]="registrationForm.get('confirmPassword')?.dirty"
+          aria-required="true"
+          [attr.aria-invalid]="isFieldInvalid('confirmPassword') || registrationForm.errors?.['passwordMismatch']"
+          [attr.aria-describedby]="getConfirmPasswordError() ? 'confirmPassword-error' : null"
+        />
+      </app-form-field>
+
+      <!-- Error Message -->
+      @if (errorMessage()) {
+        <p-message severity="error" [text]="errorMessage()!" class="w-full" role="alert" />
+      }
+
+      <!-- Submit Button -->
+      <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+        <p-button
+          type="submit"
+          [label]="'register.button.submit' | transloco"
+          icon="pi pi-check"
+          [loading]="isSubmitting()"
+          [disabled]="!canSubmit()"
+          styleClass="flex-1 w-full"
+        />
+        <p-button
+          type="button"
+          [routerLink]="['/']"
+          [label]="'register.button.cancel' | transloco"
+          severity="secondary"
+          [outlined]="true"
+          styleClass="w-full sm:w-auto"
+        />
+      </div>
+    </form>
+  </p-card>
+</div>

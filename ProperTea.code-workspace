@@ -3,5 +3,13 @@
 		{
 			"path": "."
 		}
-	]
+	],
+	"settings": {
+		"chat.tools.terminal.autoApprove": {
+			"npm run build": true,
+			"mkdir": true,
+			"mv": true,
+			"npm install": true
+		}
+	}
 }

@@ -1,10 +1,10 @@
 using Marten.Metadata;
-using ProperTea.ServiceDefaults.Exceptions;
+using ProperTea.Infrastructure.Common.Exceptions;
 using static ProperTea.User.Features.UserProfiles.UserProfileEvents;
 
 namespace ProperTea.User.Features.UserProfiles;
 
-public class UserProfileAggregate : IRevisioned
+public class UserProfileAggregate : IRevisioned, ITenanted
 {
     public Guid Id { get; set; }
     public string ExternalUserId { get; set; } = string.Empty;
@@ -12,12 +12,10 @@ public class UserProfileAggregate : IRevisioned
     public DateTimeOffset? LastSeenAt { get; set; }
     public DateTimeOffset? OrganizationDeactivatedAt { get; set; }
     public int Version { get; set; }
+    public string? TenantId { get; set; }
 
     #region Factory Methods
 
-    /// <summary>
-    /// Creates a new user profile.
-    /// </summary>
     public static Created Create(Guid profileId, string externalUserId)
     {
         if (string.IsNullOrWhiteSpace(externalUserId))
@@ -26,9 +24,6 @@ public class UserProfileAggregate : IRevisioned
         return new Created(profileId, externalUserId, DateTimeOffset.UtcNow);
     }
 
-    /// <summary>
-    /// Updates the last seen timestamp.
-    /// </summary>
     public LastSeenUpdated UpdateLastSeen()
     {
         return new LastSeenUpdated(Id, DateTimeOffset.UtcNow);

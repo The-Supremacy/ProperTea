@@ -1,0 +1,53 @@
+/**
+ * ProperTea Brand Theme
+ *
+ * This file contains brand-specific design tokens including:
+ * - Brand colors (primary, secondary, accent)
+ * - Typography (fonts, sizes)
+ * - Custom design tokens
+ *
+ * These values extend the default Tailwind theme and can be
+ * referenced throughout the application.
+ */
+
+@theme {
+  /* === ProperTea Brand Colors === */
+
+  /* Primary Brand Colors (Emerald/Teal) */
+  --color-brand-emerald: #10b981q;
+  --color-brand-teal: #0d9488;
+  --color-brand-emerald-light: #34d399;
+  --color-brand-teal-dark: #0f766e;
+
+  /* Semantic Colors */
+  --color-brand-primary: #10b981;
+  --color-brand-secondary: #0d9488;
+  --color-brand-accent: #34d399;
+
+  /* === Typography === */
+
+  /* Brand Fonts */
+  --font-brand-display: ui-sans-serif, system-ui, sans-serif;
+  --font-brand-body: ui-sans-serif, system-ui, sans-serif;
+
+  /* === PrimeNG Integration === */
+
+  /* Map PrimeNG CSS variables to Tailwind for seamless integration */
+  --color-primary: var(--p-primary-color);
+  --color-primary-contrast: var(--p-primary-contrast-color);
+  --color-surface-0: var(--p-surface-0);
+  --color-surface-50: var(--p-surface-50);
+  --color-surface-100: var(--p-surface-100);
+  --color-surface-200: var(--p-surface-200);
+  --color-surface-300: var(--p-surface-300);
+  --color-surface-400: var(--p-surface-400);
+  --color-surface-500: var(--p-surface-500);
+  --color-surface-600: var(--p-surface-600);
+  --color-surface-700: var(--p-surface-700);
+  --color-surface-800: var(--p-surface-800);
+  --color-surface-900: var(--p-surface-900);
+  --color-surface-ground: var(--p-surface-ground);
+
+  /* === Custom Spacing/Sizing === */
+  /* Add any custom spacing or sizing tokens here if needed */
+}

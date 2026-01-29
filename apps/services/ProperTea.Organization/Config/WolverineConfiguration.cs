@@ -1,8 +1,8 @@
 using JasperFx;
 using JasperFx.Core;
 using JasperFx.Resources;
+using ProperTea.Infrastructure.Common.Auth;
 using ProperTea.Organization.Features.Organizations.Configuration;
-using ProperTea.ServiceDefaults.Auth;
 using Wolverine;
 using Wolverine.ErrorHandling;
 using Wolverine.FluentValidation;

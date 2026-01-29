@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using ProperTea.ServiceDefaults.Auth;
+using ProperTea.Infrastructure.Common.Auth;
 using Zitadel.Credentials;
 using Zitadel.Extensions;
 
@@ -28,6 +28,7 @@ public static class AuthenticationConfig
         _ = services.AddAuthorization();
 
         _ = services.AddTransient<IUserContext, UserContext>();
+        _ = services.AddTransient<IOrganizationIdProvider, TenantIdProvider>();
 
         return services;
     }

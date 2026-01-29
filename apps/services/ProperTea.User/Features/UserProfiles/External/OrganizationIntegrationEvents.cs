@@ -14,13 +14,6 @@ public static class OrganizationIntegrationEvents
         string? EmailDomain,
         DateTimeOffset RegisteredAt) : IOrganizationRegistered;
 
-    [MessageIdentity("organizations.identity-updated.v1")]
-    public record OrganizationIdentityUpdated(
-        Guid OrganizationId,
-        string NewName,
-        string NewSlug,
-        DateTimeOffset UpdatedAt) : IOrganizationIdentityUpdated;
-
     [MessageIdentity("organizations.deactivated.v1")]
     public record OrganizationDeactivated(
         Guid OrganizationId,

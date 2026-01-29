@@ -2,8 +2,7 @@ using FluentValidation;
 using Marten;
 using Wolverine;
 using ProperTea.Organization.Features.Organizations.Infrastructure;
-using ProperTea.ServiceDefaults.Exceptions;
-using ProperTea.ServiceDefaults.Auth;
+using ProperTea.Infrastructure.Common.Exceptions;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
@@ -12,7 +11,7 @@ public record RegisterOrganizationCommand(
     string UserEmail,
     string UserFirstName,
     string UserLastName,
-    string Slug);
+    string UserPassword);
 
 public class RegisterOrganizationValidator : AbstractValidator<RegisterOrganizationCommand>
 {
@@ -22,7 +21,14 @@ public class RegisterOrganizationValidator : AbstractValidator<RegisterOrganizat
         _ = RuleFor(x => x.UserEmail).NotEmpty().EmailAddress();
         _ = RuleFor(x => x.UserFirstName).NotEmpty().MinimumLength(1).MaximumLength(100);
         _ = RuleFor(x => x.UserLastName).NotEmpty().MinimumLength(1).MaximumLength(100);
-        _ = RuleFor(x => x.Slug).NotEmpty().Matches(OrganizationAggregate.SlugPattern());
+        _ = RuleFor(x => x.UserPassword)
+            .NotEmpty()
+            .MinimumLength(8).WithMessage("Password must be at least 8 characters long")
+            .MaximumLength(100)
+            .Matches(@"[a-z]").WithMessage("Password must contain at least one lowercase letter")
+            .Matches(@"[A-Z]").WithMessage("Password must contain at least one uppercase letter")
+            .Matches(@"\d").WithMessage("Password must contain at least one number")
+            .Matches(@"[^A-Za-z0-9]").WithMessage("Password must contain at least one special character");
     }
 }
 
@@ -34,15 +40,10 @@ public class RegisterOrganizationHandler : IWolverineHandler
         RegisterOrganizationCommand command,
         IDocumentSession session,
         IExternalOrganizationClient externalOrgClient,
-        IUserContext userContext,
-        ILogger logger)
+        ILogger logger,
+        CancellationToken ct)
     {
-        var userId = userContext.UserId
-            ?? throw new UnauthorizedAccessException("User must be logged in to register an organization");
-
-        var exists = await session.Query<OrganizationAggregate>()
-            .AnyAsync(x => x.Name == command.OrganizationName);
-
+        var exists = await externalOrgClient.CheckOrganizationExistsAsync(command.OrganizationName, ct);
         if (exists)
             throw new ConflictException($"Organization with name '{command.OrganizationName}' already exists");
 
@@ -51,26 +52,27 @@ public class RegisterOrganizationHandler : IWolverineHandler
             command.UserEmail,
             command.UserFirstName,
             command.UserLastName,
-            CancellationToken.None);
+            command.UserPassword,
+            ct);
 
         var orgId = Guid.NewGuid();
         var events = new List<object>
         {
-            OrganizationAggregate.Create(orgId, command.OrganizationName, command.Slug),
+            OrganizationAggregate.Create(orgId),
             OrganizationAggregate.LinkExternalOrganization(orgId, externalOrgId),
             new OrganizationEvents.Activated(orgId, DateTime.UtcNow)
         };
         _ = session.Events.StartStream<OrganizationAggregate>(orgId, [.. events]);
-        await session.SaveChangesAsync();
+        await session.SaveChangesAsync(ct);
 
-        logger.LogInformation("Registered new organization {OrganizationId} with external ID {ExternalOrgId}",
+        logger.LogInformation("Registered new organization {OrganizationId} '{Name}' with external ID {ExternalOrgId}",
             orgId,
+            command.OrganizationName,
             externalOrgId);
 
         var integrationEvent = new OrganizationIntegrationEvents.OrganizationRegistered(
             orgId,
             command.OrganizationName,
-            command.Slug,
             externalOrgId,
             DateTimeOffset.UtcNow
         );

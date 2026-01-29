@@ -1,5 +1,5 @@
 using Marten;
-using ProperTea.ServiceDefaults.Exceptions;
+using ProperTea.Infrastructure.Common.Exceptions;
 using Wolverine;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;

@@ -1,0 +1,165 @@
+<div class="min-h-screen bg-surface-ground px-3 sm:px-4 py-6 sm:py-8">
+  <div class="max-w-5xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+      <p-button
+        [routerLink]="['/']"
+        icon="pi pi-arrow-left"
+        [label]="'docs.backToHome' | transloco"
+        [text]="true"
+        class="mb-4"
+      />
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 text-surface-900 dark:text-surface-0">
+        {{ 'docs.title' | transloco }}
+      </h1>
+      <p class="text-base sm:text-lg lg:text-xl text-surface-600 dark:text-surface-400">
+        {{ 'docs.subtitle' | transloco }}
+      </p>
+    </div>
+
+    <!-- Quick Start Guide -->
+    <div class="flex flex-col gap-4 mb-6">
+      <p-card>
+        <ng-template pTemplate="header">
+          <div class="px-3 sm:px-4 pt-3 sm:pt-4">
+            <h2 class="text-xl sm:text-2xl font-bold m-0">
+              {{ 'docs.quickStart' | transloco }}
+            </h2>
+          </div>
+        </ng-template>
+        <div class="flex flex-col gap-4">
+          <div class="flex gap-3 items-start">
+            <div class="flex items-center justify-center bg-primary text-primary-contrast rounded-full shrink-0 w-8 h-8 text-sm font-semibold" aria-label="Step 1" role="img">
+              1
+            </div>
+            <div class="flex-1">
+              <h3 class="mt-0 mb-2 text-base sm:text-lg font-semibold">{{ 'docs.step1.title' | transloco }}</h3>
+              <p class="mt-0 mb-0 text-sm sm:text-base text-surface-600 dark:text-surface-400">
+                {{ 'docs.step1.description' | transloco }}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex gap-3 items-start">
+            <div class="flex items-center justify-center bg-primary text-primary-contrast rounded-full shrink-0 w-8 h-8 text-sm font-semibold" aria-label="Step 2" role="img">
+              2
+            </div>
+            <div class="flex-1">
+              <h3 class="mt-0 mb-2 text-base sm:text-lg font-semibold">{{ 'docs.step2.title' | transloco }}</h3>
+              <p class="mt-0 mb-0 text-sm sm:text-base text-surface-600 dark:text-surface-400">
+                {{ 'docs.step2.description' | transloco }}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex gap-3 items-start">
+            <div class="flex items-center justify-center bg-primary text-primary-contrast rounded-full shrink-0 w-8 h-8 text-sm font-semibold" aria-label="Step 3" role="img">
+              3
+            </div>
+            <div class="flex-1">
+              <h3 class="mt-0 mb-2 text-base sm:text-lg font-semibold">{{ 'docs.step3.title' | transloco }}</h3>
+              <p class="mt-0 mb-0 text-sm sm:text-base text-surface-600 dark:text-surface-400">
+                {{ 'docs.step3.description' | transloco }}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex gap-3 items-start">
+            <div class="flex items-center justify-center bg-primary text-primary-contrast rounded-full shrink-0 w-8 h-8 text-sm font-semibold" aria-label="Step 4" role="img">
+              4
+            </div>
+            <div class="flex-1">
+              <h3 class="mt-0 mb-2 text-base sm:text-lg font-semibold">{{ 'docs.step4.title' | transloco }}</h3>
+              <p class="mt-0 mb-0 text-sm sm:text-base text-surface-600 dark:text-surface-400">
+                {{ 'docs.step4.description' | transloco }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </p-card>
+
+      <!-- Features Overview -->
+      <p-card>
+        <ng-template pTemplate="header">
+          <div class="px-3 sm:px-4 pt-3 sm:pt-4">
+            <h2 class="text-xl sm:text-2xl font-bold m-0">
+              {{ 'docs.keyFeatures' | transloco }}
+            </h2>
+          </div>
+        </ng-template>
+        <div class="grid sm:grid-cols-2 gap-4 sm:gap-6">
+          <div>
+            <h4 class="mt-0 mb-2 text-base sm:text-lg font-semibold flex items-center gap-2">
+              <i class="pi pi-building text-xl sm:text-2xl text-primary shrink-0" aria-hidden="true"></i>
+              <span>{{ 'docs.feature1.title' | transloco }}</span>
+            </h4>
+            <p class="mt-0 mb-0 text-sm text-surface-600 dark:text-surface-400">
+              {{ 'docs.feature1.description' | transloco }}
+            </p>
+          </div>
+
+          <div>
+            <h4 class="mt-0 mb-2 text-base sm:text-lg font-semibold flex items-center gap-2">
+              <i class="pi pi-users text-xl sm:text-2xl text-primary shrink-0" aria-hidden="true"></i>
+              <span>{{ 'docs.feature2.title' | transloco }}</span>
+            </h4>
+            <p class="mt-0 mb-0 text-sm text-surface-600 dark:text-surface-400">
+              {{ 'docs.feature2.description' | transloco }}
+            </p>
+          </div>
+
+          <div>
+            <h4 class="mt-0 mb-2 text-base sm:text-lg font-semibold flex items-center gap-2">
+              <i class="pi pi-wrench text-xl sm:text-2xl text-primary shrink-0" aria-hidden="true"></i>
+              <span>{{ 'docs.feature3.title' | transloco }}</span>
+            </h4>
+            <p class="mt-0 mb-0 text-sm text-surface-600 dark:text-surface-400">
+              {{ 'docs.feature3.description' | transloco }}
+            </p>
+          </div>
+
+          <div>
+            <h4 class="mt-0 mb-2 text-base sm:text-lg font-semibold flex items-center gap-2">
+              <i class="pi pi-chart-line text-xl sm:text-2xl text-primary shrink-0" aria-hidden="true"></i>
+              <span>{{ 'docs.feature4.title' | transloco }}</span>
+            </h4>
+            <p class="mt-0 mb-0 text-sm text-surface-600 dark:text-surface-400">
+              {{ 'docs.feature4.description' | transloco }}
+            </p>
+          </div>
+        </div>
+      </p-card>
+
+      <!-- Call to Action -->
+      <p-card>
+        <ng-template pTemplate="header">
+          <div class="px-3 sm:px-4 pt-3 sm:pt-4">
+            <h2 class="text-xl sm:text-2xl font-bold m-0">{{ 'docs.cta.title' | transloco }}</h2>
+          </div>
+        </ng-template>
+        <div class="flex flex-col gap-3 sm:gap-4 items-center text-center">
+          <p class="text-sm sm:text-base text-surface-600 dark:text-surface-400 max-w-2xl">
+            {{ 'docs.cta.description' | transloco }}
+          </p>
+          <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto sm:justify-center">
+            <p-button
+              [routerLink]="['/register']"
+              [label]="'docs.cta.registerButton' | transloco"
+              icon="pi pi-building"
+              size="large"
+              styleClass="w-full sm:w-auto"
+            />
+            <p-button
+              [routerLink]="['/']"
+              [label]="'docs.cta.backButton' | transloco"
+              severity="secondary"
+              [outlined]="true"
+              size="large"
+              styleClass="w-full sm:w-auto"
+            />
+          </div>
+        </div>
+      </p-card>
+    </div>
+  </div>
+</div>

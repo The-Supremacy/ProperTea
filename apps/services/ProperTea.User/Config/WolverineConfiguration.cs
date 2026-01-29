@@ -1,6 +1,7 @@
 using JasperFx;
 using JasperFx.Core;
 using JasperFx.Resources;
+using ProperTea.Infrastructure.Common.Auth;
 using ProperTea.User.Features.UserProfiles.Configuration;
 using Wolverine;
 using Wolverine.ErrorHandling;
@@ -24,6 +25,7 @@ public static class WolverineConfiguration
 
             opts.Policies.UseDurableLocalQueues();
             opts.Policies.AutoApplyTransactions();
+            opts.Policies.AddMiddleware<UserIdMiddleware>();
 
             opts.UnknownMessageBehavior = UnknownMessageBehavior.DeadLetterQueue;
             _ = opts.UseRabbitMqUsingNamedConnection("rabbitmq")

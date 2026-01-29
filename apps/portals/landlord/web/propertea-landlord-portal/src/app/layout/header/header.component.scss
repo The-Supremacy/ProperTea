@@ -1,0 +1,39 @@
+:host {
+  display: block;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--p-primary-color);
+}
+
+.search-wrapper {
+  position: relative;
+  max-width: 500px;
+  width: 100%;
+
+  i {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--p-text-muted-color);
+    pointer-events: none;
+  }
+
+  input {
+    width: 100%;
+    padding-left: 2.5rem;
+  }
+}
+
+::ng-deep .user-dropdown-menu.p-menu {
+  max-width: calc(100vw - 1rem);
+
+  @media (max-width: 768px) {
+    right: 0.5rem !important;
+    left: auto !important;
+    transform: none !important;
+  }
+}

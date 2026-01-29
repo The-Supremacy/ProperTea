@@ -1,0 +1,24 @@
+/**
+ * Reusable component patterns
+ * Note: Only standard Tailwind utilities work with @apply in v4
+ * PrimeNG surface tokens must be used directly in HTML classes
+ */
+
+/* Button groups */
+.btn-group {
+  @apply flex flex-col sm:flex-row gap-3;
+}
+
+/* Icon containers */
+.icon-container {
+  @apply flex items-center justify-center shrink-0;
+}
+
+/* Responsive spacing utilities */
+.section-spacing {
+  @apply px-3 sm:px-4 py-6 sm:py-8;
+}
+
+.content-container {
+  @apply max-w-5xl mx-auto;
+}

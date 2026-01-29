@@ -1,0 +1,98 @@
+<header class="h-16 px-4 md:px-6 shadow-sm bg-surface-card border-bottom-1 border-surface">
+  <div class="flex items-center w-full h-full gap-2 md:gap-4">
+    <!-- Left: Burger Menu + Logo -->
+    <div class="flex items-center gap-3 min-w-fit sm:min-w-50">
+      <p-button
+        icon="pi pi-bars"
+        [text]="true"
+        [rounded]="true"
+        severity="secondary"
+        (onClick)="onMenuToggle()"
+        aria-label="Toggle menu"
+        class="lg:hidden"
+      />
+      <div class="flex items-center gap-2">
+        <img src="/logo.svg" class="logo-icon" alt="ProperTea logo" />
+        <span class="text-xl font-semibold hidden sm:inline">ProperTea</span>
+      </div>
+    </div>
+
+    <!-- Center: Global Search -->
+    <div class="flex-1 flex justify-center items-center">
+      <div class="search-wrapper">
+        <i class="pi pi-search"></i>
+        <input
+          pInputText
+          type="text"
+          [placeholder]="'header.search.placeholder' | transloco"
+          [value]="searchQuery()"
+          (input)="onSearchChange($event)"
+        />
+      </div>
+    </div>
+
+    <!-- Right: User Menu -->
+    <div class="flex items-center gap-3 min-w-fit sm:min-w-50 justify-end" *transloco="let t">
+      <p-button
+        (onClick)="userMenu.toggle($event)"
+        [text]="true"
+        severity="secondary"
+        [attr.aria-label]="t('header.userMenu.label')"
+        class="user-menu-button"
+      >
+        <div class="flex items-center gap-2">
+          <p-avatar
+            [label]="userInitials()"
+            shape="circle"
+            size="normal"
+            [class]="'bg-primary text-primary-contrast'"
+          />
+          <span class="hidden sm:inline font-semibold">{{ userName() }}</span>
+          <i class="pi pi-chevron-down"></i>
+        </div>
+      </p-button>
+
+      <p-menu
+        #userMenu
+        [popup]="true"
+        [appendTo]="'body'"
+        [model]="userMenuItems()"
+        [style]="{'min-width': '280px', 'max-width': 'calc(100vw - 1rem)'}"
+        [class]="'user-dropdown-menu'"
+      >
+        <ng-template pTemplate="start">
+          <div class="px-3 py-3">
+            <div class="flex items-center gap-3 mb-3">
+              <p-avatar
+                [label]="userInitials()"
+                shape="circle"
+                size="large"
+                [class]="'bg-primary text-primary-contrast'"
+              />
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-surface-900 dark:text-surface-0 truncate">
+                  {{ userName() }}
+                </div>
+                <div class="text-sm text-surface-600 dark:text-surface-400 truncate">
+                  {{ userEmail() }}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 p-2 bg-surface-50 dark:bg-surface-800 rounded">
+              <i class="pi pi-building text-surface-700 dark:text-surface-300" style="font-size: 1rem;"></i>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium text-surface-900 dark:text-surface-0 truncate">
+                  {{ organizationName() }}
+                </div>
+                <div class="text-xs text-surface-600 dark:text-surface-400">
+                  {{ t('header.currentOrganization') }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+      </p-menu>
+    </div>
+  </div>
+</header>

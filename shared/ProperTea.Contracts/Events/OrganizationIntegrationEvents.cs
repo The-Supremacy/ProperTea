@@ -4,17 +4,8 @@ public interface IOrganizationRegistered
 {
     public Guid OrganizationId { get; }
     public string Name { get; }
-    public string Slug { get; }
     public string ExternalOrganizationId { get; }
     public DateTimeOffset RegisteredAt { get; }
-}
-
-public interface IOrganizationIdentityUpdated
-{
-    public Guid OrganizationId { get; }
-    public string NewName { get; }
-    public string NewSlug { get; }
-    public DateTimeOffset UpdatedAt { get; }
 }
 
 public interface IOrganizationDeactivated

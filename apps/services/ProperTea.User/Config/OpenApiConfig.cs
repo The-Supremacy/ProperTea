@@ -1,4 +1,4 @@
-using ProperTea.ServiceDefaults.OpenApi;
+using ProperTea.Infrastructure.Common.OpenApi;
 using Scalar.AspNetCore;
 
 namespace ProperTea.User.Config;
