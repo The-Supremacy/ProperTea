@@ -116,6 +116,8 @@
     "menu": {
       "editProfile": "Edit Profile",
       "editPreferences": "Edit Preferences",
+      "lightMode": "Light Mode",
+      "darkMode": "Dark Mode",
       "switchAccount": "Switch Account",
       "signOut": "Sign Out",
       "language": "Language"

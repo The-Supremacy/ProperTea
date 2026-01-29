@@ -27,6 +27,8 @@
           [placeholder]="'header.search.placeholder' | transloco"
           [value]="searchQuery()"
           (input)="onSearchChange($event)"
+          [disabled]="true"
+          class="cursor-not-allowed"
         />
       </div>
     </div>
@@ -70,22 +72,22 @@
                 [class]="'bg-primary text-primary-contrast'"
               />
               <div class="flex-1 min-w-0">
-                <div class="font-semibold text-surface-900 dark:text-surface-0 truncate">
+                <div class="font-semibold text-color truncate">
                   {{ userName() }}
                 </div>
-                <div class="text-sm text-surface-600 dark:text-surface-400 truncate">
+                <div class="text-sm text-muted-color truncate">
                   {{ userEmail() }}
                 </div>
               </div>
             </div>
 
-            <div class="flex items-center gap-2 p-2 bg-surface-50 dark:bg-surface-800 rounded">
-              <i class="pi pi-building text-surface-700 dark:text-surface-300" style="font-size: 1rem;"></i>
+            <div class="organization-block flex items-center gap-2 p-2 rounded">
+              <i class="pi pi-building text-color" style="font-size: 1rem;"></i>
               <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-surface-900 dark:text-surface-0 truncate">
+                <div class="text-sm font-medium text-color truncate">
                   {{ organizationName() }}
                 </div>
-                <div class="text-xs text-surface-600 dark:text-surface-400">
+                <div class="text-xs text-muted-color">
                   {{ t('header.currentOrganization') }}
                 </div>
               </div>
@@ -94,7 +96,7 @@
         </ng-template>
         <ng-template pTemplate="end">
           <div class="px-3 py-3 border-top-1 border-surface">
-            <div class="text-xs font-semibold text-surface-600 dark:text-surface-400 mb-2 uppercase">
+            <div class="text-xs font-semibold text-muted-color mb-2 uppercase">
               {{ t('header.menu.language') }}
             </div>
             <app-language-switcher />

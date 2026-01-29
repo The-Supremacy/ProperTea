@@ -11,15 +11,15 @@
         </div>
       </div>
 
-      <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 text-surface-900 dark:text-surface-0">
+      <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 text-color">
         {{ t('landing.title') }}
       </h1>
 
-      <p class="text-xl sm:text-2xl md:text-3xl font-semibold mb-3 sm:mb-4 text-surface-700 dark:text-surface-300">
+      <p class="text-xl sm:text-2xl md:text-3xl font-semibold mb-3 sm:mb-4 text-color-emphasis">
         {{ t('landing.tagline') }}
       </p>
 
-      <p class="text-base sm:text-lg md:text-xl mb-8 sm:mb-12 text-surface-600 dark:text-surface-400 max-w-3xl mx-auto leading-relaxed px-2">
+      <p class="text-base sm:text-lg md:text-xl mb-8 sm:mb-12 text-muted-color max-w-3xl mx-auto leading-relaxed px-2">
         {{ t('landing.description') }}
       </p>
 
@@ -66,9 +66,7 @@
 
         <app-feature-card
           iconClass="pi-users"
-          iconLabel="Tenants icon"
-          iconBgClass="bg-blue-100 dark:bg-blue-900/30"
-          iconColorClass="text-blue-600 dark:text-blue-400">
+          iconLabel="Tenants icon">
           <span title>{{ t('landing.feature.tenants.title') }}</span>
           {{ t('landing.feature.tenants.description') }}
         </app-feature-card>
@@ -76,9 +74,7 @@
         <app-feature-card
           class="sm:col-span-2 md:col-span-1"
           iconClass="pi-wrench"
-          iconLabel="Maintenance icon"
-          iconBgClass="bg-purple-100 dark:bg-purple-900/30"
-          iconColorClass="text-purple-600 dark:text-purple-400">
+          iconLabel="Maintenance icon">
           <span title>{{ t('landing.feature.maintenance.title') }}</span>
           {{ t('landing.feature.maintenance.description') }}
         </app-feature-card>
@@ -87,7 +83,7 @@
   </main>
 
   <footer class="py-4 sm:py-6 px-3 sm:px-6 text-center border-t border-surface">
-    <p class="text-xs sm:text-sm text-surface-500 dark:text-surface-400">
+    <p class="text-xs sm:text-sm text-muted-color">
       {{ t('landing.footer', { year: currentYear }) }}
     </p>
   </footer>

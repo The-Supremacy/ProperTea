@@ -1,4 +1,4 @@
-using ProperTea.Organization.Features.Organizations.Infrastructure;
+using ProperTea.Organization.Infrastructure;
 using Wolverine;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;

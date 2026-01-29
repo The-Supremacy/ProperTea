@@ -1,4 +1,4 @@
-namespace ProperTea.Organization.Features.Organizations.Infrastructure
+namespace ProperTea.Organization.Infrastructure
 {
     public interface IExternalOrganizationClient
     {

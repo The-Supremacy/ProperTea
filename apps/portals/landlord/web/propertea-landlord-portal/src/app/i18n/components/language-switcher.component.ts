@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoService } from '@jsverse/transloco';
 import { CommonModule } from '@angular/common';
+import { UserPreferencesService } from '../../core/services/user-preferences.service';
 
 interface Language {
   code: string;
@@ -17,6 +18,7 @@ interface Language {
 })
 export class LanguageSwitcherComponent {
   private readonly translocoService = inject(TranslocoService);
+  private readonly preferencesService = inject(UserPreferencesService);
 
   languages: Language[] = [
     { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -38,7 +40,7 @@ export class LanguageSwitcherComponent {
   }
 
   selectLanguage(lang: string): void {
-    this.translocoService.setActiveLang(lang);
+    this.preferencesService.setLanguage(lang);
     this.isExpanded.set(false);
   }
 }

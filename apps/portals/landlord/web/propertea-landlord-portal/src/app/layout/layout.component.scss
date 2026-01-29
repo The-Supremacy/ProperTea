@@ -5,13 +5,3 @@
   height: 100%;
 }
 
-.menu-item {
-  &.active {
-    @apply bg-primary text-primary-contrast;
-
-    &:hover {
-      @apply bg-primary text-primary-contrast;
-    }
-  }
-}
-

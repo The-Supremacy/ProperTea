@@ -1,11 +1,11 @@
-<div class="min-h-screen bg-linear-to-br from-surface-0 to-surface-50 dark:from-surface-900 dark:to-surface-950" *transloco="let t">
+<div class="min-h-screen" *transloco="let t">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Page Header -->
     <div class="mb-8">
-      <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0 mb-2">
+      <h1 class="text-3xl font-bold text-color mb-2">
         {{ t('dashboard.title') }}
       </h1>
-      <p class="text-lg text-surface-600 dark:text-surface-400">
+      <p class="text-lg text-muted-color">
         {{ t('dashboard.subtitle') }}
       </p>
     </div>
@@ -17,8 +17,8 @@
           <i class="pi pi-building text-3xl text-primary"></i>
           <span class="text-xs font-semibold px-2 py-1 bg-primary/10 text-primary rounded">+12%</span>
         </div>
-        <h3 class="text-2xl font-bold text-surface-900 dark:text-surface-0 mb-1">24</h3>
-        <p class="text-sm text-surface-600 dark:text-surface-400">{{ t('dashboard.stats.properties') }}</p>
+        <h3 class="text-2xl font-bold text-color mb-1">24</h3>
+        <p class="text-sm text-muted-color">{{ t('dashboard.stats.properties') }}</p>
       </div>
 
       <div class="bg-surface-card border border-surface rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
@@ -26,8 +26,8 @@
           <i class="pi pi-users text-3xl text-primary"></i>
           <span class="text-xs font-semibold px-2 py-1 bg-primary/10 text-primary rounded">+8%</span>
         </div>
-        <h3 class="text-2xl font-bold text-surface-900 dark:text-surface-0 mb-1">142</h3>
-        <p class="text-sm text-surface-600 dark:text-surface-400">{{ t('dashboard.stats.tenants') }}</p>
+        <h3 class="text-2xl font-bold text-color mb-1">142</h3>
+        <p class="text-sm text-muted-color">{{ t('dashboard.stats.tenants') }}</p>
       </div>
 
       <div class="bg-surface-card border border-surface rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
@@ -35,8 +35,8 @@
           <i class="pi pi-dollar text-3xl text-primary"></i>
           <span class="text-xs font-semibold px-2 py-1 bg-primary/10 text-primary rounded">+15%</span>
         </div>
-        <h3 class="text-2xl font-bold text-surface-900 dark:text-surface-0 mb-1">$45.2K</h3>
-        <p class="text-sm text-surface-600 dark:text-surface-400">{{ t('dashboard.stats.revenue') }}</p>
+        <h3 class="text-2xl font-bold text-color mb-1">$45.2K</h3>
+        <p class="text-sm text-muted-color">{{ t('dashboard.stats.revenue') }}</p>
       </div>
 
       <div class="bg-surface-card border border-surface rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
@@ -44,8 +44,8 @@
           <i class="pi pi-wrench text-3xl text-orange-500"></i>
           <span class="text-xs font-semibold px-2 py-1 bg-orange-500/10 text-orange-500 rounded">3</span>
         </div>
-        <h3 class="text-2xl font-bold text-surface-900 dark:text-surface-0 mb-1">7</h3>
-        <p class="text-sm text-surface-600 dark:text-surface-400">{{ t('dashboard.stats.maintenance') }}</p>
+        <h3 class="text-2xl font-bold text-color mb-1">7</h3>
+        <p class="text-sm text-muted-color">{{ t('dashboard.stats.maintenance') }}</p>
       </div>
     </div>
 
@@ -53,15 +53,15 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Recent Activity -->
       <div class="bg-surface-card border border-surface rounded-lg p-6 shadow-sm">
-        <h2 class="text-xl font-semibold text-surface-900 dark:text-surface-0 mb-4">{{ t('dashboard.activity.title') }}</h2>
+        <h2 class="text-xl font-semibold text-color mb-4">{{ t('dashboard.activity.title') }}</h2>
         <div class="space-y-4">
           <div class="flex items-start gap-3">
             <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
               <i class="pi pi-check text-primary text-sm"></i>
             </div>
             <div class="flex-1">
-              <p class="text-sm font-medium text-surface-900 dark:text-surface-0">Payment received from Oak Street Apartment</p>
-              <p class="text-xs text-surface-500 dark:text-surface-500 mt-1">2 hours ago</p>
+              <p class="text-sm font-medium text-color">Payment received from Oak Street Apartment</p>
+              <p class="text-xs text-muted-color mt-1">2 hours ago</p>
             </div>
           </div>
           <div class="flex items-start gap-3">
@@ -69,8 +69,8 @@
               <i class="pi pi-wrench text-orange-500 text-sm"></i>
             </div>
             <div class="flex-1">
-              <p class="text-sm font-medium text-surface-900 dark:text-surface-0">New maintenance request at Pine View House</p>
-              <p class="text-xs text-surface-500 dark:text-surface-500 mt-1">5 hours ago</p>
+              <p class="text-sm font-medium text-color">New maintenance request at Pine View House</p>
+              <p class="text-xs text-muted-color mt-1">5 hours ago</p>
             </div>
           </div>
           <div class="flex items-start gap-3">
@@ -78,8 +78,8 @@
               <i class="pi pi-user-plus text-primary text-sm"></i>
             </div>
             <div class="flex-1">
-              <p class="text-sm font-medium text-surface-900 dark:text-surface-0">New tenant registered at Maple Street Loft</p>
-              <p class="text-xs text-surface-500 dark:text-surface-500 mt-1">1 day ago</p>
+              <p class="text-sm font-medium text-color">New tenant registered at Maple Street Loft</p>
+              <p class="text-xs text-muted-color mt-1">1 day ago</p>
             </div>
           </div>
         </div>
@@ -87,27 +87,27 @@
 
       <!-- Upcoming Tasks -->
       <div class="bg-surface-card border border-surface rounded-lg p-6 shadow-sm">
-        <h2 class="text-xl font-semibold text-surface-900 dark:text-surface-0 mb-4">{{ t('dashboard.tasks.title') }}</h2>
+        <h2 class="text-xl font-semibold text-color mb-4">{{ t('dashboard.tasks.title') }}</h2>
         <div class="space-y-4">
           <div class="flex items-center gap-3">
             <input type="checkbox" class="w-5 h-5 rounded border-surface-300 text-primary">
             <div class="flex-1">
-              <p class="text-sm font-medium text-surface-900 dark:text-surface-0">Inspect HVAC system at Building A</p>
-              <p class="text-xs text-surface-500 dark:text-surface-500 mt-1">Due: Tomorrow</p>
+              <p class="text-sm font-medium text-color">Inspect HVAC system at Building A</p>
+              <p class="text-xs text-muted-color mt-1">Due: Tomorrow</p>
             </div>
           </div>
           <div class="flex items-center gap-3">
             <input type="checkbox" class="w-5 h-5 rounded border-surface-300 text-primary">
             <div class="flex-1">
-              <p class="text-sm font-medium text-surface-900 dark:text-surface-0">Send lease renewal to Unit 205</p>
-              <p class="text-xs text-surface-500 dark:text-surface-500 mt-1">Due: In 3 days</p>
+              <p class="text-sm font-medium text-color">Send lease renewal to Unit 205</p>
+              <p class="text-xs text-muted-color mt-1">Due: In 3 days</p>
             </div>
           </div>
           <div class="flex items-center gap-3">
             <input type="checkbox" class="w-5 h-5 rounded border-surface-300 text-primary">
             <div class="flex-1">
-              <p class="text-sm font-medium text-surface-900 dark:text-surface-0">Review insurance policies</p>
-              <p class="text-xs text-surface-500 dark:text-surface-500 mt-1">Due: Next week</p>
+              <p class="text-sm font-medium text-color">Review insurance policies</p>
+              <p class="text-xs text-muted-color mt-1">Due: Next week</p>
             </div>
           </div>
         </div>

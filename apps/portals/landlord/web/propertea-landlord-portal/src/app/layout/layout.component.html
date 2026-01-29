@@ -2,20 +2,14 @@
   <!-- Header -->
   <app-header (menuToggle)="toggleMenu()" />
 
+  <!-- Breadcrumbs (shown only when items exist) -->
+  <app-breadcrumb />
+
   <div class="flex flex-1 overflow-hidden">
     <!-- Desktop Sidebar -->
-    <aside class="hidden lg:flex w-64 border-r border-surface bg-surface-card overflow-y-auto">
-      <nav class="flex flex-col gap-2 p-4 w-full">
-        @for (item of navigationItems; track item.route) {
-          <a
-            [routerLink]="item.route"
-            routerLinkActive="active"
-            class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-hover hover:text-surface-900 dark:hover:text-surface-0 transition-colors"
-          >
-            <i [class]="item.icon"></i>
-            <span class="font-medium">{{ item.labelKey | transloco }}</span>
-          </a>
-        }
+    <aside class="hidden lg:flex w-64 border-r border-surface overflow-y-auto" style="background: var(--p-surface-card)">
+      <nav class="flex flex-col w-full">
+        <p-panelmenu [model]="navigationMenuItems()" [multiple]="false" class="w-full" />
       </nav>
     </aside>
 
@@ -26,18 +20,8 @@
       [style]="{'width': '280px'}"
       header="Menu"
     >
-      <nav class="flex flex-col gap-2">
-        @for (item of navigationItems; track item.route) {
-          <a
-            [routerLink]="item.route"
-            routerLinkActive="active"
-            class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-hover hover:text-surface-900 dark:hover:text-surface-0 transition-colors"
-            (click)="mobileMenuVisible.set(false)"
-          >
-            <i [class]="item.icon"></i>
-            <span class="font-medium">{{ item.labelKey | transloco }}</span>
-          </a>
-        }
+      <nav class="flex flex-col">
+        <p-panelmenu [model]="navigationMenuItems()" [multiple]="false" class="w-full" />
       </nav>
     </p-drawer>
 
@@ -47,7 +31,7 @@
 
       <!-- Footer -->
       <footer class="border-top-1 border-surface bg-surface-card px-4 py-3 mt-auto" *transloco="let t">
-        <div class="flex flex-col sm:flex-row justify-between items-center gap-2 text-sm text-surface-600 dark:text-surface-400">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-2 text-sm text-muted-color">
           <span>{{ t('footer.copyright', { year: currentYear }) }}</span>
           <div class="flex gap-3">
             <span>{{ t('footer.status', { status: healthStatus() }) }}</span>

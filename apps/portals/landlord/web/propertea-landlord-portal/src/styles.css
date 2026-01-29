@@ -1,17 +1,2 @@
 @import './tailwind.css';
 @import "primeicons/primeicons.css";
-
-:root {
-  --p-primary-50: #faf5ff;
-  --p-primary-100: #f3e8ff;
-  --p-primary-200: #e9d5ff;
-  --p-primary-300: #d8b4fe;
-  --p-primary-400: #c084fc;
-  --p-primary-500: #a855f7;
-  --p-primary-600: #9333ea;
-  --p-primary-700: #7e22ce;
-  --p-primary-800: #6b21a8;
-  --p-primary-900: #581c87;
-  --p-primary-950: #3b0764;
-}
-

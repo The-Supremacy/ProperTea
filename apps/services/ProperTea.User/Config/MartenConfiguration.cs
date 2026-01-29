@@ -4,6 +4,7 @@ using Marten;
 using Npgsql;
 using ProperTea.User.Features.UserProfiles;
 using ProperTea.User.Features.UserProfiles.Configuration;
+using ProperTea.User.Features.UserPreferences.Configuration;
 using Wolverine.Marten;
 
 namespace ProperTea.User.Config;
@@ -44,6 +45,7 @@ public static class MartenConfiguration
 
             // Feature-specific configurations
             opts.ConfigureUserProfileMarten();
+            opts.ConfigureUserPreferencesMarten();
         })
         .UseLightweightSessions()
         .IntegrateWithWolverine(

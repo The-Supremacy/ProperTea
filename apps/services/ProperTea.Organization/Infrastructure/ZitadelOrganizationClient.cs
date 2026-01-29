@@ -5,7 +5,7 @@ using Zitadel.Org.V2;
 using Zitadel.User.V2;
 using static Zitadel.Org.V2.AddOrganizationRequest.Types;
 
-namespace ProperTea.Organization.Features.Organizations.Infrastructure
+namespace ProperTea.Organization.Infrastructure
 {
     public class ZitadelOrganizationClient : IExternalOrganizationClient
     {

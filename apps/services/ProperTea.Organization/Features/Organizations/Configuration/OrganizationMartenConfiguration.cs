@@ -1,6 +1,6 @@
 using Marten;
 using Marten.Events.Projections;
-using ProperTea.Organization.Features.Organizations.Infrastructure;
+using ProperTea.Organization.Infrastructure;
 using Zitadel.Credentials;
 
 namespace ProperTea.Organization.Features.Organizations.Configuration;
@@ -41,6 +41,11 @@ public static class OrganizationConfiguration
     public static void ConfigureOrganizationMarten(this StoreOptions opts)
     {
         _ = opts.Projections.Snapshot<OrganizationAggregate>(SnapshotLifecycle.Inline);
+        _ = opts.Schema.For<OrganizationAggregate>()
+            .Index(x => x.ExternalOrganizationId, idx =>
+            {
+                idx.IsUnique = true;
+            });
 
         // Convention: {aggregate}.{event-name}.v{version}
         opts.Events.MapEventType<OrganizationEvents.Created>("organization.created.v1");

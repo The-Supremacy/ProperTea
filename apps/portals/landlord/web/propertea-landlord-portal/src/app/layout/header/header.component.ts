@@ -7,6 +7,7 @@ import { AvatarModule } from 'primeng/avatar';
 import { InputTextModule } from 'primeng/inputtext';
 import { AuthService } from '../../auth/services/auth.service';
 import { SearchService } from '../../core/services/search.service';
+import { UserPreferencesService } from '../../core/services/user-preferences.service';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { LanguageSwitcherComponent } from '../../i18n/components/language-switcher.component';
 
@@ -20,37 +21,50 @@ export class HeaderComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly searchService = inject(SearchService);
+  private readonly preferencesService = inject(UserPreferencesService);
   private readonly translocoService = inject(TranslocoService);
 
   menuToggle = output<void>();
   searchQuery = this.searchService.searchQuery;
 
-  userMenuItems = computed<MenuItem[]>(() => [
-    { separator: true },
-    {
-      label: this.translocoService.translate('header.menu.editProfile'),
-      icon: 'pi pi-user',
-      command: () => this.editProfile()
-    },
-    {
-      label: this.translocoService.translate('header.menu.editPreferences'),
-      icon: 'pi pi-cog',
-      command: () => this.editPreferences()
-    },
-    { separator: true },
+  userMenuItems = computed<MenuItem[]>(() => {
+    const currentTheme = this.preferencesService.getPreferences()().theme;
+    const isDark = currentTheme === 'dark';
+
+    return [
+      { separator: true },
+      {
+        label: this.translocoService.translate('header.menu.editProfile'),
+        icon: 'pi pi-user',
+        command: () => this.editProfile()
+      },
+      {
+        label: this.translocoService.translate('header.menu.editPreferences'),
+        icon: 'pi pi-cog',
+        command: () => this.editPreferences()
+      },
+      { separator: true },
+      {
+        label: isDark
+          ? this.translocoService.translate('header.menu.lightMode')
+          : this.translocoService.translate('header.menu.darkMode'),
+        icon: isDark ? 'pi pi-sun' : 'pi pi-moon',
+        command: () => this.toggleTheme()
+      },
+      { separator: true },
     {
       label: this.translocoService.translate('header.menu.switchAccount'),
       icon: 'pi pi-refresh',
       command: () => this.switchAccount()
     },
-    {
-      label: this.translocoService.translate('header.menu.signOut'),
-      icon: 'pi pi-sign-out',
-      styleClass: 'text-red-500',
-      command: () => this.signOut()
-    },
-    { separator: true }
-  ]);
+      {
+        label: this.translocoService.translate('header.menu.signOut'),
+        icon: 'pi pi-sign-out',
+        styleClass: 'text-red-500',
+        command: () => this.signOut()
+      }
+    ];
+  });
 
   userName = computed(() => this.authService.userName());
   userEmail = computed(() => this.authService.userEmail());
@@ -72,6 +86,11 @@ export class HeaderComponent {
 
   editPreferences(): void {
     this.router.navigate(['/preferences']);
+  }
+
+  toggleTheme(): void {
+    const current = this.preferencesService.getPreferences()().theme;
+    this.preferencesService.setTheme(current === 'dark' ? 'light' : 'dark');
   }
 
   switchAccount(): void {

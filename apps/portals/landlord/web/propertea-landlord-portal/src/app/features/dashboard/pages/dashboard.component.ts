@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject, effect } from '@angular/core';
 import { TranslocoModule } from '@jsverse/transloco';
+import { BreadcrumbService } from '../../../core/services/breadcrumb.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -8,4 +9,12 @@ import { TranslocoModule } from '@jsverse/transloco';
   standalone: true,
   imports: [TranslocoModule]
 })
-export class DashboardComponent {}
+export class DashboardComponent {
+  private readonly breadcrumbService = inject(BreadcrumbService);
+
+  constructor() {
+    effect(() => {
+      this.breadcrumbService.clear();
+    });
+  }
+}

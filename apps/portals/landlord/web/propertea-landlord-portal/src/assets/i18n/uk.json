@@ -115,8 +115,8 @@
     "currentOrganization": "Організація",
     "menu": {
       "editProfile": "Редагувати профіль",
-      "editPreferences": "Налаштування",
-      "switchAccount": "Змінити обліковий запис",
+      "editPreferences": "Налаштування",      "lightMode": "Світла тема",
+      "darkMode": "Темна тема",      "switchAccount": "Змінити обліковий запис",
       "signOut": "Вийти",
       "language": "Мова"
     }

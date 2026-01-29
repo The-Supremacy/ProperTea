@@ -1,8 +1,8 @@
 using FluentValidation;
 using Marten;
 using Wolverine;
-using ProperTea.Organization.Features.Organizations.Infrastructure;
 using ProperTea.Infrastructure.Common.Exceptions;
+using ProperTea.Organization.Infrastructure;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 

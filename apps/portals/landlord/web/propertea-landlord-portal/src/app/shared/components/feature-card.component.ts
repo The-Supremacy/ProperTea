@@ -34,6 +34,6 @@ import { CommonModule } from '@angular/common';
 export class FeatureCardComponent {
   iconClass = input.required<string>(); // e.g., 'pi-building'
   iconLabel = input.required<string>(); // e.g., 'Properties icon'
-  iconBgClass = input<string>('bg-emerald-100 dark:bg-emerald-900/30');
-  iconColorClass = input<string>('text-emerald-600 dark:text-emerald-400');
+  iconBgClass = input<string>('bg-primary/10');
+  iconColorClass = input<string>('text-primary');
 }

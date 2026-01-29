@@ -1,11 +1,22 @@
+using ProperTea.Infrastructure.Common.ErrorHandling;
+
 namespace ProperTea.Landlord.Bff.Users;
 
-public class UserClient(IHttpClientFactory httpClientFactory)
+public class UserClient(HttpClient httpClient)
 {
-    private readonly HttpClient _client = httpClientFactory.CreateClient("user");
-
     public async Task<UserProfileDto> GetMyProfileAsync(CancellationToken ct = default)
     {
-        return (await _client.GetFromJsonAsync<UserProfileDto>("/users/me", ct))!;
+        return (await httpClient.GetFromJsonAsync<UserProfileDto>("/users/me", ct))!;
+    }
+
+    public async Task<UserPreferencesDto?> GetPreferencesAsync(CancellationToken ct = default)
+    {
+        return await httpClient.GetFromJsonAsync<UserPreferencesDto?>("/users/preferences", ct);
+    }
+
+    public async Task UpdatePreferencesAsync(UpdateUserPreferencesRequest request, CancellationToken ct = default)
+    {
+        var response = await httpClient.PutAsJsonAsync("/users/preferences", request, ct);
+        _ = response.EnsureDownstreamSuccessAsync(ct: ct);
     }
 }

@@ -14,7 +14,7 @@
   transition: background-color 0.2s;
 
   &:hover {
-    @apply bg-surface-100 dark:bg-surface-700;
+    background-color: var(--p-emphasis-bg);
   }
 
   .language-name {
@@ -44,11 +44,12 @@
   transition: background-color 0.2s;
 
   &:hover {
-    @apply bg-surface-100 dark:bg-surface-700;
+    background-color: var(--p-emphasis-bg);
   }
 
   &.active {
-    @apply bg-primary/10 text-primary;
+    background-color: color-mix(in srgb, var(--p-primary-color) 10%, transparent);
+    color: var(--p-primary-color);
     font-weight: 500;
   }
 
