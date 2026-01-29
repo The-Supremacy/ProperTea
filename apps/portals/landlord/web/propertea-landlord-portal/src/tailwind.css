@@ -1,19 +1,16 @@
 @import "tailwindcss";
 @import "tailwindcss-primeui";
 
-@theme {
-  --color-primary-50: #faf5ff;
-  --color-primary-100: #f3e8ff;
-  --color-primary-200: #e9d5ff;
-  --color-primary-300: #d8b4fe;
-  --color-primary-400: #c084fc;
-  --color-primary-500: #a855f7;
-  --color-primary-600: #9333ea;
-  --color-primary-700: #7e22ce;
-  --color-primary-800: #6b21a8;
-  --color-primary-900: #581c87;
-  --color-primary-950: #3b0764;
+/**
+ * Tailwind CSS v4 Configuration
+ *
+ * Primary colors (bg-primary, text-primary, etc.) are provided by tailwindcss-primeui plugin.
+ * The plugin reads from --p-primary-* variables defined in styles.css.
+ *
+ * Only surface color mappings and custom theme extensions are needed here.
+ */
 
+@theme {
   --color-surface-0: var(--p-surface-0);
   --color-surface-50: var(--p-surface-50);
   --color-surface-100: var(--p-surface-100);
@@ -31,22 +28,4 @@
 
   --font-display: ui-sans-serif, system-ui, sans-serif;
   --font-body: ui-sans-serif, system-ui, sans-serif;
-}
-
-@layer components {
-  .btn-group {
-    @apply flex flex-col sm:flex-row gap-3;
-  }
-
-  .icon-container {
-    @apply flex items-center justify-center shrink-0;
-  }
-
-  .section-spacing {
-    @apply px-3 sm:px-4 py-6 sm:py-8;
-  }
-
-  .content-container {
-    @apply max-w-5xl mx-auto;
-  }
 }
