@@ -57,6 +57,18 @@ namespace ProperTea.Landlord.Bff.Config
                 options.SignedOutCallbackPath = "/auth/signout-callback-oidc";
 
                 options.RequireHttpsMetadata = !isDev;
+
+                options.Events = new OpenIdConnectEvents
+                {
+                    OnRedirectToIdentityProvider = context =>
+                    {
+                        if (context.Properties.Items.TryGetValue("prompt", out var promptValue))
+                        {
+                            context.ProtocolMessage.Prompt = promptValue;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
             _ = services.AddOpenIdConnectAccessTokenManagement(options =>

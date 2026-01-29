@@ -20,10 +20,10 @@ public static class OpenApiConfig
         IConfiguration configuration,
         IWebHostEnvironment environment)
     {
-        _ = app.MapOpenApi();
-
         if (environment.IsDevelopment())
         {
+            _ = app.MapOpenApi();
+
             var clientId = configuration["Scalar:ClientId"]
                 ?? throw new InvalidOperationException("Scalar:ClientId not configured");
 

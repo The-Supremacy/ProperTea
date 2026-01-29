@@ -1,22 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
-export interface RegisterOrganizationRequest {
-  organizationName: string;
-  userEmail: string;
-  userFirstName: string;
-  userLastName: string;
-  userPassword: string;
-}
-
-export interface RegisterOrganizationResponse {
-  organizationId: string;
-}
-
-export interface CheckAvailabilityResponse {
-  nameAvailable: boolean;
-}
+import {
+  RegisterOrganizationRequest,
+  RegisterOrganizationResponse,
+  CheckAvailabilityResponse,
+  OrganizationAuditLogResponse
+} from '../models/organization.models';
 
 @Injectable({
   providedIn: 'root',

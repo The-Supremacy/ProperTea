@@ -43,13 +43,13 @@ export class HeaderComponent {
       icon: 'pi pi-refresh',
       command: () => this.switchAccount()
     },
-    { separator: true },
     {
       label: this.translocoService.translate('header.menu.signOut'),
       icon: 'pi pi-sign-out',
       styleClass: 'text-red-500',
       command: () => this.signOut()
-    }
+    },
+    { separator: true }
   ]);
 
   userName = computed(() => this.authService.userName());
