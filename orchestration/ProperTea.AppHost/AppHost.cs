@@ -5,9 +5,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 var username = builder.AddParameter("username", builder.Configuration["Configs:Username"]!, secret: true);
 var password = builder.AddParameter("password", builder.Configuration["Configs:Password"]!, secret: true);
 
-//
 // Redis.
-//
 var redis = builder.AddRedis("redis", 6379, password)
             .WithRedisInsight(op =>
             {
@@ -17,9 +15,7 @@ var redis = builder.AddRedis("redis", 6379, password)
             .WithDataVolume("redis-data")
             .WithLifetime(ContainerLifetime.Persistent);
 
-//
 // Postgres.
-//
 var postgresPort = 5432;
 var postgres = builder.AddPostgres("postgres", username, password, postgresPort)
                 .WithPgAdmin(op =>
@@ -37,9 +33,7 @@ var mailpit = builder.AddMailPit("mailpit", httpPort: 8025, smtpPort: 1025)
                 .WithEnvironment("MP_SMTP_AUTH_ACCEPT_ANY", "true")
                 .WithLifetime(ContainerLifetime.Persistent);
 
-//
 // ZITADEL.
-//
 var zitadelDatabaseName = "zitadelDb";
 var zitadelPort = 9080;
 var zitadelLoginUiPort = 9081;
@@ -99,17 +93,13 @@ _ = builder.AddContainer("zitadel-login", "ghcr.io/zitadel/zitadel-login", "v4.1
 var scalarClientId = builder.Configuration["Configs:ScalarClientId"];
 var audience = builder.Configuration["Configs:ProjectId"];
 
-//
 // Applications.
-//
 var rabbitmq = builder.AddRabbitMQ("rabbitmq", username, password, 5672)
                 .WithManagementPlugin(56720)
                 .WithDataVolume("rabbitmq-data")
                 .WithLifetime(ContainerLifetime.Persistent);
 
-//
 // Organization.
-//
 var organizationServiceAccountJwtPath = Path.GetFullPath("Config/zitadel/organization-service.json");
 var organizationServiceAppJwtPath = Path.GetFullPath("Config/zitadel/organization-app.json");
 var organizationDb = postgres.AddDatabase("organization-db");
@@ -128,9 +118,7 @@ var organizationService = builder.AddProject<Projects.ProperTea_Organization>("o
     .WithExternalHttpEndpoints()
     .WithDeveloperCertificateTrust(true);
 
-//
 // User.
-//
 var userServiceAccountJwtPath = Path.GetFullPath("Config/zitadel/user-service.json");
 var userServiceAppJwtPath = Path.GetFullPath("Config/zitadel/user-app.json");
 var userDb = postgres.AddDatabase("user-db");
@@ -149,9 +137,7 @@ var userService = builder.AddProject<Projects.ProperTea_User>("user")
     .WithExternalHttpEndpoints()
     .WithDeveloperCertificateTrust(true);
 
-//
 // Landlord Portal.
-//
 var landlordClientId = builder.Configuration["Configs:LandlordClientId"];
 _ = builder.AddProject<Projects.ProperTea_Landlord_Bff>("landlord-bff")
     .WithReference(redis)

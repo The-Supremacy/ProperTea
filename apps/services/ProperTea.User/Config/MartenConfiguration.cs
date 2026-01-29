@@ -8,10 +8,6 @@ using Wolverine.Marten;
 
 namespace ProperTea.User.Config;
 
-/// <summary>
-/// Cross-cutting Marten infrastructure configuration.
-/// Feature-specific projections and documents are configured in their respective feature folders.
-/// </summary>
 public static class MartenConfiguration
 {
     public static IServiceCollection AddMartenConfiguration(

@@ -12,7 +12,6 @@ public static class OrganizationConfiguration
         IConfiguration configuration,
         IHostEnvironment environment)
     {
-        // Load ServiceAccount once as singleton (it's just config)
         _ = services.AddSingleton(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
@@ -22,7 +21,6 @@ public static class OrganizationConfiguration
             return ServiceAccount.LoadFromJsonFile(serviceAccountJwtPath);
         });
 
-        // Register client as singleton - Zitadel SDK should handle token refresh internally
         _ = services.AddSingleton<IExternalOrganizationClient>(sp =>
             {
                 var config = sp.GetRequiredService<IConfiguration>();

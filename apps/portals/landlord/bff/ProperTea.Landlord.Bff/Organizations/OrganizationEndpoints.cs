@@ -9,7 +9,7 @@ public static class OrganizationEndpoints
         var group = endpoints.MapGroup("/api/organizations")
             .WithTags("Organizations");
 
-        // Anonymous endpoints for registration flow
+
         _ = group.MapGet("/check-availability", CheckAvailability)
             .WithName("CheckAvailability")
             .AllowAnonymous();
@@ -18,7 +18,6 @@ public static class OrganizationEndpoints
             .WithName("RegisterOrganization")
             .AllowAnonymous();
 
-        // Authenticated endpoints
         _ = group.MapGet("/{id:guid}/audit-log", GetAuditLog)
             .WithName("GetOrganizationAuditLog")
             .RequireAuthorization();

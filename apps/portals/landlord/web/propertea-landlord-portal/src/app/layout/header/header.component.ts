@@ -8,10 +8,11 @@ import { InputTextModule } from 'primeng/inputtext';
 import { AuthService } from '../../auth/services/auth.service';
 import { SearchService } from '../../core/services/search.service';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { LanguageSwitcherComponent } from '../../i18n/components/language-switcher.component';
 
 @Component({
   selector: 'app-header',
-  imports: [ButtonModule, MenuModule, AvatarModule, InputTextModule, TranslocoModule],
+  imports: [ButtonModule, MenuModule, AvatarModule, InputTextModule, TranslocoModule, LanguageSwitcherComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
 })

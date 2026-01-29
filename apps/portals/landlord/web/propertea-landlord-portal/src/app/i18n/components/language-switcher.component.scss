@@ -1,0 +1,58 @@
+@reference '../../../tailwind.css';
+
+.language-switcher {
+  width: 100%;
+}
+
+.language-current {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    @apply bg-surface-100 dark:bg-surface-700;
+  }
+
+  .language-name {
+    flex: 1;
+    font-weight: 500;
+  }
+
+  .pi-chevron-down {
+    font-size: 0.875rem;
+    color: var(--p-text-muted-color);
+  }
+}
+
+.language-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.language-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    @apply bg-surface-100 dark:bg-surface-700;
+  }
+
+  &.active {
+    @apply bg-primary/10 text-primary;
+    font-weight: 500;
+  }
+
+  .language-name {
+    flex: 1;
+  }
+}

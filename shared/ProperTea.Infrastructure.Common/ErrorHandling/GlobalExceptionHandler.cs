@@ -23,7 +23,6 @@ public partial class GlobalExceptionHandler(
 
         LogUnexpectedError(httpContext.Request.Path, httpContext.Request.Method, exception);
 
-        // Set status code on response before writing problem details
         httpContext.Response.StatusCode = statusCode;
 
         return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext

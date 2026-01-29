@@ -1,37 +1,29 @@
 <div class="min-h-screen flex flex-col bg-surface-ground" *transloco="let t">
-  <!-- Header with Language Switcher -->
   <header class="absolute top-0 right-0 p-3 sm:p-4 md:p-6 z-10">
     <app-language-switcher />
   </header>
 
-  <!-- Hero Section -->
   <main class="flex-1 flex items-center justify-center px-3 sm:px-6 py-12 sm:py-16 lg:py-20">
     <div class="max-w-5xl w-full text-center">
-      <!-- Logo/Brand Icon -->
       <div class="mb-6 sm:mb-8 flex justify-center">
         <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-primary flex items-center justify-center shadow-xl shadow-primary/30" role="img" aria-label="ProperTea logo">
           <i class="pi pi-home text-4xl sm:text-5xl text-white" aria-hidden="true"></i>
         </div>
       </div>
 
-      <!-- Main Heading -->
       <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 text-surface-900 dark:text-surface-0">
         {{ t('landing.title') }}
       </h1>
 
-      <!-- Tagline -->
       <p class="text-xl sm:text-2xl md:text-3xl font-semibold mb-3 sm:mb-4 text-surface-700 dark:text-surface-300">
         {{ t('landing.tagline') }}
       </p>
 
-      <!-- Description -->
       <p class="text-base sm:text-lg md:text-xl mb-8 sm:mb-12 text-surface-600 dark:text-surface-400 max-w-3xl mx-auto leading-relaxed px-2">
         {{ t('landing.description') }}
       </p>
 
-      <!-- CTA Buttons -->
       <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center px-2">
-        <!-- Primary CTA: Get Started (Register) -->
         <p-button
           (onClick)="getStarted()"
           [label]="t('landing.button.getStarted')"
@@ -41,7 +33,6 @@
           styleClass="w-full sm:w-auto"
         />
 
-        <!-- Secondary CTA: Sign In -->
         <p-button
           (onClick)="signIn()"
           [label]="t('landing.button.signIn')"
@@ -53,7 +44,6 @@
           styleClass="w-full sm:w-auto"
         />
 
-        <!-- Tertiary CTA: Documentation -->
         <p-button
           (onClick)="openDocumentation()"
           [label]="t('landing.button.documentation')"
@@ -66,7 +56,6 @@
         />
       </div>
 
-      <!-- Feature Highlights -->
       <div class="mt-12 sm:mt-16 lg:mt-20 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 text-left px-2">
         <app-feature-card
           iconClass="pi-building"
@@ -97,7 +86,6 @@
     </div>
   </main>
 
-  <!-- Footer -->
   <footer class="py-4 sm:py-6 px-3 sm:px-6 text-center border-t border-surface">
     <p class="text-xs sm:text-sm text-surface-500 dark:text-surface-400">
       {{ t('landing.footer', { year: currentYear }) }}

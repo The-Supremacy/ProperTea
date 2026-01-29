@@ -3,17 +3,8 @@ using Wolverine.RabbitMQ;
 
 namespace ProperTea.Organization.Extensions;
 
-/// <summary>
-/// Helper extensions to reduce boilerplate for message configuration.
-/// Supports both RabbitMQ (now) and Azure Service Bus (future).
-/// </summary>
 public static class WolverineExtensions
 {
-    /// <summary>
-    /// Configure an integration event for RabbitMQ publication with durable outbox.
-    /// Uses Fanout exchange - all bound queues receive all messages.
-    /// Message identity is determined by [MessageIdentity] attribute on the type.
-    /// </summary>
     public static void PublishIntegrationEvent<T>(
         this WolverineOptions opts,
         string exchange) where T : class
@@ -22,7 +13,4 @@ public static class WolverineExtensions
             .ToRabbitExchange(exchange, e => e.ExchangeType = ExchangeType.Fanout)
             .UseDurableOutbox();
     }
-
-    // TODO: Add ServiceBus variant when cloud deployment is ready
-    // public static void PublishIntegrationEventToServiceBus<T>(...)
 }

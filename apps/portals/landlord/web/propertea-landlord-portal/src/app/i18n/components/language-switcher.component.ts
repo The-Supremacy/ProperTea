@@ -1,39 +1,44 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoService } from '@jsverse/transloco';
-import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
+
+interface Language {
+  code: string;
+  name: string;
+  flag: string;
+}
 
 @Component({
   selector: 'app-language-switcher',
-  imports: [ButtonModule, CommonModule],
-  template: `
-    <div class="flex gap-2 align-items-center">
-      <p-button
-        [label]="'EN'"
-        [outlined]="activeLang !== 'en'"
-        [text]="activeLang === 'en'"
-        size="small"
-        (onClick)="switchLang('en')"
-      />
-      <p-button
-        [label]="'UK'"
-        [outlined]="activeLang !== 'uk'"
-        [text]="activeLang === 'uk'"
-        size="small"
-        (onClick)="switchLang('uk')"
-      />
-    </div>
-  `,
-  styles: ``
+  imports: [CommonModule],
+  templateUrl: './language-switcher.component.html',
+  styleUrl: './language-switcher.component.scss'
 })
 export class LanguageSwitcherComponent {
   private readonly translocoService = inject(TranslocoService);
 
-  get activeLang(): string {
-    return this.translocoService.getActiveLang();
+  languages: Language[] = [
+    { code: 'en', name: 'English', flag: '🇬🇧' },
+    { code: 'uk', name: 'Українська', flag: '🇺🇦' }
+  ];
+
+  isExpanded = signal(false);
+
+  activeLang = toSignal(this.translocoService.langChanges$, {
+    initialValue: this.translocoService.getActiveLang()
+  });
+
+  currentLanguage = computed(() =>
+    this.languages.find(lang => lang.code === this.activeLang())
+  );
+
+  toggleExpanded(): void {
+    this.isExpanded.update(value => !value);
   }
 
-  switchLang(lang: string): void {
+  selectLanguage(lang: string): void {
     this.translocoService.setActiveLang(lang);
+    this.isExpanded.set(false);
   }
 }
