@@ -21,3 +21,12 @@
 - **Integration**:
   - Use `[MessageIdentity("...")]` on integration events.
   - Shared contracts reside in `ProperTea.Contracts`.
+
+# Angular guidelines
+- **State Management**: Use Signals for local component state. Use Services with Signals for shared state.
+- **Forms**: Use Reactive Forms only.
+- **Styling**: Use Tailwind CSS utility classes. Avoid custom CSS unless absolutely necessary.
+- **Internationalization**: Use Transloco for all user-facing text. Do not hardcode strings.
+- **Components**:
+    - Follow Atomic Design principles. Keep components small and focused.
+    - Create components split into html, ts, and css/scss files.

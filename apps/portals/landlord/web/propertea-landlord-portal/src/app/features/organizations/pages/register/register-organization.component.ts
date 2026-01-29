@@ -10,7 +10,9 @@ import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { OrganizationService } from '../../services/organization.service';
 import { AuthService } from '../../../../auth/services/auth.service';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { FormFieldComponent } from '../../../../shared/components';
+import { FormFieldComponent, ValidationErrorsComponent } from '../../../../shared/components';
+import { ErrorTranslatorService } from '../../../../core/services/error-translator.service';
+import { ProblemDetails, ValidationError } from '../../../../core/models/error.models';
 
 @Component({
   selector: 'app-register-organization',
@@ -23,7 +25,8 @@ import { FormFieldComponent } from '../../../../shared/components';
     MessageModule,
     ProgressSpinnerModule,
     TranslocoModule,
-    FormFieldComponent
+    FormFieldComponent,
+    ValidationErrorsComponent
   ],
   templateUrl: './register-organization.component.html',
   styleUrl: './register-organization.component.scss'
@@ -34,10 +37,12 @@ export class RegisterOrganizationComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
   private readonly translocoService = inject(TranslocoService);
+  private readonly errorTranslator = inject(ErrorTranslatorService);
 
   registrationForm: FormGroup;
   isSubmitting = signal(false);
   errorMessage = signal<string | null>(null);
+  validationErrors = signal<ValidationError[]>([]);
   nameAvailabilityChecking = signal(false);
   nameAvailabilityMessage = signal<{ text: string; available: boolean } | null>(null);
 
@@ -180,9 +185,15 @@ export class RegisterOrganizationComponent implements OnInit {
       },
       error: (error) => {
         this.isSubmitting.set(false);
-        this.errorMessage.set(
-          error.error?.detail || error.error?.title || this.translocoService.translate('register.error.generic')
-        );
+        const problemDetails = error.error as ProblemDetails;
+
+        if (this.errorTranslator.isValidationError(problemDetails)) {
+          this.validationErrors.set(this.errorTranslator.translateValidationErrors(problemDetails));
+          this.errorMessage.set(null);
+        } else {
+          this.errorMessage.set(this.errorTranslator.translateError(problemDetails));
+          this.validationErrors.set([]);
+        }
       }
     });
   }

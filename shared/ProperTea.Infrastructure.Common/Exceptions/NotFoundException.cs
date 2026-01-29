@@ -2,14 +2,19 @@ namespace ProperTea.Infrastructure.Common.Exceptions;
 
 public class NotFoundException : DomainException
 {
-    public NotFoundException(string resourceType, object resourceId)
-        : base($"{resourceType} with ID '{resourceId}' was not found")
+    public NotFoundException(string errorCode, string resourceType, object resourceId)
+        : base(errorCode, $"{resourceType} with ID '{resourceId}' was not found", new Dictionary<string, object>
+        {
+            ["resourceType"] = resourceType,
+            ["resourceId"] = resourceId
+        })
     {
         ResourceType = resourceType;
         ResourceId = resourceId;
     }
 
-    public NotFoundException(string message) : base(message)
+    public NotFoundException(string errorCode, string message, Dictionary<string, object>? parameters = null)
+        : base(errorCode, message, parameters)
     {
     }
 

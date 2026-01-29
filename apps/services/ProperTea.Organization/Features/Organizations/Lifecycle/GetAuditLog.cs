@@ -41,7 +41,10 @@ public class GetAuditLogHandler(IQuerySession session)
         var events = await session.Events.FetchStreamAsync(query.OrganizationId, token: ct);
 
         if (events.Count == 0)
-            throw new NotFoundException(nameof(OrganizationAggregate), query.OrganizationId);
+            throw new NotFoundException(
+                OrganizationErrorCodes.NOT_FOUND,
+                nameof(OrganizationAggregate),
+                query.OrganizationId);
 
         var entries = new List<AuditLogEntry>();
         OrganizationAggregate? previousState = null;

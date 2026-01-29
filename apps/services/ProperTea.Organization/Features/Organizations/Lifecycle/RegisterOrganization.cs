@@ -17,18 +17,44 @@ public class RegisterOrganizationValidator : AbstractValidator<RegisterOrganizat
 {
     public RegisterOrganizationValidator()
     {
-        _ = RuleFor(x => x.OrganizationName).NotEmpty().MinimumLength(2).MaximumLength(100);
-        _ = RuleFor(x => x.UserEmail).NotEmpty().EmailAddress();
-        _ = RuleFor(x => x.UserFirstName).NotEmpty().MinimumLength(1).MaximumLength(100);
-        _ = RuleFor(x => x.UserLastName).NotEmpty().MinimumLength(1).MaximumLength(100);
+        _ = RuleFor(x => x.OrganizationName)
+            .NotEmpty().WithErrorCode(OrganizationErrorCodes.VALIDATION_NAME_REQUIRED)
+            .MinimumLength(2).WithErrorCode(OrganizationErrorCodes.VALIDATION_NAME_TOO_SHORT)
+            .MaximumLength(100).WithErrorCode(OrganizationErrorCodes.VALIDATION_NAME_TOO_LONG);
+
+        _ = RuleFor(x => x.UserEmail)
+            .NotEmpty().WithErrorCode(OrganizationErrorCodes.VALIDATION_EMAIL_REQUIRED)
+            .EmailAddress().WithErrorCode(OrganizationErrorCodes.VALIDATION_EMAIL_INVALID);
+
+        _ = RuleFor(x => x.UserFirstName)
+            .NotEmpty().WithErrorCode(OrganizationErrorCodes.VALIDATION_FIRST_NAME_REQUIRED)
+            .MinimumLength(1).WithErrorCode(OrganizationErrorCodes.VALIDATION_FIRST_NAME_TOO_SHORT)
+            .MaximumLength(100).WithErrorCode(OrganizationErrorCodes.VALIDATION_FIRST_NAME_TOO_LONG);
+
+        _ = RuleFor(x => x.UserLastName)
+            .NotEmpty().WithErrorCode(OrganizationErrorCodes.VALIDATION_LAST_NAME_REQUIRED)
+            .MinimumLength(1).WithErrorCode(OrganizationErrorCodes.VALIDATION_LAST_NAME_TOO_SHORT)
+            .MaximumLength(100).WithErrorCode(OrganizationErrorCodes.VALIDATION_LAST_NAME_TOO_LONG);
+
         _ = RuleFor(x => x.UserPassword)
-            .NotEmpty()
-            .MinimumLength(8).WithMessage("Password must be at least 8 characters long")
+            .NotEmpty().WithErrorCode(OrganizationErrorCodes.VALIDATION_PASSWORD_REQUIRED)
+            .MinimumLength(8)
+                .WithMessage("Password must be at least 8 characters long")
+                .WithErrorCode(OrganizationErrorCodes.VALIDATION_PASSWORD_TOO_SHORT)
             .MaximumLength(100)
-            .Matches(@"[a-z]").WithMessage("Password must contain at least one lowercase letter")
-            .Matches(@"[A-Z]").WithMessage("Password must contain at least one uppercase letter")
-            .Matches(@"\d").WithMessage("Password must contain at least one number")
-            .Matches(@"[^A-Za-z0-9]").WithMessage("Password must contain at least one special character");
+                .WithErrorCode(OrganizationErrorCodes.VALIDATION_PASSWORD_TOO_LONG)
+            .Matches(@"[a-z]")
+                .WithMessage("Password must contain at least one lowercase letter")
+                .WithErrorCode(OrganizationErrorCodes.VALIDATION_PASSWORD_MISSING_LOWERCASE)
+            .Matches(@"[A-Z]")
+                .WithMessage("Password must contain at least one uppercase letter")
+                .WithErrorCode(OrganizationErrorCodes.VALIDATION_PASSWORD_MISSING_UPPERCASE)
+            .Matches(@"\d")
+                .WithMessage("Password must contain at least one number")
+                .WithErrorCode(OrganizationErrorCodes.VALIDATION_PASSWORD_MISSING_NUMBER)
+            .Matches(@"[^A-Za-z0-9]")
+                .WithMessage("Password must contain at least one special character")
+                .WithErrorCode(OrganizationErrorCodes.VALIDATION_PASSWORD_MISSING_SPECIAL);
     }
 }
 
@@ -45,7 +71,10 @@ public class RegisterOrganizationHandler : IWolverineHandler
     {
         var exists = await externalOrgClient.CheckOrganizationExistsAsync(command.OrganizationName, ct);
         if (exists)
-            throw new ConflictException($"Organization with name '{command.OrganizationName}' already exists");
+            throw new ConflictException(
+                OrganizationErrorCodes.NAME_ALREADY_EXISTS,
+                $"Organization with name '{command.OrganizationName}' already exists",
+                new Dictionary<string, object> { ["organizationName"] = command.OrganizationName });
 
         var externalOrgId = await externalOrgClient.CreateOrganizationWithAdminAsync(
             command.OrganizationName,

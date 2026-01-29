@@ -149,8 +149,10 @@
 
       <!-- Error Message -->
       @if (errorMessage()) {
-        <p-message severity="error" [text]="errorMessage()!" class="w-full" role="alert" />
+        <p-message severity="error" class="w-full" role="alert" >{{ errorMessage() }}</p-message>
       }
+
+      <app-validation-errors [errors]="validationErrors()" />
 
       <!-- Submit Button -->
       <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">

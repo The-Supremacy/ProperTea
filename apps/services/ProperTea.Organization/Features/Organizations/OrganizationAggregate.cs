@@ -22,7 +22,10 @@ public class OrganizationAggregate : IRevisioned
     public static ExternalOrganizationCreated LinkExternalOrganization(Guid organizationId, string externalOrganizationId)
     {
         if (string.IsNullOrWhiteSpace(externalOrganizationId))
-            throw new BusinessViolationException(nameof(externalOrganizationId), "External Organization ID is required");
+            throw new BusinessViolationException(
+                OrganizationErrorCodes.EXTERNAL_ID_REQUIRED,
+                nameof(externalOrganizationId),
+                "External Organization ID is required");
 
         return new ExternalOrganizationCreated(organizationId, externalOrganizationId);
     }

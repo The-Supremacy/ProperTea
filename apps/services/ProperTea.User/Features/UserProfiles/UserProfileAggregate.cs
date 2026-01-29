@@ -19,7 +19,10 @@ public class UserProfileAggregate : IRevisioned, ITenanted
     public static Created Create(Guid profileId, string externalUserId)
     {
         if (string.IsNullOrWhiteSpace(externalUserId))
-            throw new BusinessViolationException(nameof(externalUserId), "External User ID is required");
+            throw new BusinessViolationException(
+                UserProfileErrorCodes.EXTERNAL_ID_REQUIRED,
+                nameof(externalUserId),
+                "External User ID is required");
 
         return new Created(profileId, externalUserId, DateTimeOffset.UtcNow);
     }

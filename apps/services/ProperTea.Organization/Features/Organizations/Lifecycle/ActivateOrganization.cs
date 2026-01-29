@@ -14,7 +14,10 @@ public class ActivateHandler : IWolverineHandler
     {
         var org =
             await session.Events.AggregateStreamAsync<OrganizationAggregate>(command.OrganizationId)
-            ?? throw new NotFoundException(nameof(OrganizationAggregate), command.OrganizationId);
+            ?? throw new NotFoundException(
+                OrganizationErrorCodes.NOT_FOUND,
+                nameof(OrganizationAggregate),
+                command.OrganizationId);
 
         var activated = org.Activate();
 

@@ -11,7 +11,9 @@ public class CreateProfileValidator : AbstractValidator<CreateProfileCommand>
     public CreateProfileValidator()
     {
         _ = RuleFor(x => x.ExternalUserId)
-            .NotEmpty().WithMessage("External user ID is required");
+            .NotEmpty()
+            .WithMessage("External user ID is required")
+            .WithErrorCode(UserProfileErrorCodes.VALIDATION_EXTERNAL_ID_REQUIRED);
     }
 }
 

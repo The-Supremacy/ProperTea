@@ -75,7 +75,8 @@
       "signIn": "Увійти тут"
     },
     "error": {
-      "generic": "Не вдалося зареєструвати організацію. Спробуйте ще раз."
+      "generic": "Не вдалося зареєструвати організацію. Спробуйте ще раз.",
+      "validationErrors": "Будь ласка, виправте наступні помилки:"
     }
   },
   "dashboard": {
@@ -164,5 +165,33 @@
       "registerButton": "Зареєструватися зараз",
       "backButton": "Повернутися на головну"
     }
+  },
+  "errors": {
+    "ORG.NAME_ALREADY_EXISTS": "Організація з назвою '{{organizationName}}' вже існує",
+    "ORG.NOT_FOUND": "Організацію не знайдено",
+    "ORG.EXTERNAL_ID_REQUIRED": "Зовнішній ID організації обов'язковий",
+    "ORG.VALIDATION.NAME_REQUIRED": "Назва організації обов'язкова",
+    "ORG.VALIDATION.NAME_TOO_SHORT": "Назва організації має містити щонайменше 2 символи",
+    "ORG.VALIDATION.NAME_TOO_LONG": "Назва організації не може перевищувати 100 символів",
+    "ORG.VALIDATION.EMAIL_REQUIRED": "Email адреса обов'язкова",
+    "ORG.VALIDATION.EMAIL_INVALID": "Будь ласка, введіть коректну email адресу",
+    "ORG.VALIDATION.FIRST_NAME_REQUIRED": "Ім'я обов'язкове",
+    "ORG.VALIDATION.FIRST_NAME_TOO_SHORT": "Ім'я має містити щонайменше 1 символ",
+    "ORG.VALIDATION.FIRST_NAME_TOO_LONG": "Ім'я не може перевищувати 100 символів",
+    "ORG.VALIDATION.LAST_NAME_REQUIRED": "Прізвище обов'язкове",
+    "ORG.VALIDATION.LAST_NAME_TOO_SHORT": "Прізвище має містити щонайменше 1 символ",
+    "ORG.VALIDATION.LAST_NAME_TOO_LONG": "Прізвище не може перевищувати 100 символів",
+    "ORG.VALIDATION.PASSWORD_REQUIRED": "Пароль обов'язковий",
+    "ORG.VALIDATION.PASSWORD_TOO_SHORT": "Пароль має містити щонайменше 8 символів",
+    "ORG.VALIDATION.PASSWORD_TOO_LONG": "Пароль не може перевищувати 100 символів",
+    "ORG.VALIDATION.PASSWORD_MISSING_LOWERCASE": "Пароль має містити щонайменше одну малу літеру",
+    "ORG.VALIDATION.PASSWORD_MISSING_UPPERCASE": "Пароль має містити щонайменше одну велику літеру",
+    "ORG.VALIDATION.PASSWORD_MISSING_NUMBER": "Пароль має містити щонайменше одну цифру",
+    "ORG.VALIDATION.PASSWORD_MISSING_SPECIAL": "Пароль має містити щонайменше один спеціальний символ",
+    "USER.NOT_FOUND": "Користувача не знайдено",
+    "USER.EXTERNAL_ID_REQUIRED": "Зовнішній ID користувача обов'язковий",
+    "USER.VALIDATION.EXTERNAL_ID_REQUIRED": "Зовнішній ID користувача обов'язковий",
+    "VALIDATION.ERROR": "Помилка валідації. Будь ласка, перевірте введені дані.",
+    "COMMON.UNEXPECTED": "Виникла неочікувана помилка. Будь ласка, спробуйте ще раз."
   }
 }

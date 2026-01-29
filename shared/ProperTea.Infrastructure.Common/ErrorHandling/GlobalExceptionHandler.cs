@@ -14,18 +14,19 @@ public partial class GlobalExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
-        var (statusCode, title, details) = ProblemDetailsHelpers.GetExceptionDetails(exception);
+        var (statusCode, title, details, errorCode, parameters) = ProblemDetailsHelpers.GetExceptionDetails(exception);
 
         logger.LogInformation(
-            "Handling exception {ExceptionType} -> Status {StatusCode}",
+            "Handling exception {ExceptionType} -> Status {StatusCode}, ErrorCode: {ErrorCode}",
             exception.GetType().Name,
-            statusCode);
+            statusCode,
+            errorCode ?? "N/A");
 
         LogUnexpectedError(httpContext.Request.Path, httpContext.Request.Method, exception);
 
         httpContext.Response.StatusCode = statusCode;
 
-        return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
+        var problemDetails = new ProblemDetailsContext
         {
             HttpContext = httpContext,
             ProblemDetails =
@@ -35,7 +36,20 @@ public partial class GlobalExceptionHandler(
                 Detail = details
             },
             Exception = exception
-        }).ConfigureAwait(false);
+        };
+
+        // Add errorCode and parameters to ProblemDetails extensions for frontend consumption
+        if (errorCode != null)
+        {
+            problemDetails.ProblemDetails.Extensions["errorCode"] = errorCode;
+        }
+
+        if (parameters != null)
+        {
+            problemDetails.ProblemDetails.Extensions["parameters"] = parameters;
+        }
+
+        return await problemDetailsService.TryWriteAsync(problemDetails).ConfigureAwait(false);
     }
 
     [LoggerMessage(

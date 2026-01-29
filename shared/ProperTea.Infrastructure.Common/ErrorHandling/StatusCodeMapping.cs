@@ -28,9 +28,10 @@ public static class StatusCodeMapping
     {
         return statusCode switch
         {
-            HttpStatusCode.Conflict => new ConflictException(message),
-            HttpStatusCode.UnprocessableEntity or HttpStatusCode.UnprocessableContent => new BusinessViolationException(message),
-            HttpStatusCode.NotFound => new NotFoundException(message),
+            HttpStatusCode.Conflict => new ConflictException("COMMON.CONFLICT", message),
+            HttpStatusCode.UnprocessableEntity or HttpStatusCode.UnprocessableContent =>
+                new BusinessViolationException("COMMON.VALIDATION_ERROR", message),
+            HttpStatusCode.NotFound => new NotFoundException("COMMON.NOT_FOUND", message),
             HttpStatusCode.BadRequest => new ArgumentException(message),
             HttpStatusCode.Unauthorized => new UnauthorizedAccessException(message),
             _ => new HttpRequestException(message, null, statusCode)
