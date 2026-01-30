@@ -34,17 +34,6 @@ export class LayoutComponent {
   mobileMenuVisible = signal(false);
   currentYear = new Date().getFullYear();
 
-  constructor() {
-    effect(
-      () => {
-        if (this.authService.isAuthenticated()) {
-          this.preferencesService.initialize();
-        }
-      },
-      { allowSignalWrites: true },
-    );
-  }
-
   readonly navigationMenuItems = computed<MenuItem[]>(() => {
     this.preferencesService.getPreferences()();
 

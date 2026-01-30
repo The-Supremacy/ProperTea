@@ -6,6 +6,7 @@ import { routes } from './app.routes';
 import { providePrimeNG } from 'primeng/config';
 import { ProperTeaPreset } from './theme/propertea.preset';
 import { provideTransloco } from '@jsverse/transloco';
+import { provideTranslocoPreloadLangs } from '@jsverse/transloco-preload-langs';
 import { TranslocoHttpLoader } from './transloco-loader';
 
 export const appConfig: ApplicationConfig = {
@@ -41,5 +42,6 @@ export const appConfig: ApplicationConfig = {
       },
       loader: TranslocoHttpLoader,
     }),
+    provideTranslocoPreloadLangs(['en', 'uk'])
   ],
 };
