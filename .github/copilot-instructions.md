@@ -5,9 +5,10 @@
 
 # Documentation
 - All available project documentation is in /docs.
+- Development guides and quirky behavior patterns are in /docs/dev.
 - Use proper markdown syntax for all documentation.
 - Do not create XML documentation for C# code members unless they describe something very specific (no 'Creates a user').
-- No emojis.
+- No emojis (except in /docs/dev for clarity).
 
 # Technical Stack & Patterns
 - **Messaging**: Wolverine. Handlers must implement `IWolverineHandler`.
@@ -25,7 +26,12 @@
 # Angular guidelines
 - **State Management**: Use Signals for local component state. Use Services with Signals for shared state.
 - **Forms**: Use Reactive Forms only.
-- **Styling**: Use Tailwind CSS utility classes. Avoid custom CSS unless absolutely necessary.
+- **Styling**:
+    - **PrimeNG Components**: Use pure PrimeNG styling—NO Tailwind color classes on components like p-button, p-card, p-avatar, etc.
+    - **Custom Elements**: Use Tailwind with PrimeNG tokens for custom HTML: `bg-surface-card`, `text-color`, `bg-primary`
+    - **Layout**: Use Tailwind utilities: `flex`, `gap-4`, `p-4`, `w-full`
+    - **Dark Mode**: Always include dark variants for non-theme colors: `text-orange-600 dark:text-orange-400`
+    - See /docs/dev/theming-guide.md for complete strategy
 - **Internationalization**: Use Transloco for all user-facing text. Do not hardcode strings.
 - **Components**:
     - Follow Atomic Design principles. Keep components small and focused.

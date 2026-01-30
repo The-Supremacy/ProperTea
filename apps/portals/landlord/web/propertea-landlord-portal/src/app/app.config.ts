@@ -4,7 +4,7 @@ import { provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/c
 import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
 import { providePrimeNG } from 'primeng/config';
-import Aura from '@primeuix/themes/aura';
+import { ProperTeaPreset } from './theme/propertea.preset';
 import { provideTransloco } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from './transloco-loader';
 
@@ -20,7 +20,7 @@ export const appConfig: ApplicationConfig = {
     }),
     providePrimeNG({
       theme: {
-        preset: Aura,
+        preset: ProperTeaPreset,
         options: {
           prefix: 'p',
           darkModeSelector: '.dark',
