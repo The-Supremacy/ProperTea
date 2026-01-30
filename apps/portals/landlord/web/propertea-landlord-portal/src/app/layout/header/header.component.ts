@@ -1,10 +1,12 @@
 import { Component, computed, inject, output } from '@angular/core';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
 import { InputTextModule } from 'primeng/inputtext';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { AuthService } from '../../auth/services/auth.service';
 import { SearchService } from '../../core/services/search.service';
 import { UserPreferencesService } from '../../core/services/user-preferences.service';
@@ -13,7 +15,7 @@ import { LanguageSwitcherComponent } from '../../i18n/components/language-switch
 
 @Component({
   selector: 'app-header',
-  imports: [ButtonModule, MenuModule, AvatarModule, InputTextModule, TranslocoModule, LanguageSwitcherComponent],
+  imports: [ButtonModule, MenuModule, AvatarModule, InputTextModule, ToggleSwitchModule, FormsModule, TranslocoModule, LanguageSwitcherComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
 })
@@ -27,44 +29,34 @@ export class HeaderComponent {
   menuToggle = output<void>();
   searchQuery = this.searchService.searchQuery;
 
-  userMenuItems = computed<MenuItem[]>(() => {
-    const currentTheme = this.preferencesService.getPreferences()().theme;
-    const isDark = currentTheme === 'dark';
+  isDarkMode = computed(() => this.preferencesService.getPreferences()().theme === 'dark');
 
-    return [
-      { separator: true },
-      {
-        label: this.translocoService.translate('header.menu.editProfile'),
-        icon: 'pi pi-user',
-        command: () => this.editProfile()
-      },
-      {
-        label: this.translocoService.translate('header.menu.editPreferences'),
-        icon: 'pi pi-cog',
-        command: () => this.editPreferences()
-      },
-      { separator: true },
-      {
-        label: isDark
-          ? this.translocoService.translate('header.menu.lightMode')
-          : this.translocoService.translate('header.menu.darkMode'),
-        icon: isDark ? 'pi pi-sun' : 'pi pi-moon',
-        command: () => this.toggleTheme()
-      },
-      { separator: true },
+  userMenuItems = computed<MenuItem[]>(() => [
+    { separator: true },
+    {
+      label: this.translocoService.translate('header.menu.editProfile'),
+      icon: 'pi pi-user',
+      command: () => this.editProfile()
+    },
+    {
+      label: this.translocoService.translate('header.menu.editPreferences'),
+      icon: 'pi pi-cog',
+      command: () => this.editPreferences()
+    },
+    { separator: true },
     {
       label: this.translocoService.translate('header.menu.switchAccount'),
       icon: 'pi pi-refresh',
       command: () => this.switchAccount()
     },
-      {
-        label: this.translocoService.translate('header.menu.signOut'),
-        icon: 'pi pi-sign-out',
-        styleClass: 'text-red-500',
-        command: () => this.signOut()
-      }
-    ];
-  });
+    {
+      label: this.translocoService.translate('header.menu.signOut'),
+      icon: 'pi pi-sign-out',
+      styleClass: 'text-red-500',
+      command: () => this.signOut()
+    },
+    { separator: true },
+  ]);
 
   userName = computed(() => this.authService.userName());
   userEmail = computed(() => this.authService.userEmail());
@@ -88,9 +80,8 @@ export class HeaderComponent {
     this.router.navigate(['/preferences']);
   }
 
-  toggleTheme(): void {
-    const current = this.preferencesService.getPreferences()().theme;
-    this.preferencesService.setTheme(current === 'dark' ? 'light' : 'dark');
+  onDarkModeChange(isDark: boolean): void {
+    this.preferencesService.setTheme(isDark ? 'dark' : 'light');
   }
 
   switchAccount(): void {

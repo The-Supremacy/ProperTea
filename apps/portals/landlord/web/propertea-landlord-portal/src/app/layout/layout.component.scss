@@ -5,3 +5,21 @@
   height: 100%;
 }
 
+::ng-deep .nav-panel.p-panelmenu {
+  .p-panelmenu-panel {
+    border: none;
+    margin-bottom: 0;
+    background: var(--p-background);
+  }
+
+  .p-panelmenu-header {
+    border: none;
+    border-radius: 0;
+  }
+
+  .p-panelmenu-content {
+    border: none;
+    border-radius: 0;
+  }
+}
+

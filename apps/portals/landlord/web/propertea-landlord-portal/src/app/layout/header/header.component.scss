@@ -29,13 +29,3 @@
     padding-left: 2.5rem;
   }
 }
-
-::ng-deep .user-dropdown-menu.p-menu {
-  max-width: calc(100vw - 1rem);
-
-  @media (max-width: 768px) {
-    right: 0.5rem !important;
-    left: auto !important;
-    transform: none !important;
-  }
-}

@@ -60,7 +60,6 @@
         [appendTo]="'body'"
         [model]="userMenuItems()"
         [style]="{'min-width': '280px', 'max-width': 'calc(100vw - 1rem)'}"
-        [class]="'user-dropdown-menu'"
       >
         <ng-template pTemplate="start">
           <div class="px-3 py-3">
@@ -93,7 +92,20 @@
           </div>
         </ng-template>
         <ng-template pTemplate="end">
-          <div class="px-3 py-3 border-top-1 border-surface">
+          <div class="border-top-1 border-surface px-3 py-3">
+            <div class="flex items-center justify-between gap-3 mb-3" style="padding: var(--p-menu-list-padding)">
+              <div class="flex items-center gap-3">
+                <i [class]="isDarkMode() ? 'pi pi-moon' : 'pi pi-sun'" class="text-color"></i>
+                <span class="text-sm font-medium text-color">
+                  {{ isDarkMode() ? t('header.menu.darkMode') : t('header.menu.lightMode') }}
+                </span>
+              </div>
+              <p-toggleswitch
+                [ngModel]="isDarkMode()"
+                (ngModelChange)="onDarkModeChange($event)"
+              />
+            </div>
+
             <div class="text-xs font-semibold text-muted-color mb-2 uppercase">
               {{ t('header.menu.language') }}
             </div>

@@ -14,9 +14,17 @@ import { BreadcrumbComponent } from './breadcrumb/breadcrumb.component';
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, ButtonModule, DrawerModule, PanelMenuModule, HeaderComponent, BreadcrumbComponent, TranslocoModule],
+  imports: [
+    CommonModule,
+    ButtonModule,
+    DrawerModule,
+    PanelMenuModule,
+    HeaderComponent,
+    BreadcrumbComponent,
+    TranslocoModule,
+  ],
   templateUrl: './layout.component.html',
-  styleUrls: ['./layout.component.scss']
+  styleUrls: ['./layout.component.scss'],
 })
 export class LayoutComponent {
   protected readonly authService = inject(AuthService);
@@ -27,33 +35,51 @@ export class LayoutComponent {
   currentYear = new Date().getFullYear();
 
   constructor() {
-    effect(() => {
-      if (this.authService.isAuthenticated()) {
-        this.preferencesService.initialize();
-      }
-    }, { allowSignalWrites: true });
+    effect(
+      () => {
+        if (this.authService.isAuthenticated()) {
+          this.preferencesService.initialize();
+        }
+      },
+      { allowSignalWrites: true },
+    );
   }
-
-  readonly navigationItems = [
-    { route: '/dashboard', icon: 'pi pi-home', labelKey: 'nav.dashboard', fallback: 'Dashboard' },
-    { route: '/properties', icon: 'pi pi-building', labelKey: 'nav.properties', fallback: 'Properties' },
-    { route: '/tenants', icon: 'pi pi-users', labelKey: 'nav.tenants', fallback: 'Tenants' }
-  ];
 
   readonly navigationMenuItems = computed<MenuItem[]>(() => {
     this.preferencesService.getPreferences()();
 
-    return this.navigationItems.map(item => {
-      const translated = this.translocoService.translate(item.labelKey);
-      return {
-        label: translated === item.labelKey ? item.fallback : translated,
-        icon: item.icon,
+    return [
+      {
+        label: this.translocoService.translate('nav.dashboard'),
+        icon: 'pi pi-home',
         command: () => {
-          this.router.navigate([item.route]);
+          this.router.navigate(['/dashboard']);
           this.mobileMenuVisible.set(false);
         }
-      };
-    });
+      },
+      {
+        label: this.translocoService.translate('nav.properties'),
+        icon: 'pi pi-building',
+        items: [
+          {
+            label: this.translocoService.translate('nav.properties'),
+            icon: 'pi pi-building',
+            command: () => {
+              this.router.navigate(['/properties']);
+              this.mobileMenuVisible.set(false);
+            }
+          }
+        ]
+      },
+      {
+        label: this.translocoService.translate('nav.tenants'),
+        icon: 'pi pi-users',
+        command: () => {
+          this.router.navigate(['/tenants']);
+          this.mobileMenuVisible.set(false);
+        }
+      }
+    ];
   });
 
   readonly systemHealth = resource({
@@ -64,12 +90,12 @@ export class LayoutComponent {
       } catch {
         return 'Offline';
       }
-    }
+    },
   });
 
   readonly healthStatus = computed(() => this.systemHealth.value() ?? 'Checking...');
 
   toggleMenu(): void {
-    this.mobileMenuVisible.update(v => !v);
+    this.mobileMenuVisible.update((v) => !v);
   }
 }

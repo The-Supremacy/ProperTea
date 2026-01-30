@@ -5,11 +5,11 @@
   <!-- Breadcrumbs (shown only when items exist) -->
   <app-breadcrumb />
 
-  <div class="flex flex-1 overflow-hidden">
+  <div class="flex flex-1 overflow-hidden mt-2">
     <!-- Desktop Sidebar -->
     <aside class="hidden lg:flex w-64 border-r border-surface overflow-y-auto" style="background: var(--p-surface-card)">
       <nav class="flex flex-col w-full">
-        <p-panelmenu [model]="navigationMenuItems()" [multiple]="false" class="w-full" />
+        <p-panelmenu [model]="navigationMenuItems()" [multiple]="false" class="w-full nav-panel" />
       </nav>
     </aside>
 
@@ -17,11 +17,12 @@
     <p-drawer
       [(visible)]="mobileMenuVisible"
       [modal]="true"
+      [closeOnEscape]="true"
       [style]="{'width': '280px'}"
       header="Menu"
     >
       <nav class="flex flex-col">
-        <p-panelmenu [model]="navigationMenuItems()" [multiple]="false" class="w-full" />
+        <p-panelmenu [model]="navigationMenuItems()" [multiple]="false" class="w-full nav-panel" />
       </nav>
     </p-drawer>
 
