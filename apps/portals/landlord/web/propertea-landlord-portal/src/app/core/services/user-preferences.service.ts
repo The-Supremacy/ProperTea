@@ -1,7 +1,8 @@
 import { Injectable, inject, signal, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { TranslocoService } from '@jsverse/transloco';
-import { firstValueFrom, catchError, of } from 'rxjs';
+import { Observable, of, EMPTY } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
 import { UserPreferences, UpdateUserPreferencesRequest } from '../models/user-preferences.model';
 
 @Injectable({
@@ -16,7 +17,7 @@ export class UserPreferencesService {
     language: 'en'
   });
 
-  private isInitialized = false;
+  private isBackendSynced = false;
 
   constructor() {
     effect(() => {
@@ -25,36 +26,44 @@ export class UserPreferencesService {
     });
   }
 
-  async initialize(): Promise<void> {
-    if (this.isInitialized)
-      return;
-
+  initializeFromLocalStorage(): void {
     const localPrefs = this.loadFromLocalStorage();
+    this.transloco.setActiveLang(localPrefs.language);
+    this.preferences.set(localPrefs);
+  }
 
-    try {
-      const backendPrefs = await this.fetchFromBackend();
-
-      const merged: UserPreferences = {
-        theme: backendPrefs?.theme ?? localPrefs.theme,
-        language: backendPrefs?.language ?? localPrefs.language
-      };
-
-      this.preferences.set(merged);
-      this.saveToLocalStorage(merged);
-      this.transloco.setActiveLang(merged.language);
-
-      const needsSync = JSON.stringify(localPrefs) !== JSON.stringify(merged);
-
-      if (needsSync) {
-        this.syncToBackend(merged);
-      }
-    } catch (error) {
-      console.warn('Failed to fetch preferences from backend, using local only', error);
-      this.preferences.set(localPrefs);
-      this.transloco.setActiveLang(localPrefs.language);
+  syncWithBackend$(isAuthenticated: boolean): Observable<void> {
+    if (this.isBackendSynced || !isAuthenticated) {
+      return of(undefined);
     }
 
-    this.isInitialized = true;
+    const localPrefs = this.preferences();
+
+    return this.fetchFromBackend$().pipe(
+      tap(backendPrefs => {
+        const merged: UserPreferences = {
+          theme: backendPrefs?.theme ?? localPrefs.theme,
+          language: backendPrefs?.language ?? localPrefs.language
+        };
+
+        this.preferences.set(merged);
+        this.saveToLocalStorage(merged);
+        this.transloco.setActiveLang(merged.language);
+
+        const needsSync = JSON.stringify(localPrefs) !== JSON.stringify(merged);
+        if (needsSync) {
+          this.syncToBackend(merged);
+        }
+
+        this.isBackendSynced = true;
+      }),
+      catchError(error => {
+        console.warn('Failed to fetch preferences from backend, using local only', error);
+        this.isBackendSynced = true;
+        return of(undefined);
+      }),
+      map(() => undefined)
+    );
   }
 
   getPreferences() {
@@ -96,11 +105,9 @@ export class UserPreferencesService {
     localStorage.setItem('user_preferences', JSON.stringify(prefs));
   }
 
-  private async fetchFromBackend(): Promise<UserPreferences | null> {
-    return firstValueFrom(
-      this.http.get<UserPreferences>('/api/users/preferences').pipe(
-        catchError(() => of(null))
-      )
+  private fetchFromBackend$(): Observable<UserPreferences | null> {
+    return this.http.get<UserPreferences>('/api/users/preferences').pipe(
+      catchError(() => of(null))
     );
   }
 

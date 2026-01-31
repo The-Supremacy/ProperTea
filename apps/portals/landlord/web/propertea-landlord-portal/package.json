@@ -37,7 +37,6 @@
     "@angular/service-worker": "^21.1.1",
     "@jsverse/transloco": "^8.2.1",
     "@jsverse/transloco-keys-manager": "^8.1.0",
-    "@jsverse/transloco-preload-langs": "^8.2.1",
     "@primeuix/themes": "^2.0.3",
     "@tailwindcss/postcss": "^4.1.18",
     "postcss": "^8.5.6",

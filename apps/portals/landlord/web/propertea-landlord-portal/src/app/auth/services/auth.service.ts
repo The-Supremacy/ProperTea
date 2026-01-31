@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { Observable, catchError, of, tap } from 'rxjs';
 import { ConfigService } from '../../core/services/config.service';
 
 export interface CurrentUser {
@@ -34,7 +34,8 @@ export class AuthService {
 
   readonly userName = computed(() => {
     const user = this._currentUser();
-    if (!user.firstName && !user.lastName) return 'User';
+    if (!user.firstName && !user.lastName)
+      return 'User';
     return `${user.firstName} ${user.lastName}`.trim();
   });
 
@@ -49,25 +50,25 @@ export class AuthService {
   });
 
   constructor() {
-    this.refresh();
   }
 
-  async refresh(): Promise<void> {
+  refresh$(): Observable<CurrentUser | null> {
     this._isLoading.set(true);
-    try {
-      const user = await firstValueFrom(this.http.get<CurrentUser>('/auth/user'));
-      this._currentUser.set(user);
-    } catch (error) {
-      this._currentUser.set({
-        isAuthenticated: false,
-        emailAddress: '',
-        firstName: '',
-        lastName: '',
-        organizationName: ''
-      });
-    } finally {
-      this._isLoading.set(false);
-    }
+
+    return this.http.get<CurrentUser>('/auth/user').pipe(
+      tap(user => this._currentUser.set(user)),
+      catchError(() => {
+        this._currentUser.set({
+          isAuthenticated: false,
+          emailAddress: '',
+          firstName: '',
+          lastName: '',
+          organizationName: ''
+        });
+        return of(null);
+      }),
+      tap(() => this._isLoading.set(false))
+    );
   }
 
   login(returnUrl?: string): void {

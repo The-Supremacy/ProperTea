@@ -1,11 +1,13 @@
 import { Component, inject, signal, resource, computed, effect } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
 import { PanelMenuModule } from 'primeng/panelmenu';
 import { MenuItem } from 'primeng/api';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { of, catchError, map } from 'rxjs';
 import { AuthService } from '@core';
 import { UserPreferencesService } from '../core/services/user-preferences.service';
 import { HeaderComponent } from './header/header.component';
@@ -30,12 +32,13 @@ export class LayoutComponent {
   protected readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly translocoService = inject(TranslocoService);
+  private readonly http = inject(HttpClient);
   private readonly preferencesService = inject(UserPreferencesService);
   mobileMenuVisible = signal(false);
   currentYear = new Date().getFullYear();
 
   readonly navigationMenuItems = computed<MenuItem[]>(() => {
-    this.preferencesService.getPreferences()();
+    this.translocoService.getActiveLang();
 
     return [
       {
@@ -72,13 +75,11 @@ export class LayoutComponent {
   });
 
   readonly systemHealth = resource({
-    loader: async () => {
-      try {
-        const res = await fetch('/health');
-        return res.ok ? 'Healthy' : 'Unhealthy';
-      } catch {
-        return 'Offline';
-      }
+    loader: () => {
+      return this.http.get('/health', { observe: 'response' }).pipe(
+        map(res => res.ok ? 'Healthy' : 'Unhealthy'),
+        catchError(() => of('Offline'))
+      ).toPromise().then(v => v ?? 'Offline');
     },
   });
 

@@ -1,10 +1,13 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '@core';
 import { UserPreferencesService } from './core/services/user-preferences.service';
 import { LayoutComponent } from './layout/layout.component';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { Subscription } from 'rxjs';
+import { tap, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -13,22 +16,28 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
 })
-export class App implements OnInit {
+export class App implements OnInit, OnDestroy {
   protected readonly authService = inject(AuthService);
   private readonly preferencesService = inject(UserPreferencesService);
+  private readonly translocoService = inject(TranslocoService);
+  private subscription?: Subscription;
 
   constructor() {
-    this.initializeDarkMode();
+    this.initializePreferencesFromLocalStorage();
   }
 
-  async ngOnInit() {
-    if (this.authService.isAuthenticated()) {
-      await this.preferencesService.initialize();
-    }
+  ngOnInit() {
+    // All async initialization: auth + preferences backend sync
+    this.subscription = this.authService.refresh$().pipe(
+      switchMap(() => this.preferencesService.syncWithBackend$(
+        this.authService.isAuthenticated()
+      )),
+      tap(() => this.removeLoadingSpinner())
+    ).subscribe();
+  }
 
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    this.removeLoadingSpinner();
+  ngOnDestroy() {
+    this.subscription?.unsubscribe();
   }
 
   private removeLoadingSpinner() {
@@ -40,27 +49,13 @@ export class App implements OnInit {
     }
   }
 
-  private initializeDarkMode() {
-    const savedTheme = localStorage.getItem('theme');
-
-    if (savedTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else if (savedTheme === 'light') {
-      document.documentElement.classList.remove('dark');
-    } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (prefersDark) {
-        document.documentElement.classList.add('dark');
-      }
-    }
+  private initializePreferencesFromLocalStorage() {
+    this.preferencesService.initializeFromLocalStorage();
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      if (!localStorage.getItem('theme')) {
-        if (e.matches) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
+      const stored = localStorage.getItem('user_preferences');
+      if (!stored) {
+        document.documentElement.classList.toggle('dark', e.matches);
       }
     });
   }
