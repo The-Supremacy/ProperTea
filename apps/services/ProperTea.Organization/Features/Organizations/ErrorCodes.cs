@@ -1,9 +1,5 @@
 namespace ProperTea.Organization.Features.Organizations;
 
-/// <summary>
-/// Error codes for Organization domain.
-/// Used for frontend i18n translation.
-/// </summary>
 #pragma warning disable CA1707 // Identifiers should not contain underscores - Error codes use underscores by convention
 public static class OrganizationErrorCodes
 {

@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../apps/services/ProperTea.Company/ProperTea.Company.csproj" />
     <ProjectReference Include="..\..\apps\portals\landlord\bff\ProperTea.Landlord.Bff\ProperTea.Landlord.Bff.csproj" />
     <ProjectReference Include="..\..\apps\services\ProperTea.Organization\ProperTea.Organization.csproj" />
     <ProjectReference Include="..\..\apps\services\ProperTea.User\ProperTea.User.csproj" />

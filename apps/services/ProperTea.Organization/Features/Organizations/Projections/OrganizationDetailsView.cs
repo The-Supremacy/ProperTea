@@ -2,10 +2,6 @@ using Marten.Events.Aggregation;
 
 namespace ProperTea.Organization.Features.Organizations.Projections;
 
-/// <summary>
-/// Read model for detailed organization views.
-/// Projected from Organization events for efficient detail page queries.
-/// </summary>
 public class OrganizationDetailsView : SingleStreamProjection<OrganizationAggregate, Guid>
 {
     public Guid Id { get; set; }

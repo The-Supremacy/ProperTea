@@ -13,7 +13,7 @@ public class OrganizationAggregate : IRevisioned
     public DateTimeOffset CreatedAt { get; set; }
     public int Version { get; set; }
 
-    #region Factory Methods
+    #region Deciders
     public static Created Create(Guid id)
     {
         return new Created(id, SubscriptionTier.Trial, DateTimeOffset.UtcNow);

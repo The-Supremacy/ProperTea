@@ -1,5 +1,6 @@
 using Marten;
 using ProperTea.Infrastructure.Common.Exceptions;
+using Wolverine;
 using static ProperTea.Organization.Features.Organizations.OrganizationEvents;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
@@ -34,7 +35,7 @@ public record AuditLogResponse(
     IReadOnlyList<AuditLogEntry> Entries
 );
 
-public class GetAuditLogHandler(IQuerySession session)
+public class GetAuditLogHandler(IQuerySession session) : IWolverineHandler
 {
     public async Task<AuditLogResponse> Handle(GetAuditLogQuery query, CancellationToken ct)
     {
