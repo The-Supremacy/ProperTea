@@ -22,6 +22,14 @@ ProperTea is a multi-tenant Real Estate ERP built on .NET 10 using a microservic
 - **Aggregate**: `UserProfileAggregate`.
 - **Flow**: Listens to `organizations.registered.v1` to build local profile read models asynchronously.
 
+### Company Service (`ProperTea.Company`)
+**Responsibility**: Manages legal business entities (Companies) that own properties and conduct business operations.
+- **Aggregate**: `CompanyAggregate` (Event Sourced).
+- **Multi-Tenancy**: Uses ZITADEL organization ID directly as `TenantId` for performance (no internal mapping).
+- **Flow**: Listens to `organizations.registered.v1` to create a default company automatically.
+- **Messaging**: Publishes `companies.created.v1` and `companies.deleted.v1` integration events.
+- **Endpoints**: Wolverine.HTTP auto-discovered endpoints using `InvokeForTenantAsync` pattern.
+
 ### Property Service (`ProperTea.Property`)
 **Responsibility**: Owns the "Physical Reality" of the estate.
 - **Data**: Manages physical attributes, inventory, and building structures.

@@ -1,4 +1,26 @@
-# Backend Services Structure
+# Backend Services
+
+This directory contains all backend microservices for ProperTea. Each service is independently deployable, event-sourced, and multi-tenanted.
+
+## Current Services
+
+### [ProperTea.Organization](./ProperTea.Organization/)
+The "Tenant Master" that orchestrates headless registration with ZITADEL and manages organization lifecycles. Publishes `organizations.registered.v1` that triggers tenant initialization across all services.
+
+### [ProperTea.User](./ProperTea.User/)
+Manages user profiles, preferences, and activity tracking. Subscribes to organization registration events to create initial user profiles.
+
+### [ProperTea.Company](./ProperTea.Company/)
+Manages legal business entities (Companies) that own properties. Automatically creates a default company when organizations are registered.
+
+## Service Architecture
+
+All services follow consistent patterns:
+- **Event Sourcing**: Marten with PostgreSQL
+- **Messaging**: Wolverine (CQRS) + RabbitMQ
+- **Multi-Tenancy**: Marten conjoined tenancy (ZITADEL org ID as TenantId)
+- **HTTP**: Wolverine.HTTP with auto-discovered endpoints
+- **Authentication**: JWT Bearer (ZITADEL)
 
 ## Folder Structure Template
 

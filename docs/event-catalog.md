@@ -8,8 +8,8 @@ This document tracks all integration events exchanged between services via Wolve
 
 | Message Identity | Payload Interface | Trigger | Subscribers |
 | :--- | :--- | :--- | :--- |
-| `organizations.registered.v1` | `IOrganizationRegistered` | **RegisterOrganizationHandler**<br>New tenant created via headless flow. | **User Service**, **Company Service** |
-| `organizations.updated.v1` | `IOrganizationUpdated` | When organization details are updated. | **User Service** |
+| `organizations.registered.v1` | `IOrganizationRegistered` | **RegisterOrganizationHandler**<br>New tenant created via headless flow. | **User Service**<br>**Company Service** (creates default company) |
+| `organizations.updated.v1` | `IOrganizationUpdated` | When organization details are updated. | *(Future: User Service, Company Service)* |
 
 ## Exchange: `company.events`
 **Publisher**: Company Service (`ProperTea.Company`)
@@ -17,8 +17,8 @@ This document tracks all integration events exchanged between services via Wolve
 
 | Message Identity | Payload Interface | Trigger | Subscribers |
 | :--- | :--- | :--- | :--- |
-| `companies.created.v1` | `ICompanyCreated` | **CreateCompanyHandler**<br>New company created within organization. | *(Future: Property Service, Rental Service)* |
-| `companies.deleted.v1` | `ICompanyDeleted` | When a company is deleted. | *(Future: Property Service, Rental Service)* |
+| `companies.created.v1` | `ICompanyCreated` | **CreateCompanyHandler**<br>New company created within organization. | *(Future: Property Service)* |
+| `companies.deleted.v1` | `ICompanyDeleted` | **DeleteCompanyHandler**<br>Company soft deleted (cannot be undone). | *(Future: Property Service)* |
 
 ## Exchange: `workorder.events`
 **Publisher**: Work Order Service (`ProperTea.WorkOrder`)
