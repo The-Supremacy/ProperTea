@@ -11,7 +11,6 @@ public static class OpenApiConfiguration
     {
         _ = services.AddOpenApi(options =>
         {
-            _ = options.AddDocumentTransformer<HttpsServerSchemeTransformer>();
             _ = options.AddDocumentTransformer<OAuth2SecuritySchemeTransformer>();
         });
 
@@ -26,7 +25,29 @@ public static class OpenApiConfiguration
         if (environment.IsDevelopment())
         {
             _ = app.MapOpenApi();
-            _ = app.MapScalarApiReference();
+
+            var clientId = configuration["Scalar:ClientId"]
+                ?? throw new InvalidOperationException("Scalar:ClientId not configured");
+            _ = app.MapScalarApiReference(options =>
+            {
+                _ = options
+                    .WithTitle("ProperTea Company API")
+                    .AddPreferredSecuritySchemes("oauth2")
+                    .AddAuthorizationCodeFlow("oauth2", flow =>
+                    {
+                        flow.ClientId = clientId;
+                        flow.Pkce = Pkce.Sha256;
+                        flow.SelectedScopes = [
+                            "openid",
+                            "profile",
+                            "email",
+                            "aud",
+                            "offline_access",
+                            "urn:zitadel:iam:user:resourceowner",
+                            "urn:zitadel:iam:org:project:id:zitadel:aud"
+                        ];
+                    });
+            });
         }
 
         return app;

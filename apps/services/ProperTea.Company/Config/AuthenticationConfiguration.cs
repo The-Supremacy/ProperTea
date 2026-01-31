@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using ProperTea.Infrastructure.Common.Auth;
 
 namespace ProperTea.Company.Config;
 
@@ -37,6 +38,9 @@ public static class AuthenticationConfiguration
             });
 
         _ = services.AddAuthorization();
+
+        _ = services.AddTransient<IUserContext, UserContext>();
+        _ = services.AddTransient<IOrganizationIdProvider, OrganizationIdProvider>();
 
         return services;
     }

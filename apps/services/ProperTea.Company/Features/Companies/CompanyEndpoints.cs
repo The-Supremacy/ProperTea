@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using ProperTea.Company.Features.Companies.Lifecycle;
 using ProperTea.Infrastructure.Common.Auth;
 using Wolverine;
@@ -8,6 +9,7 @@ namespace ProperTea.Company.Features.Companies;
 public static class CompanyEndpoints
 {
     [WolverinePost("/companies")]
+    [Authorize]
     public static async Task<IResult> CreateCompany(
         CreateCompanyRequest request,
         IMessageBus bus,
@@ -24,6 +26,7 @@ public static class CompanyEndpoints
     }
 
     [WolverineGet("/companies")]
+    [Authorize]
     public static async Task<List<CompanyResponse>> ListCompanies(
         IMessageBus bus,
         IOrganizationIdProvider orgProvider)
@@ -37,6 +40,7 @@ public static class CompanyEndpoints
     }
 
     [WolverineGet("/companies/{id}")]
+    [Authorize]
     public static async Task<IResult> GetCompany(
         Guid id,
         IMessageBus bus,
@@ -53,6 +57,7 @@ public static class CompanyEndpoints
     }
 
     [WolverinePut("/companies/{id}")]
+    [Authorize]
     public static async Task<IResult> UpdateCompanyName(
         Guid id,
         UpdateCompanyNameRequest request,
@@ -70,6 +75,7 @@ public static class CompanyEndpoints
     }
 
     [WolverineDelete("/companies/{id}")]
+    [Authorize]
     public static async Task<IResult> DeleteCompany(
         Guid id,
         IMessageBus bus,

@@ -34,6 +34,7 @@ public sealed class OAuth2SecuritySchemeTransformer(IConfiguration configuration
                         { "email", "Email address" },
                         { "aud", "Audience" },
                         { "offline_access", "Offline access" },
+                        { "urn:zitadel:iam:user:resourceowner", "ZITADEL resource owner" },
                         { "urn:zitadel:iam:org:project:id:zitadel:aud", "ZITADEL audience" }
                     }
                 }

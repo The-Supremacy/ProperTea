@@ -1,4 +1,5 @@
 using Marten.Metadata;
+using ProperTea.Infrastructure.Common.Exceptions;
 using static ProperTea.Company.Features.Companies.CompanyEvents;
 
 namespace ProperTea.Company.Features.Companies;
@@ -6,11 +7,13 @@ namespace ProperTea.Company.Features.Companies;
 public class CompanyAggregate : IRevisioned, ITenanted
 {
     public Guid Id { get; set; }
-    public string? TenantId { get; set; }
     public string Name { get; set; } = null!;
     public Status CurrentStatus { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public int Version { get; set; }
+
+    // External IdP Organization ID
+    public string? TenantId { get; set; }
 
     #region Factory Methods
 
@@ -28,7 +31,9 @@ public class CompanyAggregate : IRevisioned, ITenanted
             throw new ArgumentException("Company name is required", nameof(name));
 
         if (CurrentStatus == Status.Deleted)
-            throw new InvalidOperationException("Cannot update a deleted company");
+            throw new BusinessViolationException(
+                CompanyErrorCodes.COMPANY_ALREADY_DELETED,
+                "Cannot update a deleted company");
 
         return new NameUpdated(Id, name);
     }
@@ -36,7 +41,9 @@ public class CompanyAggregate : IRevisioned, ITenanted
     public Deleted Delete(DateTimeOffset deletedAt)
     {
         if (CurrentStatus == Status.Deleted)
-            throw new InvalidOperationException("Company is already deleted");
+            throw new BusinessViolationException(
+                CompanyErrorCodes.COMPANY_ALREADY_DELETED,
+                "Company is already deleted");
 
         return new Deleted(Id, deletedAt);
     }

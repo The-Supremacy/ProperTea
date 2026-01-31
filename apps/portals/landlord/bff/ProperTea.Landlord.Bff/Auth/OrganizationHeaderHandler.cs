@@ -1,10 +1,9 @@
+using ProperTea.Infrastructure.Common.Auth;
+
 namespace ProperTea.Landlord.Bff.Auth;
 
 public class OrganizationHeaderHandler(IHttpContextAccessor httpContextAccessor) : DelegatingHandler
 {
-    private const string OrganizationIdHeader = "X-Organization-Id";
-    private const string ZitadelOrgIdClaim = "urn:zitadel:iam:org:id";
-
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken)
@@ -12,11 +11,11 @@ public class OrganizationHeaderHandler(IHttpContextAccessor httpContextAccessor)
         var user = httpContextAccessor.HttpContext?.User;
         if (user?.Identity?.IsAuthenticated == true)
         {
-            var orgId = user.FindFirst(ZitadelOrgIdClaim)?.Value;
+            var orgId = user.FindFirst(OrganizationIdProvider.ZitadelOrgIdClaim)?.Value;
 
             if (!string.IsNullOrWhiteSpace(orgId))
             {
-                _ = request.Headers.TryAddWithoutValidation(OrganizationIdHeader, orgId);
+                _ = request.Headers.TryAddWithoutValidation(OrganizationIdProvider.OrganizationIdHeader, orgId);
             }
         }
 
