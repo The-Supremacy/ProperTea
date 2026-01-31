@@ -1,41 +1,24 @@
-using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Wolverine;
+using Wolverine.Http;
 
 namespace ProperTea.User.Features.UserPreferences;
 
 public static class UserPreferencesEndpoints
 {
-    public static IEndpointRouteBuilder MapUserPreferencesEndpoints(this IEndpointRouteBuilder app)
+    [WolverineGet("/users/preferences")]
+    public static async Task<IResult> GetPreferences(
+        ClaimsPrincipal user,
+        IMessageBus bus)
     {
-        var group = app.MapGroup("/users/preferences")
-            .RequireAuthorization()
-            .WithTags("User Preferences");
-
-        _ = group.MapGet("/", GetPreferences)
-            .WithName("GetUserPreferences")
-            .Produces<GetUserPreferencesResponse>();
-
-        _ = group.MapPut("/", UpdatePreferences)
-            .WithName("UpdateUserPreferences")
-            .Produces(204)
-            .ProducesValidationProblem();
-
-        return app;
-    }
-
-    private static async Task<IResult> GetPreferences(
-        HttpContext context,
-        [FromServices] IMessageBus bus,
-        CancellationToken ct)
-    {
-        var externalUserId = context.User.FindFirst("sub")?.Value;
+        var externalUserId = user.FindFirst("sub")?.Value;
         if (string.IsNullOrEmpty(externalUserId))
         {
             return Results.Unauthorized();
         }
 
         var query = new GetUserPreferencesQuery(externalUserId);
-        var result = await bus.InvokeAsync<GetUserPreferencesResponse?>(query, ct);
+        var result = await bus.InvokeAsync<GetUserPreferencesResponse?>(query);
 
         if (result == null)
         {
@@ -45,13 +28,13 @@ public static class UserPreferencesEndpoints
         return Results.Ok(result);
     }
 
-    private static async Task<IResult> UpdatePreferences(
-        HttpContext context,
-        [FromBody] UpdateUserPreferencesRequest request,
-        [FromServices] IMessageBus bus,
-        CancellationToken ct)
+    [WolverinePut("/users/preferences")]
+    public static async Task<IResult> UpdatePreferences(
+        ClaimsPrincipal user,
+        UpdateUserPreferencesRequest request,
+        IMessageBus bus)
     {
-        var externalUserId = context.User.FindFirst("sub")?.Value;
+        var externalUserId = user.FindFirst("sub")?.Value;
         if (string.IsNullOrEmpty(externalUserId))
         {
             return Results.Unauthorized();
@@ -63,7 +46,7 @@ public static class UserPreferencesEndpoints
             request.Language
         );
 
-        await bus.InvokeAsync(command, ct);
+        await bus.InvokeAsync(command);
 
         return Results.NoContent();
     }

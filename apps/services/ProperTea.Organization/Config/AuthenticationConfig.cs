@@ -32,7 +32,7 @@ public static class AuthenticationConfig
         _ = services.AddAuthorization();
 
         _ = services.AddTransient<IUserContext, UserContext>();
-        _ = services.AddTransient<IOrganizationIdProvider, TenantIdProvider>();
+        _ = services.AddTransient<IOrganizationIdProvider, OrganizationIdProvider>();
 
         return services;
     }

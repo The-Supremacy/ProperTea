@@ -1,7 +1,6 @@
 using JasperFx;
 using ProperTea.Infrastructure.Common.ErrorHandling;
 using ProperTea.Organization.Config;
-using ProperTea.Organization.Features.Organizations;
 using ProperTea.Organization.Features.Organizations.Configuration;
 using ProperTea.ServiceDefaults;
 using Wolverine.Http;
@@ -33,6 +32,6 @@ app.UseAuthorization();
 app.MapDefaultEndpoints();
 app.MapDeadLettersEndpoints().RequireAuthorization();
 
-app.MapOrganizationEndpoints();
+app.MapWolverineEndpoints();
 
 return await app.RunJasperFxCommands(args);

@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using Wolverine;
+using Wolverine.Http;
 using ProperTea.User.Features.UserProfiles.Lifecycle;
 
 namespace ProperTea.User.Features.UserProfiles;
@@ -12,37 +14,26 @@ public record UserProfileResponse(
 
 public static class UserProfileEndpoints
 {
-    public static RouteGroupBuilder MapUserProfileEndpoints(this WebApplication app)
+    [WolverineGet("/users/me")]
+    public static async Task<IResult> GetMyProfile(
+        ClaimsPrincipal user,
+        IMessageBus bus)
     {
-        var group = app.MapGroup("/users").WithTags("Users");
-
-        _ = group.MapGet("/me", GetMyProfile)
-            .WithName("GetMyProfile")
-            .RequireAuthorization();
-
-        return group;
-    }
-
-    private static async Task<IResult> GetMyProfile(
-        HttpContext context,
-        IMessageBus bus,
-        CancellationToken ct)
-    {
-        var externalUserId = context.User.FindFirst("sub")?.Value;
+        var externalUserId = user.FindFirst("sub")?.Value;
         if (string.IsNullOrEmpty(externalUserId))
         {
             return Results.Unauthorized();
         }
 
         var query = new GetProfileQuery(externalUserId);
-        var result = await bus.InvokeAsync<UserProfileResponse?>(query, ct);
+        var result = await bus.InvokeAsync<UserProfileResponse?>(query);
 
         if (result is null)
         {
             var createCommand = new CreateProfileCommand(externalUserId);
-            _ = await bus.InvokeAsync<CreateProfileResult>(createCommand, ct);
+            _ = await bus.InvokeAsync<CreateProfileResult>(createCommand);
 
-            result = await bus.InvokeAsync<UserProfileResponse?>(query, ct);
+            result = await bus.InvokeAsync<UserProfileResponse?>(query);
 
             if (result is null)
             {

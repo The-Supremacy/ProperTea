@@ -6,6 +6,7 @@ using ProperTea.User.Features.UserProfiles.Configuration;
 using Wolverine;
 using Wolverine.ErrorHandling;
 using Wolverine.FluentValidation;
+using Wolverine.Http;
 using Wolverine.RabbitMQ;
 
 namespace ProperTea.User.Config;
@@ -44,6 +45,8 @@ public static class WolverineConfiguration
                 .OnException<ConcurrencyException>()
                 .RetryWithCooldown(100.Milliseconds(), 250.Milliseconds(), 500.Milliseconds())
                 .Then.MoveToErrorQueue();
+
+            _ = opts.Services.AddWolverineHttp();
         });
 
         return builder;

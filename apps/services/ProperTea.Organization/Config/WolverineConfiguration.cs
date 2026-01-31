@@ -6,6 +6,7 @@ using ProperTea.Organization.Features.Organizations.Configuration;
 using Wolverine;
 using Wolverine.ErrorHandling;
 using Wolverine.FluentValidation;
+using Wolverine.Http;
 using Wolverine.RabbitMQ;
 
 namespace ProperTea.Organization.Config;
@@ -44,7 +45,7 @@ public static class WolverineConfiguration
                 .RetryWithCooldown(100.Milliseconds(), 250.Milliseconds(), 500.Milliseconds())
                 .Then.MoveToErrorQueue();
 
-
+            _ = opts.Services.AddWolverineHttp();
         });
 
         return builder;

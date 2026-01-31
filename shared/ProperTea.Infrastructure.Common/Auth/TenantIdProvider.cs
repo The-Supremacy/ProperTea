@@ -7,7 +7,7 @@ public interface IOrganizationIdProvider
     public string? GetOrganizationId();
 }
 
-public class TenantIdProvider(IHttpContextAccessor httpContextAccessor) : IOrganizationIdProvider
+public class OrganizationIdProvider(IHttpContextAccessor httpContextAccessor) : IOrganizationIdProvider
 {
     private const string OrganizationIdHeader = "X-Organization-Id";
 
