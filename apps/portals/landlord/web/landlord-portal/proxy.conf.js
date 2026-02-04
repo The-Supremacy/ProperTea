@@ -1,0 +1,20 @@
+module.exports = {
+  '/auth': {
+    target: 'http://localhost:5000',
+    secure: false,
+    changeOrigin: true,
+    logLevel: 'debug',
+  },
+  '/api': {
+    target: 'http://localhost:5000',
+    secure: false,
+    changeOrigin: true,
+    logLevel: 'debug',
+  },
+  '/health': {
+    target: 'http://localhost:5000',
+    secure: false,
+    changeOrigin: true,
+    logLevel: 'debug',
+  },
+};

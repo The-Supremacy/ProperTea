@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ProperTea.Company.Features.Companies.Lifecycle;
 using ProperTea.Infrastructure.Common.Auth;
+using ProperTea.Infrastructure.Common.Pagination;
 using Wolverine;
 using Wolverine.Http;
 
@@ -27,16 +29,22 @@ public static class CompanyEndpoints
 
     [WolverineGet("/companies")]
     [Authorize]
-    public static async Task<List<CompanyResponse>> ListCompanies(
+    public static async Task<IResult> ListCompanies(
         IMessageBus bus,
-        IOrganizationIdProvider orgProvider)
+        HttpContext httpContext,
+        IOrganizationIdProvider orgProvider,
+        [FromQuery] PaginationQuery pagination,
+        [FromQuery] SortQuery sort,
+        [FromQuery] CompanyFilters filters)
     {
         var tenantId = orgProvider.GetOrganizationId()
             ?? throw new UnauthorizedAccessException("Organization ID required");
 
-        return await bus.InvokeForTenantAsync<List<CompanyResponse>>(
+        var result = await bus.InvokeForTenantAsync<PagedResult<CompanyResponse>>(
             tenantId,
-            new ListCompanies());
+            new ListCompanies(filters, pagination, sort));
+
+        return Results.Ok(result);
     }
 
     [WolverineGet("/companies/{id}")]
@@ -89,6 +97,24 @@ public static class CompanyEndpoints
             new DeleteCompany(id));
 
         return Results.NoContent();
+    }
+
+    [WolverineGet("/companies/check-name")]
+    [Authorize]
+    public static async Task<IResult> CheckCompanyName(
+        string name,
+        IMessageBus bus,
+        IOrganizationIdProvider orgProvider,
+        Guid? excludeId = null)
+    {
+        var tenantId = orgProvider.GetOrganizationId()
+            ?? throw new UnauthorizedAccessException("Organization ID required");
+
+        var result = await bus.InvokeForTenantAsync<CheckCompanyNameResult>(
+            tenantId,
+            new CheckCompanyName(name, excludeId));
+
+        return Results.Ok(result);
     }
 }
 

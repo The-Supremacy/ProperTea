@@ -10,35 +10,6 @@ public static class AuthEndpoints
     {
         var group = endpoints.MapGroup("/auth");
 
-        _ = group.MapGet("/user", (HttpContext context) =>
-        {
-            var isAuthenticated = context.User.Identity?.IsAuthenticated ?? false;
-
-            if (!isAuthenticated)
-            {
-                return Results.Ok(new CurrentUserDto(
-                    IsAuthenticated: false,
-                    EmailAddress: string.Empty,
-                    FirstName: string.Empty,
-                    LastName: string.Empty,
-                    OrganizationName: string.Empty
-                ));
-            }
-
-            var email = context.User.FindFirst("email")?.Value ?? string.Empty;
-            var firstName = context.User.FindFirst("given_name")?.Value ?? string.Empty;
-            var lastName = context.User.FindFirst("family_name")?.Value ?? string.Empty;
-            var orgName = context.User.FindFirst("urn:zitadel:iam:user:resourceowner:name")?.Value ?? string.Empty;
-
-            return Results.Ok(new CurrentUserDto(
-                IsAuthenticated: true,
-                EmailAddress: email,
-                FirstName: firstName,
-                LastName: lastName,
-                OrganizationName: orgName
-            ));
-        }).AllowAnonymous();
-
         _ = group.MapGet("/login", (string? returnUrl) =>
         {
             return Results.Challenge(new AuthenticationProperties
@@ -67,11 +38,3 @@ public static class AuthEndpoints
         return endpoints;
     }
 }
-
-public record CurrentUserDto(
-    bool IsAuthenticated,
-    string EmailAddress,
-    string FirstName,
-    string LastName,
-    string OrganizationName
-);

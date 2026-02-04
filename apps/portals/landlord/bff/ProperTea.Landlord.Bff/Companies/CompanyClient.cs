@@ -1,4 +1,29 @@
+using ProperTea.Infrastructure.Common.Pagination;
+
 namespace ProperTea.Landlord.Bff.Companies;
+
+public record CreateCompanyRequest(string Name);
+
+public record UpdateCompanyNameRequest(string Name);
+
+public record CompanyResponse(Guid Id);
+
+public record CompanyListItem(Guid Id, string Name, string Status, DateTimeOffset CreatedAt);
+
+public record CompanyDetailResponse(Guid Id, string Name, string Status, DateTimeOffset CreatedAt);
+
+public record PagedCompaniesResponse(
+    IReadOnlyList<CompanyListItem> Items,
+    int TotalCount,
+    int Page,
+    int PageSize)
+{
+    public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
+    public bool HasNextPage => Page < TotalPages;
+    public bool HasPreviousPage => Page > 1;
+}
+
+public record CheckNameResponse(bool Available, Guid? ExistingCompanyId);
 
 public class CompanyClient(HttpClient httpClient)
 {
@@ -10,10 +35,25 @@ public class CompanyClient(HttpClient httpClient)
             ?? throw new InvalidOperationException("Failed to deserialize company response");
     }
 
-    public async Task<List<CompanyListItem>> GetCompaniesAsync(CancellationToken ct = default)
+    public async Task<PagedCompaniesResponse> GetCompaniesAsync(
+        ListCompaniesQuery query,
+        PaginationQuery pagination,
+        SortQuery sort,
+        CancellationToken ct = default)
     {
-        return await httpClient.GetFromJsonAsync<List<CompanyListItem>>("/companies", ct)
-            ?? [];
+        var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
+
+        queryString["page"] = pagination.Page.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        queryString["pageSize"] = pagination.PageSize.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+        if (!string.IsNullOrWhiteSpace(query.Name))
+            queryString["name"] = query.Name;
+
+        if (!string.IsNullOrWhiteSpace(sort.Sort))
+            queryString["sort"] = sort.Sort;
+
+        return await httpClient.GetFromJsonAsync<PagedCompaniesResponse>($"/companies?{queryString}", ct)
+            ?? new PagedCompaniesResponse([], 0, pagination.Page, pagination.PageSize);
     }
 
     public async Task<CompanyDetailResponse?> GetCompanyAsync(Guid id, CancellationToken ct = default)
@@ -37,15 +77,19 @@ public class CompanyClient(HttpClient httpClient)
         var response = await httpClient.DeleteAsync($"/companies/{id}", ct);
         _ = response.EnsureSuccessStatusCode();
     }
+
+    public async Task<CheckNameResponse> CheckCompanyNameAsync(
+        string name,
+        Guid? excludeId = null,
+        CancellationToken ct = default)
+    {
+        var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
+        queryString["name"] = name;
+
+        if (excludeId.HasValue)
+            queryString["excludeId"] = excludeId.Value.ToString();
+
+        return await httpClient.GetFromJsonAsync<CheckNameResponse>($"/companies/check-name?{queryString}", ct)
+            ?? throw new InvalidOperationException("Failed to check company name");
+    }
 }
-
-// DTOs
-public record CreateCompanyRequest(string Name);
-
-public record UpdateCompanyNameRequest(string Name);
-
-public record CompanyResponse(Guid Id);
-
-public record CompanyListItem(Guid Id, string Name, string Status, DateTimeOffset CreatedAt);
-
-public record CompanyDetailResponse(Guid Id, string Name, string Status, DateTimeOffset CreatedAt);

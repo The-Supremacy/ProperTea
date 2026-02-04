@@ -424,3 +424,4 @@ fabric.properties
 docker-compose.generated.override.yml
 
 */certs
+.garbage/

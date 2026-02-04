@@ -86,3 +86,6 @@ dotnet_diagnostic.IDE0072.severity = suggestion
 
 # CA1822: Mark members as static
 dotnet_diagnostic.CA1822.severity = suggestion
+
+# CA1305: Specify IFormatProvider
+dotnet_diagnostic.CA1305.severity = suggestion

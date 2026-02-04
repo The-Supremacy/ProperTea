@@ -1,7 +1,7 @@
 # General
 - This is a .NET Aspire monorepo. The Source of Truth for Models is in /shared/contracts.
 - We use a BFF pattern. Do not put business logic in the BFF; it is a pass-through/mapper only.
-- Frontend is Next.js/Angular. Use Tailwind for styling.
+- Frontend is Angular. Use Tailwind for all styling.
 
 # Documentation
 - All available project documentation is in /docs.
@@ -24,15 +24,58 @@
   - Shared contracts reside in `ProperTea.Contracts`.
 
 # Angular guidelines
-- **State Management**: Use Signals for local component state. Use Services with Signals for shared state.
-- **Forms**: Use Reactive Forms only.
-- **Styling**:
-    - **PrimeNG Components**: Use pure PrimeNG styling—NO Tailwind color classes on components like p-button, p-card, p-avatar, etc.
-    - **Custom Elements**: Use Tailwind with PrimeNG tokens for custom HTML: `bg-surface-card`, `text-color`, `bg-primary`
-    - **Layout**: Use Tailwind utilities: `flex`, `gap-4`, `p-4`, `w-full`
-    - **Dark Mode**: Always include dark variants for non-theme colors: `text-orange-600 dark:text-orange-400`
-    - See /docs/dev/theming-guide.md for complete strategy
-- **Internationalization**: Use Transloco for all user-facing text. Do not hardcode strings.
-- **Components**:
-    - Follow Atomic Design principles. Keep components small and focused.
-    - Create components split into html, ts, and css/scss files.
+You are an expert in TypeScript, Angular, and scalable web application development. You write functional, maintainable, performant, and accessible code following Angular and TypeScript best practices.
+
+## UI Component Strategy (Headless-First)
+Follow this priority when choosing components:
+1. **Angular Aria** - For: Select, Autocomplete, Menu, Tabs, Tree, Accordion, Listbox, Grid, Toolbar
+2. **Spartan UI** - For: Dialog, Sheet, Date Picker, Toast, Popover, Data Table, Form Field
+3. **Pure Tailwind** - For: Button, Input, Badge, Card, simple layouts
+4. **Angular CDK** - For: Drag/drop, Virtual scroll, Clipboard, Platform detection
+
+## TypeScript Best Practices
+- Use strict type checking
+- Prefer type inference when the type is obvious
+- Avoid the `any` type; use `unknown` when type is uncertain
+
+## Angular Best Practices
+- Always use standalone components over NgModules
+- Must NOT set `standalone: true` inside Angular decorators. It's the default in Angular v20+.
+- Use signals for state management
+- Implement lazy loading for feature routes
+- Do NOT use the `@HostBinding` and `@HostListener` decorators. Put host bindings inside the `host` object of the `@Component` or `@Directive` decorator instead
+- Use `NgOptimizedImage` for all static images.
+  - `NgOptimizedImage` does not work for inline base64 images.
+
+## Accessibility Requirements
+- It MUST pass all AXE checks.
+- It MUST follow all WCAG AA minimums, including focus management, color contrast, and ARIA attributes.
+
+### Components
+- Keep components small and focused on a single responsibility
+- Use `input()` and `output()` functions instead of decorators
+- Use `computed()` for derived state
+- Set `changeDetection: ChangeDetectionStrategy.OnPush` in `@Component` decorator
+- Prefer inline templates for small components
+- Prefer Reactive forms instead of Template-driven ones
+- Do NOT use `ngClass`, use `class` bindings instead
+- Do NOT use `ngStyle`, use `style` bindings instead
+- When using external templates/styles, use paths relative to the component TS file.
+
+## State Management
+- Use signals for local component state
+- Use `computed()` for derived state
+- Keep state transformations pure and predictable
+- Do NOT use `mutate` on signals, use `update` or `set` instead
+
+## Templates
+- Keep templates simple and avoid complex logic
+- Use native control flow (`@if`, `@for`, `@switch`) instead of `*ngIf`, `*ngFor`, `*ngSwitch`
+- Use the async pipe to handle observables
+- Do not assume globals like (`new Date()`) are available.
+- Do not write arrow functions in templates (they are not supported).
+
+## Services
+- Design services around a single responsibility
+- Use the `providedIn: 'root'` option for singleton services
+- Use the `inject()` function instead of constructor injection

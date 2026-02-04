@@ -1,0 +1,52 @@
+{
+  "common": {
+    "toggleMenu": "Перемкнути меню",
+    "search": "Пошук..."
+  },
+  "user": {
+    "profile": "Профіль",
+    "preferences": "Налаштування",
+    "language": "Мова",
+    "lightMode": "Світлий режим",
+    "darkMode": "Темний режим",
+    "switchAccount": "Змінити обліковий запис",
+    "signOut": "Вийти"
+  },
+  "nav": {
+    "expand": "Розгорнути навігацію",
+    "collapse": "Згорнути навігацію",
+    "dashboard": "Панель керування",
+    "companies": "Компанії",
+    "properties": "Нерухомість",
+    "allProperties": "Вся нерухомість",
+    "units": "Приміщення",
+    "tenants": "Орендарі",
+    "rentals": "Оренда",
+    "activeContracts": "Активні контракти",
+    "applications": "Заявки",
+    "maintenance": "Обслуговування",
+    "workOrders": "Заявки на ремонт",
+    "inspections": "Перевірки",
+    "reports": "Звіти"
+  },
+  "breadcrumb": {
+    "home": "Головна"
+  },
+  "footer": {
+    "copyright": "© {{year}} ProperTea. Усі права захищено.",
+    "status": "Статус:",
+    "healthy": "Бекенд працює",
+    "unhealthy": "Проблеми з підключенням до бекенду",
+    "connected": "Підключено",
+    "disconnected": "Відключено"
+  },
+  "dashboard": {
+    "welcome": "Ласкаво просимо до панелі керування нерухомістю",
+    "properties": "Нерухомість",
+    "totalProperties": "Всього об'єктів",
+    "units": "Приміщення",
+    "totalUnits": "Всього приміщень",
+    "occupancy": "Заповненість",
+    "currentOccupancy": "Поточний рівень заповненості"
+  }
+}

@@ -11,7 +11,7 @@ ProperTea is a cloud-native, event-driven property management platform built on 
 - **Multi-Tenancy**: Marten conjoined tenancy with organization-level isolation
 - **Authentication**: ZITADEL (External IdP) with JWT bearer tokens
 - **Authorization**: OpenFGA for fine-grained permissions (planned)
-- **Frontend**: Angular 21+ with PrimeNG and Tailwind CSS
+- **Frontend**: Angular 21+ with Tailwind CSS (Headless: Angular Aria + Spartan UI)
 - **Orchestration**: .NET Aspire for local development
 
 ## 📁 Repository Structure
@@ -116,7 +116,9 @@ dotnet test apps/services/ProperTea.Company
 
 ### Frontend
 - Angular 21+ (Standalone Components, Signals)
-- PrimeNG (UI Components)
+- Angular Aria (Headless accessible components)
+- Spartan UI (shadcn-style components)
+- TanStack Table (Data grids)
 - Tailwind CSS (Styling)
 - Transloco (i18n)
 

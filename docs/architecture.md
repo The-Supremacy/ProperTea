@@ -54,12 +54,12 @@ ProperTea is a multi-tenant Real Estate ERP built on .NET 10 using a microservic
 
 ### Landlord Portal (`apps/portals/landlord/web`)
 **Responsibility**: Angular SPA providing the landlord user interface.
-- **Stack**: Angular 21+ (standalone components, signals), PrimeNG, Tailwind CSS
-- **Theming**: Custom PrimeNG preset with `tailwindcss-primeui` integration. See [/docs/dev/theming-guide.md](./dev/theming-guide.md)
+- **Stack**: Angular 21+ (standalone components, signals), Tailwind CSS
+- **Components**: Headless-first (Angular Aria + Spartan UI + TanStack Table)
 - **State Management**: Signals for local state, Services with Signals for shared state
 - **Forms**: Reactive Forms only
 - **i18n**: Transloco for internationalization
-- **Dark Mode**: System preference detection with manual override
+- **Dark Mode**: CSS custom properties with system preference detection
 
 ## Development Patterns
 

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using ProperTea.Infrastructure.Common.Pagination;
 
 namespace ProperTea.Landlord.Bff.Companies;
 
@@ -15,6 +16,9 @@ public static class CompanyEndpoints
 
         _ = group.MapGet("/", GetCompanies)
             .WithName("GetCompanies");
+
+        _ = group.MapGet("/check-name", CheckCompanyName)
+            .WithName("CheckCompanyName");
 
         _ = group.MapGet("/{id:guid}", GetCompany)
             .WithName("GetCompany");
@@ -39,10 +43,23 @@ public static class CompanyEndpoints
 
     private static async Task<IResult> GetCompanies(
         [FromServices] CompanyClient client,
-        CancellationToken ct)
+        [AsParameters] ListCompaniesQuery query,
+        [AsParameters] PaginationQuery pagination,
+        [AsParameters] SortQuery sort,
+        CancellationToken ct = default)
     {
-        var companies = await client.GetCompaniesAsync(ct);
+        var companies = await client.GetCompaniesAsync(query, pagination, sort, ct);
         return Results.Ok(companies);
+    }
+
+    private static async Task<IResult> CheckCompanyName(
+        [FromServices] CompanyClient client,
+        [FromQuery] string name,
+        [FromQuery] Guid? excludeId = null,
+        CancellationToken ct = default)
+    {
+        var result = await client.CheckCompanyNameAsync(name, excludeId, ct);
+        return Results.Ok(result);
     }
 
     private static async Task<IResult> GetCompany(
@@ -51,7 +68,7 @@ public static class CompanyEndpoints
         CancellationToken ct)
     {
         var company = await client.GetCompanyAsync(id, ct);
-        return company == null ? Results.NotFound() : Results.Ok(company);
+        return company is null ? Results.NotFound() : Results.Ok(company);
     }
 
     private static async Task<IResult> UpdateCompanyName(

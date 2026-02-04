@@ -4,6 +4,7 @@ using ProperTea.Landlord.Bff.Auth;
 using ProperTea.Landlord.Bff.Companies;
 using ProperTea.Landlord.Bff.Config;
 using ProperTea.Landlord.Bff.Organizations;
+using ProperTea.Landlord.Bff.Session;
 using ProperTea.Landlord.Bff.Users;
 using ProperTea.ServiceDefaults;
 
@@ -67,6 +68,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAuthEndpoints();
+app.MapSessionEndpoints();
 app.MapOrganizationEndpoints();
 app.MapUserEndpoints();
 app.MapCompanyEndpoints();

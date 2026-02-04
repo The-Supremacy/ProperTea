@@ -9,7 +9,6 @@ public static class OrganizationEndpoints
         var group = endpoints.MapGroup("/api/organizations")
             .WithTags("Organizations");
 
-
         _ = group.MapGet("/check-availability", CheckAvailability)
             .WithName("CheckAvailability")
             .AllowAnonymous();

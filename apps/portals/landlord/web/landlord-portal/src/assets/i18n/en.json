@@ -1,0 +1,52 @@
+{
+  "common": {
+    "toggleMenu": "Toggle menu",
+    "search": "Search..."
+  },
+  "user": {
+    "profile": "Profile",
+    "preferences": "Preferences",
+    "language": "Language",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode",
+    "switchAccount": "Switch account",
+    "signOut": "Sign out"
+  },
+  "nav": {
+    "expand": "Expand navigation",
+    "collapse": "Collapse navigation",
+    "dashboard": "Dashboard",
+    "companies": "Companies",
+    "properties": "Properties",
+    "allProperties": "All Properties",
+    "units": "Units",
+    "tenants": "Tenants",
+    "rentals": "Rentals",
+    "activeContracts": "Active Contracts",
+    "applications": "Applications",
+    "maintenance": "Maintenance",
+    "workOrders": "Work Orders",
+    "inspections": "Inspections",
+    "reports": "Reports"
+  },
+  "breadcrumb": {
+    "home": "Home"
+  },
+  "footer": {
+    "copyright": "© {{year}} ProperTea. All rights reserved.",
+    "status": "Status:",
+    "healthy": "Backend is healthy",
+    "unhealthy": "Backend connection issues",
+    "connected": "Connected",
+    "disconnected": "Disconnected"
+  },
+  "dashboard": {
+    "welcome": "Welcome to your property management dashboard",
+    "properties": "Properties",
+    "totalProperties": "Total properties",
+    "units": "Units",
+    "totalUnits": "Total units",
+    "occupancy": "Occupancy",
+    "currentOccupancy": "Current occupancy rate"
+  }
+}
