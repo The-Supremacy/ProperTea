@@ -1,52 +1,49 @@
 {
   "common": {
-    "toggleMenu": "Toggle menu",
-    "search": "Search..."
+    "search": "Search...",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   },
   "user": {
     "profile": "Profile",
     "preferences": "Preferences",
     "language": "Language",
-    "lightMode": "Light mode",
-    "darkMode": "Dark mode",
-    "switchAccount": "Switch account",
-    "signOut": "Sign out"
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "switchAccount": "Switch Account",
+    "signOut": "Sign Out"
   },
   "nav": {
-    "expand": "Expand navigation",
     "collapse": "Collapse navigation",
     "dashboard": "Dashboard",
-    "companies": "Companies",
-    "properties": "Properties",
-    "allProperties": "All Properties",
-    "units": "Units",
-    "tenants": "Tenants",
-    "rentals": "Rentals",
-    "activeContracts": "Active Contracts",
-    "applications": "Applications",
-    "maintenance": "Maintenance",
-    "workOrders": "Work Orders",
-    "inspections": "Inspections",
-    "reports": "Reports"
-  },
-  "breadcrumb": {
-    "home": "Home"
+    "companies": "Companies"
   },
   "footer": {
     "copyright": "© {{year}} ProperTea. All rights reserved.",
-    "status": "Status:",
-    "healthy": "Backend is healthy",
-    "unhealthy": "Backend connection issues",
-    "connected": "Connected",
-    "disconnected": "Disconnected"
+    "healthy": "Healthy",
+    "unhealthy": "Unhealthy"
   },
   "dashboard": {
-    "welcome": "Welcome to your property management dashboard",
-    "properties": "Properties",
-    "totalProperties": "Total properties",
-    "units": "Units",
-    "totalUnits": "Total units",
-    "occupancy": "Occupancy",
-    "currentOccupancy": "Current occupancy rate"
+    "title": "Dashboard",
+    "welcome": "Welcome to ProperTea Property Management",
+    "stats": {
+      "totalProperties": "Total Properties",
+      "propertiesChange": "+{{count}} from last month",
+      "activeLeases": "Active Leases",
+      "occupancyRate": "{{rate}}% occupancy",
+      "pendingRequests": "Pending Requests",
+      "urgentCount": "{{count}} urgent",
+      "revenueMTD": "Revenue (MTD)",
+      "revenueChange": "+{{percent}}% from last month"
+    },
+    "activity": {
+      "title": "Recent Activity",
+      "description": "Latest updates across your properties",
+      "leaseSigned": "Lease signed - Unit {{unit}}",
+      "maintenanceRequest": "Maintenance request - {{location}}",
+      "paymentReceived": "Payment received - {{amount}}",
+      "hoursAgo": "{{hours}} hours ago",
+      "daysAgo": "{{days}} day ago"
+    }
   }
 }

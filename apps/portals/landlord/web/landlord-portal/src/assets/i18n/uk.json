@@ -1,7 +1,8 @@
 {
   "common": {
-    "toggleMenu": "Перемкнути меню",
-    "search": "Пошук..."
+    "search": "Пошук...",
+    "cancel": "Скасувати",
+    "confirm": "Підтвердити"
   },
   "user": {
     "profile": "Профіль",
@@ -13,40 +14,36 @@
     "signOut": "Вийти"
   },
   "nav": {
-    "expand": "Розгорнути навігацію",
     "collapse": "Згорнути навігацію",
     "dashboard": "Панель керування",
-    "companies": "Компанії",
-    "properties": "Нерухомість",
-    "allProperties": "Вся нерухомість",
-    "units": "Приміщення",
-    "tenants": "Орендарі",
-    "rentals": "Оренда",
-    "activeContracts": "Активні контракти",
-    "applications": "Заявки",
-    "maintenance": "Обслуговування",
-    "workOrders": "Заявки на ремонт",
-    "inspections": "Перевірки",
-    "reports": "Звіти"
-  },
-  "breadcrumb": {
-    "home": "Головна"
+    "companies": "Компанії"
   },
   "footer": {
     "copyright": "© {{year}} ProperTea. Усі права захищено.",
-    "status": "Статус:",
-    "healthy": "Бекенд працює",
-    "unhealthy": "Проблеми з підключенням до бекенду",
-    "connected": "Підключено",
-    "disconnected": "Відключено"
+    "healthy": "Працює",
+    "unhealthy": "Не працює"
   },
   "dashboard": {
+    "title": "Панель керування",
     "welcome": "Ласкаво просимо до панелі керування нерухомістю",
-    "properties": "Нерухомість",
-    "totalProperties": "Всього об'єктів",
-    "units": "Приміщення",
-    "totalUnits": "Всього приміщень",
-    "occupancy": "Заповненість",
-    "currentOccupancy": "Поточний рівень заповненості"
+    "stats": {
+      "totalProperties": "Всього об'єктів",
+      "propertiesChange": "+{{count}} за минулий місяць",
+      "activeLeases": "Активні договори",
+      "occupancyRate": "{{rate}}% заповненість",
+      "pendingRequests": "Заявки в обробці",
+      "urgentCount": "{{count}} термінових",
+      "revenueMTD": "Дохід (МТД)",
+      "revenueChange": "+{{percent}}% за минулий місяць"
+    },
+    "activity": {
+      "title": "Остання активність",
+      "description": "Останні оновлення по всіх об'єктах",
+      "leaseSigned": "Договір підписано - Приміщення {{unit}}",
+      "maintenanceRequest": "Заявка на обслуговування - {{location}}",
+      "paymentReceived": "Оплата отримана - {{amount}}",
+      "hoursAgo": "{{hours}} годин тому",
+      "daysAgo": "{{days}} день тому"
+    }
   }
 }

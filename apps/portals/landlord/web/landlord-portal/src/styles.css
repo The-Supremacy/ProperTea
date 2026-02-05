@@ -1,8 +1,7 @@
 @import "tailwindcss";
+@import '@angular/cdk/overlay-prebuilt.css';
 
-/* Tailwind v4: Define design tokens with @theme */
 @theme {
-  /* Colors using HSL values */
   --color-background: hsl(0 0% 100%);
   --color-foreground: hsl(222.2 84% 4.9%);
   --color-card: hsl(0 0% 100%);
@@ -23,13 +22,11 @@
   --color-input: hsl(214.3 31.8% 91.4%);
   --color-ring: hsl(222.2 84% 4.9%);
 
-  /* Border radius */
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
 }
 
-/* Dark mode overrides */
 @layer base {
   .dark {
     --color-background: hsl(222.2 84% 4.9%);
@@ -54,9 +51,7 @@
   }
 }
 
-/* Reusable component classes */
 @layer components {
-  /* Buttons */
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2
            text-sm font-medium transition-colors focus-visible:outline-none
@@ -76,7 +71,6 @@
     @apply bg-destructive text-destructive-foreground hover:bg-destructive/90;
   }
 
-  /* Inputs */
   .input {
     @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2
            text-sm ring-offset-background file:border-0 file:bg-transparent
@@ -85,7 +79,6 @@
            disabled:cursor-not-allowed disabled:opacity-50;
   }
 
-  /* Cards */
   .card {
     @apply rounded-lg border bg-card text-card-foreground shadow-sm;
   }
@@ -105,7 +98,6 @@
     @apply flex items-center p-6 pt-0;
   }
 
-  /* Listbox/Select (for Angular CDK/Aria) */
   .listbox {
     @apply rounded-md border bg-popover p-1 text-popover-foreground shadow-md;
   }
@@ -113,13 +105,12 @@
     @apply relative flex cursor-pointer select-none items-center rounded-sm
            px-2 py-1.5 text-sm outline-none transition-colors
            hover:bg-accent hover:text-accent-foreground
-           data-[disabled]:pointer-events-none data-[disabled]:opacity-50;
+           data-disabled:pointer-events-none data-disabled:opacity-50;
   }
   .listbox-option-selected {
     @apply bg-accent text-accent-foreground;
   }
 
-  /* Badge */
   .badge {
     @apply inline-flex items-center rounded-full border px-2.5 py-0.5
            text-xs font-semibold transition-colors;
