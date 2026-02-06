@@ -5,11 +5,11 @@ public static class SessionEndpoints
     public static IEndpointRouteBuilder MapSessionEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/session")
-            .WithTags("Session")
-            .RequireAuthorization();
+            .WithTags("Session");
 
         _ = group.MapGet("", GetSession)
-            .WithName("GetSession");
+            .WithName("GetSession")
+            .AllowAnonymous();
 
         return endpoints;
     }

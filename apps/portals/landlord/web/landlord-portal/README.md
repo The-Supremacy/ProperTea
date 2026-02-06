@@ -69,8 +69,7 @@ src/
 │   │       ├── pages/
 │   │       │   └── dashboard-home/
 │   │       └── dashboard.routes.ts
-│   ├── layout/                      # Shell layout components
-│   │   ├── app-shell/
+│   ├── layout/                      # Layout components
 │   │   ├── header/
 │   │   ├── sidebar/
 │   │   └── footer/

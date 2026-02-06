@@ -43,12 +43,9 @@ export class UserPreferencesService {
     this.http.get<UserPreferences>('/api/users/preferences')
       .pipe(
         catchError(() => {
-          // If API fails, keep current local preferences
           return of(localPreferences);
         }),
         tap(backendPrefs => {
-          // Merge backend preferences with local overrides
-          // Local changes take precedence as they're the most recent
           const merged: UserPreferences = {
             theme: localPreferences.theme !== this.getInitialTheme() ? localPreferences.theme : backendPrefs.theme,
             language: localPreferences.language !== this.getInitialLanguage() ? localPreferences.language : backendPrefs.language

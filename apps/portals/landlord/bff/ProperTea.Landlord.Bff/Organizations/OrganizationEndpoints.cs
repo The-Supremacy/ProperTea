@@ -9,8 +9,8 @@ public static class OrganizationEndpoints
         var group = endpoints.MapGroup("/api/organizations")
             .WithTags("Organizations");
 
-        _ = group.MapGet("/check-availability", CheckAvailability)
-            .WithName("CheckAvailability")
+        _ = group.MapGet("/check-name", CheckName)
+            .WithName("CheckName")
             .AllowAnonymous();
 
         _ = group.MapPost("/", RegisterOrganization)
@@ -33,12 +33,12 @@ public static class OrganizationEndpoints
         return Results.Created($"/api/organizations/{result.OrganizationId}", result);
     }
 
-    private static async Task<IResult> CheckAvailability(
+    private static async Task<IResult> CheckName(
         [FromQuery] string? name,
         OrganizationClientAnonymous client,
         CancellationToken ct)
     {
-        var result = await client.CheckAvailabilityAsync(name, ct);
+        var result = await client.CheckNameAsync(name, ct);
         return Results.Ok(result);
     }
 

@@ -45,13 +45,13 @@ public static class OrganizationEndpoints
         return await bus.InvokeAsync<AuditLogResponse>(query);
     }
 
-    [WolverineGet("/organizations/check-availability")]
+    [WolverineGet("/organizations/check-name")]
     [AllowAnonymous]
-    public static async Task<CheckAvailabilityResult> CheckAvailability(
-        [AsParameters] CheckAvailabilityQuery query,
+    public static async Task<CheckNameResult> CheckName(
+        [AsParameters] CheckNameQuery query,
         IMessageBus bus)
     {
-        return await bus.InvokeAsync<CheckAvailabilityResult>(query);
+        return await bus.InvokeAsync<CheckNameResult>(query);
     }
 }
 

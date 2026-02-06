@@ -27,7 +27,7 @@ public record RegisterOrganizationResponse(
     Guid OrganizationId
 );
 
-public record CheckAvailabilityResponse(
+public record CheckNameResponse(
     bool NameAvailable
 );
 

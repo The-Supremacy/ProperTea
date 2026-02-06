@@ -57,31 +57,39 @@ export class SessionService {
   readonly userEmail = computed(() => this.sessionContext()?.emailAddress ?? '');
   readonly organizationName = computed(() => this.sessionContext()?.organizationName ?? '');
 
-  loadSessionData(): Observable<SessionContext | null> {
+  refreshSessionData(): Observable<SessionContext | null> {
     this.loadingState.set(true);
 
     return this.http.get<SessionContext>('/api/session').pipe(
       tap(user => this.sessionContext.set(user)),
       catchError(() => {
-        this.sessionContext.set(null);
+        this.sessionContext.set({
+          isAuthenticated: false,
+          emailAddress: '',
+          firstName: '',
+          lastName: '',
+          organizationName: '',
+          organizationId: '',
+          userId: ''
+        });
         return of(null);
       }),
       tap(() => this.loadingState.set(false))
     );
   }
 
-  login(returnUrl?: string): void {
-    const targetUrl = returnUrl ?? window.location.href;
+  login(): void {
+    const targetUrl = window.location.href;
     window.location.href = `/auth/login?returnUrl=${encodeURIComponent(targetUrl)}`;
   }
 
-  logout(returnUrl?: string): void {
-    const targetUrl = returnUrl ?? window.location.href;
+  logout(): void {
+    const targetUrl = window.location.origin;
     window.location.href = `/auth/logout?returnUrl=${encodeURIComponent(targetUrl)}`;
   }
 
-  switchAccount(returnUrl?: string): void {
-    const url = returnUrl ?? window.location.href;
+  switchAccount(): void {
+    const url = window.location.href;
     window.location.href = `/auth/select_account?returnUrl=${encodeURIComponent(url)}`;
   }
 }

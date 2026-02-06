@@ -23,6 +23,46 @@
     "healthy": "Healthy",
     "unhealthy": "Unhealthy"
   },
+  "landing": {
+    "hero": {
+      "title": "Modern Property Management",
+      "subtitle": "Streamline your property operations with our next-generation ERP platform. Built for efficiency, designed for growth."
+    },
+    "cta": {
+      "getStarted": "Get Started",
+      "signIn": "Sign In",
+      "documentation": "Documentation"
+    }
+  },
+  "register": {
+    "title": "Create Your Organization",
+    "subtitle": "Get started with ProperTea by setting up your organization and account.",
+    "organizationName": "Organization Name",
+    "organizationNamePlaceholder": "Acme Corporation",
+    "organizationNameRequired": "Organization name is required",
+    "organizationNameTaken": "This organization name is already taken",
+    "yourDetails": "Your Details",
+    "email": "Email Address",
+    "emailPlaceholder": "you@example.com",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Please enter a valid email address",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "John",
+    "firstNameRequired": "First name is required",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Doe",
+    "lastNameRequired": "Last name is required",
+    "password": "Password",
+    "passwordRequired": "Password is required",
+    "passwordRequirements": "Password must be 8-100 characters and contain lowercase, uppercase, number, and special character",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordRequired": "Please confirm your password",
+    "passwordMismatch": "Passwords do not match",
+    "submit": "Create Organization",
+    "submitting": "Creating Organization...",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign in"
+  },
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome to ProperTea Property Management",

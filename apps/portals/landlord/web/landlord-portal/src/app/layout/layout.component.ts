@@ -1,14 +1,13 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { HeaderComponent, LanguageOption } from '../header/header.component';
-import { NavigationComponent, MenuItem } from '../navigation/navigation.component';
-import { FooterComponent } from '../footer/footer.component';
-import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
-import { SessionService } from '../../core/services/session.service';
-import { HealthService } from '../../core/services/health.service';
-import { UserPreferencesService } from '../../core/services/user-preferences.service';
-import { ResponsiveService } from '../../core/services/responsive.service';
+import { HeaderComponent, LanguageOption } from './header/header.component';
+import { NavigationComponent, MenuItem } from './navigation/navigation.component';
+import { FooterComponent } from './footer/footer.component';
+import { BreadcrumbComponent } from './breadcrumb/breadcrumb.component';
+import { SessionService } from '../core/services/session.service';
+import { HealthService } from '../core/services/health.service';
+import { UserPreferencesService } from '../core/services/user-preferences.service';
+import { ResponsiveService } from '../core/services/responsive.service';
 
 const AVAILABLE_LANGUAGES: LanguageOption[] = [
   { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -16,7 +15,7 @@ const AVAILABLE_LANGUAGES: LanguageOption[] = [
 ];
 
 @Component({
-  selector: 'app-shell',
+  selector: 'app-layout',
   imports: [
     RouterOutlet,
     HeaderComponent,
@@ -72,14 +71,12 @@ const AVAILABLE_LANGUAGES: LanguageOption[] = [
     </div>
   `
 })
-export class AppShellComponent implements OnInit, OnDestroy {
+export class AppLayoutComponent implements OnInit {
   private router = inject(Router);
   private sessionService = inject(SessionService);
   private healthService = inject(HealthService);
   protected readonly preferencesService = inject(UserPreferencesService);
   protected readonly responsive = inject(ResponsiveService);
-
-  private sessionSubscription?: Subscription;
 
   navCollapsed = signal(false);
   mobileDrawerOpen = signal(false);
@@ -103,13 +100,8 @@ export class AppShellComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit(): void {
-    this.sessionSubscription = this.sessionService.loadSessionData().subscribe();
     this.healthService.startMonitoring();
     this.preferencesService.loadPreferences();
-  }
-
-  ngOnDestroy(): void {
-    this.sessionSubscription?.unsubscribe();
   }
 
   protected toggleNavCollapse(): void {
@@ -129,7 +121,7 @@ export class AppShellComponent implements OnInit, OnDestroy {
   }
 
   protected openProfile(): void {
-    const idpUrl = 'http://localhost:8080';
+    const idpUrl = 'http://localhost:9080';
     window.open(`${idpUrl}/ui/console/users/me`, '_blank');
   }
 

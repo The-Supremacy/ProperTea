@@ -4,7 +4,7 @@ namespace ProperTea.Landlord.Bff.Organizations;
 
 public class OrganizationClientAnonymous(HttpClient httpClient)
 {
-    public async Task<CheckAvailabilityResponse> CheckAvailabilityAsync(
+    public async Task<CheckNameResponse> CheckNameAsync(
         string? name = null,
         CancellationToken ct = default)
     {
@@ -13,8 +13,8 @@ public class OrganizationClientAnonymous(HttpClient httpClient)
             query.Add($"name={Uri.EscapeDataString(name)}");
 
         var queryString = query.Count > 0 ? "?" + string.Join("&", query) : "";
-        return (await httpClient.GetFromJsonAsync<CheckAvailabilityResponse>(
-            $"/organizations/check-availability{queryString}", ct))!;
+        return (await httpClient.GetFromJsonAsync<CheckNameResponse>(
+            $"/organizations/check-name{queryString}", ct))!;
     }
 
     public async Task<RegisterOrganizationResponse> RegisterOrganizationAsync(

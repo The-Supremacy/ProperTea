@@ -3,10 +3,10 @@ using Wolverine;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
-public class CheckAvailabilityHandler : IWolverineHandler
+public class CheckNameHandler : IWolverineHandler
 {
-    public async Task<CheckAvailabilityResult> Handle(
-        CheckAvailabilityQuery query,
+    public async Task<CheckNameResult> Handle(
+        CheckNameQuery query,
         IExternalOrganizationClient externalOrgClient,
         CancellationToken ct)
     {
@@ -18,10 +18,10 @@ public class CheckAvailabilityHandler : IWolverineHandler
             nameAvailable = !exists;
         }
 
-        return new CheckAvailabilityResult(nameAvailable);
+        return new CheckNameResult(nameAvailable);
     }
 }
 
-public record CheckAvailabilityQuery(string? Name);
+public record CheckNameQuery(string? Name);
 
-public record CheckAvailabilityResult(bool NameAvailable);
+public record CheckNameResult(bool NameAvailable);

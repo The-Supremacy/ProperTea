@@ -149,7 +149,7 @@ export interface LanguageOption {
                   ngMenuItem
                   [value]="lang.code"
                   (click)="languageChange.emit(lang.code)"
-                  [class]="'flex h-8 w-8 items-center justify-center rounded text-lg transition-colors hover:bg-accent ' + 
+                  [class]="'flex h-8 w-8 items-center justify-center rounded text-lg transition-colors hover:bg-accent ' +
                     (lang.code === currentLanguage().code ? 'ring-2 ring-primary' : '')"
                   [title]="lang.name">
                   {{ lang.flag }}

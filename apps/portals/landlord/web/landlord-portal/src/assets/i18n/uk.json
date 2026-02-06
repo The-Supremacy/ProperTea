@@ -23,6 +23,46 @@
     "healthy": "Працює",
     "unhealthy": "Не працює"
   },
+  "landing": {
+    "hero": {
+      "title": "Сучасне керування нерухомістю",
+      "subtitle": "Оптимізуйте роботу з нерухомістю за допомогою платформи нового покоління. Створено для ефективності та зростання."
+    },
+    "cta": {
+      "getStarted": "Розпочати",
+      "signIn": "Увійти",
+      "documentation": "Документація"
+    }
+  },
+  "register": {
+    "title": "Створіть свою організацію",
+    "subtitle": "Почніть роботу з ProperTea, налаштувавши свою організацію та обліковий запис.",
+    "organizationName": "Назва організації",
+    "organizationNamePlaceholder": "АТ 'Компанія'",
+    "organizationNameRequired": "Назва організації є обов'язковою",
+    "organizationNameTaken": "Ця назва організації вже зайнята",
+    "yourDetails": "Ваші дані",
+    "email": "Електронна адреса",
+    "emailPlaceholder": "you@example.com",
+    "emailRequired": "Електронна адреса є обов'язковою",
+    "emailInvalid": "Будь ласка, введіть дійсну електронну адресу",
+    "firstName": "Ім'я",
+    "firstNamePlaceholder": "Іван",
+    "firstNameRequired": "Ім'я є обов'язковим",
+    "lastName": "Прізвище",
+    "lastNamePlaceholder": "Іваненко",
+    "lastNameRequired": "Прізвище є обов'язковим",
+    "password": "Пароль",
+    "passwordRequired": "Пароль є обов'язковим",
+    "passwordRequirements": "Пароль має містити 8-100 символів, включаючи малі літери, великі літери, цифри та спеціальні символи",
+    "confirmPassword": "Підтвердіть пароль",
+    "confirmPasswordRequired": "Будь ласка, підтвердіть пароль",
+    "passwordMismatch": "Паролі не збігаються",
+    "submit": "Створити організацію",
+    "submitting": "Створення організації...",
+    "alreadyHaveAccount": "Вже маєте обліковий запис?",
+    "signIn": "Увійти"
+  },
   "dashboard": {
     "title": "Панель керування",
     "welcome": "Ласкаво просимо до панелі керування нерухомістю",

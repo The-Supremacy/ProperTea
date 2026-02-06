@@ -60,6 +60,10 @@ export class BreadcrumbComponent {
     url: string = '',
     breadcrumbs: Breadcrumb[] = []
   ): Breadcrumb[] {
+    if (!route || !route.snapshot) {
+      return breadcrumbs;
+    }
+
     const routeData = route.snapshot.data;
     const routePath = route.snapshot.url.map(segment => segment.path).join('/');
 
