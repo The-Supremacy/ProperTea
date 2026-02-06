@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { HeaderComponent, LanguageOption } from './header/header.component';
 import { NavigationComponent, MenuItem } from './navigation/navigation.component';
@@ -9,6 +9,9 @@ import { HealthService } from '../core/services/health.service';
 import { UserPreferencesService } from '../core/services/user-preferences.service';
 import { ResponsiveService } from '../core/services/responsive.service';
 
+// TODO: Move to environment config or read from BFF config endpoint
+const IDP_BASE_URL = 'http://localhost:9080';
+
 const AVAILABLE_LANGUAGES: LanguageOption[] = [
   { code: 'en', name: 'English', flag: '🇬🇧' },
   { code: 'uk', name: 'Українська', flag: '🇺🇦' }
@@ -16,6 +19,7 @@ const AVAILABLE_LANGUAGES: LanguageOption[] = [
 
 @Component({
   selector: 'app-layout',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterOutlet,
     HeaderComponent,
@@ -71,7 +75,7 @@ const AVAILABLE_LANGUAGES: LanguageOption[] = [
     </div>
   `
 })
-export class AppLayoutComponent implements OnInit {
+export class AppLayoutComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private sessionService = inject(SessionService);
   private healthService = inject(HealthService);
@@ -104,6 +108,10 @@ export class AppLayoutComponent implements OnInit {
     this.preferencesService.loadPreferences();
   }
 
+  ngOnDestroy(): void {
+    this.healthService.stopMonitoring();
+  }
+
   protected toggleNavCollapse(): void {
     this.navCollapsed.update(v => !v);
   }
@@ -121,8 +129,7 @@ export class AppLayoutComponent implements OnInit {
   }
 
   protected openProfile(): void {
-    const idpUrl = 'http://localhost:9080';
-    window.open(`${idpUrl}/ui/console/users/me`, '_blank');
+    window.open(`${IDP_BASE_URL}/ui/console/users/me`, '_blank');
   }
 
   protected openPreferences(): void {

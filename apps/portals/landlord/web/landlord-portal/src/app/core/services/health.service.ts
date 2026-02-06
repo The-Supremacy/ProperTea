@@ -1,6 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { interval, startWith, switchMap, catchError, of } from 'rxjs';
+import { interval, startWith, switchMap, catchError, of, Subscription } from 'rxjs';
 
 export interface HealthStatus {
   isHealthy: boolean;
@@ -13,6 +13,9 @@ export interface HealthStatus {
 export class HealthService {
   private http = inject(HttpClient);
 
+  private subscription: Subscription | null = null;
+  private monitoring = false;
+
   private healthStatus = signal<HealthStatus>({
     isHealthy: true,
     lastChecked: new Date()
@@ -21,7 +24,11 @@ export class HealthService {
   readonly status = this.healthStatus.asReadonly();
 
   startMonitoring(intervalMs = 30000): void {
-    interval(intervalMs)
+    if (this.monitoring)
+      return;
+
+    this.monitoring = true;
+    this.subscription = interval(intervalMs)
       .pipe(
         startWith(0),
         switchMap(() =>
@@ -36,5 +43,11 @@ export class HealthService {
           lastChecked: new Date()
         });
       });
+  }
+
+  stopMonitoring(): void {
+    this.subscription?.unsubscribe();
+    this.subscription = null;
+    this.monitoring = false;
   }
 }

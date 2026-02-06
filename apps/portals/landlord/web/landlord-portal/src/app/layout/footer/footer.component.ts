@@ -1,9 +1,10 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { HealthService } from '../../core/services/health.service';
 
 @Component({
   selector: 'app-footer',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TranslocoPipe],
   template: `
     <footer class="flex h-10 items-center justify-between border-t bg-background px-4 text-xs text-muted-foreground">
@@ -25,11 +26,7 @@ import { HealthService } from '../../core/services/health.service';
     </footer>
   `
 })
-export class FooterComponent implements OnInit {
+export class FooterComponent {
   protected healthService = inject(HealthService);
   protected currentYear = new Date().getFullYear();
-
-  ngOnInit(): void {
-    this.healthService.startMonitoring(30000);
-  }
 }

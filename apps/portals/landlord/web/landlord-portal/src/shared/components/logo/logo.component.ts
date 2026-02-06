@@ -1,8 +1,9 @@
-import { Component, input } from '@angular/core';
-import { IconComponent } from '../../../shared/components/icon';
+import { Component, input, ChangeDetectionStrategy, computed } from '@angular/core';
+import { IconComponent } from '../icon';
 
 @Component({
   selector: 'app-logo',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [IconComponent],
   template: `
     <div class="inline-flex items-center gap-2">
@@ -23,13 +24,13 @@ export class LogoComponent {
 
   showText = input<boolean>(true);
 
-  iconSize(): number {
+  protected iconSize = computed(() => {
     const sizes = { sm: 20, md: 24, lg: 32 };
     return sizes[this.size()];
-  }
+  });
 
-  textClass(): string {
+  protected textClass = computed(() => {
     const textSizes = { sm: 'text-base', md: 'text-xl', lg: 'text-2xl' };
     return `font-bold ${textSizes[this.size()]}`;
-  }
+  });
 }

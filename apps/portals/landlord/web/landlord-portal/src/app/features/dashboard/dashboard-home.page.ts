@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
-import { TranslocoModule } from '@jsverse/transloco';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-dashboard-home',
-  imports: [TranslocoModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TranslocoPipe],
   template: `
     <div class="space-y-6">
         <div>
@@ -65,22 +66,22 @@ import { TranslocoModule } from '@jsverse/transloco';
                 <div class="flex-1">
                   <p class="text-sm font-medium">{{ 'dashboard.activity.leaseSigned' | transloco: {unit: '4B'} }}</p>
                   <p class="text-xs text-muted-foreground">{{ 'dashboard.activity.hoursAgo' | transloco: {hours: 2} }}</p>
+                </div>
               </div>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="h-2 w-2 rounded-full bg-yellow-500"></div>
-              <div class="flex-1">
-                <p class="text-sm font-medium">{{ 'dashboard.activity.maintenanceRequest' | transloco: {location: 'Building A'} }}</p>
-                <p class="text-xs text-muted-foreground">{{ 'dashboard.activity.hoursAgo' | transloco: {hours: 5} }}</p>
+              <div class="flex items-center gap-4">
+                <div class="h-2 w-2 rounded-full bg-yellow-500"></div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium">{{ 'dashboard.activity.maintenanceRequest' | transloco: {location: 'Building A'} }}</p>
+                  <p class="text-xs text-muted-foreground">{{ 'dashboard.activity.hoursAgo' | transloco: {hours: 5} }}</p>
+                </div>
               </div>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="h-2 w-2 rounded-full bg-blue-500"></div>
-              <div class="flex-1">
-                <p class="text-sm font-medium">{{ 'dashboard.activity.paymentReceived' | transloco: {amount: '$2,500'} }}</p>
-                <p class="text-xs text-muted-foreground">{{ 'dashboard.activity.daysAgo' | transloco: {days: 1} }}</p>
+              <div class="flex items-center gap-4">
+                <div class="h-2 w-2 rounded-full bg-blue-500"></div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium">{{ 'dashboard.activity.paymentReceived' | transloco: {amount: '$2,500'} }}</p>
+                  <p class="text-xs text-muted-foreground">{{ 'dashboard.activity.daysAgo' | transloco: {days: 1} }}</p>
+                </div>
               </div>
-            </div>
           </div>
         </div>
       </div>

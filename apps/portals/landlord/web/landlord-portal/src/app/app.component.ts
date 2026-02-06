@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SessionService } from './core/services/session.service';
 import { LoadingService } from './core/services/loading.service';
@@ -9,6 +9,7 @@ import { SpinnerComponent } from '../shared/components/spinner/spinner.component
 
 @Component({
   selector: 'app-root',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterOutlet, AppLayoutComponent, SpinnerComponent],
   template: `
     @if (sessionService.isAuthenticated()) {
@@ -27,7 +28,7 @@ import { SpinnerComponent } from '../shared/components/spinner/spinner.component
     }
   `,
 })
-export class App {
+export class App implements OnInit, OnDestroy {
   sessionService = inject(SessionService);
   loadingService = inject(LoadingService);
   readonly preferencesService = inject(UserPreferencesService);

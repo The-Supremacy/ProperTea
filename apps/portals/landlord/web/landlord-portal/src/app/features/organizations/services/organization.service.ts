@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   CheckNameResponse,
@@ -14,9 +14,8 @@ export class OrganizationService {
   private http = inject(HttpClient);
 
   checkName(name: string): Observable<CheckNameResponse> {
-    return this.http.get<CheckNameResponse>(
-      `/api/organizations/check-name?name=${encodeURIComponent(name)}`
-    );
+    const params = new HttpParams().set('name', name);
+    return this.http.get<CheckNameResponse>('/api/organizations/check-name', { params });
   }
 
   register(request: RegisterOrganizationRequest): Observable<RegisterOrganizationResponse> {

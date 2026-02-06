@@ -1,9 +1,9 @@
-import { Component, input, output, inject } from '@angular/core';
+import { Component, input, output, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ResponsiveService } from '../../core/services/responsive.service';
 import { IconComponent } from '../../../shared/components/icon';
-import { LogoComponent } from '../logo';
+import { LogoComponent } from '../../../shared/components/logo';
 
 export interface MenuItem {
   label: string;
@@ -14,6 +14,7 @@ export interface MenuItem {
 
 @Component({
   selector: 'app-navigation',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, RouterLinkActive, IconComponent, TranslocoPipe, LogoComponent],
 
   template: `
@@ -41,11 +42,11 @@ export interface MenuItem {
                 @if (!collapsed()) {
                   <span class="flex-1 text-left">{{ item.label | transloco }}</span>
                   <app-icon name="expand_more" [size]="16"
-                    [class.rotate-180]="expandedMenus.has(item.label)" />
+                    [class.rotate-180]="expandedMenus().has(item.label)" />
                 }
               </button>
 
-              @if (!collapsed() && expandedMenus.has(item.label)) {
+              @if (!collapsed() && expandedMenus().has(item.label)) {
                 <div class="ml-6 mt-1 flex flex-col gap-1">
                   @for (child of item.children; track child.label) {
                     <a
@@ -101,13 +102,17 @@ export class NavigationComponent {
 
   toggleCollapse = output<void>();
 
-  expandedMenus = new Set<string>();
+  expandedMenus = signal(new Set<string>());
 
   toggleSubmenu(label: string): void {
-    if (this.expandedMenus.has(label)) {
-      this.expandedMenus.delete(label);
-    } else {
-      this.expandedMenus.add(label);
-    }
+    this.expandedMenus.update(set => {
+      const next = new Set(set);
+      if (next.has(label)) {
+        next.delete(label);
+      } else {
+        next.add(label);
+      }
+      return next;
+    });
   }
 }

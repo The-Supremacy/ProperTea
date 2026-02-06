@@ -1,7 +1,7 @@
-import { Component, inject, signal, effect } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router, NavigationEnd, ActivatedRoute, RouterLink } from '@angular/router';
 import { filter, map } from 'rxjs';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 export interface Breadcrumb {
   label: string;
@@ -10,14 +10,15 @@ export interface Breadcrumb {
 
 @Component({
   selector: 'app-breadcrumb',
-  imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, TranslocoPipe],
   template: `
     <div class="border-b bg-muted/40 px-4 py-2">
       <nav aria-label="breadcrumb">
         <ol class="flex items-center gap-2 text-sm">
           <!-- Home -->
           <li>
-            <a routerLink="/" class="hover:text-foreground transition-colors">Home</a>
+            <a routerLink="/" class="hover:text-foreground transition-colors">{{ 'nav.home' | transloco }}</a>
           </li>
 
           <!-- Dynamic breadcrumbs -->

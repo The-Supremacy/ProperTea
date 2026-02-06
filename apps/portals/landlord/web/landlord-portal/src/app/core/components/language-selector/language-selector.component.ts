@@ -1,11 +1,11 @@
-import { Component, inject } from '@angular/core';
-import { UserPreferencesService } from '../../../app/core/services/user-preferences.service';
-import { ButtonDirective } from '../button/button.directive';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { UserPreferencesService } from '../../services/user-preferences.service';
+import { ButtonDirective } from '../../../../shared/components/button';
 
 @Component({
   selector: 'app-language-selector',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonDirective],
-  standalone: true,
   template: `
     <button
       appBtn

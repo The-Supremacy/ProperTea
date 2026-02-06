@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import {
   ReactiveFormsModule,
   FormBuilder,
@@ -16,22 +16,23 @@ import {
   takeUntil,
   catchError,
 } from 'rxjs';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SessionService } from '../../../../core/services/session.service';
 import { OrganizationService } from '../../services/organization.service';
 import { ToastService } from '../../../../core/services/toast.service';
-import { LogoComponent } from '../../../../layout/logo/logo.component';
-import { SpinnerComponent } from '../../../../../shared/components/spinner/spinner.component';
+import { LogoComponent } from '../../../../../shared/components/logo';
+import { SpinnerComponent } from '../../../../../shared/components/spinner';
 import { ButtonDirective } from '../../../../../shared/components/button/button.directive';
 
 @Component({
   selector: 'app-register-organization',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     LogoComponent,
     SpinnerComponent,
     ButtonDirective,
-    TranslocoModule,
+    TranslocoPipe,
   ],
   template: `
     <div class="min-h-screen flex flex-col bg-background text-foreground">
@@ -293,6 +294,7 @@ export class RegisterOrganizationPage implements OnInit, OnDestroy {
   private sessionService = inject(SessionService);
   private organizationService = inject(OrganizationService);
   private toastService = inject(ToastService);
+  private translocoService = inject(TranslocoService);
   private destroy$ = new Subject<void>();
 
   protected form!: FormGroup;
@@ -422,13 +424,13 @@ export class RegisterOrganizationPage implements OnInit, OnDestroy {
       .pipe(
         catchError((error) => {
           this.submitting.set(false);
-          this.toastService.error('Failed to create organization. Please try again.');
+          this.toastService.error(this.translocoService.translate('register.error.createFailed'));
           throw error;
         }),
         takeUntil(this.destroy$),
       )
       .subscribe(() => {
-        this.toastService.success('Organization created successfully!');
+        this.toastService.success(this.translocoService.translate('register.success.created'));
         this.sessionService.login();
       });
   }

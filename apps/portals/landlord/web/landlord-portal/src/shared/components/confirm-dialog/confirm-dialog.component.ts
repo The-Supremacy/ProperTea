@@ -1,6 +1,6 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { ButtonDirective } from '../../../../shared/components/button/button.directive';
+import { ButtonDirective } from '../button';
 
 export interface ConfirmDialogData {
   title: string;
@@ -12,6 +12,7 @@ export interface ConfirmDialogData {
 
 @Component({
   selector: 'app-confirm-dialog',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonDirective, TranslocoPipe],
   template: `
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" (click)="cancel.emit()">

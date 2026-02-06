@@ -2,6 +2,7 @@ import { Injectable, signal, computed, inject, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { TranslocoService } from '@jsverse/transloco';
 import { catchError, of, tap } from 'rxjs';
+import { SessionService } from './session.service';
 
 export interface UserPreferences {
   theme: 'light' | 'dark';
@@ -14,6 +15,8 @@ export interface UserPreferences {
 export class UserPreferencesService {
   private http = inject(HttpClient);
   private translocoService = inject(TranslocoService);
+  private sessionService = inject(SessionService);
+  private loaded = false;
 
   private preferences = signal<UserPreferences>({
     theme: this.getInitialTheme(),
@@ -38,6 +41,11 @@ export class UserPreferencesService {
   }
 
   loadPreferences(): void {
+    if (this.loaded)
+      return;
+
+    this.loaded = true;
+
     const localPreferences = this.preferences();
 
     this.http.get<UserPreferences>('/api/users/preferences')
@@ -73,6 +81,10 @@ export class UserPreferencesService {
   }
 
   private savePreferences(): void {
+    if (!this.sessionService.isAuthenticated()) {
+      return;
+    }
+
     const prefs = this.preferences();
     this.http.put('/api/users/preferences', prefs)
       .pipe(catchError(() => of(null)))

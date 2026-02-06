@@ -1,7 +1,8 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy, computed } from '@angular/core';
 
 @Component({
   selector: 'app-spinner',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
       [class]="spinnerClasses()"
@@ -37,7 +38,7 @@ import { Component, input } from '@angular/core';
 export class SpinnerComponent {
   size = input<'sm' | 'md' | 'lg'>('md');
 
-  protected spinnerClasses = () => {
+  protected spinnerClasses = computed(() => {
     const sizeClasses = {
       sm: 'w-4 h-4',
       md: 'w-8 h-8',
@@ -45,5 +46,5 @@ export class SpinnerComponent {
     };
 
     return `inline-block text-primary ${sizeClasses[this.size()]}`;
-  };
+  });
 }

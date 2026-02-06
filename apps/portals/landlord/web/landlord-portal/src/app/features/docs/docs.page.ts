@@ -1,10 +1,10 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserPreferencesService } from '../../core/services/user-preferences.service';
-import { LogoComponent } from '../../layout/logo/logo.component';
+import { LogoComponent } from '../../../shared/components/logo';
 import { ButtonDirective } from '../../../shared/components/button/button.directive';
-import { ThemeToggleComponent } from '../../../shared/components/theme-toggle/theme-toggle.component';
-import { LanguageSelectorComponent } from '../../../shared/components/language-selector/language-selector.component';
+import { ThemeToggleComponent } from '../../core/components/theme-toggle';
+import { LanguageSelectorComponent } from '../../core/components/language-selector';
 
 interface DocSection {
   id: string;
@@ -19,6 +19,7 @@ interface DocItem {
 
 @Component({
   selector: 'app-docs',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [LogoComponent, ButtonDirective, ThemeToggleComponent, LanguageSelectorComponent],
   template: `
     <div class="min-h-screen flex flex-col bg-background text-foreground">
@@ -74,7 +75,7 @@ interface DocItem {
                   @for (item of section.items; track item.id) {
                     <li>
                       <button
-                        appButton
+                        appBtn
                         variant="ghost"
                         class="w-full justify-start"
                         [class.bg-accent]="selectedItem() === item.id"

@@ -1,4 +1,4 @@
-import { Component, output, input, inject, viewChild, signal } from '@angular/core';
+import { Component, output, input, inject, viewChild, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Menu, MenuContent, MenuItem as NgAriaMenuItem, MenuTrigger } from '@angular/aria/menu';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -6,7 +6,7 @@ import { ResponsiveService } from '../../core/services/responsive.service';
 import { UserPreferencesService } from '../../core/services/user-preferences.service';
 import { ButtonDirective } from '../../../shared/components/button';
 import { IconComponent } from '../../../shared/components/icon';
-import { LogoComponent } from '../logo';
+import { LogoComponent } from '../../../shared/components/logo';
 
 export interface LanguageOption {
   code: string;
@@ -16,6 +16,7 @@ export interface LanguageOption {
 
 @Component({
   selector: 'app-header',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Menu, MenuContent, NgAriaMenuItem, MenuTrigger, OverlayModule, ButtonDirective, IconComponent, TranslocoPipe, LogoComponent],
 
   template: `

@@ -16,7 +16,8 @@
   "nav": {
     "collapse": "Collapse navigation",
     "dashboard": "Dashboard",
-    "companies": "Companies"
+    "companies": "Companies",
+    "home": "Home"
   },
   "footer": {
     "copyright": "© {{year}} ProperTea. All rights reserved.",
@@ -61,7 +62,13 @@
     "submit": "Create Organization",
     "submitting": "Creating Organization...",
     "alreadyHaveAccount": "Already have an account?",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "error": {
+      "createFailed": "Failed to create organization. Please try again."
+    },
+    "success": {
+      "created": "Organization created successfully!"
+    }
   },
   "dashboard": {
     "title": "Dashboard",

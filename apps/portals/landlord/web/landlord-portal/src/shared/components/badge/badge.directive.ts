@@ -1,4 +1,4 @@
-import { Directive, input, HostBinding, ElementRef, inject } from '@angular/core';
+import { Directive, input, computed } from '@angular/core';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 const badgeVariants = cva(
@@ -22,17 +22,16 @@ export type BadgeVariant = VariantProps<typeof badgeVariants>['variant'];
 
 @Directive({
   selector: '[appBadge]',
+  host: {
+    '[class]': 'computedClasses()'
+  }
 })
 export class BadgeDirective {
-  private elementRef = inject(ElementRef);
-
   variant = input<BadgeVariant>('default');
 
-  @HostBinding('class')
-  get classes() {
-    const el = this.elementRef.nativeElement as HTMLElement;
-    const existingClasses = el.className;
-    const cvaClasses = badgeVariants({ variant: this.variant() });
-    return `${cvaClasses} ${existingClasses}`;
-  }
+  protected computedClasses = computed(() => {
+    return badgeVariants({
+      variant: this.variant()
+    });
+  });
 }

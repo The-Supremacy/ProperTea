@@ -1,20 +1,21 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { SessionService } from '../../core/services/session.service';
-import { LogoComponent } from '../../layout/logo/logo.component';
-import { ThemeToggleComponent } from '../../../shared/components/theme-toggle/theme-toggle.component';
-import { LanguageSelectorComponent } from '../../../shared/components/language-selector/language-selector.component';
+import { LogoComponent } from '../../../shared/components/logo';
+import { ThemeToggleComponent } from '../../core/components/theme-toggle';
+import { LanguageSelectorComponent } from '../../core/components/language-selector';
 import { ButtonDirective } from '../../../shared/components/button/button.directive';
 
 @Component({
   selector: 'app-landing',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     LogoComponent,
     ThemeToggleComponent,
     LanguageSelectorComponent,
     ButtonDirective,
-    TranslocoModule,
+    TranslocoPipe,
   ],
   template: `
     <div class="min-h-screen flex flex-col bg-background text-foreground">
