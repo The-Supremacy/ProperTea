@@ -127,4 +127,8 @@
   .badge-outline {
     @apply text-foreground;
   }
+
+  .toast-panel {
+    @apply rounded-md border bg-card text-card-foreground shadow-lg;
+  }
 }

@@ -1,11 +1,12 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { organizationsRoutes } from './features/organizations/organizations.routes';
+import { companiesRoutes } from './features/companies/companies.routes';
 
 export const routes: Routes = [
-  // Public routes
   {
     path: '',
+    pathMatch: 'full',
     loadComponent: () => import('./features/landing/landing.page').then((m) => m.LandingPage),
   },
   {
@@ -25,6 +26,11 @@ export const routes: Routes = [
         data: { breadcrumb: 'Dashboard' },
         loadComponent: () =>
           import('./features/dashboard/dashboard-home.page').then((m) => m.DashboardHomePage),
+      },
+      {
+        path: 'companies',
+        data: { breadcrumb: 'Companies' },
+        children: companiesRoutes,
       },
     ],
   },

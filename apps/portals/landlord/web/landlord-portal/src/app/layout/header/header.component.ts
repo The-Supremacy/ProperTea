@@ -4,6 +4,7 @@ import { OverlayModule } from '@angular/cdk/overlay';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ResponsiveService } from '../../core/services/responsive.service';
 import { UserPreferencesService } from '../../core/services/user-preferences.service';
+import { SessionService } from '../../core/services/session.service';
 import { ButtonDirective } from '../../../shared/components/button';
 import { IconComponent } from '../../../shared/components/icon';
 import { LogoComponent } from '../../../shared/components/logo';
@@ -78,8 +79,8 @@ export interface LanguageOption {
           #userMenu="ngMenu"
           class="min-w-56 rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
           <ng-template ngMenuContent>
-            <!-- My Account Label -->
-            <div class="px-2 py-1.5 text-sm font-semibold text-foreground">{{ 'user.profile' | transloco }}</div>
+            <!-- User Name Label -->
+            <div class="px-2 py-1.5 text-sm font-semibold text-foreground">{{ sessionService.userName() }}</div>
             <div role="separator" aria-orientation="horizontal" class="my-1 h-px bg-border"></div>
 
             <!-- Profile -->
@@ -166,6 +167,7 @@ export interface LanguageOption {
 export class HeaderComponent {
   protected readonly responsive = inject(ResponsiveService);
   protected readonly preferencesService = inject(UserPreferencesService);
+  protected readonly sessionService = inject(SessionService);
 
   languages = input.required<LanguageOption[]>();
   currentLanguage = input.required<LanguageOption>();

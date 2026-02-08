@@ -1,0 +1,638 @@
+<div class="container mx-auto p-4 md:p-6">
+  @if (config()) {
+  <!-- Header -->
+  @if (title()) {
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold">{{ title() }}</h1>
+    </div>
+  }
+
+  <!-- Toolbar -->
+  <div class="mb-6">
+    <div
+      ngToolbar
+      class="flex flex-wrap items-center gap-2"
+      [attr.aria-label]="title() + ' toolbar'">
+      <!-- Left: Action Buttons -->
+      @if (features().filters && config()!.filterConfig) {
+        <button
+          ngToolbarWidget
+          value="filters"
+          appBtn
+          variant="outline"
+          [size]="responsive.isMobile() ? 'icon' : 'default'"
+          (click)="toggleFilterDrawer()">
+          <app-icon name="filter_list" [size]="20" />
+          <span class="hidden sm:inline">{{ 'common.filters' | transloco }}</span>
+        </button>
+      }
+
+      @if (features().columnSelection) {
+        <button
+          ngToolbarWidget
+          value="columns"
+          appBtn
+          variant="outline"
+          [size]="responsive.isMobile() ? 'icon' : 'default'"
+          (click)="toggleColumnDrawer()">
+          <app-icon name="view_column" [size]="20" />
+          <span class="hidden sm:inline">{{ 'common.columns' | transloco }}</span>
+        </button>
+      }
+
+      @if (features().refresh) {
+        <button
+          ngToolbarWidget
+          value="refresh"
+          appBtn
+          variant="outline"
+          size="icon"
+          (click)="refresh()"
+          [disabled]="state.loading"
+          [title]="'common.refresh' | transloco">
+          <app-icon name="refresh" [size]="20" [class.animate-spin]="state.loading" />
+        </button>
+      }
+
+      <!-- Search (Inline on Desktop, Expandable on Mobile) -->
+      @if (features().search) {
+        <!-- Mobile: Search Icon Button -->
+        <button
+          ngToolbarWidget
+          value="search-toggle"
+          appBtn
+          variant="outline"
+          size="icon"
+          (click)="searchExpanded.set(!searchExpanded())"
+          class="md:hidden"
+          [title]="'common.search' | transloco">
+          <app-icon [name]="searchExpanded() ? 'close' : 'search'" [size]="20" />
+        </button>
+
+        <!-- Desktop: Inline Search Input -->
+        <div class="relative hidden md:block md:w-64">
+          <app-icon
+            name="search"
+            [size]="20"
+            class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            [value]="globalFilter()"
+            (input)="onTableSearchChange($any($event.target).value)"
+            [placeholder]="'common.search' | transloco"
+            class="h-10 w-full rounded-md border border-input bg-background pl-10 pr-10 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+          @if (globalFilter()) {
+            <button
+              type="button"
+              (click)="clearTableSearch()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <app-icon name="close" [size]="16" />
+            </button>
+          }
+        </div>
+      }
+
+      <!-- Spacer to push right-aligned items -->
+      <div class="flex-1"></div>
+
+      <!-- Right: Table Menu + Create Button -->
+      @if (config()!.tableActions && config()!.tableActions!.length > 0) {
+        <button
+          ngToolbarWidget
+          value="table-menu"
+          appBtn
+          variant="outline"
+          size="icon"
+          ngMenuTrigger
+          #tableMenuTrigger="ngMenuTrigger"
+          #tableMenuOrigin
+          [menu]="tableMenu()">
+          <app-icon name="more_vert" [size]="20" />
+        </button>
+
+        <ng-template
+          [cdkConnectedOverlayOpen]="tableMenuTrigger.expanded()"
+          [cdkConnectedOverlay]="{ origin: tableMenuOrigin, usePopover: 'inline' }"
+          [cdkConnectedOverlayPositions]="[
+            { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 4 }
+          ]"
+          cdkAttachPopoverAsChild>
+          <div
+            ngMenu
+            #tableMenu="ngMenu"
+            class="min-w-48 rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
+            <ng-template ngMenuContent>
+              @for (
+                action of config()!.tableActions;
+                track action.label;
+                let idx = $index
+              ) {
+                @if (action.separatorBefore && idx > 0) {
+                  <div class="my-1 h-px bg-border"></div>
+                }
+                <div
+                  ngMenuItem
+                  [value]="action.label"
+                  (click)="handleTableAction(action)"
+                  class="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent focus:bg-accent"
+                  [class.text-destructive]="action.variant === 'destructive'">
+                  <app-icon [name]="action.icon" [size]="16" />
+                  <span>{{ action.label | transloco }}</span>
+                </div>
+              }
+            </ng-template>
+          </div>
+        </ng-template>
+      }
+
+      @if (features().create) {
+        @if (createRoute()) {
+          <a
+            ngToolbarWidget
+            value="create"
+            [href]="createRoute()"
+            appBtn
+            [size]="responsive.isMobile() ? 'icon' : 'default'"
+            [attr.aria-label]="createLabel() | transloco">
+            <app-icon name="add" [size]="20" />
+            <span class="hidden sm:inline">{{ createLabel() | transloco }}</span>
+          </a>
+        } @else {
+          <button
+            ngToolbarWidget
+            value="create"
+            appBtn
+            type="button"
+            [size]="responsive.isMobile() ? 'icon' : 'default'"
+            (click)="createClick.emit()"
+            [attr.aria-label]="createLabel() | transloco">
+            <app-icon name="add" [size]="20" />
+            <span class="hidden sm:inline">{{ createLabel() | transloco }}</span>
+          </button>
+        }
+      }
+    </div>
+
+    <!-- Mobile: Expanded Search Input -->
+    @if (features().search && searchExpanded()) {
+      <div class="mt-2 md:hidden">
+        <div class="relative">
+          <app-icon
+            name="search"
+            [size]="20"
+            class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            [value]="globalFilter()"
+            (input)="onTableSearchChange($any($event.target).value)"
+            [placeholder]="'common.search' | transloco"
+            class="h-10 w-full rounded-md border border-input bg-background pl-10 pr-10 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+          @if (globalFilter()) {
+            <button
+              type="button"
+              (click)="clearTableSearch()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <app-icon name="close" [size]="16" />
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Data Display Container with Loading Overlay -->
+  <div class="relative">
+    <!-- Loading Overlay -->
+    @if (state.loading) {
+      <div
+        class="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/80 backdrop-blur-sm">
+        <app-spinner size="lg" />
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (state.isEmpty) {
+      <div class="flex flex-col items-center justify-center py-12 text-center">
+        <app-icon
+          [name]="config()!.emptyState?.icon || 'inbox'"
+          [size]="64"
+          class="mb-4 text-muted-foreground" />
+        <h3 class="mb-2 text-lg font-semibold">
+          {{ config()!.emptyState?.title || 'No results found' }}
+        </h3>
+        <p class="text-sm text-muted-foreground">
+          {{ config()!.emptyState?.description || 'Try adjusting your filters' }}
+        </p>
+      </div>
+    }
+
+    <!-- Desktop Table View -->
+    @if (!responsive.isMobile() && state.hasData) {
+      <div class="overflow-hidden rounded-lg border bg-card">
+        <table class="w-full">
+          <thead>
+            @for (headerGroup of table.getHeaderGroups(); track headerGroup.id) {
+              <tr class="border-b bg-muted/50">
+                @for (header of headerGroup.headers; track header.id) {
+                  <th class="px-4 py-3 text-left">
+                    @if (header.isPlaceholder) {
+                      <!-- Empty header cell -->
+                    } @else {
+                      @if (header.column.getCanSort()) {
+                        <button
+                          class="flex items-center gap-1 font-semibold hover:text-primary"
+                          (click)="header.column.getToggleSortingHandler()?.($event)">
+                          <ng-container
+                            *flexRender="
+                              header.column.columnDef.header;
+                              props: header.getContext();
+                              let cell
+                            ">
+                            {{ cell }}
+                          </ng-container>
+                          <app-icon [name]="getSortIcon(header.column.id)" [size]="16" />
+                        </button>
+                      } @else {
+                        <span class="font-semibold">
+                          <ng-container
+                            *flexRender="
+                              header.column.columnDef.header;
+                              props: header.getContext();
+                              let cell
+                            ">
+                            {{ cell }}
+                          </ng-container>
+                        </span>
+                      }
+                    }
+                  </th>
+                }
+                @if (config()!.actions && config()!.actions!.length > 0) {
+                  <th class="w-25 px-4 py-3 text-right">
+                    <span class="font-semibold">{{ 'common.actions' | transloco }}</span>
+                  </th>
+                }
+              </tr>
+            }
+          </thead>
+          <tbody>
+            @for (row of table.getRowModel().rows; track getEntityId(row.original)) {
+              <tr
+                class="border-b transition-colors hover:bg-muted/50"
+                (click)="onRowClick(row.original)">
+                @for (cell of row.getVisibleCells(); track cell.id) {
+                  <td class="px-4 py-3">
+                    @if (shouldUseInnerHTML(cell.column.id)) {
+                      <ng-container
+                        *flexRender="
+                          cell.column.columnDef.cell;
+                          props: cell.getContext();
+                          let cellContent
+                        ">
+                        <span [innerHTML]="cellContent"></span>
+                      </ng-container>
+                    } @else {
+                      <ng-container
+                        *flexRender="
+                          cell.column.columnDef.cell;
+                          props: cell.getContext();
+                          let cellContent
+                        ">
+                        {{ cellContent }}
+                      </ng-container>
+                    }
+                  </td>
+                }
+                @if (config()!.actions && config()!.actions!.length > 0) {
+                  <td class="px-4 py-3 text-right">
+                    <div class="flex justify-end">
+                      <button
+                        appBtn
+                        variant="ghost"
+                        size="icon"
+                        ngMenuTrigger
+                        #trigger="ngMenuTrigger"
+                        #origin
+                        [menu]="actionMenu()"
+                        (click)="$event.stopPropagation()">
+                        <app-icon name="more_vert" [size]="20" />
+                      </button>
+
+                      <ng-template
+                        [cdkConnectedOverlayOpen]="trigger.expanded()"
+                        [cdkConnectedOverlay]="{ origin, usePopover: 'inline' }"
+                        [cdkConnectedOverlayPositions]="[
+                          { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 4 }
+                        ]"
+                        cdkAttachPopoverAsChild>
+                        <div
+                          ngMenu
+                          #actionMenu="ngMenu"
+                          class="min-w-32 rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
+                          <ng-template ngMenuContent>
+                            @for (
+                              action of config()!.actions;
+                              track action.label;
+                              let idx = $index
+                            ) {
+                              @if (shouldShowAction(action, row.original)) {
+                                @if (action.separatorBefore && idx > 0) {
+                                  <div class="my-1 h-px bg-border"></div>
+                                }
+                                <div
+                                  ngMenuItem
+                                  [value]="action.label"
+                                  (click)="handleAction(action, row.original)"
+                                  class="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent focus:bg-accent"
+                                  [class.text-destructive]="action.variant === 'destructive'">
+                                  <app-icon [name]="action.icon" [size]="16" />
+                                  <span>{{ action.label | transloco }}</span>
+                                </div>
+                              }
+                            }
+                          </ng-template>
+                        </div>
+                      </ng-template>
+                    </div>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- Mobile Card View -->
+    @if (responsive.isMobile() && state.hasData) {
+      <div class="space-y-4">
+        @for (row of table.getRowModel().rows; track getEntityId(row.original)) {
+          <div
+            class="rounded-lg border bg-card p-4 transition-shadow hover:shadow-md"
+            (click)="onRowClick(row.original)">
+            <!-- Use custom template if provided, otherwise show default -->
+            @if (mobileCardTemplate()) {
+              <ng-container
+                *ngTemplateOutlet="mobileCardTemplate()!; context: { $implicit: row.original }" />
+            } @else {
+              <!-- Default mobile card layout -->
+              <div class="space-y-2">
+                @for (cell of row.getVisibleCells(); track cell.id) {
+                  <div class="flex items-start justify-between">
+                    <span class="text-sm font-medium text-muted-foreground">
+                      @if (typeof cell.column.columnDef.header === 'string') {
+                        {{ cell.column.columnDef.header }}:
+                      } @else {
+                        Header:
+                      }
+                    </span>
+                    <span class="text-sm">
+                      @if (shouldUseInnerHTML(cell.column.id)) {
+                        <span [innerHTML]="getCellContent(cell)"></span>
+                      } @else {
+                        <ng-container
+                          *flexRender="
+                            cell.column.columnDef.cell;
+                            props: cell.getContext();
+                            let cellContent
+                          ">
+                          {{ cellContent }}
+                        </ng-container>
+                      }
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Mobile Actions -->
+            @if (config()!.actions && config()!.actions!.length > 0) {
+              <div class="mt-3 flex justify-end border-t pt-3">
+                <button
+                  appBtn
+                  variant="ghost"
+                  size="icon"
+                  ngMenuTrigger
+                  #mobileTrigger="ngMenuTrigger"
+                  #mobileOrigin
+                  [menu]="mobileActionMenu()"
+                  (click)="$event.stopPropagation()">
+                  <app-icon name="more_vert" [size]="20" />
+                </button>
+
+                <ng-template
+                  [cdkConnectedOverlayOpen]="mobileTrigger.expanded()"
+                  [cdkConnectedOverlay]="{ origin: mobileOrigin, usePopover: 'inline' }"
+                  [cdkConnectedOverlayPositions]="[
+                    { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 4 }
+                  ]"
+                  cdkAttachPopoverAsChild>
+                  <div
+                    ngMenu
+                    #mobileActionMenu="ngMenu"
+                    class="min-w-32 rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
+                    <ng-template ngMenuContent>
+                      @for (
+                        action of config()!.actions;
+                        track action.label;
+                        let idx = $index
+                      ) {
+                        @if (shouldShowAction(action, row.original)) {
+                          @if (action.separatorBefore && idx > 0) {
+                            <div class="my-1 h-px bg-border"></div>
+                          }
+                          <div
+                            ngMenuItem
+                            [value]="action.label"
+                            (click)="handleAction(action, row.original)"
+                            class="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent focus:bg-accent"
+                            [class.text-destructive]="action.variant === 'destructive'">
+                            <app-icon [name]="action.icon" [size]="16" />
+                            <span>{{ action.label | transloco }}</span>
+                          </div>
+                        }
+                      }
+                    </ng-template>
+                  </div>
+                </ng-template>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Filter Drawer (Right Side) -->
+  @if (state.filterDrawerOpen && config()!.filterConfig) {
+    <div
+      class="drawer-backdrop fixed inset-0 z-50 bg-background/80 backdrop-blur-[2px]"
+      (click)="toggleFilterDrawer()">
+      <div
+        class="drawer-content fixed inset-y-0 right-0 w-80 border-l bg-background shadow-lg"
+        (click)="$event.stopPropagation()">
+        <div class="flex h-full flex-col">
+          <!-- Drawer Header -->
+          <div class="flex items-center justify-between border-b p-4">
+            <h2 class="text-lg font-semibold">{{ 'common.filters' | transloco }}</h2>
+            <button appBtn variant="ghost" size="icon" (click)="toggleFilterDrawer()">
+              <app-icon name="close" [size]="20" />
+            </button>
+          </div>
+
+          <!-- Drawer Content -->
+          <div class="flex-1 overflow-y-auto p-4">
+            <!-- Use custom template if provided -->
+            @if (config()!.filterConfig!.customTemplate) {
+              <ng-container
+                *ngTemplateOutlet="config()!.filterConfig!.customTemplate" />
+            } @else {
+              <!-- Auto-generated filter fields -->
+              <div class="space-y-4">
+                @for (field of config()!.filterConfig!.fields; track field.key) {
+                  <div>
+                    <label [for]="field.key" class="mb-2 block text-sm font-medium">
+                      {{ field.label | transloco }}
+                    </label>
+
+                    @switch (field.type) {
+                      @case ('text') {
+                        <input
+                          [id]="field.key"
+                          type="text"
+                          [value]="filterValues()[field.key] || ''"
+                          (input)="onFilterFieldChange(field.key, $any($event.target).value)"
+                          [placeholder]="field.placeholder ? (field.placeholder | transloco) : ''"
+                          class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+                      }
+                      @case ('select') {
+                        <select
+                          [id]="field.key"
+                          [value]="filterValues()[field.key] || ''"
+                          (change)="onFilterFieldChange(field.key, $any($event.target).value)"
+                          class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                          <option value="">
+                            {{ field.placeholder ? (field.placeholder | transloco) : 'Select...' }}
+                          </option>
+                          @for (option of field.options; track option.value) {
+                            <option [value]="option.value">
+                              {{ option.label | transloco }}
+                            </option>
+                          }
+                        </select>
+                      }
+                      @case ('number') {
+                        <input
+                          [id]="field.key"
+                          type="number"
+                          [value]="filterValues()[field.key] || ''"
+                          (input)="onFilterFieldChange(field.key, $any($event.target).value)"
+                          [min]="field.min"
+                          [max]="field.max"
+                          class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+                      }
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Drawer Footer -->
+          <div class="flex gap-2 border-t p-4">
+            <button appBtn variant="outline" class="flex-1" (click)="clearFilters()">
+              {{ 'common.clearFilters' | transloco }}
+            </button>
+            <button appBtn class="flex-1" (click)="applyFilters()">
+              {{ 'common.applyFilters' | transloco }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Column Selection Drawer -->
+  @if (state.columnDrawerOpen) {
+    <div
+      class="drawer-backdrop fixed inset-0 z-50 bg-background/80 backdrop-blur-[2px]"
+      (click)="toggleColumnDrawer()">
+      <div
+        class="drawer-content fixed inset-y-0 right-0 w-80 border-l bg-background shadow-lg"
+        (click)="$event.stopPropagation()">
+        <div class="flex h-full flex-col">
+          <!-- Drawer Header -->
+          <div class="flex items-center justify-between border-b p-4">
+            <h2 class="text-lg font-semibold">{{ 'common.columns' | transloco }}</h2>
+            <button appBtn variant="ghost" size="icon" (click)="toggleColumnDrawer()">
+              <app-icon name="close" [size]="20" />
+            </button>
+          </div>
+
+          <!-- Drawer Content -->
+          <div class="flex-1 overflow-y-auto p-4">
+            <div class="space-y-2">
+              @for (column of table.getAllLeafColumns(); track column.id) {
+                @if (column.id !== 'actions') {
+                  <label class="flex cursor-pointer items-center justify-between p-2 rounded-md hover:bg-accent">
+                    <span class="text-sm">
+                      {{ column.columnDef.header }}
+                    </span>
+                    <input
+                      type="checkbox"
+                      [checked]="column.getIsVisible()"
+                      (change)="column.toggleVisibility()"
+                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer" />
+                  </label>
+                }
+              }
+            </div>
+          </div>
+
+          <!-- Drawer Footer -->
+          <div class="flex gap-2 border-t p-4">
+            <button appBtn variant="outline" class="flex-1" (click)="resetColumnVisibility()">
+              {{ 'common.reset' | transloco }}
+            </button>
+            <button appBtn class="flex-1" (click)="toggleColumnDrawer()">
+              {{ 'common.done' | transloco }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Pagination -->
+  @if (state.hasData) {
+    <div
+      class="mt-6 flex flex-col items-center justify-between gap-4 md:flex-row"
+      appTablePagination
+      [totalCount]="state.totalCount"
+      [pageSize]="state.pagination.pageSize"
+      [currentPage]="state.pagination.page"
+      (pageChange)="onPageChange($event)"
+      #pager="appTablePagination">
+      <span class="text-sm text-muted-foreground">
+        Page {{ pager.currentPage() }} of {{ pager.totalPages() }}
+        ({{ state.totalCount }} {{ state.totalCount === 1 ? 'item' : 'items' }})
+      </span>
+      <div class="flex gap-2">
+        <button
+          appBtn
+          variant="outline"
+          size="sm"
+          [disabled]="!pager.hasPrevious()"
+          (click)="pager.previous()">
+          <app-icon name="chevron_left" [size]="16" />
+          <span class="hidden md:inline">Previous</span>
+        </button>
+        <button appBtn variant="outline" size="sm" [disabled]="!pager.hasNext()" (click)="pager.next()">
+          <span class="hidden md:inline">Next</span>
+          <app-icon name="chevron_right" [size]="16" />
+        </button>
+      </div>
+    </div>
+  }
+  }
+</div>

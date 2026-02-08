@@ -1,8 +1,23 @@
 {
   "common": {
     "search": "Search...",
+    "new": "New",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "saving": "Saving...",
     "cancel": "Cancel",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "refresh": "Refresh",
+    "filters": "Filters",
+    "clearFilters": "Clear",
+    "applyFilters": "Apply",
+    "actions": "Actions",
+    "columns": "Columns",
+    "more": "More",
+    "reset": "Reset",
+    "done": "Done"
   },
   "user": {
     "profile": "Profile",
@@ -91,6 +106,47 @@
       "paymentReceived": "Payment received - {{amount}}",
       "hoursAgo": "{{hours}} hours ago",
       "daysAgo": "{{days}} day ago"
+    }
+  },
+  "companies": {
+    "title": "Companies",
+    "newCompany": "New Company",
+    "createHint": "Enter the company name to get started. Additional details can be configured after creation.",
+    "searchByName": "Search by company name...",
+    "noCompanies": "No Companies Yet",
+    "noCompaniesDescription": "Get started by creating your first company.",
+    "noResults": "No companies found",
+    "loading": "Loading companies...",
+    "deleteConfirm": "Are you sure you want to delete '{{name}}'? This action cannot be undone.",
+    "filtersPlaceholder": "Additional filters will be available here.",
+    "name": "Company Name",
+    "namePlaceholder": "Acme Corporation",
+    "nameRequired": "Company name is required",
+    "nameTaken": "This company name is already in use",
+    "checkingName": "Checking name availability...",
+    "unsavedChanges": "Unsaved Changes",
+    "unsavedChangesConfirm": "You have unsaved changes. Are you sure you want to leave?",
+    "status": "Status",
+    "createdAt": "Created",
+    "active": "Active",
+    "inactive": "Inactive",
+    "deleted": "Deleted",
+    "edit": "Edit Company",
+    "delete": "Delete Company",
+    "exportAll": "Export All",
+    "bulkImport": "Bulk Import",
+    "exportNotImplemented": "Export functionality coming soon",
+    "bulkImportNotImplemented": "Bulk import functionality coming soon",
+    "success": {
+      "created": "Company created successfully",
+      "updated": "Company updated successfully",
+      "deleted": "Company deleted successfully"
+    },
+    "error": {
+      "loadFailed": "Failed to load companies",
+      "createFailed": "Failed to create company",
+      "updateFailed": "Failed to update company",
+      "deleteFailed": "Failed to delete company"
     }
   }
 }

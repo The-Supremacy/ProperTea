@@ -1,0 +1,112 @@
+<div class="mx-auto max-w-2xl px-4 py-8">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold">
+      {{ 'common.edit' | transloco }}
+    </h1>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="flex items-center justify-center py-12">
+      <app-spinner size="lg" />
+    </div>
+  }
+
+  <!-- Form -->
+  @if (!loading()) {
+    <form [formGroup]="form" (ngSubmit)="save()" class="space-y-6">
+      <!-- Name Field -->
+      <div>
+        <label for="name" class="mb-2 block text-sm font-medium">
+          {{ 'companies.name' | transloco }}
+        </label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          [placeholder]="'companies.namePlaceholder' | transloco"
+          class="input w-full"
+          [class.border-destructive]="nameControl.invalid && nameControl.touched" />
+
+        @if (nameControl.invalid && nameControl.touched) {
+          <p class="mt-1 text-sm text-destructive">
+            @if (nameControl.hasError('required')) {
+              {{ 'companies.nameRequired' | transloco }}
+            }
+            @if (nameControl.hasError('nameTaken')) {
+              {{ 'companies.nameTaken' | transloco }}
+            }
+          </p>
+        }
+
+        @if (nameControl.pending) {
+          <p class="mt-1 text-sm text-muted-foreground">
+            {{ 'companies.checkingName' | transloco }}
+          </p>
+        }
+      </div>
+
+      <!-- Status -->
+      @if (company()) {
+        <div>
+          <label class="mb-2 block text-sm font-medium">
+            {{ 'companies.status' | transloco }}
+          </label>
+          <p class="text-sm">
+            <span
+              [class]="company()!.status === 'Active'
+                ? 'inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800 dark:bg-green-900 dark:text-green-200'
+                : 'inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800 dark:bg-gray-800 dark:text-gray-200'
+              ">
+              {{ 'companies.' + company()!.status.toLowerCase() | transloco }}
+            </span>
+          </p>
+        </div>
+
+        <div>
+          <label class="mb-2 block text-sm font-medium">
+            {{ 'companies.createdAt' | transloco }}
+          </label>
+          <p class="text-sm">{{ company()!.createdAt | date: 'medium' }}</p>
+        </div>
+      }
+
+      <!-- Actions -->
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <button
+            type="submit"
+            appBtn
+            [disabled]="form.invalid || saving()">
+            @if (saving()) {
+              <app-icon name="hourglass_empty" [size]="16" class="animate-spin" />
+              <span>{{ 'common.saving' | transloco }}</span>
+            } @else {
+              <app-icon name="save" [size]="16" />
+              <span>{{ 'common.save' | transloco }}</span>
+            }
+          </button>
+
+          <button
+            type="button"
+            appBtn
+            variant="outline"
+            (click)="cancel()">
+            <app-icon name="close" [size]="16" />
+            <span>{{ 'common.cancel' | transloco }}</span>
+          </button>
+        </div>
+
+        <button
+          type="button"
+          appBtn
+          variant="destructive"
+          (click)="deleteCompany()">
+          <app-icon name="delete" [size]="16" />
+          <span>{{ 'common.delete' | transloco }}</span>
+        </button>
+      </div>
+    </form>
+  }
+</div>
