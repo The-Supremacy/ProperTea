@@ -51,6 +51,11 @@
   }
 }
 
+:root {
+  --mat-sys-on-surface: var(--color-foreground);
+  --mat-mdc-dialog-container-bg: var(--color-card);
+}
+
 @layer components {
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2
@@ -130,5 +135,13 @@
 
   .toast-panel {
     @apply rounded-md border bg-card text-card-foreground shadow-lg;
+  }
+
+  .dialog-panel {
+    @apply rounded-lg border bg-card text-card-foreground shadow-lg;
+  }
+
+  .mat-mdc-dialog-surface {
+    background-color: transparent !important;
   }
 }

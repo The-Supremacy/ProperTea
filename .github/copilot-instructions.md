@@ -29,9 +29,9 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 ## UI Component Strategy (Headless-First)
 Follow this priority when choosing components:
 1. **Angular Aria** - For: Select, Autocomplete, Menu, Tabs, Tree, Accordion, Listbox, Grid, Toolbar
-2. **Spartan UI** - For: Dialog, Sheet, Date Picker, Toast, Popover, Data Table, Form Field
-3. **Pure Tailwind** - For: Button, Input, Badge, Card, simple layouts
-4. **Angular CDK** - For: Drag/drop, Virtual scroll, Clipboard, Platform detection
+2. **Angular Material** - For: Dialog, Snackbar (Toast), Date Picker, Slider, Tooltip, Progress Spinner/Bar
+3. **Pure Tailwind** - For: Button, Input, Badge, Card, simple layouts, Drawer
+4. **Angular CDK** - For: Drag/drop, Virtual scroll, Clipboard, Platform detection, Overlay
 
 ## TypeScript Best Practices
 - Use strict type checking

@@ -25,10 +25,10 @@ Requirements:
 Tailwind-styled sidebar with Angular CDK for collapse behavior. Feature-based grouping with Lucide icons.
 
 ### List View
-TanStack Table with Spartan UI styling. Responsive design (mobile: card view, desktop: table). Checkbox column, data columns, actions menu (Spartan Dropdown).
+TanStack Table with Tailwind styling. Responsive design (mobile: card view, desktop: table). Checkbox column, data columns, actions menu (Angular Aria Menu).
 
 ### Column Visibility
-3-tier system: Mandatory (always visible), Default (on by default), Optional (off by default). Spartan Sheet for selection, drag-to-reorder (CDK Drag), localStorage persistence.
+3-tier system: Mandatory (always visible), Default (on by default), Optional (off by default). Tailwind drawer for selection, drag-to-reorder (CDK Drag), localStorage persistence.
 
 ### Save Strategy
 Hybrid: Auto-save for simple fields (blur + 500ms debounce), explicit save for complex sections. Unsaved changes guard only for pending saves.
@@ -40,16 +40,16 @@ Navigate to `/{entities}/new`, auto-save on first required field blur, URL updat
 Tabs for major sections + accordions within tabs. Mobile: tabs become swipeable.
 
 ### Filtering & Pagination
-Server-side pagination with TanStack Table pagination. Collapsible filter panel (Spartan Accordion) with [Clear] [Apply] buttons. URL params for sharing. localStorage for preferences.
+Server-side pagination with TanStack Table pagination. Collapsible filter panel (Angular Aria Accordion) with [Clear] [Apply] buttons. URL params for sharing. localStorage for preferences.
 
 ### Validation
-Field-level inline errors using Spartan Form Field error states. Async uniqueness checks (debounced). Cross-field validation in explicit save sections.
+Field-level inline errors using Tailwind styling. Async uniqueness checks (debounced). Cross-field validation in explicit save sections.
 
 ### Delete
-Spartan Alert Dialog confirmation. Backend blocks if entity has dependencies.
+Material Dialog confirmation. Backend blocks if entity has dependencies.
 
 ### Mobile
-Responsive card layout for tables, Spartan Sheet for filters, bulk actions float at bottom with FAB.
+Responsive card layout for tables, Tailwind drawer for filters, bulk actions float at bottom with FAB.
 
 ### i18n
 Two-tier: `common.*` (shared) + `{entity}.*` (specific). Keys generated just-in-time.

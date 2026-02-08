@@ -45,6 +45,7 @@ import { TablePaginationDirective } from '../../directives/table-pagination';
 import { ButtonDirective } from '../button';
 import { IconComponent } from '../icon';
 import { SpinnerComponent } from '../spinner';
+import { SelectComponent } from '../select';
 import { ResponsiveService } from '../../../app/core/services/responsive.service';
 
 /**
@@ -86,6 +87,7 @@ import { ResponsiveService } from '../../../app/core/services/responsive.service
     ButtonDirective,
     IconComponent,
     SpinnerComponent,
+    SelectComponent,
   ],
   templateUrl: './entity-list-view.component.html',
   styleUrl: './entity-list-view.component.css',
