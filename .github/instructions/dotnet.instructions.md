@@ -9,6 +9,7 @@ Read `/docs/architecture.md` for full system context before making changes.
 ## Vertical Slice Architecture
 Organize code by feature, not layer. Path: `Features/{FeatureName}/`.
 Never create generic "Services", "Managers", or "Repositories" folders.
+Reference: `ProperTea.Company/Features/Companies/` for complete example.
 
 ## Structure
 - 'docs/dev/backend-feature-structure.md' defines the directory layout and conventions for features.
@@ -27,6 +28,14 @@ Never create generic "Services", "Managers", or "Repositories" folders.
 - New streams: `session.Events.StartStream<TAggregate>(id, events)`.
 - Existing streams: `session.Events.Append(id, events)`.
 - Rehydrate: `session.Events.AggregateStreamAsync<TAggregate>(id)`.
+
+## Multi-Tenancy Implementation
+- ZITADEL org ID = Marten `TenantId` directly (no mapping, ADR 0010)
+- Extract tenant via `IOrganizationIdProvider.GetOrganizationId()`
+- Dispatch commands: `bus.InvokeForTenantAsync(tenantId, command)`
+- Aggregates must implement `ITenanted` for automatic tenant scoping
+- Marten auto-scopes all queries/streams to current tenant
+- Read `/docs/dev/multi-tenancy-flow.md` for complete flow.
 
 ## Aggregate Pattern (Decider)
 - Aggregates implement `IRevisioned` (and `ITenanted` when multi-tenant).
