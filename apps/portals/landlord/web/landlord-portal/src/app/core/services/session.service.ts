@@ -7,9 +7,9 @@ export interface SessionContext {
   emailAddress: string;
   firstName: string;
   lastName: string;
-  organizationId: string;
+  externalOrganizationId: string;  // External org ID from Zitadel token
   organizationName: string;
-  userId: string;
+  externalUserId: string;  // External user ID from Zitadel token
 }
 
 @Injectable({
@@ -69,8 +69,8 @@ export class SessionService {
           firstName: '',
           lastName: '',
           organizationName: '',
-          organizationId: '',
-          userId: ''
+          externalOrganizationId: '',
+          externalUserId: ''
         });
         return of(null);
       }),

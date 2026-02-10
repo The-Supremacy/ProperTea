@@ -131,5 +131,55 @@ namespace ProperTea.Organization.Infrastructure
                 throw;
             }
         }
+
+        public async Task<ExternalOrganizationDetails?> GetOrganizationDetailsAsync(
+            string externalOrganizationId,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                var request = new ListOrganizationsRequest
+                {
+                    Query = new Zitadel.Object.V2.ListQuery
+                    {
+                        Limit = 1
+                    },
+                    Queries =
+                    {
+                        new Zitadel.Org.V2.SearchQuery
+                        {
+                            IdQuery = new OrganizationIDQuery
+                            {
+                                Id = externalOrganizationId
+                            }
+                        }
+                    }
+                };
+
+                var response = await _orgClient.ListOrganizationsAsync(request, cancellationToken: ct);
+
+                if (response.Result.Count == 0)
+                {
+                    _logger.LogWarning("Organization not found in ZITADEL: {Id}", externalOrganizationId);
+                    return null;
+                }
+
+                var org = response.Result[0];
+
+                _logger.LogDebug(
+                    "Retrieved organization from ZITADEL: {Name} ({Id})",
+                    org.Name,
+                    org.Id);
+
+                return new ExternalOrganizationDetails(
+                    org.Name,
+                    org.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get organization from ZITADEL: {Id}", externalOrganizationId);
+                throw;
+            }
+        }
     }
 }

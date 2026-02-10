@@ -1,15 +1,15 @@
-import { Component, ChangeDetectionStrategy, input, signal, OnInit, inject, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, signal, OnInit, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { finalize } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { CompanyService } from '../services/company.service';
-import { CompanyAuditLogEntry } from '../models/company.models';
+import { OrganizationService } from '../services/organization.service';
+import { OrganizationAuditLogEntry } from '../models/organization.models';
 import { SpinnerComponent } from '../../../../shared/components/spinner';
 import { IconComponent } from '../../../../shared/components/icon';
 import { UserService, UserDetails } from '../../../core/services/user.service';
 
 @Component({
-  selector: 'app-company-audit-log',
+  selector: 'app-organization-audit-log',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, TranslocoPipe, SpinnerComponent, IconComponent],
   template: `
@@ -25,8 +25,8 @@ import { UserService, UserDetails } from '../../../core/services/user.service';
       @if (!loading() && entries().length === 0) {
         <div class="text-center py-12">
           <app-icon name="history" [size]="48" class="mx-auto text-muted-foreground mb-4" />
-          <h3 class="text-lg font-semibold mb-2">{{ 'companies.noAuditLogs' | transloco }}</h3>
-          <p class="text-sm text-muted-foreground">{{ 'companies.noAuditLogsDescription' | transloco }}</p>
+          <h3 class="text-lg font-semibold mb-2">{{ 'organizations.noAuditLogs' | transloco }}</h3>
+          <p class="text-sm text-muted-foreground">{{ 'organizations.noAuditLogsDescription' | transloco }}</p>
         </div>
       }
 
@@ -69,15 +69,15 @@ import { UserService, UserDetails } from '../../../core/services/user.service';
   `,
   styles: []
 })
-export class CompanyAuditLogComponent implements OnInit {
-  private companyService = inject(CompanyService);
+export class OrganizationAuditLogComponent implements OnInit {
+  private organizationService = inject(OrganizationService);
   private translocoService = inject(TranslocoService);
   private userService = inject(UserService);
 
-  companyId = input.required<string>();
+  organizationId = input.required<string>();
 
   loading = signal(false);
-  entries = signal<CompanyAuditLogEntry[]>([]);
+  entries = signal<OrganizationAuditLogEntry[]>([]);
   userDetailsMap = signal(new Map<string, UserDetails>());
 
   ngOnInit(): void {
@@ -87,7 +87,7 @@ export class CompanyAuditLogComponent implements OnInit {
   private loadAuditLog(): void {
     this.loading.set(true);
 
-    this.companyService.getAuditLog(this.companyId()).pipe(
+    this.organizationService.getAuditLog(this.organizationId()).pipe(
       finalize(() => this.loading.set(false))
     ).subscribe({
       next: (response) => {
@@ -102,7 +102,7 @@ export class CompanyAuditLogComponent implements OnInit {
     });
   }
 
-  private loadUserDetails(entries: CompanyAuditLogEntry[]): void {
+  private loadUserDetails(entries: OrganizationAuditLogEntry[]): void {
     const usernames = [...new Set(entries.map(e => e.username).filter((u): u is string => !!u))];
 
     usernames.forEach(userId => {
@@ -124,7 +124,7 @@ export class CompanyAuditLogComponent implements OnInit {
   }
 
   private normalizeEventType(eventType: string): string {
-    // Strip namespace and version: "company.created.v1" -> "created"
+    // Strip namespace and version: "organization.created.v1" -> "created"
     const parts = eventType.split('.');
     const typeName = parts.length > 1 ? parts[parts.length - 2] : eventType;
     return typeName.replace(/-/g, '');
@@ -132,25 +132,24 @@ export class CompanyAuditLogComponent implements OnInit {
 
   protected getEventLabel(eventType: string): string {
     const normalized = this.normalizeEventType(eventType);
-    const key = `companies.events.${normalized.toLowerCase()}`;
+    const key = `organizations.events.${normalized.toLowerCase()}`;
     const translated = this.translocoService.translate(key);
     return translated === key ? normalized : translated;
   }
 
-  protected formatEventData(entry: CompanyAuditLogEntry): string {
+  protected formatEventData(entry: OrganizationAuditLogEntry): string {
     const normalized = this.normalizeEventType(entry.eventType);
     const data = entry.data as any;
 
     switch (normalized.toLowerCase()) {
       case 'created':
-        return `${this.translocoService.translate('companies.name')}: ${data.name || ''}`;
-      case 'nameupdated':
-        if (data.oldName && data.newName) {
-          return `${data.oldName} → ${data.newName}`;
-        }
-        return `${this.translocoService.translate('companies.newName')}: ${data.newName || ''}`;
-      case 'deleted':
-        return this.translocoService.translate('companies.companyDeleted');
+        return this.translocoService.translate('organizations.organizationCreated');
+      case 'externalorganizationcreated':
+        return `${this.translocoService.translate('organizations.externalOrgLinked')}: ${data.externalOrganizationId || ''}`;
+      case 'activated':
+        if (data.oldStatus && data.newStatus) {
+          return `${data.oldStatus} → ${data.newStatus}`;
+        }        return this.translocoService.translate('organizations.organizationActivated');
       default:
         // Format any other data gracefully
         return Object.entries(data)

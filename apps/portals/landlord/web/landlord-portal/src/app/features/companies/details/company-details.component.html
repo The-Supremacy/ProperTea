@@ -93,11 +93,7 @@
                     <div class="p-6 space-y-4">
                       <div>
                         <p class="text-sm text-muted-foreground mb-2">{{ 'companies.currentStatus' | transloco }}</p>
-                        <span
-                          [class]="company()!.status === 'Active'
-                            ? 'inline-flex rounded-full bg-green-100 px-3 py-1.5 text-sm font-semibold text-green-800 dark:bg-green-900 dark:text-green-200'
-                            : 'inline-flex rounded-full bg-gray-100 px-3 py-1.5 text-sm font-semibold text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-                          ">
+                        <span [appStatusBadge]="company()!.status">
                           {{ 'companies.' + company()!.status.toLowerCase() | transloco }}
                         </span>
                       </div>

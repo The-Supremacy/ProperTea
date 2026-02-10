@@ -2,6 +2,7 @@ using JasperFx;
 using ProperTea.Infrastructure.Common.ErrorHandling;
 using ProperTea.ServiceDefaults;
 using ProperTea.User.Config;
+using ProperTea.User.Features.UserProfiles.Configuration;
 using Wolverine.Http;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,8 @@ builder.Host.AddWolverineConfiguration();
 
 builder.Services.AddAuthenticationConfiguration(builder.Configuration, builder.Environment);
 builder.Services.AddOpenApiConfiguration(builder.Configuration);
+
+builder.Services.AddUserProfileFeature(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 

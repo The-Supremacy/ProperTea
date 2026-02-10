@@ -37,6 +37,7 @@
     "collapse": "Згорнути навігацію",
     "dashboard": "Панель керування",
     "companies": "Компанії",
+    "organization": "Організація",
     "home": "Головна"
   },
   "footer": {
@@ -155,6 +156,32 @@
       "createFailed": "Не вдалося створити компанію",
       "updateFailed": "Не вдалося оновити компанію",
       "deleteFailed": "Не вдалося видалити компанію"
+    }
+  },
+  "organizations": {
+    "detailsTitle": "Деталі організації",
+    "basicInfo": "Основна інформація",
+    "status": "Статус",
+    "currentStatus": "Поточний статус",
+    "name": "Назва організації",
+    "tier": "Рівень підписки",
+    "externalId": "Зовнішній ID організації",
+    "createdAt": "Створено",
+    "noAuditLogs": "Поки немає активності",
+    "noAuditLogsDescription": "Історія активності організації буде тут",
+    "organizationCreated": "Організацію створено",
+    "organizationActivated": "Організацію активовано",
+    "externalOrgCreated": "Зовнішню організацію створено",
+    "externalOrgLinked": "Зовнішню організацію підключено",
+    "events": {
+      "created": "Організацію створено",
+      "activated": "Організацію активовано",
+      "deactivated": "Організацію деактивовано",
+      "externallinked": "Зовнішню організацію підключено",
+      "externalorganizationcreated": "Зовнішню організацію підключено"
+    },
+    "error": {
+      "loadFailed": "Не вдалося завантажити деталі організації"
     }
   }
 }

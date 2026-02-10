@@ -12,6 +12,7 @@ import { EntityDetailsViewComponent, EntityDetailsConfig } from '../../../../sha
 import { Tabs, TabPanel, TabList, Tab, TabContent } from '@angular/aria/tabs';
 import { CompanyAuditLogComponent } from '../audit-log/company-audit-log.component';
 import { SpinnerComponent } from '../../../../shared/components/spinner';
+import { StatusBadgeDirective } from '../../../../shared/directives';
 
 @Component({
   selector: 'app-company-details',
@@ -27,7 +28,8 @@ import { SpinnerComponent } from '../../../../shared/components/spinner';
     TabPanel,
     TabContent,
     CompanyAuditLogComponent,
-    SpinnerComponent
+    SpinnerComponent,
+    StatusBadgeDirective
   ],
   templateUrl: './company-details.component.html',
   styleUrl: './company-details.component.css'

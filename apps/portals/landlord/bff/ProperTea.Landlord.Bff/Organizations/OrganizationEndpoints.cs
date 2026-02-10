@@ -17,6 +17,14 @@ public static class OrganizationEndpoints
             .WithName("RegisterOrganization")
             .AllowAnonymous();
 
+        _ = group.MapGet("/{id:guid}", GetOrganization)
+            .WithName("GetOrganization")
+            .RequireAuthorization();
+
+        _ = group.MapGet("/external/{externalOrgId}", GetOrganizationByExternalId)
+            .WithName("GetOrganizationByExternalId")
+            .RequireAuthorization();
+
         _ = group.MapGet("/{id:guid}/audit-log", GetAuditLog)
             .WithName("GetOrganizationAuditLog")
             .RequireAuthorization();
@@ -40,6 +48,24 @@ public static class OrganizationEndpoints
     {
         var result = await client.CheckNameAsync(name, ct);
         return Results.Ok(result);
+    }
+
+    private static async Task<IResult> GetOrganization(
+        Guid id,
+        OrganizationClient client,
+        CancellationToken ct)
+    {
+        var organization = await client.GetOrganizationAsync(id, ct);
+        return organization is null ? Results.NotFound() : Results.Ok(organization);
+    }
+
+    private static async Task<IResult> GetOrganizationByExternalId(
+        string externalOrgId,
+        OrganizationClient client,
+        CancellationToken ct)
+    {
+        var organization = await client.GetOrganizationByExternalIdAsync(externalOrgId, ct);
+        return organization is null ? Results.NotFound() : Results.Ok(organization);
     }
 
     private static async Task<IResult> GetAuditLog(

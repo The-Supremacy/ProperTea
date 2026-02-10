@@ -9,6 +9,15 @@ public record OrganizationDto(
     int Version
 );
 
+public record OrganizationDetailResponse(
+    Guid Id,
+    string? Name,
+    string Status,
+    string Tier,
+    string? ExternalOrganizationId,
+    DateTimeOffset CreatedAt
+);
+
 public record OrganizationContextDto(
     Guid? LocalOrgId,
     string? ExternalOrganizationId,

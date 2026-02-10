@@ -37,6 +37,7 @@
     "collapse": "Collapse navigation",
     "dashboard": "Dashboard",
     "companies": "Companies",
+    "organization": "Organization",
     "home": "Home"
   },
   "footer": {
@@ -168,6 +169,32 @@
       "createFailed": "Failed to create company",
       "updateFailed": "Failed to update company",
       "deleteFailed": "Failed to delete company"
+    }
+  },
+  "organizations": {
+    "detailsTitle": "Organization Details",
+    "basicInfo": "Basic Information",
+    "status": "Status",
+    "currentStatus": "Current Status",
+    "name": "Organization Name",
+    "tier": "Subscription Tier",
+    "externalId": "External Organization ID",
+    "createdAt": "Created",
+    "noAuditLogs": "No Activity Yet",
+    "noAuditLogsDescription": "Organization activity history will appear here",
+    "organizationCreated": "Organization was created",
+    "organizationActivated": "Organization was activated",
+    "externalOrgCreated": "External organization created",
+    "externalOrgLinked": "External organization linked",
+    "events": {
+      "created": "Organization Created",
+      "activated": "Organization Activated",
+      "deactivated": "Organization Deactivated",
+      "externallinked": "External Organization Linked",
+      "externalorganizationcreated": "External Organization Linked"
+    },
+    "error": {
+      "loadFailed": "Failed to load organization details"
     }
   }
 }

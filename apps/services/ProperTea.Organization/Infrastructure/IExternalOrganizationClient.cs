@@ -1,5 +1,7 @@
 namespace ProperTea.Organization.Infrastructure
 {
+    public record ExternalOrganizationDetails(string Name, string Id);
+
     public interface IExternalOrganizationClient
     {
         public Task<string> CreateOrganizationWithAdminAsync(
@@ -12,6 +14,10 @@ namespace ProperTea.Organization.Infrastructure
 
         public Task<bool> CheckOrganizationExistsAsync(
             string orgName,
+            CancellationToken ct = default);
+
+        public Task<ExternalOrganizationDetails?> GetOrganizationDetailsAsync(
+            string externalOrganizationId,
             CancellationToken ct = default);
     }
 }

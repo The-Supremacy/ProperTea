@@ -29,11 +29,23 @@ public class OrganizationClientAnonymous(HttpClient httpClient)
 
 public class OrganizationClient(HttpClient httpClient)
 {
-    public async Task<OrganizationDto?> GetOrganizationAsync(Guid id, CancellationToken ct = default)
+    public async Task<OrganizationDetailResponse?> GetOrganizationAsync(Guid id, CancellationToken ct = default)
     {
         try
         {
-            return await httpClient.GetFromJsonAsync<OrganizationDto>($"/organizations/{id}", ct);
+            return await httpClient.GetFromJsonAsync<OrganizationDetailResponse>($"/organizations/{id}", ct);
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<OrganizationDetailResponse?> GetOrganizationByExternalIdAsync(string externalOrgId, CancellationToken ct = default)
+    {
+        try
+        {
+            return await httpClient.GetFromJsonAsync<OrganizationDetailResponse>($"/organizations/external/{externalOrgId}", ct);
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {

@@ -36,6 +36,28 @@ public static class OrganizationEndpoints
         ));
     }
 
+    [WolverineGet("/organizations/{id}")]
+    [Authorize]
+    public static async Task<IResult> GetOrganization(
+        Guid id,
+        IMessageBus bus)
+    {
+        var query = new GetOrganization(id);
+        var result = await bus.InvokeAsync<OrganizationResponse?>(query);
+        return result is not null ? Results.Ok(result) : Results.NotFound();
+    }
+
+    [WolverineGet("/organizations/external/{externalOrgId}")]
+    [Authorize]
+    public static async Task<IResult> GetOrganizationByExternalId(
+        string externalOrgId,
+        IMessageBus bus)
+    {
+        var query = new GetOrganizationByExternalId(externalOrgId);
+        var result = await bus.InvokeAsync<OrganizationResponse?>(query);
+        return result is not null ? Results.Ok(result) : Results.NotFound();
+    }
+
     [WolverineGet("/organizations/{id}/audit-log")]
     public static async Task<AuditLogResponse> GetAuditLog(
         Guid id,

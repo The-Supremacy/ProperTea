@@ -1,0 +1,126 @@
+<app-entity-details-view
+  [config]="detailsConfig()"
+  [loading]="loading()"
+  (refresh)="refresh()">
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="flex items-center justify-center py-12">
+      <app-spinner size="lg" />
+    </div>
+  }
+
+  <!-- Tabs -->
+  @if (!loading()) {
+    <div ngTabs>
+      <!-- Tab List -->
+      <div ngTabList [(selectedTab)]="selectedTab" class="border-b">
+        <nav class="flex gap-4 px-4" aria-label="Tabs">
+          <div
+            ngTab
+            value="details"
+            class="tab-trigger">
+            {{ 'common.details' | transloco }}
+          </div>
+          <div
+            ngTab
+            value="history"
+            class="tab-trigger">
+            {{ 'common.history' | transloco }}
+          </div>
+        </nav>
+      </div>
+
+      <!-- Tab Panels -->
+      <!-- Details Tab -->
+      <div ngTabPanel value="details">
+        <ng-template ngTabContent>
+          <div class="py-6">
+            <div class="container mx-auto px-4">
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Main Content - Takes 2 columns on large screens -->
+                <div class="lg:col-span-2 space-y-6">
+                  <!-- Basic Information Card -->
+                  <div class="rounded-lg border bg-card shadow-sm">
+                    <div class="border-b bg-muted/40 px-6 py-4">
+                      <h2 class="text-lg font-semibold">{{ 'organizations.basicInfo' | transloco }}</h2>
+                    </div>
+                    <div class="p-6">
+                      @if (organization()) {
+                        <div class="space-y-4">
+                          <!-- Name -->
+                          <div>
+                            <label class="mb-1 block text-sm font-medium text-muted-foreground">
+                              {{ 'organizations.name' | transloco }}
+                            </label>
+                            <p class="text-base">{{ organization()!.name || organizationName() }}</p>
+                          </div>
+
+                          <!-- Tier -->
+                          <div>
+                            <label class="mb-1 block text-sm font-medium text-muted-foreground">
+                              {{ 'organizations.tier' | transloco }}
+                            </label>
+                            <span class="inline-flex rounded-full bg-blue-100 px-3 py-1.5 text-sm font-semibold text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                              {{ organization()!.tier }}
+                            </span>
+                          </div>
+
+                          <!-- External Organization ID -->
+                          @if (organization()!.externalOrganizationId) {
+                            <div>
+                              <label class="mb-1 block text-sm font-medium text-muted-foreground">
+                                {{ 'organizations.externalId' | transloco }}
+                              </label>
+                              <p class="font-mono text-sm">{{ organization()!.externalOrganizationId }}</p>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Sidebar - Takes 1 column on large screens -->
+                <div class="space-y-6">
+                  <!-- Status Card -->
+                  @if (organization()) {
+                    <div class="rounded-lg border bg-card shadow-sm">
+                      <div class="border-b bg-muted/40 px-6 py-4">
+                        <h2 class="text-lg font-semibold">{{ 'organizations.status' | transloco }}</h2>
+                      </div>
+                      <div class="p-6 space-y-4">
+                        <div>
+                          <p class="text-sm text-muted-foreground mb-2">{{ 'organizations.currentStatus' | transloco }}</p>
+                          <span [appStatusBadge]="organization()!.status">
+                            {{ organization()!.status }}
+                          </span>
+                        </div>
+
+                        <div>
+                          <p class="text-sm text-muted-foreground mb-1">{{ 'organizations.createdAt' | transloco }}</p>
+                          <p class="text-base">{{ organization()!.createdAt | date:'medium' }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- History Tab -->
+      <div ngTabPanel value="history">
+        <ng-template ngTabContent>
+          <div class="py-6">
+            <div class="container mx-auto px-4">
+              <app-organization-audit-log [organizationId]="internalOrganizationId()" />
+            </div>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  }
+</app-entity-details-view>

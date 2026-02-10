@@ -21,7 +21,7 @@ public static class AuditEventData
 
     public record ExternalOrganizationCreated(string ExternalOrganizationId);
 
-    public record OrganizationActivated;
+    public record OrganizationActivated(string OldStatus, string NewStatus);
 
     public record NameChanged(string OldName, string NewName);
 
@@ -56,7 +56,9 @@ public class GetAuditLogHandler(IQuerySession session) : IWolverineHandler
             {
                 Created e => (object)new AuditEventData.OrganizationCreated(e.CreatedAt),
                 ExternalOrganizationCreated e => new AuditEventData.ExternalOrganizationCreated(e.ExternalOrganizationId),
-                Activated => new AuditEventData.OrganizationActivated(),
+                Activated e => new AuditEventData.OrganizationActivated(
+                    OldStatus: previousState?.CurrentStatus.ToString() ?? "Pending",
+                    NewStatus: "Active"),
                 _ => new { EventData = evt.Data }
             };
 

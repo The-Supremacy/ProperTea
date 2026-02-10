@@ -21,13 +21,12 @@ public static class SessionEndpoints
         if (!isAuthenticated)
         {
             return Results.Ok(new SessionDto(
-                UserId: Guid.Empty,
                 ExternalUserId: string.Empty,
                 IsAuthenticated: false,
                 EmailAddress: string.Empty,
                 FirstName: string.Empty,
                 LastName: string.Empty,
-                OrganizationId: Guid.Empty,
+                ExternalOrganizationId: string.Empty,
                 OrganizationName: string.Empty,
                 LastSeenAt: null
             ));
@@ -37,17 +36,16 @@ public static class SessionEndpoints
         var email = context.User.FindFirst("email")?.Value ?? string.Empty;
         var firstName = context.User.FindFirst("given_name")?.Value ?? string.Empty;
         var lastName = context.User.FindFirst("family_name")?.Value ?? string.Empty;
-        var orgId = context.User.FindFirst("urn:zitadel:iam:org:id")?.Value ?? string.Empty;
-        var orgName = context.User.FindFirst("urn:zitadel:iam:org:domain")?.Value ?? string.Empty;
+        var externalOrgId = context.User.FindFirst("urn:zitadel:iam:user:resourceowner:id")?.Value ?? string.Empty;
+        var orgName = context.User.FindFirst("urn:zitadel:iam:user:resourceowner:name")?.Value ?? string.Empty;
 
         return Results.Ok(new SessionDto(
-            UserId: Guid.TryParse(userId, out var uid) ? uid : Guid.Empty,
             ExternalUserId: userId,
             IsAuthenticated: true,
             EmailAddress: email,
             FirstName: firstName,
             LastName: lastName,
-            OrganizationId: Guid.TryParse(orgId, out var oid) ? oid : Guid.Empty,
+            ExternalOrganizationId: externalOrgId,
             OrganizationName: orgName,
             LastSeenAt: DateTimeOffset.UtcNow
         ));
@@ -55,13 +53,12 @@ public static class SessionEndpoints
 }
 
 public record SessionDto(
-    Guid UserId,
     string ExternalUserId,
     bool IsAuthenticated,
     string EmailAddress,
     string FirstName,
     string LastName,
-    Guid OrganizationId,
+    string ExternalOrganizationId,
     string OrganizationName,
     DateTimeOffset? LastSeenAt
 );

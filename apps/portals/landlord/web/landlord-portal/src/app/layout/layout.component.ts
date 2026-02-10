@@ -97,6 +97,11 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
       label: 'nav.companies',
       icon: 'business',
       route: '/companies'
+    },
+    {
+      label: 'nav.organization',
+      icon: 'corporate_fare',
+      route: '/organizations/details'
     }
   ];
 

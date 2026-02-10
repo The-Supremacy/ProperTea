@@ -19,7 +19,7 @@ public static class CompanyAuditEventData
 {
     public record CompanyCreated(string Name, DateTimeOffset CreatedAt);
 
-    public record NameChanged(string NewName);
+    public record NameChanged(string OldName, string NewName);
 
     public record CompanyDeleted(DateTimeOffset DeletedAt);
 }
@@ -42,13 +42,16 @@ public class GetCompanyAuditLogHandler(IQuerySession session) : IWolverineHandle
                 query.CompanyId);
 
         var entries = new List<CompanyAuditLogEntry>();
+        CompanyAggregate? previousState = null;
 
         foreach (var evt in events)
         {
             var data = evt.Data switch
             {
                 Created e => (object)new CompanyAuditEventData.CompanyCreated(e.Name, e.CreatedAt),
-                NameUpdated e => new CompanyAuditEventData.NameChanged(e.Name),
+                NameUpdated e => new CompanyAuditEventData.NameChanged(
+                    OldName: previousState?.Name ?? "",
+                    NewName: e.Name),
                 Deleted e => new CompanyAuditEventData.CompanyDeleted(e.DeletedAt),
                 _ => new { EventData = evt.Data }
             };
@@ -60,6 +63,17 @@ public class GetCompanyAuditLogHandler(IQuerySession session) : IWolverineHandle
                 Version: (int)evt.Version,
                 Data: data
             ));
+
+            // Rebuild state after each event for next iteration
+            previousState ??= new CompanyAggregate();
+            switch (evt.Data)
+            {
+                case Created e: previousState.Apply(e); break;
+                case NameUpdated e: previousState.Apply(e); break;
+                case Deleted e: previousState.Apply(e); break;
+                default:
+                    break;
+            }
         }
 
         return new CompanyAuditLogResponse(query.CompanyId, entries);
