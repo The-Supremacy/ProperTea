@@ -1,88 +1,118 @@
-# ProperTea System Architecture
+# System Architecture
 
-## System Overview
-ProperTea is a multi-tenant Real Estate ERP built on .NET 10 using a microservices architecture.
-- **Orchestration**: .NET Aspire (`ProperTea.AppHost`) manages local development containers (PostgreSQL, Redis, RabbitMQ, ZITADEL, MailPit).
-- **Communication**: Wolverine (CQRS + Messaging) over RabbitMQ.
-- **Persistence**: Marten (PostgreSQL) as an Event Store and Document DB.
-- **Identity**: ZITADEL (External IdP) used for authentication and organization management.
-- **Authorization**: OpenFGA (Relationship-Based Access Control) using contextual tuples for fine-grained resource permissions.
-- **Frontend Gateway**: BFF Pattern (YARP + Typed Clients).
+Multi-tenant Real Estate ERP. .NET 10, microservices, event-sourced.
+
+## Technology Stack
+
+| Concern | Technology | Notes |
+|---|---|---|
+| Orchestration | .NET Aspire | `ProperTea.AppHost` manages PostgreSQL, Redis, RabbitMQ, ZITADEL, MailPit |
+| CQRS + Messaging | Wolverine | Over RabbitMQ. Handlers implement `IWolverineHandler` |
+| Persistence | Marten (PostgreSQL) | Event Store + Document DB. All documents multi-tenanted |
+| Identity | ZITADEL | External IdP. Org ID used directly as Marten `TenantId` (ADR 0010) |
+| Authorization | OpenFGA | Relationship-Based Access Control with contextual tuples (ADR 0004, 0008) |
+| Frontend | Angular 21 | Zoneless, signals, Tailwind CSS 4, Transloco i18n |
+| Frontend Gateway | BFF (YARP) | Pass-through only. No business logic (ADR 0003) |
+
+## Service Map
+
+```
+                  ┌──────────────┐
+                  │  Angular SPA │
+                  └──────┬───────┘
+                         │ OIDC
+                  ┌──────┴───────┐
+                  │  Landlord BFF│ ── Redis (sessions)
+                  └──────┬───────┘
+                         │ HTTP + X-Organization-Id header
+          ┌──────────────┼──────────────┐
+          │              │              │
+   ┌──────┴──────┐ ┌────┴─────┐ ┌──────┴──────┐
+   │ Organization│ │ Company  │ │    User     │
+   │   Service   │ │ Service  │ │   Service   │
+   └──────┬──────┘ └────┬─────┘ └──────┬──────┘
+          │              │              │
+          └──────────────┼──────────────┘
+                         │ RabbitMQ (integration events)
+                    ┌────┴─────┐
+                    │ PostgreSQL│ (per-service databases)
+                    └──────────┘
+```
 
 ## Service Boundaries
 
 ### Organization Service (`ProperTea.Organization`)
-**Responsibility**: The "Tenant Master". Orchestrates headless registration and manages organization lifecycles.
-- **Registration Flow**: Uses a **Reliable Handler** to call ZITADEL v2 APIs (atomic Org + User creation) and persists the local `OrganizationAggregate`.
-- **Persistence**: Event Sourcing with Marten.
-- **Messaging**: Publishes `organizations.registered.v1` and other lifecycle events.
+The "Tenant Master". Orchestrates headless registration and manages organization lifecycles.
+- Registration: Wolverine Reliable Handler calls ZITADEL v2 `AddOrganization` API for atomic Org + User creation, then persists `OrganizationAggregate`.
+- Publishes: `organizations.registered.v1`, `organizations.updated.v1`.
 
 ### User Service (`ProperTea.User`)
-**Responsibility**: Manages user profiles and "Last Seen" tracking.
-- **Aggregate**: `UserProfileAggregate`.
-- **Flow**: Listens to `organizations.registered.v1` to build local profile read models asynchronously.
+Manages user profiles and "Last Seen" tracking.
+- Aggregate: `UserProfileAggregate`.
+- Subscribes to `organizations.registered.v1` to create local profile read models.
 
 ### Company Service (`ProperTea.Company`)
-**Responsibility**: Manages legal business entities (Companies) that own properties and conduct business operations.
-- **Aggregate**: `CompanyAggregate` (Event Sourced).
-- **Multi-Tenancy**: Uses ZITADEL organization ID directly as `TenantId` for performance (no internal mapping).
-- **Flow**: Listens to `organizations.registered.v1` to create a default company automatically.
-- **Messaging**: Publishes `companies.created.v1` and `companies.deleted.v1` integration events.
-- **Endpoints**: Wolverine.HTTP auto-discovered endpoints using `InvokeForTenantAsync` pattern.
+Manages legal business entities (Companies) that own properties.
+- Aggregate: `CompanyAggregate` (Event Sourced, `ITenanted`).
+- Subscribes to `organizations.registered.v1` to create a default company.
+- Publishes: `companies.created.v1`, `companies.deleted.v1`.
+- Endpoints: Wolverine.HTTP with `InvokeForTenantAsync`.
 
-### Property Service (`ProperTea.Property`)
-**Responsibility**: Owns the "Physical Reality" of the estate.
-- **Data**: Manages physical attributes, inventory, and building structures.
-- **Isolation**: Separated from commercial concerns to allow asset tracking without active rentals.
+### Property Service (`ProperTea.Property`) -- planned
+Owns the "Physical Reality": physical attributes, inventory, building structures.
+Separated from commercial concerns (asset tracking without active rentals).
 
-### Rental Service (`ProperTea.Rental`)
-**Responsibility**: Owns the "Commercial Reality" of the estate.
-- **Logic**: Manages internal schedules, base financials, rentable status, and blocks (e.g., renovations).
-- **Calculations**: Determines "Lost Rent" based on base rent vs. actual contracts.
+### Rental Service (`ProperTea.Rental`) -- planned
+Owns the "Commercial Reality": internal schedules, base financials, rentable status, blocks.
+Calculates "Lost Rent" (base rent vs. actual contracts).
 
-### Work Order Service (`ProperTea.WorkOrder`)
-**Responsibility**: Manages the lifecycle of maintenance tasks and inspections.
-- **Visibility**: Uses cross-tenant projections to allow contractor organizations to view assigned tasks.
-- **Authorization**: Checks **OpenFGA** permissions before allowing access. Marten multi-tenancy provides org-level isolation.
+### Work Order Service (`ProperTea.WorkOrder`) -- planned
+Maintenance tasks and inspections lifecycle.
+Uses cross-tenant projections for contractor visibility. OpenFGA for resource authorization.
 
 ### Landlord BFF (`ProperTea.Landlord.Bff`)
-**Responsibility**: Secures the Frontend application and forwards authenticated requests to services.
-- **Auth**: Handles OIDC Code Flow with ZITADEL. Stores sessions in Redis.
-- **Token Forwarding**: Extracts user context (user_id, org_id) from token and injects as headers into downstream calls.
-- **Pass-Through**: No business logic or authorization checks (handled by services).
-- **Session**: Provides `/session` endpoint for Angular app to retrieve user and organization context.
+Secures frontend, forwards authenticated requests. No business logic.
+- OIDC Code Flow with ZITADEL. Sessions in Redis.
+- `OrganizationHeaderHandler` extracts org claim, injects `X-Organization-Id` header downstream.
+- `/api/session` returns user context from JWT claims.
 
 ### Landlord Portal (`apps/portals/landlord/web`)
-**Responsibility**: Angular SPA providing the landlord user interface.
-- **Stack**: Angular 21+ (standalone components, signals), Tailwind CSS
-- **Components**: Headless-first (Angular Aria + Material + TanStack Table)
-- **State Management**: Signals for local state, Services with Signals for shared state
-- **Forms**: Reactive Forms only
-- **i18n**: Transloco for internationalization
-- **Dark Mode**: CSS custom properties with system preference detection
+Angular 21 SPA. Standalone components, signals, `OnPush`, Tailwind CSS 4.
+- Components: Angular Aria + Material + TanStack Table (ADR 0012).
+- State: Signals for local, services with signals for shared.
+- Forms: Reactive only. i18n: Transloco (en, uk).
 
-## Development Patterns
+## Key Patterns
 
 ### Vertical Slice Architecture
-Code is organized by **Feature**, not by Layer.
-- **Path**: `Features/{FeatureName}/`.
+Code organized by **feature**, not layer. Path: `Features/{FeatureName}/`.
+Each feature contains: Aggregate, Events, Handlers, Endpoints, Configuration.
 
-### Wolverine Handlers
-- Implement `IWolverineHandler`.
-- Inject `IDocumentSession` (Marten) for persistence transactions.
-- **Side Effects**: Use `IMessageBus.PublishAsync` only for integration events.
+### Multi-Tenancy
+ZITADEL org ID = Marten `TenantId` directly (ADR 0010). No mapping layer.
+- BFF extracts org claim from token, forwards as `X-Organization-Id`.
+- Service extracts header via `IOrganizationIdProvider`.
+- All commands dispatched via `bus.InvokeForTenantAsync(tenantId, command)`.
+- Marten auto-scopes all queries to the tenant.
 
-### Marten Configuration
-- **Aggregates**: Implement `IRevisioned`.
-- **Tenancy**: `opts.Policies.AllDocumentsAreMultiTenanted()` enabled globally.
-- **Tenant Scoping**: Services extract `org_id` from token headers and set Marten tenant per request.
-- **Data Isolation**: All queries automatically scoped to organization via Marten tenancy.
+### Authorization (Two Layers)
+1. **Organization isolation**: Marten multi-tenancy. Automatic, no code needed per query.
+2. **Resource permissions**: OpenFGA checks. `ListObjects` returns authorized IDs, service filters query results. Contextual tuples for cross-tenant access (ADR 0004).
 
-### Authorization Pattern
-- **Organization Isolation**: Marten multi-tenancy enforces org-level data isolation.
-- **Resource Permissions**: Services check OpenFGA for fine-grained access control.
-- **Pattern**: `ListObjects` from OpenFGA → Filter database query with authorized IDs.
-- **Defense-in-Depth**: Services verify org_id from token matches requested resources.
+### Identity (Dual ID)
+- Internal: `Guid Id` for all FKs and integration events.
+- External: `string ExternalOrganizationId` / `string ExternalUserId` for ZITADEL references.
+- Services read standard `sub` claim, not ZITADEL-specific claims (ADR 0009).
 
-## Shared Contracts
-The source of truth for integration models is located in `/shared/ProperTea.Contracts`.
+## Shared Libraries
+
+| Project | Purpose |
+|---|---|
+| `ProperTea.Contracts` | Integration event interfaces (source of truth for cross-service contracts) |
+| `ProperTea.Infrastructure.Common` | Auth helpers, error handling, exceptions, pagination, OpenAPI |
+| `ProperTea.ServiceDefaults` | Aspire service defaults, OpenTelemetry, resilience |
+
+## Related Documents
+- [Domain language](domain.md)
+- [Integration events](event-catalog.md)
+- [Architecture decisions](decisions/) (ADR 0001-0012)

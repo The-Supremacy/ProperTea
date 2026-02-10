@@ -1,34 +1,45 @@
 # Event Catalog
 
-This document tracks all integration events exchanged between services via Wolverine and RabbitMQ.
+All integration events exchanged between services via Wolverine and RabbitMQ.
+Contracts (interfaces) live in `shared/ProperTea.Contracts/Events/`. Implementations live in the publishing service.
 
-## Exchange: `organization.events`
-**Publisher**: Organization Service (`ProperTea.Organization`)
-**Transport**: RabbitMQ (Fanout)
+## Naming Convention
 
-| Message Identity | Payload Interface | Trigger | Subscribers |
-| :--- | :--- | :--- | :--- |
-| `organizations.registered.v1` | `IOrganizationRegistered` | **RegisterOrganizationHandler**<br>New tenant created via headless flow. | **User Service**<br>**Company Service** (creates default company) |
-| `organizations.updated.v1` | `IOrganizationUpdated` | When organization details are updated. | *(Future: User Service, Company Service)* |
+`{entity}.{action}.v{version}` -- all lowercase, dot-separated.
 
-## Exchange: `company.events`
-**Publisher**: Company Service (`ProperTea.Company`)
-**Transport**: RabbitMQ (Fanout)
+## Events
 
-| Message Identity | Payload Interface | Trigger | Subscribers |
-| :--- | :--- | :--- | :--- |
-| `companies.created.v1` | `ICompanyCreated` | **CreateCompanyHandler**<br>New company created within organization. | *(Future: Property Service)* |
-| `companies.deleted.v1` | `ICompanyDeleted` | **DeleteCompanyHandler**<br>Company soft deleted (cannot be undone). | *(Future: Property Service)* |
+### Exchange: `organization.events` (Fanout)
 
-## Exchange: `workorder.events`
-**Publisher**: Work Order Service (`ProperTea.WorkOrder`)
-**Transport**: RabbitMQ (Topic)
+Publisher: Organization Service
 
-| Message Identity | Payload Interface | Trigger | Subscribers |
-| :--- | :--- | :--- | :--- |
-| `workorder.assigned.v1` | `IWorkOrderAssigned` | When a contractor org is assigned. | **Notification Service** |
-| `workorder.completed.v1` | `IWorkOrderCompleted` | When a task is marked finished. | **Billing Service** |
+| Message Identity | Contract | Trigger | Subscribers |
+|---|---|---|---|
+| `organizations.registered.v1` | `IOrganizationRegistered` | `RegisterOrganizationHandler` -- new tenant via headless flow | User Service, Company Service |
+| `organizations.updated.v1` | `IOrganizationUpdated` | Organization details updated | (planned) |
 
-## Usage Guidelines
-1. **Naming**: `{entity}.{action}.v{version}`.
-2. **Contract Enforcement**: Producers implement interfaces from `ProperTea.Contracts`.
+### Exchange: `company.events` (Fanout)
+
+Publisher: Company Service
+
+| Message Identity | Contract | Trigger | Subscribers |
+|---|---|---|---|
+| `companies.created.v1` | `ICompanyCreated` | `CreateCompanyHandler` -- new company in organization | (planned: Property Service) |
+| `companies.deleted.v1` | `ICompanyDeleted` | `DeleteCompanyHandler` -- soft delete | (planned: Property Service) |
+
+### Exchange: `workorder.events` (Topic) -- planned
+
+Publisher: Work Order Service
+
+| Message Identity | Contract | Trigger | Subscribers |
+|---|---|---|---|
+| `workorder.assigned.v1` | `IWorkOrderAssigned` | Contractor org assigned | Notification Service |
+| `workorder.completed.v1` | `IWorkOrderCompleted` | Task marked finished | Billing Service |
+
+## Adding a New Event
+
+1. Define interface in `shared/ProperTea.Contracts/Events/{Context}IntegrationEvents.cs`.
+2. Implement as `[MessageIdentity("...")]` class in the publishing service.
+3. Configure RabbitMQ exchange in publisher's Wolverine config.
+4. Configure queue listener in each subscriber's Wolverine config.
+5. Add row to the table above.

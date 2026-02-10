@@ -1,30 +1,54 @@
-# Product & Domain Overview
+# Domain Model
 
 ## Ubiquitous Language
 
-### Property Management (The "Physical" Reality)
-* **Property (Aggregate Root)**: The legal entity or complex.
-* **Unit (Aggregate Root)**: The distinct physical space.
+Use these exact terms when naming classes, variables, events, and UI labels.
 
-### Maintenance & Operations (The "Actionable" Reality)
-* **Work Order (Aggregate Root)**: The primary entity for maintenance and inspections.
-  - **Fault Report**: Reactive maintenance for tenant-reported issues.
-  - **Rounds**: Preventive maintenance or scheduled routine checks.
-  - **Property Inspection**: Condition assessments (e.g., Move-in/Move-out).
-  - **Legal Audit**: Statutory compliance checks (e.g., Fire safety, Elevator certs).
-* **Competence**: Skill categories assigned to an Organization (e.g., Plumbing, Electrical).
+### Organization & Identity
 
-### Rental Management (The "Commercial" Reality)
-* **Rentable Unit**: The commercial view of a Unit.
-* **Block**: A manual reservation of time for renovations or maintenance.
+| Term | Definition | Owned By |
+|---|---|---|
+| **Organization** | A ZITADEL-managed tenant. Isolation boundary for all data. | Organization Service |
+| **Owner Organization** | The landlord/management org that owns properties. | -- |
+| **Executor Organization** | A contractor org assigned to a Work Order. | Work Order Service |
+| **User Profile** | Local representation of a ZITADEL user. Stores preferences, "Last Seen". | User Service |
 
-### Visibility & Roles
-* **Owner Organization**: The landlord/management org owning the property.
-* **Executor Organization**: The contractor org assigned to a Work Order.
+### Property Management (Physical Reality)
+
+| Term | Definition | Owned By |
+|---|---|---|
+| **Property** (Aggregate Root) | The legal entity or complex (building, estate). | Property Service |
+| **Unit** (Aggregate Root) | A distinct physical space within a Property. Holds `PropertyId`. Private house = 1 Property + 1 Unit (ADR 0001). | Property Service |
+
+### Rental Management (Commercial Reality)
+
+| Term | Definition | Owned By |
+|---|---|---|
+| **Rentable Unit** | The commercial view of a Unit. Tracks rentable status. | Rental Service |
+| **Block** | A manual reservation of time (renovations, maintenance). Prevents renting. | Rental Service |
+| **Company** (Aggregate Root) | A legal business entity (LLC) that owns properties. Multiple per Organization (ADR 0007). | Company Service |
+
+### Maintenance & Operations (Actionable Reality)
+
+| Term | Definition | Owned By |
+|---|---|---|
+| **Work Order** (Aggregate Root) | Primary entity for all maintenance and inspection tasks (ADR 0005). | Work Order Service |
+| **Fault Report** | Work Order type: reactive maintenance for tenant-reported issues. | Work Order Service |
+| **Rounds** | Work Order type: preventive/scheduled routine checks. | Work Order Service |
+| **Property Inspection** | Work Order type: condition assessment (move-in/move-out). | Work Order Service |
+| **Legal Audit** | Work Order type: statutory compliance check (fire safety, elevator certs). | Work Order Service |
+| **Competence** | Skill category assigned to an Organization (e.g., Plumbing, Electrical). | Work Order Service |
 
 ## Primary User Flow
-1. **Onboarding**: User registers via the Headless flow. Org and Admin are created in ZITADEL and local state.
-2. **Definition**: User creates `Property` and `Unit` in *Property Service*.
-3. **Setup**: User marks Unit as "Rentable" in *Rental Service*.
-4. **Maintenance**: A **Fault Report** is created. Landlord assigns an **Executor Organization**.
-5. **Execution**: Contractor views the **Work Order** on their dashboard and updates status.
+
+1. **Onboarding**: User registers via headless flow. Org + Admin created in ZITADEL and local state (ADR 0003).
+2. **Definition**: User creates `Property` and `Unit` in Property Service.
+3. **Setup**: User marks Unit as "Rentable" in Rental Service.
+4. **Maintenance**: A Fault Report is created. Landlord assigns an Executor Organization.
+5. **Execution**: Contractor views the Work Order on their dashboard and updates status.
+
+## Aggregate Ownership Rules
+
+- Each aggregate belongs to exactly one service.
+- Cross-service references use integration events, never direct DB access.
+- All aggregates are scoped to a tenant (organization) via Marten multi-tenancy.

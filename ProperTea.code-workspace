@@ -5,6 +5,8 @@
 		}
 	],
 	"settings": {
+		"github.copilot.chat.codeGeneration.useInstructionFiles": true,
+		"chat.promptFiles": true,
 		"chat.tools.terminal.autoApprove": {
 			"npm run build": true,
 			"mkdir": true,
