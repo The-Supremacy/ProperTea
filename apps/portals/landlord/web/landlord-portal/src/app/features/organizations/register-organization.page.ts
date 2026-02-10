@@ -337,12 +337,12 @@ export class RegisterOrganizationPage implements OnInit, OnDestroy {
     this.organizationService.register(request).pipe(
       catchError(error => {
         this.submitting.set(false);
-        this.toastService.error('Failed to create organization. Please try again.');
+        this.toastService.error('register.error.createFailed');
         throw error;
       }),
       takeUntil(this.destroy$)
     ).subscribe(() => {
-      this.toastService.success('Organization created successfully!');
+      this.toastService.success('register.success.created');
       this.sessionService.login();
     });
   }

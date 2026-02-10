@@ -1,4 +1,9 @@
 <app-entity-list-view
   [config]="listConfig()"
   [title]="'companies.title' | transloco"
-  [createLabel]="'common.new'" />
+  [createLabel]="'common.new'"
+  (createClick)="openCreateDrawer()" />
+
+<app-create-company-drawer
+  [open]="createDrawerOpen()"
+  (openChange)="createDrawerOpen.set($event)" />

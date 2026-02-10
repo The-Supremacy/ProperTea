@@ -8,11 +8,12 @@ import { CompanyListItem, CompanyFilters } from '../models/company.models';
 import { EntityListViewComponent, EntityListConfig, EntityAction, FilterField, TableAction } from '../../../../shared/components/entity-list-view';
 import { DialogService } from '../../../core/services/dialog.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { CreateCompanyDrawerComponent } from '../create-drawer/create-company-drawer.component';
 
 @Component({
   selector: 'app-companies-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslocoPipe, EntityListViewComponent],
+  imports: [TranslocoPipe, EntityListViewComponent, CreateCompanyDrawerComponent],
   templateUrl: './companies-list.component.html',
   styleUrl: './companies-list.component.css',
 })
@@ -174,5 +175,9 @@ export class CompaniesListComponent {
 
   exportAll(): void {
     this.toastService.info('companies.exportNotImplemented');
+  }
+
+  openCreateDrawer(): void {
+    this.createDrawerOpen.set(true);
   }
 }

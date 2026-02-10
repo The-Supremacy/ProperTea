@@ -1,4 +1,4 @@
-import { Component, input, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Directive, input, computed } from '@angular/core';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../../utils/cn';
 
@@ -46,12 +46,13 @@ const inputVariants = cva(
 export type InputVariants = VariantProps<typeof inputVariants>;
 
 /**
- * Headless text input component with CVA-based variant styling.
- * Integrates with Angular forms and provides visual feedback for validation states.
+ * Headless text input directive with CVA-based variant styling.
+ * Applied to native input elements to provide consistent styling and visual feedback for validation states.
  *
  * @example
  * ```html
- * <app-text-input
+ * <input
+ *   appTextInput
  *   id="name"
  *   type="text"
  *   [variant]="nameControl.invalid && nameControl.touched ? 'error' : 'default'"
@@ -59,32 +60,13 @@ export type InputVariants = VariantProps<typeof inputVariants>;
  *   formControlName="name" />
  * ```
  */
-@Component({
-  selector: 'app-text-input',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+@Directive({
+  selector: 'input[appTextInput]',
   host: {
-    '[attr.type]': 'type()',
-    '[attr.id]': 'id()',
-    '[attr.placeholder]': 'placeholder()',
-    '[attr.disabled]': 'disabled() ? "" : null',
-    '[attr.required]': 'required() ? "" : null',
-    '[attr.readonly]': 'readonly() ? "" : null',
-    '[attr.autocomplete]': 'autocomplete()',
-    '[attr.aria-invalid]': 'variant() === "error"',
     '[class]': 'computedClass()',
   },
-  template: '',
 })
-export class TextInputComponent {
-  // Inputs
-  type = input<'text' | 'email' | 'password' | 'tel' | 'url' | 'search'>('text');
-  id = input<string>();
-  placeholder = input<string>('');
-  disabled = input<boolean>(false);
-  required = input<boolean>(false);
-  readonly = input<boolean>(false);
-  autocomplete = input<string>();
-
+export class TextInputDirective {
   // CVA variant inputs
   variant = input<InputVariants['variant']>('default');
   inputSize = input<InputVariants['inputSize']>('md');
@@ -103,3 +85,4 @@ export class TextInputComponent {
     )
   );
 }
+

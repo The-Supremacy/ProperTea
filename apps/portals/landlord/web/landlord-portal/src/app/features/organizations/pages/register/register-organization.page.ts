@@ -424,13 +424,13 @@ export class RegisterOrganizationPage implements OnInit, OnDestroy {
       .pipe(
         catchError((error) => {
           this.submitting.set(false);
-          this.toastService.error(this.translocoService.translate('register.error.createFailed'));
+          this.toastService.error('register.error.createFailed');
           throw error;
         }),
         takeUntil(this.destroy$),
       )
       .subscribe(() => {
-        this.toastService.success(this.translocoService.translate('register.success.created'));
+        this.toastService.success('register.success.created');
         this.sessionService.login();
       });
   }

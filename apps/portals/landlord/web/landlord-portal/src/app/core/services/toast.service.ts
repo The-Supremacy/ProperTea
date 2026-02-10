@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
+import { TranslocoService } from '@jsverse/transloco';
 
 export interface ToastOptions {
   duration?: number;
@@ -9,8 +10,10 @@ export interface ToastOptions {
 @Injectable({ providedIn: 'root' })
 export class ToastService {
   private snackBar = inject(MatSnackBar);
+  private translocoService = inject(TranslocoService);
 
-  show(message: string, options: ToastOptions = {}) {
+  show(messageKey: string, options: ToastOptions = {}) {
+    const message = this.translocoService.translate(messageKey);
     const config: MatSnackBarConfig = {
       duration: options.duration ?? 3000,
       horizontalPosition: 'end',
@@ -20,19 +23,23 @@ export class ToastService {
     this.snackBar.open(message, options.action, config);
   }
 
-  success(message: string, options: ToastOptions = {}) {
+  success(messageKey: string, options: ToastOptions = {}) {
+    const message = this.translocoService.translate(messageKey);
     this.show(`✓ ${message}`, options);
   }
 
-  error(message: string, options: ToastOptions = {}) {
+  error(messageKey: string, options: ToastOptions = {}) {
+    const message = this.translocoService.translate(messageKey);
     this.show(`✗ ${message}`, { ...options, duration: 5000 });
   }
 
-  info(message: string, options: ToastOptions = {}) {
+  info(messageKey: string, options: ToastOptions = {}) {
+    const message = this.translocoService.translate(messageKey);
     this.show(`ℹ ${message}`, options);
   }
 
-  warning(message: string, options: ToastOptions = {}) {
+  warning(messageKey: string, options: ToastOptions = {}) {
+    const message = this.translocoService.translate(messageKey);
     this.show(`⚠ ${message}`, options);
   }
 }
