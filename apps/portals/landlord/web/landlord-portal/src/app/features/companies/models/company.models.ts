@@ -8,7 +8,7 @@ export interface CreateCompanyRequest {
   name: string;
 }
 
-export interface UpdateCompanyNameRequest {
+export interface UpdateCompanyRequest {
   name: string;
 }
 
@@ -31,4 +31,17 @@ export type PagedCompaniesResponse = PagedResult<CompanyListItem>;
 export interface CheckNameResponse {
   available: boolean;
   existingCompanyId?: string;
+}
+
+export interface CompanyAuditLogEntry {
+  eventType: string;
+  timestamp: Date;
+  username?: string;
+  version: number;
+  data: any;
+}
+
+export interface CompanyAuditLogResponse {
+  companyId: string;
+  entries: CompanyAuditLogEntry[];
 }

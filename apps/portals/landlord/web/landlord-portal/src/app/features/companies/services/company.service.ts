@@ -7,8 +7,9 @@ import {
   CompanyDetailResponse,
   PagedCompaniesResponse,
   CreateCompanyRequest,
-  UpdateCompanyNameRequest,
-  CheckNameResponse
+  UpdateCompanyRequest,
+  CheckNameResponse,
+  CompanyAuditLogResponse
 } from '../models/company.models';
 
 @Injectable({
@@ -46,7 +47,7 @@ export class CompanyService {
     return this.http.post<{ id: string }>('/api/companies', request);
   }
 
-  update(id: string, request: UpdateCompanyNameRequest): Observable<void> {
+  update(id: string, request: UpdateCompanyRequest): Observable<void> {
     return this.http.put<void>(`/api/companies/${id}`, request);
   }
 
@@ -62,5 +63,9 @@ export class CompanyService {
     }
 
     return this.http.get<CheckNameResponse>('/api/companies/check-name', { params });
+  }
+
+  getAuditLog(id: string): Observable<CompanyAuditLogResponse> {
+    return this.http.get<CompanyAuditLogResponse>(`/api/companies/${id}/audit-log`);
   }
 }

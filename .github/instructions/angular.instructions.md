@@ -6,6 +6,9 @@ applyTo: "**/landlord-portal/**"
 
 Stack: Angular 21+, Tailwind CSS 4, Vitest, Zoneless change detection, PWA.
 
+## Structure
+- 'docs/dev/angular-feature-structure.md' defines the directory layout and conventions for features.
+
 ## Component Rules
 - Standalone components only. Do NOT set `standalone: true` (it's the default in Angular 21+).
 - Always set `changeDetection: ChangeDetectionStrategy.OnPush`.

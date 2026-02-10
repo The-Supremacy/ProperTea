@@ -278,7 +278,7 @@
           <tbody>
             @for (row of table.getRowModel().rows; track getEntityId(row.original)) {
               <tr
-                class="border-b transition-colors hover:bg-muted/50"
+                class="border-b transition-colors hover:bg-muted/50 cursor-pointer"
                 (click)="onRowClick(row.original)">
                 @for (cell of row.getVisibleCells(); track cell.id) {
                   <td class="px-4 py-3">
@@ -368,7 +368,7 @@
       <div class="space-y-4">
         @for (row of table.getRowModel().rows; track getEntityId(row.original)) {
           <div
-            class="rounded-lg border bg-card p-4 transition-shadow hover:shadow-md"
+            class="rounded-lg border bg-card p-4 transition-shadow hover:shadow-md cursor-pointer"
             (click)="onRowClick(row.original)">
             <!-- Use custom template if provided, otherwise show default -->
             @if (mobileCardTemplate()) {

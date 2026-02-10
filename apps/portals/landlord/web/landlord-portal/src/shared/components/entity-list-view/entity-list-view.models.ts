@@ -47,6 +47,7 @@ export interface EntityListConfig<TEntity, TFilters = any> {
   initialFilters?: TFilters;
   features?: EntityListFeatures;
   emptyState?: EmptyStateConfig;
+  navigation?: EntityListNavigation<TEntity>;
 }
 export interface EntityListQuery<TFilters = any> {
   pagination: PaginationQuery;
@@ -104,6 +105,19 @@ export interface EmptyStateConfig {
   title?: string;
   description?: string;
   icon?: string;
+}
+
+export interface EntityListNavigation<TEntity> {
+  /**
+   * Function to generate the route array for an entity.
+   * Return value will be passed to router.navigate()
+   */
+  getDetailsRoute: (entity: TEntity) => any[];
+
+  /**
+   * Optional: Target window behavior (default: '_self')
+   */
+  target?: '_self' | '_blank';
 }
 
 export interface ColumnPreferences {

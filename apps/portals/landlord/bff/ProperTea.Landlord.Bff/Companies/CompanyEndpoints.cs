@@ -23,11 +23,14 @@ public static class CompanyEndpoints
         _ = group.MapGet("/{id:guid}", GetCompany)
             .WithName("GetCompany");
 
-        _ = group.MapPut("/{id:guid}", UpdateCompanyName)
-            .WithName("UpdateCompanyName");
+        _ = group.MapPut("/{id:guid}", UpdateCompany)
+            .WithName("UpdateCompany");
 
         _ = group.MapDelete("/{id:guid}", DeleteCompany)
             .WithName("DeleteCompany");
+
+        _ = group.MapGet("/{id:guid}/audit-log", GetCompanyAuditLog)
+            .WithName("GetCompanyAuditLog");
 
         return app;
     }
@@ -71,14 +74,23 @@ public static class CompanyEndpoints
         return company is null ? Results.NotFound() : Results.Ok(company);
     }
 
-    private static async Task<IResult> UpdateCompanyName(
+    private static async Task<IResult> UpdateCompany(
         Guid id,
-        [FromBody] UpdateCompanyNameRequest request,
+        [FromBody] UpdateCompanyRequest request,
         [FromServices] CompanyClient client,
         CancellationToken ct)
     {
-        await client.UpdateCompanyNameAsync(id, request, ct);
+        await client.UpdateCompanyAsync(id, request, ct);
         return Results.NoContent();
+    }
+
+    private static async Task<IResult> GetCompanyAuditLog(
+        Guid id,
+        [FromServices] CompanyClient client,
+        CancellationToken ct)
+    {
+        var auditLog = await client.GetCompanyAuditLogAsync(id, ct);
+        return Results.Ok(auditLog);
     }
 
     private static async Task<IResult> DeleteCompany(

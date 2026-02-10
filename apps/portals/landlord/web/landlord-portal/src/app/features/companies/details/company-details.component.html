@@ -1,10 +1,7 @@
-<div class="mx-auto max-w-2xl px-4 py-8">
-  <!-- Header -->
-  <div class="mb-6">
-    <h1 class="text-2xl font-bold">
-      {{ 'common.edit' | transloco }}
-    </h1>
-  </div>
+<app-entity-details-view
+  [config]="detailsConfig()"
+  [loading]="loading()"
+  (refresh)="loadCompany(companyId())">
 
   <!-- Loading State -->
   @if (loading()) {
@@ -13,100 +10,134 @@
     </div>
   }
 
-  <!-- Form -->
+  <!-- Tabs -->
   @if (!loading()) {
-    <form [formGroup]="form" (ngSubmit)="save()" class="space-y-6">
-      <!-- Name Field -->
-      <div>
-        <label for="name" class="mb-2 block text-sm font-medium">
-          {{ 'companies.name' | transloco }}
-        </label>
-        <input
-          id="name"
-          type="text"
-          formControlName="name"
-          [placeholder]="'companies.namePlaceholder' | transloco"
-          class="input w-full"
-          [class.border-destructive]="nameControl.invalid && nameControl.touched" />
-
-        @if (nameControl.invalid && nameControl.touched) {
-          <p class="mt-1 text-sm text-destructive">
-            @if (nameControl.hasError('required')) {
-              {{ 'companies.nameRequired' | transloco }}
-            }
-            @if (nameControl.hasError('nameTaken')) {
-              {{ 'companies.nameTaken' | transloco }}
-            }
-          </p>
-        }
-
-        @if (nameControl.pending) {
-          <p class="mt-1 text-sm text-muted-foreground">
-            {{ 'companies.checkingName' | transloco }}
-          </p>
-        }
+    <div ngTabs>
+      <!-- Tab List -->
+      <div ngTabList [(selectedTab)]="selectedTab" class="border-b">
+        <nav class="flex gap-4 px-4" aria-label="Tabs">
+          <div
+            ngTab
+            value="details"
+            class="tab-trigger">
+            {{ 'common.details' | transloco }}
+          </div>
+          <div
+            ngTab
+            value="history"
+            class="tab-trigger">
+            {{ 'common.history' | transloco }}
+          </div>
+        </nav>
       </div>
 
-      <!-- Status -->
-      @if (company()) {
-        <div>
-          <label class="mb-2 block text-sm font-medium">
-            {{ 'companies.status' | transloco }}
-          </label>
-          <p class="text-sm">
-            <span
-              [class]="company()!.status === 'Active'
-                ? 'inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800 dark:bg-green-900 dark:text-green-200'
-                : 'inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-              ">
-              {{ 'companies.' + company()!.status.toLowerCase() | transloco }}
-            </span>
-          </p>
-        </div>
+      <!-- Tab Panels -->
+      <!-- Details Tab -->
+      <div ngTabPanel value="details">
+        <ng-template ngTabContent>
+          <div class="py-6">
+            <div class="container mx-auto px-4">
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <!-- Main Content - Takes 2 columns on large screens -->
+              <div class="lg:col-span-2 space-y-6">
+                <!-- Basic Information Card -->
+                <div class="rounded-lg border bg-card shadow-sm">
+                  <div class="border-b bg-muted/40 px-6 py-4">
+                    <h2 class="text-lg font-semibold">{{ 'companies.basicInfo' | transloco }}</h2>
+                  </div>
+                  <div class="p-6">
+                    <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
+                      <!-- Name Field -->
+                      <div>
+                        <label for="name" class="mb-2 block text-sm font-medium">
+                          {{ 'companies.name' | transloco }}
+                        </label>
+                        <input
+                          id="name"
+                          type="text"
+                          formControlName="name"
+                          [placeholder]="'companies.namePlaceholder' | transloco"
+                          class="input w-full"
+                          [class.border-destructive]="nameControl.invalid && nameControl.touched" />
 
-        <div>
-          <label class="mb-2 block text-sm font-medium">
-            {{ 'companies.createdAt' | transloco }}
-          </label>
-          <p class="text-sm">{{ company()!.createdAt | date: 'medium' }}</p>
-        </div>
-      }
+                        @if (nameControl.invalid && nameControl.touched) {
+                          <p class="mt-1 text-sm text-destructive">
+                            @if (nameControl.hasError('required')) {
+                              {{ 'companies.nameRequired' | transloco }}
+                            }
+                            @if (nameControl.hasError('nameTaken')) {
+                              {{ 'companies.nameTaken' | transloco }}
+                            }
+                          </p>
+                        }
 
-      <!-- Actions -->
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex flex-col gap-2 sm:flex-row">
-          <button
-            type="submit"
-            appBtn
-            [disabled]="form.invalid || saving()">
-            @if (saving()) {
-              <app-icon name="hourglass_empty" [size]="16" class="animate-spin" />
-              <span>{{ 'common.saving' | transloco }}</span>
-            } @else {
-              <app-icon name="save" [size]="16" />
-              <span>{{ 'common.save' | transloco }}</span>
-            }
-          </button>
+                        @if (nameControl.pending) {
+                          <p class="mt-1 text-sm text-muted-foreground">
+                            {{ 'companies.checkingName' | transloco }}
+                          </p>
+                        }
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
 
-          <button
-            type="button"
-            appBtn
-            variant="outline"
-            (click)="cancel()">
-            <app-icon name="close" [size]="16" />
-            <span>{{ 'common.cancel' | transloco }}</span>
-          </button>
-        </div>
+              <!-- Sidebar - Takes 1 column on large screens -->
+              <div class="space-y-6">
+                <!-- Status Card -->
+                @if (company()) {
+                  <div class="rounded-lg border bg-card shadow-sm">
+                    <div class="border-b bg-muted/40 px-6 py-4">
+                      <h2 class="text-lg font-semibold">{{ 'companies.status' | transloco }}</h2>
+                    </div>
+                    <div class="p-6 space-y-4">
+                      <div>
+                        <p class="text-sm text-muted-foreground mb-2">{{ 'companies.currentStatus' | transloco }}</p>
+                        <span
+                          [class]="company()!.status === 'Active'
+                            ? 'inline-flex rounded-full bg-green-100 px-3 py-1.5 text-sm font-semibold text-green-800 dark:bg-green-900 dark:text-green-200'
+                            : 'inline-flex rounded-full bg-gray-100 px-3 py-1.5 text-sm font-semibold text-gray-800 dark:bg-gray-800 dark:text-gray-200'
+                          ">
+                          {{ 'companies.' + company()!.status.toLowerCase() | transloco }}
+                        </span>
+                      </div>
 
-        <button
-          type="button"
-          appBtn
-          variant="destructive"
-          (click)="deleteCompany()">
-          <app-icon name="delete" [size]="16" />
-          <span>{{ 'common.delete' | transloco }}</span>
-        </button>
+                      <div class="pt-4 border-t">
+                        <p class="text-sm text-muted-foreground mb-1">{{ 'companies.createdAt' | transloco }}</p>
+                        <p class="text-sm font-medium">{{ company()!.createdAt | date: 'medium' }}</p>
+                      </div>
+                    </div>
+                  </div>
+                }
+
+                <!-- Quick Actions Card -->
+                <div class="rounded-lg border bg-card shadow-sm">
+                  <div class="border-b bg-muted/40 px-6 py-4">
+                    <h2 class="text-lg font-semibold">{{ 'common.quickActions' | transloco }}</h2>
+                  </div>
+                  <div class="p-4 space-y-2">
+                    <div class="text-sm text-muted-foreground text-center py-4">
+                      {{ 'companies.quickActionsPlaceholder' | transloco }}
+                    </div>
+                  </div>
+                </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-template>
       </div>
-    </form>
+
+      <!-- History Tab -->
+      <div ngTabPanel value="history">
+        <ng-template ngTabContent>
+          <div class="py-6">
+            <div class="container mx-auto px-4 max-w-4xl">
+              <app-company-audit-log [companyId]="companyId()" />
+            </div>
+          </div>
+        </ng-template>
+      </div>
+    </div>
   }
-</div>
+</app-entity-details-view>

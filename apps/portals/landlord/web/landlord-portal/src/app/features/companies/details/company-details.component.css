@@ -1,0 +1,23 @@
+/* Tab trigger styling */
+.tab-trigger {
+  position: relative;
+  padding: 0.75rem 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.2s;
+  white-space: nowrap;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+}
+
+.tab-trigger:hover {
+  color: hsl(var(--foreground));
+}
+
+.tab-trigger[aria-selected='true'] {
+  color: hsl(var(--primary));
+  border-bottom: 2px solid hsl(var(--primary));
+}
+

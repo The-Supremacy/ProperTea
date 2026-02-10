@@ -10,6 +10,7 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "close": "Close",
+    "back": "Back",
     "refresh": "Refresh",
     "filters": "Filters",
     "clearFilters": "Clear",
@@ -18,7 +19,10 @@
     "columns": "Columns",
     "more": "More",
     "reset": "Reset",
-    "done": "Done"
+    "done": "Done",
+    "quickActions": "Quick Actions",
+    "details": "Details",
+    "history": "History"
   },
   "user": {
     "profile": "Profile",
@@ -112,6 +116,9 @@
   "companies": {
     "title": "Companies",
     "newCompany": "New Company",
+    "basicInfo": "Basic Information",
+    "currentStatus": "Current Status",
+    "quickActionsPlaceholder": "Quick actions will appear here",
     "createHint": "Enter the company name to get started. Additional details can be configured after creation.",
     "searchByName": "Search by company name...",
     "noCompanies": "No Companies Yet",
@@ -136,11 +143,21 @@
     "inactive": "Inactive",
     "deleted": "Deleted",
     "edit": "Edit Company",
+    "editTitle": "Edit Company",
     "delete": "Delete Company",
     "exportAll": "Export All",
     "bulkImport": "Bulk Import",
     "exportNotImplemented": "Export functionality coming soon",
     "bulkImportNotImplemented": "Bulk import functionality coming soon",
+    "noAuditLogs": "No Activity Yet",
+    "noAuditLogsDescription": "Company activity history will appear here",
+    "companyDeleted": "Company was deleted",
+    "newName": "New Name",
+    "events": {
+      "created": "Company Created",
+      "nameupdated": "Name Updated",
+      "deleted": "Company Deleted"
+    },
     "success": {
       "created": "Company created successfully",
       "updated": "Company updated successfully",

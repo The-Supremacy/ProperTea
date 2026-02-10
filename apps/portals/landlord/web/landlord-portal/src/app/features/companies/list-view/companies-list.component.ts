@@ -60,6 +60,9 @@ export class CompaniesListComponent {
       description: this.translocoService.translate('companies.noCompaniesDescription'),
       icon: 'business',
     },
+    navigation: {
+      getDetailsRoute: (company) => ['/companies', company.id],
+    },
   }));
 
   private getColumnDefinitions(): ColumnDef<CompanyListItem>[] {

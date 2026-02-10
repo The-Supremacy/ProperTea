@@ -14,6 +14,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { DatePipe, NgTemplateOutlet } from '@angular/common';
+import { Router } from '@angular/router';
 import { Subject, finalize, takeUntil } from 'rxjs';
 import {
   createAngularTable,
@@ -95,6 +96,7 @@ import { ResponsiveService } from '../../../app/core/services/responsive.service
 export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit, OnDestroy {
   // Services
   protected responsive = inject(ResponsiveService);
+  private router = inject(Router);
 
   // Inputs
   config = input<EntityListConfig<TEntity, TFilters>>();
@@ -357,7 +359,16 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
   }
 
   protected onRowClick(entity: TEntity): void {
-    this.rowClick.emit(entity);
+    const cfg = this.config();
+
+    // If navigation config is provided, use it for automatic routing
+    if (cfg?.navigation) {
+      const route = cfg.navigation.getDetailsRoute(entity);
+      this.router.navigate(route);
+    } else {
+      // Otherwise emit event for manual handling
+      this.rowClick.emit(entity);
+    }
   }
 
   protected getSortIcon(columnId: string): string {

@@ -22,6 +22,6 @@ public class CheckNameHandler : IWolverineHandler
     }
 }
 
-public record CheckNameQuery(string? Name);
+public record CheckNameQuery(string? Name = null);
 
 public record CheckNameResult(bool NameAvailable);

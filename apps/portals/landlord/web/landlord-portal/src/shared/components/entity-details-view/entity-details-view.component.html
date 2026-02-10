@@ -1,0 +1,170 @@
+<div class="flex h-full flex-col">
+  <!-- Toolbar -->
+  <div class="border-b bg-background px-4 py-3">
+    <div cdkToolbar class="flex items-center justify-between gap-4">
+      <!-- Left side: Back + Refresh + Title -->
+      <div class="flex items-center gap-3 min-w-0 flex-1">
+        @if (config().showBackButton) {
+          <button
+            type="button"
+            appBtn
+            variant="ghost"
+            size="sm"
+            (click)="goBack()"
+            [attr.aria-label]="'common.back' | transloco">
+            <app-icon name="arrow_back" [size]="20" />
+          </button>
+        }
+
+        @if (config().showRefresh) {
+          <button
+            type="button"
+            appBtn
+            variant="ghost"
+            size="sm"
+            (click)="onRefresh()"
+            [disabled]="loading()"
+            [attr.aria-label]="'common.refresh' | transloco">
+            <app-icon
+              name="refresh"
+              [size]="20"
+              [class.animate-spin]="loading()" />
+          </button>
+        }
+
+        <!-- Title (hidden on mobile) -->
+        @if (!responsive.isMobile()) {
+          <div class="min-w-0 flex-1">
+            <h1 class="text-xl font-semibold truncate">
+              {{ config().title }}
+            </h1>
+            @if (config().subtitle) {
+              <p class="text-sm text-muted-foreground truncate">
+                {{ config().subtitle }}
+              </p>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Right side: Primary Actions + Menu -->
+      <div class="flex items-center gap-2">
+        @if (responsive.isMobile()) {
+          <!-- Mobile: All actions in menu -->
+          <button
+            type="button"
+            appBtn
+            variant="default"
+            size="sm"
+            cdkMenuTriggerFor="mobileActionsMenu"
+            [attr.aria-label]="'common.actions' | transloco">
+            <app-icon name="more_horiz" [size]="20" />
+            <span class="sr-only">{{ 'common.actions' | transloco }}</span>
+          </button>
+        } @else {
+          <!-- Desktop: Primary actions as buttons -->
+          @for (action of config().primaryActions; track trackByLabel($index, action)) {
+            <button
+              type="button"
+              appBtn
+              [variant]="action.variant || 'default'"
+              [disabled]="action.disabled"
+              (click)="handleAction(action)">
+              @if (action.icon) {
+                <app-icon [name]="action.icon" [size]="16" />
+              }
+              <span>{{ action.label | transloco }}</span>
+            </button>
+          }
+
+          <!-- Desktop: Overflow menu for secondary actions -->
+          @if (config().secondaryActions && config().secondaryActions!.length > 0) {
+            <button
+              type="button"
+              appBtn
+              variant="ghost"
+              size="sm"
+              cdkMenuTriggerFor="actionsMenu"
+              [attr.aria-label]="'common.more' | transloco">
+              <app-icon name="more_vert" [size]="20" />
+            </button>
+          }
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Area -->
+  <div class="flex-1 overflow-y-auto">
+    <ng-content />
+  </div>
+</div>
+
+<!-- Secondary Actions Menu (Desktop) -->
+@if (config().secondaryActions && config().secondaryActions!.length > 0) {
+  <ng-template #actionsMenu>
+    <div
+      cdkMenu
+      class="menu-content min-w-50">
+      @for (action of config().secondaryActions; track trackByLabel($index, action)) {
+        @if (action.separatorBefore) {
+          <div class="menu-separator"></div>
+        }
+        <button
+          type="button"
+          cdkMenuItem
+          [disabled]="action.disabled"
+          [attr.data-variant]="action.variant || 'default'"
+          (cdkMenuItemTriggered)="handleAction(action)">
+          @if (action.icon) {
+            <app-icon [name]="action.icon" [size]="16" />
+          }
+          <span>{{ action.label | transloco }}</span>
+        </button>
+      }
+    </div>
+  </ng-template>
+}
+
+<!-- Mobile: All Actions Menu -->
+@if (responsive.isMobile() && config().primaryActions && config().primaryActions!.length > 0) {
+  <ng-template #mobileActionsMenu>
+    <div
+      cdkMenu
+      class="menu-content min-w-50">
+      @for (action of config().primaryActions; track trackByLabel($index, action)) {
+        @if (action.separatorBefore) {
+          <div class="menu-separator"></div>
+        }
+        <button
+          type="button"
+          cdkMenuItem
+          [disabled]="action.disabled"
+          [attr.data-variant]="action.variant || 'default'"
+          (cdkMenuItemTriggered)="handleAction(action)">
+          @if (action.icon) {
+            <app-icon [name]="action.icon" [size]="16" />
+          }
+          <span>{{ action.label | transloco }}</span>
+        </button>
+      }
+
+      @if (config().secondaryActions && config().secondaryActions!.length > 0) {
+        <div class="menu-separator"></div>
+        @for (action of config().secondaryActions; track trackByLabel($index, action)) {
+          <button
+            type="button"
+            cdkMenuItem
+            [disabled]="action.disabled"
+            [attr.data-variant]="action.variant || 'default'"
+            (cdkMenuItemTriggered)="handleAction(action)">
+            @if (action.icon) {
+              <app-icon [name]="action.icon" [size]="16" />
+            }
+            <span>{{ action.label | transloco }}</span>
+          </button>
+        }
+      }
+    </div>
+  </ng-template>
+}

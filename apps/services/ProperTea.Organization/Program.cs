@@ -32,6 +32,9 @@ app.UseAuthorization();
 app.MapDefaultEndpoints();
 app.MapDeadLettersEndpoints().RequireAuthorization();
 
-app.MapWolverineEndpoints();
+app.MapWolverineEndpoints(opts =>
+{
+    opts.WarmUpRoutes = RouteWarmup.Eager;
+});
 
 return await app.RunJasperFxCommands(args);

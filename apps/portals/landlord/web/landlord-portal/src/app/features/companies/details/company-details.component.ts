@@ -5,11 +5,12 @@ import { Observable, of, map, debounceTime, distinctUntilChanged, switchMap, fir
 import { DatePipe } from '@angular/common';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CompanyService } from '../services/company.service';
-import { CompanyDetailResponse, CreateCompanyRequest, UpdateCompanyNameRequest } from '../models/company.models';
+import { CompanyDetailResponse, CreateCompanyRequest, UpdateCompanyRequest } from '../models/company.models';
 import { DialogService } from '../../../core/services/dialog.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { ButtonDirective } from '../../../../shared/components/button';
-import { IconComponent } from '../../../../shared/components/icon';
+import { EntityDetailsViewComponent, EntityDetailsConfig } from '../../../../shared/components/entity-details-view';
+import { Tabs, TabPanel, TabList, Tab, TabContent } from '@angular/aria/tabs';
+import { CompanyAuditLogComponent } from '../audit-log/company-audit-log.component';
 import { SpinnerComponent } from '../../../../shared/components/spinner';
 
 @Component({
@@ -19,8 +20,13 @@ import { SpinnerComponent } from '../../../../shared/components/spinner';
     ReactiveFormsModule,
     DatePipe,
     TranslocoPipe,
-    ButtonDirective,
-    IconComponent,
+    EntityDetailsViewComponent,
+    Tabs,
+    TabList,
+    Tab,
+    TabPanel,
+    TabContent,
+    CompanyAuditLogComponent,
     SpinnerComponent
   ],
   templateUrl: './company-details.component.html',
@@ -42,6 +48,36 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
   saving = signal(false);
   loading = signal(false);
   companyId = signal<string>('');
+  selectedTab = signal<string>('details');
+
+  // Details view configuration
+  detailsConfig = computed<EntityDetailsConfig>(() => {
+    const company = this.company();
+    return {
+      title: this.translocoService.translate('companies.editTitle'),
+      subtitle: company?.name,
+      showBackButton: true,
+      showRefresh: true,
+      primaryActions: [
+        {
+          label: 'common.save',
+          icon: 'save',
+          variant: 'default',
+          handler: () => this.save(),
+          disabled: this.form?.invalid || this.saving(),
+        },
+      ],
+      secondaryActions: [
+        {
+          label: 'common.delete',
+          icon: 'delete',
+          variant: 'destructive',
+          handler: () => this.deleteCompany(),
+          separatorBefore: true,
+        },
+      ],
+    };
+  });
 
   // Form
   form!: FormGroup;
@@ -96,7 +132,7 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
     };
   }
 
-  private loadCompany(id: string): void {
+  protected loadCompany(id: string): void {
     this.loading.set(true);
 
     this.companyService.get(id).pipe(
@@ -118,7 +154,7 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
-  save(): void {
+  async save(): Promise<void> {
     if (this.form.invalid || this.saving()) {
       return;
     }
@@ -127,40 +163,19 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
 
     const id = this.companyId();
     const name = this.nameControl.value;
-    const request: UpdateCompanyNameRequest = { name };
+    const request: UpdateCompanyRequest = { name };
 
-    this.companyService.update(id, request).pipe(
-      finalize(() => this.saving.set(false))
-    ).subscribe({
-      next: () => {
-        this.toastService.success('companies.success.updated');
-        this.form.markAsPristine();
-
-        this.loadCompany(id);
-      },
-      error: () => {
-        this.toastService.error('companies.error.updateFailed');
-      }
+    await firstValueFrom(
+      this.companyService.update(id, request).pipe(
+        finalize(() => this.saving.set(false))
+      )
+    ).then(() => {
+      this.toastService.success('companies.success.updated');
+      this.form.markAsPristine();
+      this.loadCompany(id);
+    }).catch(() => {
+      this.toastService.error('companies.error.updateFailed');
     });
-  }
-
-  cancel(): void {
-    if (this.form.dirty) {
-      const title = this.translocoService.translate('companies.unsavedChanges');
-      const description = this.translocoService.translate('companies.unsavedChangesConfirm');
-
-      this.dialogService.confirm({
-        title,
-        description,
-        variant: 'default'
-      }).subscribe(confirmed => {
-        if (confirmed) {
-          this.router.navigate(['/companies']);
-        }
-      });
-    } else {
-      this.router.navigate(['/companies']);
-    }
   }
 
   async deleteCompany(): Promise<void> {

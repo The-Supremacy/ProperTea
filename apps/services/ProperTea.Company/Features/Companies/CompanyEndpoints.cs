@@ -66,9 +66,9 @@ public static class CompanyEndpoints
 
     [WolverinePut("/companies/{id}")]
     [Authorize]
-    public static async Task<IResult> UpdateCompanyName(
+    public static async Task<IResult> UpdateCompany(
         Guid id,
-        UpdateCompanyNameRequest request,
+        UpdateCompanyRequest request,
         IMessageBus bus,
         IOrganizationIdProvider orgProvider)
     {
@@ -77,7 +77,7 @@ public static class CompanyEndpoints
 
         await bus.InvokeForTenantAsync(
             tenantId,
-            new UpdateCompanyName(id, request.Name));
+            new UpdateCompany(id, request.Name));
 
         return Results.NoContent();
     }
@@ -116,7 +116,24 @@ public static class CompanyEndpoints
 
         return Results.Ok(result);
     }
+
+    [WolverineGet("/companies/{id}/audit-log")]
+    [Authorize]
+    public static async Task<IResult> GetCompanyAuditLog(
+        Guid id,
+        IMessageBus bus,
+        IOrganizationIdProvider orgProvider)
+    {
+        var tenantId = orgProvider.GetOrganizationId()
+            ?? throw new UnauthorizedAccessException("Organization ID required");
+
+        var result = await bus.InvokeForTenantAsync<CompanyAuditLogResponse>(
+            tenantId,
+            new GetCompanyAuditLogQuery(id));
+
+        return Results.Ok(result);
+    }
 }
 
 public record CreateCompanyRequest(string Name);
-public record UpdateCompanyNameRequest(string Name);
+public record UpdateCompanyRequest(string Name);

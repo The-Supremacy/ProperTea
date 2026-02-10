@@ -10,6 +10,9 @@ Read `/docs/architecture.md` for full system context before making changes.
 Organize code by feature, not layer. Path: `Features/{FeatureName}/`.
 Never create generic "Services", "Managers", or "Repositories" folders.
 
+## Structure
+- 'docs/dev/backend-feature-structure.md' defines the directory layout and conventions for features.
+
 ## Wolverine (Messaging & CQRS)
 - Handlers implement `IWolverineHandler`.
 - Command/query DTOs are `record` types defined in the same file as the handler.

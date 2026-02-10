@@ -4,7 +4,18 @@ namespace ProperTea.Landlord.Bff.Companies;
 
 public record CreateCompanyRequest(string Name);
 
-public record UpdateCompanyNameRequest(string Name);
+public record UpdateCompanyRequest(string Name);
+
+public record CompanyAuditLogResponse(
+    Guid CompanyId,
+    IReadOnlyList<CompanyAuditLogEntry> Entries);
+
+public record CompanyAuditLogEntry(
+    string EventType,
+    DateTimeOffset Timestamp,
+    string? Username,
+    int Version,
+    object Data);
 
 public record CompanyResponse(Guid Id);
 
@@ -66,10 +77,16 @@ public class CompanyClient(HttpClient httpClient)
         return await response.Content.ReadFromJsonAsync<CompanyDetailResponse>(ct);
     }
 
-    public async Task UpdateCompanyNameAsync(Guid id, UpdateCompanyNameRequest request, CancellationToken ct = default)
+    public async Task UpdateCompanyAsync(Guid id, UpdateCompanyRequest request, CancellationToken ct = default)
     {
         var response = await httpClient.PutAsJsonAsync($"/companies/{id}", request, ct);
         _ = response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<CompanyAuditLogResponse> GetCompanyAuditLogAsync(Guid id, CancellationToken ct = default)
+    {
+        return await httpClient.GetFromJsonAsync<CompanyAuditLogResponse>($"/companies/{id}/audit-log", ct)
+            ?? throw new InvalidOperationException("Failed to fetch company audit log");
     }
 
     public async Task DeleteCompanyAsync(Guid id, CancellationToken ct = default)

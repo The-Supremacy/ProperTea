@@ -18,7 +18,11 @@ export interface Breadcrumb {
         <ol class="flex items-center gap-2 text-sm">
           <!-- Home -->
           <li>
-            <a routerLink="/" class="hover:text-foreground transition-colors">{{ 'nav.home' | transloco }}</a>
+            <a
+              routerLink="/"
+              class="text-muted-foreground hover:text-foreground transition-colors font-medium underline decoration-transparent hover:decoration-current underline-offset-2">
+              {{ 'nav.home' | transloco }}
+            </a>
           </li>
 
           <!-- Dynamic breadcrumbs -->
@@ -26,9 +30,11 @@ export interface Breadcrumb {
             <li class="text-muted-foreground">/</li>
             <li>
               @if (isLast) {
-                <span class="text-foreground font-medium">{{ crumb.label }}</span>
+                <span class="text-foreground font-semibold">{{ crumb.label }}</span>
               } @else {
-                <a [routerLink]="crumb.url" class="hover:text-foreground transition-colors">
+                <a
+                  [routerLink]="crumb.url"
+                  class="text-muted-foreground hover:text-foreground transition-colors font-medium underline decoration-transparent hover:decoration-current underline-offset-2">
                   {{ crumb.label }}
                 </a>
               }
@@ -68,11 +74,17 @@ export class BreadcrumbComponent {
     const routeData = route.snapshot.data;
     const routePath = route.snapshot.url.map(segment => segment.path).join('/');
 
+    // Build the URL incrementally, even if this route segment has no path
     const nextUrl = routePath ? `${url}/${routePath}` : url;
 
+    // Only add breadcrumb if there's a label and a valid URL
     const label = routeData['breadcrumb'] || routeData['title'];
-    if (label && nextUrl) {
-      breadcrumbs = [...breadcrumbs, { label, url: nextUrl }];
+    if (label) {
+      // Use the accumulated URL for this breadcrumb
+      const breadcrumbUrl = nextUrl || url;
+      if (breadcrumbUrl) {
+        breadcrumbs = [...breadcrumbs, { label, url: breadcrumbUrl }];
+      }
     }
 
     if (route.firstChild) {
