@@ -7,6 +7,7 @@ namespace ProperTea.Company.Features.Companies.Lifecycle;
 public record CompanyFilters
 {
     public string? Name { get; set; }
+    public string? Code { get; set; }
 }
 
 public record ListCompanies(
@@ -30,6 +31,11 @@ public class ListCompaniesHandler : IWolverineHandler
             baseQuery = baseQuery.Where(c => c.Name.Contains(command.Filters.Name, StringComparison.OrdinalIgnoreCase));
         }
 
+        if (!string.IsNullOrWhiteSpace(command.Filters.Code))
+        {
+            baseQuery = baseQuery.Where(c => c.Code.Contains(command.Filters.Code, StringComparison.OrdinalIgnoreCase));
+        }
+
         baseQuery = ApplySorting(baseQuery, command.Sort);
 
         var totalCount = await baseQuery.CountAsync();
@@ -41,6 +47,7 @@ public class ListCompaniesHandler : IWolverineHandler
 
         var items = companies.Select(c => new CompanyResponse(
             c.Id,
+            c.Code,
             c.Name,
             c.CurrentStatus.ToString(),
             c.CreatedAt
@@ -64,6 +71,9 @@ public class ListCompaniesHandler : IWolverineHandler
 
         return sortQuery.Field.ToLowerInvariant() switch
         {
+            "code" => sortQuery.IsDescending
+                ? query.OrderByDescending(c => c.Code)
+                : query.OrderBy(c => c.Code),
             "name" => sortQuery.IsDescending
                 ? query.OrderByDescending(c => c.Name)
                 : query.OrderBy(c => c.Name),

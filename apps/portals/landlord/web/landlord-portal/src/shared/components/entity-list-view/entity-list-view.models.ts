@@ -80,17 +80,26 @@ export interface FilterConfig<TFilters> {
 export interface FilterField<TFilters> {
   key: keyof TFilters;
   label: string;
-  type: 'text' | 'select' | 'date' | 'dateRange' | 'number' | 'boolean';
+  type: 'text' | 'select' | 'asyncSelect' | 'date' | 'dateRange' | 'number' | 'boolean';
   placeholder?: string;
   options?: FilterFieldOption[];
+  asyncOptions?: AsyncFilterOptions<TFilters>;
   debounce?: number;
   min?: number;
   max?: number;
 }
 
+export interface AsyncFilterOptions<TFilters> {
+  fetch: (searchTerm: string, filters: Partial<TFilters>) => Observable<FilterFieldOption[]>;
+  dependsOn?: (keyof TFilters)[];
+  searchable?: boolean;
+  allowClear?: boolean;
+  debounceMs?: number;
+}
+
 export interface FilterFieldOption {
   label: string;
-  value: any;
+  value: string;
 }
 export interface EntityListFeatures {
   search?: boolean;

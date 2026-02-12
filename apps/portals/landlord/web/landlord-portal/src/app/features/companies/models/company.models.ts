@@ -45,3 +45,8 @@ export interface CompanyAuditLogResponse {
   companyId: string;
   entries: CompanyAuditLogEntry[];
 }
+
+export interface CompanySelectItem {
+  id: string;
+  name: string;
+}

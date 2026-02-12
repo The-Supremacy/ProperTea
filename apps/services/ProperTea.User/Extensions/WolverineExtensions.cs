@@ -7,10 +7,10 @@ public static class WolverineExtensions
 {
     public static void PublishIntegrationEvent<T>(
         this WolverineOptions opts,
-        string exchange) where T : class
+        string exchange)
     {
         _ = opts.PublishMessage<T>()
-            .ToRabbitExchange(exchange, e => e.ExchangeType = ExchangeType.Fanout)
+            .ToRabbitTopics(exchange)
             .UseDurableOutbox();
     }
 }

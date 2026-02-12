@@ -81,17 +81,25 @@ Note: The handler consumes the **interface** (`I{Entity}{Action}`), not the conc
 
 ### 5. Configure Wolverine Transport
 
-In the publishing service's Wolverine configuration:
+In the publishing service's Wolverine configuration (typically in the `WolverineMessagingExtensions` helper):
 
 ```csharp
 opts.PublishMessage<{Entity}{Action}>()
-    .ToRabbitExchange("{context}.events", exchange => exchange.ExchangeType = ExchangeType.Fanout);
+    .ToRabbitTopics("{context}.events")
+    .UseDurableOutbox();
 ```
 
-In each consuming service:
+In each consuming service, declare the topic exchange with a binding key pattern and listen to the queue:
 
 ```csharp
-opts.ListenToRabbitQueue("{consumer-service}.{context}.events");
+opts.UseRabbitMqUsingNamedConnection("rabbitmq")
+    .DeclareExchange("{context}.events", exchange =>
+    {
+        exchange.ExchangeType = ExchangeType.Topic;
+        _ = exchange.BindQueue("{consumer-service}.{context}-events", "{entities}.#");
+    });
+
+opts.ListenToRabbitQueue("{consumer-service}.{context}-events").UseDurableInbox();
 ```
 
 ### 6. Update Documentation

@@ -1,0 +1,240 @@
+import { Component, inject, signal, computed, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { map, firstValueFrom } from 'rxjs';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { ColumnDef } from '@tanstack/angular-table';
+import { PropertyService } from '../services/property.service';
+import { CompanyService } from '../../companies/services/company.service';
+import { PropertyListItem, PropertyFilters } from '../models/property.models';
+import {
+  EntityListViewComponent,
+  EntityListConfig,
+  EntityAction,
+  FilterField,
+  FilterFieldOption,
+} from '../../../../shared/components/entity-list-view';
+import { DialogService } from '../../../core/services/dialog.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { CreatePropertyDrawerComponent } from '../create-drawer/create-property-drawer.component';
+
+@Component({
+  selector: 'app-properties-list',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TranslocoPipe, EntityListViewComponent, CreatePropertyDrawerComponent],
+  template: `
+    <app-entity-list-view
+      [config]="listConfig()"
+      [title]="'properties.title' | transloco"
+      [createLabel]="'common.new'"
+      (createClick)="openCreateDrawer()" />
+
+    <app-create-property-drawer
+      [open]="createDrawerOpen()"
+      (openChange)="createDrawerOpen.set($event)" />
+  `,
+})
+export class PropertiesListComponent implements OnInit {
+  private propertyService = inject(PropertyService);
+  private companyService = inject(CompanyService);
+  private router = inject(Router);
+  private dialogService = inject(DialogService);
+  private toastService = inject(ToastService);
+  private translocoService = inject(TranslocoService);
+
+  // UI state
+  protected createDrawerOpen = signal(false);
+  private companyOptions = signal<FilterFieldOption[]>([]);
+
+  ngOnInit(): void {
+    this.companyService
+      .select()
+      .pipe(
+        map((companies) =>
+          companies.map((c) => ({ value: c.id, label: c.name }))
+        )
+      )
+      .subscribe((options) => this.companyOptions.set(options));
+  }
+
+  // Entity list configuration
+  protected listConfig = computed<EntityListConfig<PropertyListItem, PropertyFilters>>(() => ({
+    fetchFn: (query) =>
+      this.propertyService.list(query.filters || {}, query.pagination, query.sort).pipe(
+        map((response) => ({
+          items: response.items,
+          totalCount: response.totalCount,
+          page: query.pagination.page,
+          pageSize: query.pagination.pageSize,
+        }))
+      ),
+    idField: 'id',
+    columns: this.getColumnDefinitions(),
+    actions: this.getActions(),
+    filterConfig: {
+      fields: this.getFilterFields(),
+    },
+    initialPageSize: 20,
+    initialSort: { field: 'createdAt', descending: true },
+    features: {
+      search: true,
+      filters: true,
+      columnSelection: true,
+      export: false,
+      refresh: true,
+      create: true,
+    },
+    emptyState: {
+      title: this.translocoService.translate('properties.noProperties'),
+      description: this.translocoService.translate('properties.noPropertiesDescription'),
+      icon: 'apartment',
+    },
+    navigation: {
+      getDetailsRoute: (property) => ['/properties', property.id],
+    },
+  }));
+
+  private getColumnDefinitions(): ColumnDef<PropertyListItem>[] {
+    return [
+      {
+        id: 'code',
+        header: this.translocoService.translate('properties.code'),
+        accessorKey: 'code',
+        cell: (info) => info.getValue(),
+        enableSorting: true,
+      },
+      {
+        id: 'name',
+        header: this.translocoService.translate('properties.name'),
+        accessorKey: 'name',
+        cell: (info) => info.getValue(),
+        enableSorting: true,
+      },
+      {
+        id: 'companyName',
+        header: this.translocoService.translate('properties.company'),
+        accessorKey: 'companyName',
+        cell: (info) => info.getValue() || '-',
+        enableSorting: false,
+      },
+      {
+        id: 'address',
+        header: this.translocoService.translate('properties.address'),
+        accessorKey: 'address',
+        cell: (info) => info.getValue(),
+        enableSorting: true,
+      },
+      {
+        id: 'buildingCount',
+        header: this.translocoService.translate('properties.buildingCount'),
+        accessorKey: 'buildingCount',
+        cell: (info) => info.getValue(),
+        enableSorting: false,
+      },
+      {
+        id: 'status',
+        header: this.translocoService.translate('properties.status'),
+        accessorKey: 'status',
+        cell: (info) => {
+          const status = info.getValue() as string;
+          const isActive = status === 'Active';
+          const variantClass = isActive
+            ? 'inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800 dark:bg-green-900 dark:text-green-200'
+            : 'inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+          const translatedStatus = this.translocoService.translate(
+            `properties.${status.toLowerCase()}`
+          );
+          return `<span class="${variantClass}">${translatedStatus}</span>`;
+        },
+        meta: { useInnerHTML: true },
+        enableSorting: false,
+      },
+      {
+        id: 'createdAt',
+        header: this.translocoService.translate('properties.createdAt'),
+        accessorKey: 'createdAt',
+        cell: (info) => {
+          const date = info.getValue() as Date;
+          return new Date(date).toLocaleDateString();
+        },
+        enableSorting: true,
+      },
+    ];
+  }
+
+  private getActions(): EntityAction<PropertyListItem>[] {
+    return [
+      {
+        label: 'properties.edit',
+        icon: 'edit',
+        handler: (property) => this.editProperty(property.id),
+      },
+      {
+        label: 'properties.delete',
+        icon: 'delete',
+        variant: 'destructive',
+        handler: (property) => this.deleteProperty(property),
+        separatorBefore: true,
+      },
+    ];
+  }
+
+  private getFilterFields(): FilterField<PropertyFilters>[] {
+    return [
+      {
+        key: 'name',
+        label: 'properties.name',
+        type: 'text',
+        placeholder: 'properties.searchByName',
+      },
+      {
+        key: 'code',
+        label: 'properties.code',
+        type: 'text',
+        placeholder: 'properties.searchByCode',
+      },
+      {
+        key: 'companyId',
+        label: 'properties.company',
+        type: 'select',
+        placeholder: 'properties.selectCompany',
+        options: this.companyOptions(),
+      },
+    ];
+  }
+
+  openCreateDrawer(): void {
+    this.createDrawerOpen.set(true);
+  }
+
+  editProperty(id: string): void {
+    this.router.navigate(['/properties', id]);
+  }
+
+  async deleteProperty(property: PropertyListItem): Promise<void> {
+    const confirmed = await firstValueFrom(
+      this.dialogService.confirm({
+        title: this.translocoService.translate('properties.deleteConfirmTitle'),
+        description: this.translocoService.translate('properties.deleteConfirmMessage', {
+          name: property.name,
+        }),
+        confirmText: this.translocoService.translate('common.delete'),
+        variant: 'destructive',
+      })
+    );
+
+    if (!confirmed) return;
+
+    this.propertyService.delete(property.id).subscribe({
+      next: () => {
+        this.toastService.success(
+          this.translocoService.translate('properties.deleteSuccess')
+        );
+      },
+      error: () => {
+        this.toastService.error(
+          this.translocoService.translate('properties.deleteError')
+        );
+      },
+    });
+  }
+}

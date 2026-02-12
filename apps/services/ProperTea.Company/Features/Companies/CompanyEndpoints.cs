@@ -22,7 +22,7 @@ public static class CompanyEndpoints
 
         var companyId = await bus.InvokeForTenantAsync<Guid>(
             tenantId,
-            new CreateCompany(request.Name));
+            new CreateCompany(request.Code, request.Name));
 
         return Results.Created($"/companies/{companyId}", new { Id = companyId });
     }
@@ -43,6 +43,22 @@ public static class CompanyEndpoints
         var result = await bus.InvokeForTenantAsync<PagedResult<CompanyResponse>>(
             tenantId,
             new ListCompanies(filters, pagination, sort));
+
+        return Results.Ok(result);
+    }
+
+    [WolverineGet("/companies/select")]
+    [Authorize]
+    public static async Task<IResult> SelectCompanies(
+        IMessageBus bus,
+        IOrganizationIdProvider orgProvider)
+    {
+        var tenantId = orgProvider.GetOrganizationId()
+            ?? throw new UnauthorizedAccessException("Organization ID required");
+
+        var result = await bus.InvokeForTenantAsync<List<SelectItem>>(
+            tenantId,
+            new SelectCompanies());
 
         return Results.Ok(result);
     }
@@ -77,7 +93,7 @@ public static class CompanyEndpoints
 
         await bus.InvokeForTenantAsync(
             tenantId,
-            new UpdateCompany(id, request.Name));
+            new UpdateCompany(id, request.Code, request.Name));
 
         return Results.NoContent();
     }
@@ -135,5 +151,5 @@ public static class CompanyEndpoints
     }
 }
 
-public record CreateCompanyRequest(string Name);
-public record UpdateCompanyRequest(string Name);
+public record CreateCompanyRequest(string Code, string Name);
+public record UpdateCompanyRequest(string? Code, string? Name);

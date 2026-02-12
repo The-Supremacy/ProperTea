@@ -1,0 +1,194 @@
+<app-entity-details-view
+  [config]="detailsConfig()"
+  [loading]="loading()"
+  (refresh)="loadProperty(propertyId())">
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="flex items-center justify-center py-12">
+      <app-spinner size="lg" />
+    </div>
+  }
+
+  <!-- Tabs -->
+  @if (!loading()) {
+    <div ngTabs>
+      <!-- Tab List -->
+      <div ngTabList [(selectedTab)]="selectedTab" class="border-b">
+        <nav class="flex gap-4 px-4" aria-label="Tabs">
+          <div
+            ngTab
+            value="details"
+            class="tab-trigger">
+            {{ 'common.details' | transloco }}
+          </div>
+          <div
+            ngTab
+            value="history"
+            class="tab-trigger">
+            {{ 'common.history' | transloco }}
+          </div>
+        </nav>
+      </div>
+
+      <!-- Tab Panels -->
+      <!-- Details Tab -->
+      <div ngTabPanel value="details">
+        <ng-template ngTabContent>
+          <div class="py-6">
+            <div class="container mx-auto px-4">
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <!-- Main Content - Takes 2 columns on large screens -->
+              <div class="lg:col-span-2 space-y-6">
+                <!-- Basic Information Card -->
+                <div class="rounded-lg border bg-card shadow-sm">
+                  <div class="border-b bg-muted/40 px-6 py-4">
+                    <h2 class="text-lg font-semibold">{{ 'properties.basicInfo' | transloco }}</h2>
+                  </div>
+                  <div class="p-6">
+                    <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
+                      <!-- Company (Read-only Display) -->
+                      <div>
+                        <label class="mb-2 block text-sm font-medium">
+                          {{ 'properties.company' | transloco }}
+                        </label>
+                        <div class="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
+                          {{ companyName() || '-' }}
+                        </div>
+                      </div>
+
+                      <!-- Code Field -->
+                      <div>
+                        <label for="code" class="mb-2 block text-sm font-medium">
+                          {{ 'properties.code' | transloco }}
+                        </label>
+                        <input
+                          id="code"
+                          type="text"
+                          formControlName="code"
+                          [placeholder]="'properties.codePlaceholder' | transloco"
+                          class="input w-full"
+                          [class.border-destructive]="codeControl.invalid && codeControl.touched" />
+
+                        @if (codeControl.invalid && codeControl.touched) {
+                          <p class="mt-1 text-sm text-destructive">
+                            @if (codeControl.hasError('required')) {
+                              {{ 'properties.codeRequired' | transloco }}
+                            }
+                            @if (codeControl.hasError('maxlength')) {
+                              {{ 'properties.codeTooLong' | transloco }}
+                            }
+                          </p>
+                        }
+                      </div>
+
+                      <!-- Name Field -->
+                      <div>
+                        <label for="name" class="mb-2 block text-sm font-medium">
+                          {{ 'properties.name' | transloco }}
+                        </label>
+                        <input
+                          id="name"
+                          type="text"
+                          formControlName="name"
+                          [placeholder]="'properties.namePlaceholder' | transloco"
+                          class="input w-full"
+                          [class.border-destructive]="nameControl.invalid && nameControl.touched" />
+
+                        @if (nameControl.invalid && nameControl.touched) {
+                          <p class="mt-1 text-sm text-destructive">
+                            @if (nameControl.hasError('required')) {
+                              {{ 'properties.nameRequired' | transloco }}
+                            }
+                            @if (nameControl.hasError('maxlength')) {
+                              {{ 'properties.nameTooLong' | transloco }}
+                            }
+                          </p>
+                        }
+                      </div>
+
+                      <!-- Address Field -->
+                      <div>
+                        <label for="address" class="mb-2 block text-sm font-medium">
+                          {{ 'properties.address' | transloco }}
+                        </label>
+                        <textarea
+                          id="address"
+                          formControlName="address"
+                          rows="3"
+                          [placeholder]="'properties.addressPlaceholder' | transloco"
+                          class="input w-full"
+                          [class.border-destructive]="addressControl.invalid && addressControl.touched"></textarea>
+
+                        @if (addressControl.invalid && addressControl.touched) {
+                          <p class="mt-1 text-sm text-destructive">
+                            @if (addressControl.hasError('required')) {
+                              {{ 'properties.addressRequired' | transloco }}
+                            }
+                            @if (addressControl.hasError('maxlength')) {
+                              {{ 'properties.addressTooLong' | transloco }}
+                            }
+                          </p>
+                        }
+                      </div>
+
+                      <!-- Square Footage -->
+                      <div>
+                        <label for="squareFootage" class="mb-2 block text-sm font-medium">
+                          {{ 'properties.squareFootage' | transloco }}
+                        </label>
+                        <input
+                          id="squareFootage"
+                          type="number"
+                          formControlName="squareFootage"
+                          [placeholder]="'properties.squareFootagePlaceholder' | transloco"
+                          class="input w-full" />
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sidebar - Takes 1 column on large screens -->
+              <div class="space-y-6">
+                <!-- Status Card -->
+                <div class="rounded-lg border bg-card shadow-sm">
+                  <div class="border-b bg-muted/40 px-6 py-4">
+                    <h2 class="text-lg font-semibold">{{ 'common.status' | transloco }}</h2>
+                  </div>
+                  <div class="p-6 space-y-4">
+                    <div>
+                      <p class="text-sm text-muted-foreground mb-1">{{ 'common.currentStatus' | transloco }}</p>
+                      <span [appStatusBadge]="property()?.status || 'Active'">
+                        {{ 'common.statuses.' + (property()?.status || 'Active') | transloco }}
+                      </span>
+                    </div>
+
+                    <div>
+                      <p class="text-sm text-muted-foreground mb-1">{{ 'common.createdAt' | transloco }}</p>
+                      <p class="text-sm">{{ property()?.createdAt | date: 'medium' }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </div>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- History Tab -->
+      <div ngTabPanel value="history">
+        <ng-template ngTabContent>
+          <div class="py-6">
+            <div class="container mx-auto px-4">
+              <div class="rounded-lg border bg-card shadow-sm p-6">
+                <p class="text-muted-foreground">{{ 'common.historyComingSoon' | transloco }}</p>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  }
+</app-entity-details-view>

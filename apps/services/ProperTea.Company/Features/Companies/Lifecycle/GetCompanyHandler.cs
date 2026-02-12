@@ -5,7 +5,7 @@ namespace ProperTea.Company.Features.Companies.Lifecycle;
 
 public record GetCompany(Guid CompanyId);
 
-public record CompanyResponse(Guid Id, string Name, string Status, DateTimeOffset CreatedAt);
+public record CompanyResponse(Guid Id, string Code, string Name, string Status, DateTimeOffset CreatedAt);
 
 public class GetCompanyHandler : IWolverineHandler
 {
@@ -20,6 +20,7 @@ public class GetCompanyHandler : IWolverineHandler
 
         return new CompanyResponse(
             company.Id,
+            company.Code,
             company.Name,
             company.CurrentStatus.ToString(),
             company.CreatedAt);

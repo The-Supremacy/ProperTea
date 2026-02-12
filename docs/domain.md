@@ -17,8 +17,9 @@ Use these exact terms when naming classes, variables, events, and UI labels.
 
 | Term | Definition | Owned By |
 |---|---|---|
-| **Property** (Aggregate Root) | The legal entity or complex (building, estate). | Property Service |
-| **Unit** (Aggregate Root) | A distinct physical space within a Property. Holds `PropertyId`. Private house = 1 Property + 1 Unit (ADR 0001). | Property Service |
+| **Property** (Aggregate Root) | The legal entity or complex (building, estate). Has a unique Code per Company. | Property Service |
+| **Building** (Child Entity of Property) | A physical structure within a Property. Has a unique Code per Property. Stored in the Property event stream. | Property Service |
+| **Unit** (Aggregate Root) | A distinct physical space within a Property, optionally assigned to a Building. Has a unique Code per Property and a UnitCategory (Apartment, Commercial, Parking, Other). Holds `PropertyId`. Private house = 1 Property + 1 Unit (ADR 0001). | Property Service |
 
 ### Rental Management (Commercial Reality)
 
@@ -26,7 +27,7 @@ Use these exact terms when naming classes, variables, events, and UI labels.
 |---|---|---|
 | **Rentable Unit** | The commercial view of a Unit. Tracks rentable status. | Rental Service |
 | **Block** | A manual reservation of time (renovations, maintenance). Prevents renting. | Rental Service |
-| **Company** (Aggregate Root) | A legal business entity (LLC) that owns properties. Multiple per Organization (ADR 0007). | Company Service |
+| **Company** (Aggregate Root) | A legal business entity (LLC) that owns properties. Has a unique Code per Organization. Multiple per Organization (ADR 0007). | Company Service |
 
 ### Maintenance & Operations (Actionable Reality)
 

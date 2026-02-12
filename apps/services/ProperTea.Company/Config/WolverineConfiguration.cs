@@ -31,14 +31,8 @@ public static class WolverineConfiguration
             opts.UnknownMessageBehavior = UnknownMessageBehavior.DeadLetterQueue;
 
             _ = opts.UseRabbitMqUsingNamedConnection("rabbitmq")
-                .DeclareExchange("organization.events", exchange =>
-                {
-                    _ = exchange.BindQueue("company.organization-events");
-                })
                 .EnableWolverineControlQueues()
                 .AutoProvision();
-
-            _ = opts.ListenToRabbitQueue("company.organization-events").UseDurableInbox();
 
             opts.ConfigureCompanyIntegrationEvents();
 

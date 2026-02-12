@@ -15,7 +15,7 @@ import {
 } from '@angular/core';
 import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { Router } from '@angular/router';
-import { Subject, finalize, takeUntil } from 'rxjs';
+import { Subject, finalize, takeUntil, of, map } from 'rxjs';
 import {
   createAngularTable,
   FlexRenderDirective,
@@ -41,12 +41,15 @@ import {
   SortQuery,
   PagedResult,
   getPaginationMetadata,
+  FilterField,
+  FilterFieldOption,
 } from './entity-list-view.models';
 import { TablePaginationDirective } from '../../directives/table-pagination';
 import { ButtonDirective } from '../button';
 import { IconComponent } from '../icon';
 import { SpinnerComponent } from '../spinner';
 import { SelectComponent } from '../select';
+import { AsyncSelectComponent, AsyncSelectFetchFn } from '../async-select';
 import { ResponsiveService } from '../../../app/core/services/responsive.service';
 
 /**
@@ -89,6 +92,7 @@ import { ResponsiveService } from '../../../app/core/services/responsive.service
     IconComponent,
     SpinnerComponent,
     SelectComponent,
+    AsyncSelectComponent,
   ],
   templateUrl: './entity-list-view.component.html',
   styleUrl: './entity-list-view.component.css',
@@ -314,6 +318,38 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
     this.filterValues.set(initial);
     this.filtersQuery.set(initial as TFilters);
     this.paginationQuery.update((p) => ({ ...p, page: 1 }));
+  }
+
+  protected getAsyncSelectFetchFn(field: FilterField<TFilters>): AsyncSelectFetchFn {
+    if (!field.asyncOptions?.fetch) {
+      return () => of([]);
+    }
+
+    return (searchTerm: string, parentValues: Record<string, unknown>) => {
+      const filters = parentValues as Partial<TFilters>;
+      return field.asyncOptions!.fetch(searchTerm, filters).pipe(
+        map((options: FilterFieldOption[]) =>
+          options.map((opt) => ({
+            value: String(opt.value),
+            label: opt.label,
+          }))
+        )
+      );
+    };
+  }
+
+  protected getParentFilterValues(field: FilterField<TFilters>): Record<string, unknown> {
+    const dependsOn = field.asyncOptions?.dependsOn || [];
+    const result: Record<string, unknown> = {};
+
+    for (const key of dependsOn) {
+      const value = this.filterValues()[key];
+      if (value !== undefined && value !== null && value !== '') {
+        result[key as string] = value;
+      }
+    }
+
+    return result;
   }
 
   protected toggleFilterDrawer(): void {

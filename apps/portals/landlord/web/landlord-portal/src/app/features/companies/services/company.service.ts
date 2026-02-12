@@ -9,7 +9,8 @@ import {
   CreateCompanyRequest,
   UpdateCompanyRequest,
   CheckNameResponse,
-  CompanyAuditLogResponse
+  CompanyAuditLogResponse,
+  CompanySelectItem,
 } from '../models/company.models';
 
 @Injectable({
@@ -37,6 +38,10 @@ export class CompanyService {
     }
 
     return this.http.get<PagedCompaniesResponse>('/api/companies', { params });
+  }
+
+  select(): Observable<CompanySelectItem[]> {
+    return this.http.get<CompanySelectItem[]>('/api/companies/select');
   }
 
   get(id: string): Observable<CompanyDetailResponse | null> {

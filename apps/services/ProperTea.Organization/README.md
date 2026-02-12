@@ -24,7 +24,7 @@ The registration process is handled by a **Reliable Handler** pattern:
 
 ### Event Sourcing
 - **Aggregate**: `OrganizationAggregate`
-- **Events**: `Created`, `DetailsUpdated`, `Suspended`, `Reactivated`
+- **Events**: `Created`, `Updated`, `Suspended`, `Reactivated`
 - **Persistence**: Inline snapshot projections with Marten
 
 ### Multi-Tenancy

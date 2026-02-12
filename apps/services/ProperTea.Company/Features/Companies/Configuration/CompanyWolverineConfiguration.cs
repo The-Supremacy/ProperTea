@@ -10,6 +10,9 @@ public static class CompanyMessagingConfiguration
         opts.PublishIntegrationEvent<CompanyIntegrationEvents.CompanyCreated>(
             "company.events");
 
+        opts.PublishIntegrationEvent<CompanyIntegrationEvents.CompanyUpdated>(
+            "company.events");
+
         opts.PublishIntegrationEvent<CompanyIntegrationEvents.CompanyDeleted>(
             "company.events");
     }

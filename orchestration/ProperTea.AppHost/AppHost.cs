@@ -152,6 +152,21 @@ var companyService = builder.AddProject<Projects.ProperTea_Company>("company")
     .WithExternalHttpEndpoints()
     .WithDeveloperCertificateTrust(true);
 
+// Property.
+var propertyDb = postgres.AddDatabase("property-db");
+var propertyService = builder.AddProject<Projects.ProperTea_Property>("property")
+    .WithEnvironment("OIDC__Authority", zitadelUrl)
+    .WithEnvironment("OIDC__Issuer", zitadelUrl)
+    .WithEnvironment("OIDC__Audience", audience)
+    .WithEnvironment("Scalar__ClientId", scalarClientId)
+    .WithReference(propertyDb)
+    .WithReference(rabbitmq)
+    .WaitFor(postgres)
+    .WaitFor(rabbitmq)
+    .WaitFor(zitadel)
+    .WithExternalHttpEndpoints()
+    .WithDeveloperCertificateTrust(true);
+
 // Landlord Portal.
 var landlordClientId = builder.Configuration["Configs:LandlordClientId"];
 _ = builder.AddProject<Projects.ProperTea_Landlord_Bff>("landlord-bff")
@@ -159,6 +174,7 @@ _ = builder.AddProject<Projects.ProperTea_Landlord_Bff>("landlord-bff")
     .WithReference(organizationService)
     .WithReference(userService)
     .WithReference(companyService)
+    .WithReference(propertyService)
     .WithEnvironment("OIDC__Authority", zitadelUrl)
     .WithEnvironment("OIDC__ClientId", landlordClientId)
     .WithEnvironment("Scalar__ClientId", scalarClientId)
