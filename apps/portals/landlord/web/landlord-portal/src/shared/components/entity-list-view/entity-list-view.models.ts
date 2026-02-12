@@ -90,11 +90,9 @@ export interface FilterField<TFilters> {
 }
 
 export interface AsyncFilterOptions<TFilters> {
-  fetch: (searchTerm: string, filters: Partial<TFilters>) => Observable<FilterFieldOption[]>;
+  fetch: (filters: Partial<TFilters>) => Observable<FilterFieldOption[]>;
   dependsOn?: (keyof TFilters)[];
-  searchable?: boolean;
   allowClear?: boolean;
-  debounceMs?: number;
 }
 
 export interface FilterFieldOption {

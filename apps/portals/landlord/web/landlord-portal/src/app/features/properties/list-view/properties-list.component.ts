@@ -1,6 +1,6 @@
-import { Component, inject, signal, computed, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
-import { map, firstValueFrom } from 'rxjs';
+import { map, firstValueFrom, Observable } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ColumnDef } from '@tanstack/angular-table';
 import { PropertyService } from '../services/property.service';
@@ -26,14 +26,16 @@ import { CreatePropertyDrawerComponent } from '../create-drawer/create-property-
       [config]="listConfig()"
       [title]="'properties.title' | transloco"
       [createLabel]="'common.new'"
-      (createClick)="openCreateDrawer()" />
+      (createClick)="openCreateDrawer()"
+    />
 
     <app-create-property-drawer
       [open]="createDrawerOpen()"
-      (openChange)="createDrawerOpen.set($event)" />
+      (openChange)="createDrawerOpen.set($event)"
+    />
   `,
 })
-export class PropertiesListComponent implements OnInit {
+export class PropertiesListComponent {
   private propertyService = inject(PropertyService);
   private companyService = inject(CompanyService);
   private router = inject(Router);
@@ -43,18 +45,6 @@ export class PropertiesListComponent implements OnInit {
 
   // UI state
   protected createDrawerOpen = signal(false);
-  private companyOptions = signal<FilterFieldOption[]>([]);
-
-  ngOnInit(): void {
-    this.companyService
-      .select()
-      .pipe(
-        map((companies) =>
-          companies.map((c) => ({ value: c.id, label: c.name }))
-        )
-      )
-      .subscribe((options) => this.companyOptions.set(options));
-  }
 
   // Entity list configuration
   protected listConfig = computed<EntityListConfig<PropertyListItem, PropertyFilters>>(() => ({
@@ -65,7 +55,7 @@ export class PropertiesListComponent implements OnInit {
           totalCount: response.totalCount,
           page: query.pagination.page,
           pageSize: query.pagination.pageSize,
-        }))
+        })),
       ),
     idField: 'id',
     columns: this.getColumnDefinitions(),
@@ -141,7 +131,7 @@ export class PropertiesListComponent implements OnInit {
             ? 'inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800 dark:bg-green-900 dark:text-green-200'
             : 'inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800 dark:bg-gray-800 dark:text-gray-200';
           const translatedStatus = this.translocoService.translate(
-            `properties.${status.toLowerCase()}`
+            `properties.${status.toLowerCase()}`,
           );
           return `<span class="${variantClass}">${translatedStatus}</span>`;
         },
@@ -195,9 +185,14 @@ export class PropertiesListComponent implements OnInit {
       {
         key: 'companyId',
         label: 'properties.company',
-        type: 'select',
+        type: 'asyncSelect',
         placeholder: 'properties.selectCompany',
-        options: this.companyOptions(),
+        asyncOptions: {
+          fetch: (): Observable<FilterFieldOption[]> =>
+            this.companyService
+              .select()
+              .pipe(map((companies) => companies.map((c) => ({ value: c.id, label: c.name })))),
+        },
       },
     ];
   }
@@ -219,21 +214,17 @@ export class PropertiesListComponent implements OnInit {
         }),
         confirmText: this.translocoService.translate('common.delete'),
         variant: 'destructive',
-      })
+      }),
     );
 
     if (!confirmed) return;
 
     this.propertyService.delete(property.id).subscribe({
       next: () => {
-        this.toastService.success(
-          this.translocoService.translate('properties.deleteSuccess')
-        );
+        this.toastService.success(this.translocoService.translate('properties.deleteSuccess'));
       },
       error: () => {
-        this.toastService.error(
-          this.translocoService.translate('properties.deleteError')
-        );
+        this.toastService.error(this.translocoService.translate('properties.deleteError'));
       },
     });
   }

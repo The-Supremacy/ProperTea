@@ -22,7 +22,10 @@
     "done": "Done",
     "quickActions": "Quick Actions",
     "details": "Details",
-    "history": "History"
+    "history": "History",
+    "select": "Select...",
+    "loading": "Loading...",
+    "noResults": "No results found"
   },
   "user": {
     "profile": "Profile",

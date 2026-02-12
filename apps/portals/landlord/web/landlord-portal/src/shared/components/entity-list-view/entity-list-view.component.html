@@ -515,12 +515,10 @@
                       @case ('asyncSelect') {
                         <app-async-select
                           [value]="$any(filterValues()[field.key] || '')"
-                          [fetchFn]="getAsyncSelectFetchFn(field)"
-                          [parentValues]="getParentFilterValues(field)"
+                          [options]="getAsyncSelectOptions(field)"
+                          [loading]="isAsyncFieldLoading(field)"
                           [placeholder]="field.placeholder || 'common.select'"
-                          [searchable]="field.asyncOptions?.searchable ?? true"
-                          [allowClear]="field.asyncOptions?.allowClear ?? true"
-                          [debounceMs]="field.asyncOptions?.debounceMs ?? 300"
+                          (opened)="onAsyncSelectOpened(field)"
                           (valueChange)="onFilterFieldChange(field.key, $event)" />
                       }
                       @case ('number') {

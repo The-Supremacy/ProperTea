@@ -30,7 +30,7 @@ Use CVA (class-variance-authority) + `cn()` utility (clsx + tailwind-merge) for 
 - Signals for local state. `computed()` for derived state. No `mutate`, use `update`/`set`.
 - Native control flow: `@if`, `@for`, `@switch`. Never `*ngIf`, `*ngFor`, `*ngSwitch`.
 - Never `ngClass`/`ngStyle`. Use `class`/`style` bindings.
-- Reactive Forms only. No Template-driven forms.
+- Prefer Reactive Forms only. Template-driven forms only if reactive don't work for some component.
 - Use `async` pipe for observables. No arrow functions in templates.
 - Use `NgOptimizedImage` for all static images (does not work for inline base64).
 

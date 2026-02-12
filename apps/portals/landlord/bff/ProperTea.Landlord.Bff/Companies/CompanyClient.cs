@@ -36,6 +36,8 @@ public record PagedCompaniesResponse(
 
 public record CheckNameResponse(bool Available, Guid? ExistingCompanyId);
 
+public record CompanySelectItem(Guid Id, string Name);
+
 public class CompanyClient(HttpClient httpClient)
 {
     public async Task<CompanyResponse> CreateCompanyAsync(CreateCompanyRequest request, CancellationToken ct = default)
@@ -108,5 +110,11 @@ public class CompanyClient(HttpClient httpClient)
 
         return await httpClient.GetFromJsonAsync<CheckNameResponse>($"/companies/check-name?{queryString}", ct)
             ?? throw new InvalidOperationException("Failed to check company name");
+    }
+
+    public async Task<List<CompanySelectItem>> SelectCompaniesAsync(CancellationToken ct = default)
+    {
+        return await httpClient.GetFromJsonAsync<List<CompanySelectItem>>("/companies/select", ct)
+            ?? [];
     }
 }

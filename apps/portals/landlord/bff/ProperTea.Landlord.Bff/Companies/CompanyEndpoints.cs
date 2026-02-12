@@ -17,6 +17,9 @@ public static class CompanyEndpoints
         _ = group.MapGet("/", GetCompanies)
             .WithName("GetCompanies");
 
+        _ = group.MapGet("/select", SelectCompanies)
+            .WithName("SelectCompanies");
+
         _ = group.MapGet("/check-name", CheckCompanyName)
             .WithName("CheckCompanyName");
 
@@ -52,6 +55,14 @@ public static class CompanyEndpoints
         CancellationToken ct = default)
     {
         var companies = await client.GetCompaniesAsync(query, pagination, sort, ct);
+        return Results.Ok(companies);
+    }
+
+    private static async Task<IResult> SelectCompanies(
+        [FromServices] CompanyClient client,
+        CancellationToken ct = default)
+    {
+        var companies = await client.SelectCompaniesAsync(ct);
         return Results.Ok(companies);
     }
 

@@ -4,6 +4,7 @@ using ProperTea.Landlord.Bff.Auth;
 using ProperTea.Landlord.Bff.Companies;
 using ProperTea.Landlord.Bff.Config;
 using ProperTea.Landlord.Bff.Organizations;
+using ProperTea.Landlord.Bff.Property;
 using ProperTea.Landlord.Bff.Session;
 using ProperTea.Landlord.Bff.Users;
 using ProperTea.ServiceDefaults;
@@ -57,6 +58,16 @@ builder.Services.AddHttpClient<CompanyClient>(client =>
 .AddUserAccessTokenHandler()
 .AddHttpMessageHandler<OrganizationHeaderHandler>();
 
+builder.Services.AddHttpClient<PropertyClient>(client =>
+{
+    var propertyServiceUrl = builder.Configuration["services:property:http:0"]
+        ?? builder.Configuration["services:property:https:0"]
+        ?? throw new InvalidOperationException("Property service URL not configured");
+    client.BaseAddress = new Uri(propertyServiceUrl);
+})
+.AddUserAccessTokenHandler()
+.AddHttpMessageHandler<OrganizationHeaderHandler>();
+
 var app = builder.Build();
 
 app.UseOpenApi(app.Configuration, app.Environment);
@@ -72,6 +83,7 @@ app.MapSessionEndpoints();
 app.MapOrganizationEndpoints();
 app.MapUserEndpoints();
 app.MapCompanyEndpoints();
+app.MapPropertyEndpoints();
 app.MapDefaultEndpoints();
 
 app.Run();

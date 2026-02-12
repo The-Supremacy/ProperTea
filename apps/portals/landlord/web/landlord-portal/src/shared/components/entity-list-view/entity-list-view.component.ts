@@ -15,7 +15,7 @@ import {
 } from '@angular/core';
 import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { Router } from '@angular/router';
-import { Subject, finalize, takeUntil, of, map } from 'rxjs';
+import { Subject, finalize, takeUntil } from 'rxjs';
 import {
   createAngularTable,
   FlexRenderDirective,
@@ -49,7 +49,7 @@ import { ButtonDirective } from '../button';
 import { IconComponent } from '../icon';
 import { SpinnerComponent } from '../spinner';
 import { SelectComponent } from '../select';
-import { AsyncSelectComponent, AsyncSelectFetchFn } from '../async-select';
+import { AsyncSelectComponent, AsyncSelectOption } from '../async-select';
 import { ResponsiveService } from '../../../app/core/services/responsive.service';
 
 /**
@@ -150,7 +150,7 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
   protected hasData = computed(() => this.data().length > 0);
   protected isEmpty = computed(() => !this.loading() && !this.hasData());
   protected totalPages = computed(() =>
-    Math.ceil(this.totalCount() / this.paginationQuery().pageSize)
+    Math.ceil(this.totalCount() / this.paginationQuery().pageSize),
   );
 
   // Combined query for data fetching
@@ -237,10 +237,11 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
 
     this.loading.set(true);
 
-    cfg.fetchFn(query)
+    cfg
+      .fetchFn(query)
       .pipe(
         finalize(() => this.loading.set(false)),
-        takeUntil(this.destroy$)
+        takeUntil(this.destroy$),
       )
       .subscribe({
         next: (result: PagedResult<TEntity>) => {
@@ -259,7 +260,6 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
     const newSorting = typeof updater === 'function' ? updater(this.sortingState()) : updater;
     this.sortingState.set(newSorting);
 
-    // Convert TanStack sorting to our SortQuery
     if (newSorting.length > 0) {
       const sort = newSorting[0];
       this.sortQuery.set({
@@ -270,7 +270,6 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
       this.sortQuery.set(undefined);
     }
 
-    // Reset to first page when sorting changes
     this.paginationQuery.update((p) => ({ ...p, page: 1 }));
   }
 
@@ -320,22 +319,63 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
     this.paginationQuery.update((p) => ({ ...p, page: 1 }));
   }
 
-  protected getAsyncSelectFetchFn(field: FilterField<TFilters>): AsyncSelectFetchFn {
-    if (!field.asyncOptions?.fetch) {
-      return () => of([]);
-    }
+  protected getAsyncSelectOptions(field: FilterField<TFilters>): AsyncSelectOption[] {
+    const key = field.key as string;
+    return (this.asyncOptionCache().get(key) ?? []).map((opt) => ({
+      value: String(opt.value),
+      label: opt.label,
+    }));
+  }
 
-    return (searchTerm: string, parentValues: Record<string, unknown>) => {
-      const filters = parentValues as Partial<TFilters>;
-      return field.asyncOptions!.fetch(searchTerm, filters).pipe(
-        map((options: FilterFieldOption[]) =>
-          options.map((opt) => ({
-            value: String(opt.value),
-            label: opt.label,
-          }))
-        )
-      );
-    };
+  protected onAsyncSelectOpened(field: FilterField<TFilters>): void {
+    const key = field.key as string;
+    if (!this.asyncOptionCache().has(key)) {
+      this.loadAsyncOptions(field);
+    }
+  }
+
+  private asyncOptionCache = signal(new Map<string, FilterFieldOption[]>());
+  private asyncLoadingKeys = signal(new Set<string>());
+
+  protected isAsyncFieldLoading(field: FilterField<TFilters>): boolean {
+    return this.asyncLoadingKeys().has(field.key as string);
+  }
+
+  private loadAsyncOptions(field: FilterField<TFilters>): void {
+    if (!field.asyncOptions?.fetch) return;
+    const key = field.key as string;
+
+    this.asyncLoadingKeys.update((keys) => {
+      const next = new Set(keys);
+      next.add(key);
+      return next;
+    });
+
+    const filters = this.getParentFilterValues(field) as Partial<TFilters>;
+    field.asyncOptions
+      .fetch(filters)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (options) => {
+          this.asyncOptionCache.update((cache) => {
+            const next = new Map(cache);
+            next.set(key, options);
+            return next;
+          });
+          this.asyncLoadingKeys.update((keys) => {
+            const next = new Set(keys);
+            next.delete(key);
+            return next;
+          });
+        },
+        error: () => {
+          this.asyncLoadingKeys.update((keys) => {
+            const next = new Set(keys);
+            next.delete(key);
+            return next;
+          });
+        },
+      });
   }
 
   protected getParentFilterValues(field: FilterField<TFilters>): Record<string, unknown> {
