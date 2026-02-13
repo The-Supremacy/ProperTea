@@ -46,10 +46,6 @@ export class PropertyService {
     return this.http.get<PagedPropertiesResponse>('/api/properties', { params });
   }
 
-  /**
-   * Get properties for select/autocomplete dropdowns.
-   * @param companyId Optional: filter properties by company (cascading filter support)
-   */
   select(companyId?: string): Observable<PropertySelectItem[]> {
     let params = new HttpParams();
     if (companyId) {

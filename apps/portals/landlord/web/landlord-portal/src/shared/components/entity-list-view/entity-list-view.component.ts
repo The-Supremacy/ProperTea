@@ -49,7 +49,6 @@ import { ButtonDirective } from '../button';
 import { IconComponent } from '../icon';
 import { SpinnerComponent } from '../spinner';
 import { SelectComponent } from '../select';
-import { AsyncSelectComponent, AsyncSelectOption } from '../async-select';
 import { ResponsiveService } from '../../../app/core/services/responsive.service';
 
 /**
@@ -92,7 +91,6 @@ import { ResponsiveService } from '../../../app/core/services/responsive.service
     IconComponent,
     SpinnerComponent,
     SelectComponent,
-    AsyncSelectComponent,
   ],
   templateUrl: './entity-list-view.component.html',
   styleUrl: './entity-list-view.component.css',
@@ -317,79 +315,6 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
     this.filterValues.set(initial);
     this.filtersQuery.set(initial as TFilters);
     this.paginationQuery.update((p) => ({ ...p, page: 1 }));
-  }
-
-  protected getAsyncSelectOptions(field: FilterField<TFilters>): AsyncSelectOption[] {
-    const key = field.key as string;
-    return (this.asyncOptionCache().get(key) ?? []).map((opt) => ({
-      value: String(opt.value),
-      label: opt.label,
-    }));
-  }
-
-  protected onAsyncSelectOpened(field: FilterField<TFilters>): void {
-    const key = field.key as string;
-    if (!this.asyncOptionCache().has(key)) {
-      this.loadAsyncOptions(field);
-    }
-  }
-
-  private asyncOptionCache = signal(new Map<string, FilterFieldOption[]>());
-  private asyncLoadingKeys = signal(new Set<string>());
-
-  protected isAsyncFieldLoading(field: FilterField<TFilters>): boolean {
-    return this.asyncLoadingKeys().has(field.key as string);
-  }
-
-  private loadAsyncOptions(field: FilterField<TFilters>): void {
-    if (!field.asyncOptions?.fetch) return;
-    const key = field.key as string;
-
-    this.asyncLoadingKeys.update((keys) => {
-      const next = new Set(keys);
-      next.add(key);
-      return next;
-    });
-
-    const filters = this.getParentFilterValues(field) as Partial<TFilters>;
-    field.asyncOptions
-      .fetch(filters)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (options) => {
-          this.asyncOptionCache.update((cache) => {
-            const next = new Map(cache);
-            next.set(key, options);
-            return next;
-          });
-          this.asyncLoadingKeys.update((keys) => {
-            const next = new Set(keys);
-            next.delete(key);
-            return next;
-          });
-        },
-        error: () => {
-          this.asyncLoadingKeys.update((keys) => {
-            const next = new Set(keys);
-            next.delete(key);
-            return next;
-          });
-        },
-      });
-  }
-
-  protected getParentFilterValues(field: FilterField<TFilters>): Record<string, unknown> {
-    const dependsOn = field.asyncOptions?.dependsOn || [];
-    const result: Record<string, unknown> = {};
-
-    for (const key of dependsOn) {
-      const value = this.filterValues()[key];
-      if (value !== undefined && value !== null && value !== '') {
-        result[key as string] = value;
-      }
-    }
-
-    return result;
   }
 
   protected toggleFilterDrawer(): void {

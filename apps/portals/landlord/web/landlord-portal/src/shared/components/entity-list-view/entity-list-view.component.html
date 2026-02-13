@@ -512,15 +512,6 @@
                           [placeholder]="field.placeholder || 'Select...'"
                           (valueChange)="onFilterFieldChange(field.key, $event)" />
                       }
-                      @case ('asyncSelect') {
-                        <app-async-select
-                          [value]="$any(filterValues()[field.key] || '')"
-                          [options]="getAsyncSelectOptions(field)"
-                          [loading]="isAsyncFieldLoading(field)"
-                          [placeholder]="field.placeholder || 'common.select'"
-                          (opened)="onAsyncSelectOpened(field)"
-                          (valueChange)="onFilterFieldChange(field.key, $event)" />
-                      }
                       @case ('number') {
                         <input
                           [id]="field.key"

@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
-import { map, firstValueFrom, Observable } from 'rxjs';
+import { map, firstValueFrom } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ColumnDef } from '@tanstack/angular-table';
 import { PropertyService } from '../services/property.service';
@@ -11,7 +11,6 @@ import {
   EntityListConfig,
   EntityAction,
   FilterField,
-  FilterFieldOption,
 } from '../../../../shared/components/entity-list-view';
 import { DialogService } from '../../../core/services/dialog.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -185,15 +184,13 @@ export class PropertiesListComponent {
       {
         key: 'companyId',
         label: 'properties.company',
-        type: 'asyncSelect',
-        placeholder: 'properties.selectCompany',
-        asyncOptions: {
-          fetch: (): Observable<FilterFieldOption[]> =>
-            this.companyService
-              .select()
-              .pipe(map((companies) => companies.map((c) => ({ value: c.id, label: c.name })))),
-        },
-      },
+        type: 'autocomplete',
+        placeholder: 'common.search',
+        optionsProvider: () =>
+          this.companyService.select().pipe(
+            map((companies) => companies.map((company) => ({ value: company.id, label: company.name }))),
+          ),
+      }
     ];
   }
 

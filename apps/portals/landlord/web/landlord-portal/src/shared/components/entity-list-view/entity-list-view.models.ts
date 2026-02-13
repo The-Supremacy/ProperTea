@@ -80,19 +80,13 @@ export interface FilterConfig<TFilters> {
 export interface FilterField<TFilters> {
   key: keyof TFilters;
   label: string;
-  type: 'text' | 'select' | 'asyncSelect' | 'date' | 'dateRange' | 'number' | 'boolean';
+  type: 'text' | 'select' | 'autocomplete' | 'date' | 'dateRange' | 'number' | 'boolean';
   placeholder?: string;
   options?: FilterFieldOption[];
-  asyncOptions?: AsyncFilterOptions<TFilters>;
+  optionsProvider?: () => Observable<FilterFieldOption[]>;
   debounce?: number;
   min?: number;
   max?: number;
-}
-
-export interface AsyncFilterOptions<TFilters> {
-  fetch: (filters: Partial<TFilters>) => Observable<FilterFieldOption[]>;
-  dependsOn?: (keyof TFilters)[];
-  allowClear?: boolean;
 }
 
 export interface FilterFieldOption {
@@ -115,15 +109,7 @@ export interface EmptyStateConfig {
 }
 
 export interface EntityListNavigation<TEntity> {
-  /**
-   * Function to generate the route array for an entity.
-   * Return value will be passed to router.navigate()
-   */
   getDetailsRoute: (entity: TEntity) => any[];
-
-  /**
-   * Optional: Target window behavior (default: '_self')
-   */
   target?: '_self' | '_blank';
 }
 
