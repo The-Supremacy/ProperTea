@@ -12,8 +12,7 @@ import { ValidationErrorComponent } from '../../../../shared/components/form-fie
 import { ButtonDirective } from '../../../../shared/components/button';
 import { IconComponent } from '../../../../shared/components/icon';
 import { SpinnerComponent } from '../../../../shared/components/spinner';
-import { SelectComponent } from '../../../../shared/components/select';
-import { FilterFieldOption } from '../../../../shared/components/entity-list-view';
+import { AutocompleteComponent, AutocompleteOption } from '../../../../shared/components/autocomplete';
 
 @Component({
   selector: 'app-create-property-drawer',
@@ -26,7 +25,7 @@ import { FilterFieldOption } from '../../../../shared/components/entity-list-vie
     ButtonDirective,
     IconComponent,
     SpinnerComponent,
-    SelectComponent,
+    AutocompleteComponent,
   ],
   templateUrl: './create-property-drawer.component.html',
   styleUrl: './create-property-drawer.component.css',
@@ -46,7 +45,6 @@ export class CreatePropertyDrawerComponent {
 
   // State
   protected isSubmitting = signal(false);
-  protected companyOptions = signal<FilterFieldOption[]>([]);
 
   // Form
   protected form = this.fb.nonNullable.group({
@@ -63,20 +61,15 @@ export class CreatePropertyDrawerComponent {
   // Computed values
   protected canSubmit = computed(() => this.formStatus() === 'VALID' && !this.isSubmitting());
 
-  constructor() {
-    this.loadCompanies();
-  }
-
-  private loadCompanies(): void {
-    this.companyService
+  protected getCompanyOptionsProvider = () => {
+    return this.companyService
       .select()
       .pipe(
         map((companies) =>
           companies.map((c) => ({ value: c.id, label: c.name }))
         )
-      )
-      .subscribe((options) => this.companyOptions.set(options));
-  }
+      );
+  };
 
   protected onCompanyChange(value: string): void {
     this.form.controls.companyId.setValue(value);

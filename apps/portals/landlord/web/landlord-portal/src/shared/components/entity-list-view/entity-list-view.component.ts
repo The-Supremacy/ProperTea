@@ -42,13 +42,13 @@ import {
   PagedResult,
   getPaginationMetadata,
   FilterField,
-  FilterFieldOption,
 } from './entity-list-view.models';
 import { TablePaginationDirective } from '../../directives/table-pagination';
 import { ButtonDirective } from '../button';
 import { IconComponent } from '../icon';
 import { SpinnerComponent } from '../spinner';
 import { SelectComponent } from '../select';
+import { AutocompleteComponent } from '../autocomplete';
 import { ResponsiveService } from '../../../app/core/services/responsive.service';
 
 /**
@@ -91,6 +91,7 @@ import { ResponsiveService } from '../../../app/core/services/responsive.service
     IconComponent,
     SpinnerComponent,
     SelectComponent,
+    AutocompleteComponent,
   ],
   templateUrl: './entity-list-view.component.html',
   styleUrl: './entity-list-view.component.css',

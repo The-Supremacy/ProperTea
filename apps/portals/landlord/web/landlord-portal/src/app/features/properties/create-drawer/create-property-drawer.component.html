@@ -40,10 +40,11 @@
             <span class="text-destructive">*</span>
           </label>
 
-          <app-select
+          <app-autocomplete
             [value]="form.controls.companyId.value"
-            [options]="companyOptions()"
+            [optionsProvider]="getCompanyOptionsProvider"
             [placeholder]="'properties.selectCompany'"
+            [ariaLabel]="'properties.company'"
             (valueChange)="onCompanyChange($event)" />
 
           @if (form.controls.companyId.invalid && form.controls.companyId.touched) {

@@ -82,7 +82,6 @@ export interface FilterField<TFilters> {
   label: string;
   type: 'text' | 'select' | 'autocomplete' | 'date' | 'dateRange' | 'number' | 'boolean';
   placeholder?: string;
-  options?: FilterFieldOption[];
   optionsProvider?: () => Observable<FilterFieldOption[]>;
   debounce?: number;
   min?: number;

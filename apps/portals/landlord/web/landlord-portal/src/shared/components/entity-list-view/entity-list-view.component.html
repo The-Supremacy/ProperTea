@@ -507,9 +507,17 @@
                       }
                       @case ('select') {
                         <app-select
+                          [optionsProvider]="field.optionsProvider!"
                           [value]="$any(filterValues()[field.key] || '')"
-                          [options]="field.options || []"
                           [placeholder]="field.placeholder || 'Select...'"
+                          (valueChange)="onFilterFieldChange(field.key, $event)" />
+                      }
+                      @case ('autocomplete') {
+                        <app-autocomplete
+                          [optionsProvider]="field.optionsProvider!"
+                          [value]="$any(filterValues()[field.key] || '')"
+                          [placeholder]="field.placeholder || 'common.search'"
+                          [ariaLabel]="field.label"
                           (valueChange)="onFilterFieldChange(field.key, $event)" />
                       }
                       @case ('number') {
