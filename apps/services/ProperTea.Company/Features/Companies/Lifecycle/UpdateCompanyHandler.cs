@@ -40,6 +40,18 @@ public class UpdateCompanyHandler : IWolverineHandler
 
         if (!string.IsNullOrWhiteSpace(command.Name) && company.Name != command.Name)
         {
+            // Validate name uniqueness within tenant
+            var nameExists = await session.Query<CompanyAggregate>()
+                .Where(c => c.Name.Equals(command.Name, StringComparison.OrdinalIgnoreCase)
+                    && c.CurrentStatus == CompanyAggregate.Status.Active
+                    && c.Id != command.CompanyId)
+                .AnyAsync();
+
+            if (nameExists)
+                throw new ConflictException(
+                    CompanyErrorCodes.COMPANY_NAME_ALREADY_EXISTS,
+                    $"A company with name '{command.Name}' already exists");
+
             events.Add(company.UpdateName(command.Name));
         }
 

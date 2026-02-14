@@ -7,6 +7,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { CompanyService } from '../services/company.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { uniqueCompanyName } from '../validators/company-name.validators';
+import { uniqueCompanyCode } from '../validators/company-code.validators';
 import { TextInputDirective } from '../../../../shared/components/form-field/text-input.directive';
 import { ValidationErrorComponent } from '../../../../shared/components/form-field/validation-error.component';
 import { ButtonDirective } from '../../../../shared/components/button';
@@ -45,6 +46,7 @@ export class CreateCompanyDrawerComponent {
 
   // Form
   protected form = this.fb.nonNullable.group({
+    code: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(20)], [uniqueCompanyCode()]],
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)], [uniqueCompanyName()]],
   });
 
@@ -52,6 +54,7 @@ export class CreateCompanyDrawerComponent {
   private formStatus = toSignal(this.form.statusChanges, { initialValue: this.form.status });
 
   // Computed values
+  protected codeControl = computed(() => this.form.controls.code);
   protected nameControl = computed(() => this.form.controls.name);
   protected canSubmit = computed(() => this.formStatus() === 'VALID' && !this.isSubmitting());
 
@@ -65,7 +68,10 @@ export class CreateCompanyDrawerComponent {
     if (!this.canSubmit()) return;
 
     this.isSubmitting.set(true);
-    const request = { name: this.form.value.name!.trim() };
+    const request = {
+      code: this.form.value.code!.trim().toUpperCase(),
+      name: this.form.value.name!.trim()
+    };
 
     this.companyService
       .create(request)

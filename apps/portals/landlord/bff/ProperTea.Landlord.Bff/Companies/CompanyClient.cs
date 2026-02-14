@@ -2,9 +2,9 @@ using ProperTea.Infrastructure.Common.Pagination;
 
 namespace ProperTea.Landlord.Bff.Companies;
 
-public record CreateCompanyRequest(string Name);
+public record CreateCompanyRequest(string Code, string Name);
 
-public record UpdateCompanyRequest(string Name);
+public record UpdateCompanyRequest(string? Code, string? Name);
 
 public record CompanyAuditLogResponse(
     Guid CompanyId,
@@ -19,9 +19,9 @@ public record CompanyAuditLogEntry(
 
 public record CompanyResponse(Guid Id);
 
-public record CompanyListItem(Guid Id, string Name, string Status, DateTimeOffset CreatedAt);
+public record CompanyListItem(Guid Id, string Code, string Name, string Status, DateTimeOffset CreatedAt);
 
-public record CompanyDetailResponse(Guid Id, string Name, string Status, DateTimeOffset CreatedAt);
+public record CompanyDetailResponse(Guid Id, string Code, string Name, string Status, DateTimeOffset CreatedAt);
 
 public record PagedCompaniesResponse(
     IReadOnlyList<CompanyListItem> Items,
@@ -36,7 +36,9 @@ public record PagedCompaniesResponse(
 
 public record CheckNameResponse(bool Available, Guid? ExistingCompanyId);
 
-public record CompanySelectItem(Guid Id, string Name);
+public record CheckCodeResponse(bool Available, Guid? ExistingCompanyId);
+
+public record CompanySelectItem(Guid Id, string Code, string Name);
 
 public class CompanyClient(HttpClient httpClient)
 {
@@ -108,8 +110,23 @@ public class CompanyClient(HttpClient httpClient)
         if (excludeId.HasValue)
             queryString["excludeId"] = excludeId.Value.ToString();
 
-        return await httpClient.GetFromJsonAsync<CheckNameResponse>($"/companies/check-name?{queryString}", ct)
+        return await httpClient.GetFromJsonAsync<CheckNameResponse>($"/companies_/check-name?{queryString}", ct)
             ?? throw new InvalidOperationException("Failed to check company name");
+    }
+
+    public async Task<CheckCodeResponse> CheckCompanyCodeAsync(
+        string code,
+        Guid? excludeId = null,
+        CancellationToken ct = default)
+    {
+        var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
+        queryString["code"] = code;
+
+        if (excludeId.HasValue)
+            queryString["excludeId"] = excludeId.Value.ToString();
+
+        return await httpClient.GetFromJsonAsync<CheckCodeResponse>($"/companies_/check-code?{queryString}", ct)
+            ?? throw new InvalidOperationException("Failed to check company code");
     }
 
     public async Task<List<CompanySelectItem>> SelectCompaniesAsync(CancellationToken ct = default)

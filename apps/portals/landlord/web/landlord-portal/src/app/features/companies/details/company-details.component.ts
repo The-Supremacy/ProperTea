@@ -84,6 +84,10 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
   // Form
   form!: FormGroup;
 
+  get codeControl() {
+    return this.form.get('code')!;
+  }
+
   get nameControl() {
     return this.form.get('name')!;
   }
@@ -111,8 +115,28 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
 
   private initializeForm(): void {
     this.form = this.fb.group({
+      code: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(20)], [this.codeUniqueValidator()]],
       name: ['', [Validators.required], [this.nameUniqueValidator()]]
     });
+  }
+
+  private codeUniqueValidator(): AsyncValidatorFn {
+    return (control: AbstractControl): Observable<ValidationErrors | null> => {
+      if (!control.value) {
+        return of(null);
+      }
+
+      return of(control.value).pipe(
+        debounceTime(400),
+        distinctUntilChanged(),
+        switchMap(code => {
+          const excludeId = this.companyId();
+          return this.companyService.checkCode(code, excludeId);
+        }),
+        map(response => response.available ? null : { codeTaken: true }),
+        first()
+      );
+    };
   }
 
   private nameUniqueValidator(): AsyncValidatorFn {
@@ -143,7 +167,11 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
       next: (company) => {
         if (company) {
           this.company.set(company);
-          this.form.patchValue({ name: company.name });
+          this.form.patchValue({
+            code: company.code,
+            name: company.name
+          });
+          this.form.markAsPristine();
         } else {
           this.toastService.error('companies.error.loadFailed');
           this.router.navigate(['/companies']);
@@ -164,8 +192,9 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
     this.saving.set(true);
 
     const id = this.companyId();
+    const code = this.codeControl.value?.trim().toUpperCase() ?? undefined;
     const name = this.nameControl.value;
-    const request: UpdateCompanyRequest = { name };
+    const request: UpdateCompanyRequest = { code, name };
 
     await firstValueFrom(
       this.companyService.update(id, request).pipe(

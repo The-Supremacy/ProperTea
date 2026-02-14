@@ -13,15 +13,21 @@ public class CreateCompanyHandler : IWolverineHandler
         IDocumentSession session,
         IMessageBus bus)
     {
-        // Validate code uniqueness within tenant
         var codeExists = await session.Query<CompanyAggregate>()
             .Where(c => c.Code == command.Code && c.CurrentStatus == CompanyAggregate.Status.Active)
             .AnyAsync();
-
         if (codeExists)
             throw new ConflictException(
                 CompanyErrorCodes.COMPANY_CODE_ALREADY_EXISTS,
                 $"A company with code '{command.Code}' already exists");
+
+        var nameExists = await session.Query<CompanyAggregate>()
+            .Where(c => c.Name.Equals(command.Name, StringComparison.OrdinalIgnoreCase) && c.CurrentStatus == CompanyAggregate.Status.Active)
+            .AnyAsync();
+        if (nameExists)
+            throw new ConflictException(
+                CompanyErrorCodes.COMPANY_NAME_ALREADY_EXISTS,
+                $"A company with name '{command.Name}' already exists");
 
         var companyId = Guid.NewGuid();
         var created = CompanyAggregate.Create(companyId, command.Code, command.Name, DateTimeOffset.UtcNow);

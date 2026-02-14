@@ -7,6 +7,16 @@ public static class CompanyEndpoints
 {
     public static IEndpointRouteBuilder MapCompanyEndpoints(this IEndpointRouteBuilder app)
     {
+        _ = app.MapGet("/api/companies_/check-name", CheckCompanyName)
+            .RequireAuthorization()
+            .WithTags("Companies")
+            .WithName("CheckCompanyName");
+
+        _ = app.MapGet("/api/companies_/check-code", CheckCompanyCode)
+            .RequireAuthorization()
+            .WithTags("Companies")
+            .WithName("CheckCompanyCode");
+
         var group = app.MapGroup("/api/companies")
             .RequireAuthorization()
             .WithTags("Companies");
@@ -19,9 +29,6 @@ public static class CompanyEndpoints
 
         _ = group.MapGet("/select", SelectCompanies)
             .WithName("SelectCompanies");
-
-        _ = group.MapGet("/check-name", CheckCompanyName)
-            .WithName("CheckCompanyName");
 
         _ = group.MapGet("/{id:guid}", GetCompany)
             .WithName("GetCompany");
@@ -73,6 +80,16 @@ public static class CompanyEndpoints
         CancellationToken ct = default)
     {
         var result = await client.CheckCompanyNameAsync(name, excludeId, ct);
+        return Results.Ok(result);
+    }
+
+    private static async Task<IResult> CheckCompanyCode(
+        [FromServices] CompanyClient client,
+        [FromQuery] string code,
+        [FromQuery] Guid? excludeId = null,
+        CancellationToken ct = default)
+    {
+        var result = await client.CheckCompanyCodeAsync(code, excludeId, ct);
         return Results.Ok(result);
     }
 

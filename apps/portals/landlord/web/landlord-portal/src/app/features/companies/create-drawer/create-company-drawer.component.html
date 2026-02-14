@@ -33,6 +33,73 @@
           {{ 'companies.createHint' | transloco }}
         </p>
 
+        <!-- Code Field -->
+        <div class="space-y-2">
+          <label for="company-code" class="text-sm font-medium">
+            {{ 'companies.code' | transloco }}
+            <span class="text-destructive">*</span>
+          </label>
+
+          <input
+            appTextInput
+            id="company-code"
+            type="text"
+            formControlName="code"
+            [placeholder]="'companies.codePlaceholder' | transloco"
+            [variant]="
+              codeControl().invalid && codeControl().touched
+                ? 'error'
+                : codeControl().pending
+                  ? 'default'
+                  : 'default'
+            "
+            class="font-mono uppercase"
+            required
+            autocomplete="off" />
+
+          <!-- Validation Errors -->
+          @if (codeControl().invalid && codeControl().touched) {
+            @if (codeControl().hasError('required')) {
+              <app-validation-error
+                [message]="'companies.codeRequired' | transloco"
+                [showIcon]="true" />
+            }
+            @if (codeControl().hasError('minlength')) {
+              <app-validation-error
+                [message]="'companies.codeTooShort' | transloco"
+                [showIcon]="true" />
+            }
+            @if (codeControl().hasError('maxlength')) {
+              <app-validation-error
+                [message]="'companies.codeTooLong' | transloco"
+                [showIcon]="true" />
+            }
+            @if (codeControl().hasError('codeTaken')) {
+              <app-validation-error
+                [message]="'companies.codeTaken' | transloco"
+                [showIcon]="true" />
+            }
+          }
+
+          <!-- Checking state -->
+          @if (codeControl().pending) {
+            <app-validation-error
+              variant="info"
+              [message]="'companies.checkingCode' | transloco"
+              icon="hourglass_empty"
+              [showIcon]="true" />
+          }
+
+          <!-- Success state (optional, shows when valid and touched) -->
+          @if (codeControl().valid && codeControl().touched && !codeControl().pending) {
+            <app-validation-error
+              variant="success"
+              [message]="'companies.codeAvailable' | transloco"
+              icon="check_circle"
+              [showIcon]="true" />
+          }
+        </div>
+
         <!-- Name Field -->
         <div class="space-y-2">
           <label for="company-name" class="text-sm font-medium">

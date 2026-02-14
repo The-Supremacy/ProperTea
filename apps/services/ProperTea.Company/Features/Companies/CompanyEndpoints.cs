@@ -133,6 +133,24 @@ public static class CompanyEndpoints
         return Results.Ok(result);
     }
 
+    [WolverineGet("/companies_/check-code")]
+    [Authorize]
+    public static async Task<IResult> CheckCompanyCode(
+        string code,
+        IMessageBus bus,
+        IOrganizationIdProvider orgProvider,
+        Guid? excludeId = null)
+    {
+        var tenantId = orgProvider.GetOrganizationId()
+            ?? throw new UnauthorizedAccessException("Organization ID required");
+
+        var result = await bus.InvokeForTenantAsync<CheckCompanyCodeResult>(
+            tenantId,
+            new CheckCompanyCode(code, excludeId));
+
+        return Results.Ok(result);
+    }
+
     [WolverineGet("/companies/{id}/audit-log")]
     [Authorize]
     public static async Task<IResult> GetCompanyAuditLog(

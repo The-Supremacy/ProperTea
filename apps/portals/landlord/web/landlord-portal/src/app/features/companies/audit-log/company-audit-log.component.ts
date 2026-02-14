@@ -143,7 +143,12 @@ export class CompanyAuditLogComponent implements OnInit {
 
     switch (normalized.toLowerCase()) {
       case 'created':
-        return `${this.translocoService.translate('companies.name')}: ${data.name || ''}`;
+        return `${this.translocoService.translate('companies.code')}: ${data.code || ''}, ${this.translocoService.translate('companies.name')}: ${data.name || ''}`;
+      case 'codeupdated':
+        if (data.oldCode && data.newCode) {
+          return `${data.oldCode} → ${data.newCode}`;
+        }
+        return `${this.translocoService.translate('companies.newCode')}: ${data.newCode || ''}`;
       case 'nameupdated':
         if (data.oldName && data.newName) {
           return `${data.oldName} → ${data.newName}`;
