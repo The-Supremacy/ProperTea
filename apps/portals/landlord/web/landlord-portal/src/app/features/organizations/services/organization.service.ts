@@ -25,7 +25,7 @@ export class OrganizationService {
 
   checkName(name: string): Observable<CheckNameResponse> {
     const params = new HttpParams().set('name', name);
-    return this.http.get<CheckNameResponse>('/api/organizations/check-name', { params });
+    return this.http.get<CheckNameResponse>('/api/organizations_/check-name', { params });
   }
 
   register(request: RegisterOrganizationRequest): Observable<RegisterOrganizationResponse> {

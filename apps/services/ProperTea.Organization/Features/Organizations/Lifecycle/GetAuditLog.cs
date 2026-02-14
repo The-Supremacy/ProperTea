@@ -5,7 +5,7 @@ using static ProperTea.Organization.Features.Organizations.OrganizationEvents;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
-public record GetAuditLogQuery(Guid OrganizationId);
+public record GetAuditLogQuery(string OrganizationId);
 
 public record AuditLogEntry(
     string EventType,
@@ -19,7 +19,7 @@ public static class AuditEventData
 {
     public record OrganizationCreated(DateTimeOffset CreatedAt);
 
-    public record ExternalOrganizationCreated(string ExternalOrganizationId);
+    public record OrganizationLinked(string OrganizationId);
 
     public record OrganizationActivated(string OldStatus, string NewStatus);
 
@@ -31,7 +31,7 @@ public static class AuditEventData
 }
 
 public record AuditLogResponse(
-    Guid OrganizationId,
+    string OrganizationId,
     IReadOnlyList<AuditLogEntry> Entries
 );
 
@@ -39,13 +39,13 @@ public class GetAuditLogHandler(IQuerySession session) : IWolverineHandler
 {
     public async Task<AuditLogResponse> Handle(GetAuditLogQuery query, CancellationToken ct)
     {
-        var events = await session.Events.FetchStreamAsync(query.OrganizationId, token: ct);
-
-        if (events.Count == 0)
-            throw new NotFoundException(
+        var org = await session.Query<OrganizationAggregate>()
+            .FirstOrDefaultAsync(x => x.OrganizationId == query.OrganizationId, ct)
+            ?? throw new NotFoundException(
                 OrganizationErrorCodes.NOT_FOUND,
                 nameof(OrganizationAggregate),
                 query.OrganizationId);
+        var events = await session.Events.FetchStreamAsync(org.Id, token: ct);
 
         var entries = new List<AuditLogEntry>();
         OrganizationAggregate? previousState = null;
@@ -55,7 +55,7 @@ public class GetAuditLogHandler(IQuerySession session) : IWolverineHandler
             var data = evt.Data switch
             {
                 Created e => (object)new AuditEventData.OrganizationCreated(e.CreatedAt),
-                ExternalOrganizationCreated e => new AuditEventData.ExternalOrganizationCreated(e.ExternalOrganizationId),
+                OrganizationLinked e => new AuditEventData.OrganizationLinked(e.OrganizationId),
                 Activated e => new AuditEventData.OrganizationActivated(
                     OldStatus: previousState?.CurrentStatus.ToString() ?? "Pending",
                     NewStatus: "Active"),
@@ -75,7 +75,7 @@ public class GetAuditLogHandler(IQuerySession session) : IWolverineHandler
             switch (evt.Data)
             {
                 case Created e: previousState.Apply(e); break;
-                case ExternalOrganizationCreated e: previousState.Apply(e); break;
+                case OrganizationLinked e: previousState.Apply(e); break;
                 case Activated e: previousState.Apply(e); break;
                 default:
                     break;

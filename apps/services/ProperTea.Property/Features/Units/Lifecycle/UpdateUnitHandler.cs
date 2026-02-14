@@ -55,7 +55,7 @@ public class UpdateUnitHandler : IWolverineHandler
         _ = session.Events.Append(command.UnitId, updated);
         await session.SaveChangesAsync();
 
-        var organizationId = Guid.Parse(session.TenantId);
+        var organizationId = session.TenantId;
         await bus.PublishAsync(new UnitIntegrationEvents.UnitUpdated
         {
             UnitId = command.UnitId,

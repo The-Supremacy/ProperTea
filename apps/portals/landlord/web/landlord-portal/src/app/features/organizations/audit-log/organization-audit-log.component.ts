@@ -144,8 +144,8 @@ export class OrganizationAuditLogComponent implements OnInit {
     switch (normalized.toLowerCase()) {
       case 'created':
         return this.translocoService.translate('organizations.organizationCreated');
-      case 'externalorganizationcreated':
-        return `${this.translocoService.translate('organizations.externalOrgLinked')}: ${data.externalOrganizationId || ''}`;
+      case 'organizationlinked':
+        return `${this.translocoService.translate('organizations.externalOrgLinked')}: ${data.organizationId || ''}`;
       case 'activated':
         if (data.oldStatus && data.newStatus) {
           return `${data.oldStatus} → ${data.newStatus}`;

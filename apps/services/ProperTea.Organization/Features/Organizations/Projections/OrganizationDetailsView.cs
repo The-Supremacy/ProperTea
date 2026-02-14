@@ -8,7 +8,7 @@ public class OrganizationDetailsView : SingleStreamProjection<OrganizationAggreg
     public string OrganizationName { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public string Tier { get; set; } = string.Empty;
-    public string? ExternalOrganizationId { get; set; }
+    public string? OrganizationId { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? ActivatedAt { get; set; }
 

@@ -21,12 +21,12 @@ public static class SessionEndpoints
         if (!isAuthenticated)
         {
             return Results.Ok(new SessionDto(
-                ExternalUserId: string.Empty,
+                UserId: string.Empty,
                 IsAuthenticated: false,
                 EmailAddress: string.Empty,
                 FirstName: string.Empty,
                 LastName: string.Empty,
-                ExternalOrganizationId: string.Empty,
+                OrganizationId: string.Empty,
                 OrganizationName: string.Empty,
                 LastSeenAt: null
             ));
@@ -36,16 +36,16 @@ public static class SessionEndpoints
         var email = context.User.FindFirst("email")?.Value ?? string.Empty;
         var firstName = context.User.FindFirst("given_name")?.Value ?? string.Empty;
         var lastName = context.User.FindFirst("family_name")?.Value ?? string.Empty;
-        var externalOrgId = context.User.FindFirst("urn:zitadel:iam:user:resourceowner:id")?.Value ?? string.Empty;
+        var organizationId = context.User.FindFirst("urn:zitadel:iam:user:resourceowner:id")?.Value ?? string.Empty;
         var orgName = context.User.FindFirst("urn:zitadel:iam:user:resourceowner:name")?.Value ?? string.Empty;
 
         return Results.Ok(new SessionDto(
-            ExternalUserId: userId,
+            UserId: userId,
             IsAuthenticated: true,
             EmailAddress: email,
             FirstName: firstName,
             LastName: lastName,
-            ExternalOrganizationId: externalOrgId,
+            OrganizationId: organizationId,
             OrganizationName: orgName,
             LastSeenAt: DateTimeOffset.UtcNow
         ));
@@ -53,12 +53,12 @@ public static class SessionEndpoints
 }
 
 public record SessionDto(
-    string ExternalUserId,
+    string UserId,
     bool IsAuthenticated,
     string EmailAddress,
     string FirstName,
     string LastName,
-    string ExternalOrganizationId,
+    string OrganizationId,
     string OrganizationName,
     DateTimeOffset? LastSeenAt
 );

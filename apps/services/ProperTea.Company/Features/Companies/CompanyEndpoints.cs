@@ -115,7 +115,7 @@ public static class CompanyEndpoints
         return Results.NoContent();
     }
 
-    [WolverineGet("/companies/check-name")]
+    [WolverineGet("/companies_/check-name")]
     [Authorize]
     public static async Task<IResult> CheckCompanyName(
         string name,

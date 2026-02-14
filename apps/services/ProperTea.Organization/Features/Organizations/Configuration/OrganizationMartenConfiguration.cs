@@ -42,14 +42,14 @@ public static class OrganizationConfiguration
     {
         _ = opts.Projections.Snapshot<OrganizationAggregate>(SnapshotLifecycle.Inline);
         _ = opts.Schema.For<OrganizationAggregate>()
-            .Index(x => x.ExternalOrganizationId, idx =>
+            .Index(x => x.OrganizationId, idx =>
             {
                 idx.IsUnique = true;
             });
 
         // Convention: {aggregate}.{event-name}.v{version}
         opts.Events.MapEventType<OrganizationEvents.Created>("organization.created.v1");
-        opts.Events.MapEventType<OrganizationEvents.ExternalOrganizationCreated>("organization.external-linked.v1");
+        opts.Events.MapEventType<OrganizationEvents.OrganizationLinked>("organization.linked.v2");
         opts.Events.MapEventType<OrganizationEvents.Activated>("organization.activated.v1");
     }
 }

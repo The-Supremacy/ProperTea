@@ -26,7 +26,7 @@ public class DeleteCompanyHandler : IWolverineHandler
         await bus.PublishAsync(new CompanyIntegrationEvents.CompanyDeleted
         {
             CompanyId = command.CompanyId,
-            OrganizationId = Guid.Parse(session.TenantId),
+            OrganizationId = session.TenantId,
             DeletedAt = deleted.DeletedAt
         });
     }

@@ -58,7 +58,7 @@ public class RegisterOrganizationValidator : AbstractValidator<RegisterOrganizat
     }
 }
 
-public record RegistrationResult(Guid OrganizationId, bool IsSuccess, string? Reason);
+public record RegistrationResult(string OrganizationId, bool IsSuccess, string? Reason);
 
 public class RegisterOrganizationHandler : IWolverineHandler
 {
@@ -84,31 +84,30 @@ public class RegisterOrganizationHandler : IWolverineHandler
             command.UserPassword,
             ct);
 
-        var orgId = Guid.NewGuid();
+        var streamId = Guid.NewGuid();
         var events = new List<object>
         {
-            OrganizationAggregate.Create(orgId),
-            OrganizationAggregate.LinkExternalOrganization(orgId, externalOrgId),
-            new OrganizationEvents.Activated(orgId, DateTime.UtcNow)
+            OrganizationAggregate.Create(streamId),
+            OrganizationAggregate.LinkExternalOrganization(streamId, externalOrgId),
+            new OrganizationEvents.Activated(streamId, DateTime.UtcNow)
         };
-        _ = session.Events.StartStream<OrganizationAggregate>(orgId, [.. events]);
+        _ = session.Events.StartStream<OrganizationAggregate>(streamId, [.. events]);
         await session.SaveChangesAsync(ct);
 
-        logger.LogInformation("Registered new organization {OrganizationId} '{Name}' with external ID {ExternalOrgId}",
-            orgId,
+        logger.LogInformation("Registered new organization {StreamId} '{Name}' with Organization ID {OrganizationId}",
+            streamId,
             command.OrganizationName,
             externalOrgId);
 
         var integrationEvent = new OrganizationIntegrationEvents.OrganizationRegistered(
-            orgId,
-            command.OrganizationName,
             externalOrgId,
+            command.OrganizationName,
             DateTimeOffset.UtcNow
         );
 
         return (
-            new OrganizationEvents.OrganizationRegistered(orgId),
-            new RegistrationResult(orgId, IsSuccess: true, Reason: null),
+            new OrganizationEvents.OrganizationRegistered(streamId),
+            new RegistrationResult(externalOrgId, IsSuccess: true, Reason: null),
             integrationEvent
         );
     }

@@ -1,7 +1,7 @@
 # ADR 0009: Identity Strategy - Users and Organizations
 
 ## Status
-Accepted
+Superseded by [0014-canonical-external-identifiers.md](0014-canonical-external-identifiers.md)
 
 ## Context
 

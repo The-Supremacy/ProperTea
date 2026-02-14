@@ -4,14 +4,13 @@ using ProperTea.Organization.Infrastructure;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
 
-public record GetOrganization(Guid OrganizationId);
+public record GetOrganization(string OrganizationId);
 
 public record OrganizationResponse(
-    Guid Id,
+    string OrganizationId,
     string? Name,
     string Status,
     string Tier,
-    string? ExternalOrganizationId,
     DateTimeOffset CreatedAt);
 
 public class GetOrganizationHandler(
@@ -22,26 +21,26 @@ public class GetOrganizationHandler(
         IDocumentSession session,
         CancellationToken ct)
     {
-        var organization = await session.Events.AggregateStreamAsync<OrganizationAggregate>(query.OrganizationId, token: ct);
+        var organization = await session.Query<OrganizationAggregate>()
+            .FirstOrDefaultAsync(x => x.OrganizationId == query.OrganizationId, ct);
 
         if (organization == null)
             return null;
 
         string? name = null;
-        if (organization.ExternalOrganizationId != null)
+        if (organization.OrganizationId != null)
         {
             var externalOrg = await externalOrgClient.GetOrganizationDetailsAsync(
-                organization.ExternalOrganizationId,
+                organization.OrganizationId,
                 ct);
             name = externalOrg?.Name;
         }
 
         return new OrganizationResponse(
-            organization.Id,
+            organization.OrganizationId!,
             name,
             organization.CurrentStatus.ToString(),
             organization.CurrentTier.ToString(),
-            organization.ExternalOrganizationId,
             organization.CreatedAt);
     }
 }

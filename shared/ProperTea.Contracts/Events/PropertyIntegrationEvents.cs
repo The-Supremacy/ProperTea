@@ -3,7 +3,7 @@ namespace ProperTea.Contracts.Events;
 public interface IPropertyCreated
 {
     public Guid PropertyId { get; }
-    public Guid OrganizationId { get; }
+    public string OrganizationId { get; }
     public Guid CompanyId { get; }
     public string Code { get; }
     public string Name { get; }
@@ -15,7 +15,7 @@ public interface IPropertyCreated
 public interface IPropertyUpdated
 {
     public Guid PropertyId { get; }
-    public Guid OrganizationId { get; }
+    public string OrganizationId { get; }
     public string Code { get; }
     public string Name { get; }
     public string Address { get; }
@@ -26,7 +26,7 @@ public interface IPropertyUpdated
 public interface IPropertyDeleted
 {
     public Guid PropertyId { get; }
-    public Guid OrganizationId { get; }
+    public string OrganizationId { get; }
     public DateTimeOffset DeletedAt { get; }
 }
 
@@ -35,7 +35,7 @@ public interface IUnitCreated
     public Guid UnitId { get; }
     public Guid PropertyId { get; }
     public Guid? BuildingId { get; }
-    public Guid OrganizationId { get; }
+    public string OrganizationId { get; }
     public string Code { get; }
     public string UnitNumber { get; }
     public string Category { get; }
@@ -50,7 +50,7 @@ public interface IUnitUpdated
     public Guid UnitId { get; }
     public Guid PropertyId { get; }
     public Guid? BuildingId { get; }
-    public Guid OrganizationId { get; }
+    public string OrganizationId { get; }
     public string Code { get; }
     public string UnitNumber { get; }
     public string Category { get; }
@@ -64,6 +64,6 @@ public interface IUnitDeleted
 {
     public Guid UnitId { get; }
     public Guid PropertyId { get; }
-    public Guid OrganizationId { get; }
+    public string OrganizationId { get; }
     public DateTimeOffset DeletedAt { get; }
 }

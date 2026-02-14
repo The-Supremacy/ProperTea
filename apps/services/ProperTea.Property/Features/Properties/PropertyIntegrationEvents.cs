@@ -9,7 +9,7 @@ public static class PropertyIntegrationEvents
     public class PropertyCreated : IPropertyCreated
     {
         public Guid PropertyId { get; set; }
-        public Guid OrganizationId { get; set; }
+        public string OrganizationId { get; set; } = null!;
         public Guid CompanyId { get; set; }
         public string Code { get; set; } = null!;
         public string Name { get; set; } = null!;
@@ -22,7 +22,7 @@ public static class PropertyIntegrationEvents
     public class PropertyUpdated : IPropertyUpdated
     {
         public Guid PropertyId { get; set; }
-        public Guid OrganizationId { get; set; }
+        public string OrganizationId { get; set; } = null!;
         public string Code { get; set; } = null!;
         public string Name { get; set; } = null!;
         public string Address { get; set; } = null!;
@@ -34,7 +34,7 @@ public static class PropertyIntegrationEvents
     public class PropertyDeleted : IPropertyDeleted
     {
         public Guid PropertyId { get; set; }
-        public Guid OrganizationId { get; set; }
+        public string OrganizationId { get; set; } = null!;
         public DateTimeOffset DeletedAt { get; set; }
     }
 }

@@ -3,7 +3,7 @@ using Wolverine;
 
 namespace ProperTea.User.Features.UserProfiles.Lifecycle;
 
-public record GetProfileQuery(string ExternalUserId);
+public record GetProfileQuery(string UserId);
 
 public class GetProfileHandler : IWolverineHandler
 {
@@ -13,7 +13,7 @@ public class GetProfileHandler : IWolverineHandler
         CancellationToken ct)
     {
         var profile = await session.Query<UserProfileAggregate>()
-            .FirstOrDefaultAsync(x => x.ExternalUserId == query.ExternalUserId, ct);
+            .FirstOrDefaultAsync(x => x.UserId == query.UserId, ct);
 
         if (profile is null)
         {
@@ -21,8 +21,7 @@ public class GetProfileHandler : IWolverineHandler
         }
 
         return new UserProfileResponse(
-            profile.Id,
-            profile.ExternalUserId,
+            profile.UserId,
             profile.CreatedAt,
             profile.LastSeenAt
         );

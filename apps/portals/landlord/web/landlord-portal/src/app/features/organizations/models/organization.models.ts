@@ -15,11 +15,10 @@ export interface RegisterOrganizationResponse {
 }
 
 export interface OrganizationDetailResponse {
-  id: string;
+  organizationId: string;
   name?: string;
   status: string;
   tier: string;
-  externalOrganizationId?: string;
   createdAt: Date;
 }
 

@@ -68,7 +68,7 @@ public class CreateUnitHandler : IWolverineHandler
         _ = session.Events.StartStream<UnitAggregate>(unitId, created);
         await session.SaveChangesAsync();
 
-        var organizationId = Guid.Parse(session.TenantId);
+        var organizationId = session.TenantId;
         await bus.PublishAsync(new UnitIntegrationEvents.UnitCreated
         {
             UnitId = unitId,

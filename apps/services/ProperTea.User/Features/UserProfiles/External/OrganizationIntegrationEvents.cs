@@ -7,27 +7,24 @@ public static class OrganizationIntegrationEvents
 {
     [MessageIdentity("organizations.registered.v1")]
     public record OrganizationRegistered(
-        Guid OrganizationId,
+        string OrganizationId,
         string Name,
-        string Slug,
-        string ExternalOrganizationId,
-        string? EmailDomain,
         DateTimeOffset RegisteredAt) : IOrganizationRegistered;
 
     [MessageIdentity("organizations.deactivated.v1")]
     public record OrganizationDeactivated(
-        Guid OrganizationId,
+        string OrganizationId,
         string Reason,
         DateTimeOffset DeactivatedAt) : IOrganizationDeactivated;
 
     [MessageIdentity("organizations.activated.v1")]
     public record OrganizationActivated(
-        Guid OrganizationId,
+        string OrganizationId,
         DateTimeOffset ActivatedAt) : IOrganizationActivated;
 
     [MessageIdentity("organizations.domain-verified.v1")]
     public record OrganizationDomainVerified(
-        Guid OrganizationId,
+        string OrganizationId,
         string EmailDomain,
         DateTimeOffset VerifiedAt) : IOrganizationDomainVerified;
 }

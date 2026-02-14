@@ -51,7 +51,7 @@ public class UpdateCompanyHandler : IWolverineHandler
             await bus.PublishAsync(new CompanyIntegrationEvents.CompanyUpdated
             {
                 CompanyId = command.CompanyId,
-                OrganizationId = Guid.Parse(session.TenantId),
+                OrganizationId = session.TenantId,
                 Code = command.Code ?? company.Code,
                 Name = command.Name ?? company.Name,
                 UpdatedAt = DateTimeOffset.UtcNow

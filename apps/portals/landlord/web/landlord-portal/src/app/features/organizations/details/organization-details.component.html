@@ -66,15 +66,13 @@
                             </span>
                           </div>
 
-                          <!-- External Organization ID -->
-                          @if (organization()!.externalOrganizationId) {
-                            <div>
-                              <label class="mb-1 block text-sm font-medium text-muted-foreground">
-                                {{ 'organizations.externalId' | transloco }}
-                              </label>
-                              <p class="font-mono text-sm">{{ organization()!.externalOrganizationId }}</p>
-                            </div>
-                          }
+                          <!-- Organization ID -->
+                          <div>
+                            <label class="mb-1 block text-sm font-medium text-muted-foreground">
+                              {{ 'organizations.organizationId' | transloco }}
+                            </label>
+                            <p class="font-mono text-sm">{{ organization()!.organizationId }}</p>
+                          </div>
                         </div>
                       }
                     </div>
@@ -116,7 +114,7 @@
         <ng-template ngTabContent>
           <div class="py-6">
             <div class="container mx-auto px-4">
-              <app-organization-audit-log [organizationId]="internalOrganizationId()" />
+              <app-organization-audit-log [organizationId]="organizationId()" />
             </div>
           </div>
         </ng-template>

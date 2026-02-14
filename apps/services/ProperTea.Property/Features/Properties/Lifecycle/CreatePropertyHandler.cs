@@ -19,11 +19,13 @@ public class CreatePropertyHandler : IWolverineHandler
         IMessageBus bus)
     {
         // Validate code uniqueness within company
-        var codeExists = await session.Query<PropertyAggregate>()
+
+        var existingProperty = await session.Query<PropertyAggregate>()
             .Where(p => p.CompanyId == command.CompanyId
                 && p.Code == command.Code
                 && p.CurrentStatus == PropertyAggregate.Status.Active)
-            .AnyAsync();
+                .ToListAsync();
+        var codeExists = existingProperty.Any();
 
         if (codeExists)
             throw new ConflictException(
@@ -43,7 +45,7 @@ public class CreatePropertyHandler : IWolverineHandler
         _ = session.Events.StartStream<PropertyAggregate>(propertyId, created);
         await session.SaveChangesAsync();
 
-        var organizationId = Guid.Parse(session.TenantId);
+        var organizationId = session.TenantId;
         await bus.PublishAsync(new PropertyIntegrationEvents.PropertyCreated
         {
             PropertyId = propertyId,

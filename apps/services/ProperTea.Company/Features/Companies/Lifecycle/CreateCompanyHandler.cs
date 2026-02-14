@@ -32,7 +32,7 @@ public class CreateCompanyHandler : IWolverineHandler
         await bus.PublishAsync(new CompanyIntegrationEvents.CompanyCreated
         {
             CompanyId = companyId,
-            OrganizationId = Guid.Parse(session.TenantId),
+            OrganizationId = session.TenantId,
             Code = command.Code,
             Name = command.Name,
             CreatedAt = created.CreatedAt

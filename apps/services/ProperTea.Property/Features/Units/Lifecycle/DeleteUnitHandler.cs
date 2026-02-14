@@ -23,7 +23,7 @@ public class DeleteUnitHandler : IWolverineHandler
         _ = session.Events.Append(command.UnitId, deleted);
         await session.SaveChangesAsync();
 
-        var organizationId = Guid.Parse(session.TenantId);
+        var organizationId = session.TenantId;
         await bus.PublishAsync(new UnitIntegrationEvents.UnitDeleted
         {
             UnitId = command.UnitId,

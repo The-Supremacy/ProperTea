@@ -9,11 +9,11 @@ public class UserClient(HttpClient httpClient)
         return (await httpClient.GetFromJsonAsync<UserProfileDto>("/users/me", ct))!;
     }
 
-    public async Task<UserDetailsDto?> GetUserDetailsAsync(string externalUserId, CancellationToken ct = default)
+    public async Task<UserDetailsDto?> GetUserDetailsAsync(string userId, CancellationToken ct = default)
     {
         try
         {
-            return await httpClient.GetFromJsonAsync<UserDetailsDto>($"/users/external/{externalUserId}", ct);
+            return await httpClient.GetFromJsonAsync<UserDetailsDto>($"/users/{userId}", ct);
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {

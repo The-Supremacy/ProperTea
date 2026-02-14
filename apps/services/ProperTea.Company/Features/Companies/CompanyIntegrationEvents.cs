@@ -9,7 +9,7 @@ public static class CompanyIntegrationEvents
     public class CompanyCreated : ICompanyCreated
     {
         public Guid CompanyId { get; set; }
-        public Guid OrganizationId { get; set; }
+        public string OrganizationId { get; set; } = null!;
         public string Code { get; set; } = null!;
         public string Name { get; set; } = null!;
         public DateTimeOffset CreatedAt { get; set; }
@@ -19,7 +19,7 @@ public static class CompanyIntegrationEvents
     public class CompanyUpdated : ICompanyUpdated
     {
         public Guid CompanyId { get; set; }
-        public Guid OrganizationId { get; set; }
+        public string OrganizationId { get; set; } = null!;
         public string Code { get; set; } = null!;
         public string Name { get; set; } = null!;
         public DateTimeOffset UpdatedAt { get; set; }
@@ -29,7 +29,7 @@ public static class CompanyIntegrationEvents
     public class CompanyDeleted : ICompanyDeleted
     {
         public Guid CompanyId { get; set; }
-        public Guid OrganizationId { get; set; }
+        public string OrganizationId { get; set; } = null!;
         public DateTimeOffset DeletedAt { get; set; }
     }
 }

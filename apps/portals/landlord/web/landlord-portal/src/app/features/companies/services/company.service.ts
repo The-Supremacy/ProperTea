@@ -67,7 +67,7 @@ export class CompanyService {
       params = params.set('excludeId', excludeId);
     }
 
-    return this.http.get<CheckNameResponse>('/api/companies/check-name', { params });
+    return this.http.get<CheckNameResponse>('/api/companies_/check-name', { params });
   }
 
   getAuditLog(id: string): Observable<CompanyAuditLogResponse> {

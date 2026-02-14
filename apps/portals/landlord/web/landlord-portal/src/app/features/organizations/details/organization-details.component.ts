@@ -42,12 +42,8 @@ export class OrganizationDetailsComponent implements OnInit {
   loading = signal(false);
   selectedTab = signal<string>('details');
 
-  // Get external organization ID from token (via session)
-  externalOrganizationId = computed(() => this.sessionService.context()?.externalOrganizationId ?? '');
+  organizationId = computed(() => this.sessionService.context()?.organizationId ?? '');
   organizationName = computed(() => this.sessionService.organizationName());
-
-  // Internal organization ID from fetched organization (for audit log)
-  internalOrganizationId = computed(() => this.organization()?.id ?? '');
 
   // Details view configuration
   detailsConfig = computed<EntityDetailsConfig>(() => ({
@@ -60,19 +56,19 @@ export class OrganizationDetailsComponent implements OnInit {
   }));
 
   ngOnInit(): void {
-    const externalOrgId = this.externalOrganizationId();
-    if (!externalOrgId) {
+    const orgId = this.organizationId();
+    if (!orgId) {
       this.router.navigate(['/']);
       return;
     }
 
-    this.loadOrganization(externalOrgId);
+    this.loadOrganization(orgId);
   }
 
-  protected loadOrganization(externalOrgId: string): void {
+  protected loadOrganization(organizationId: string): void {
     this.loading.set(true);
 
-    this.organizationService.getOrganizationByExternalId(externalOrgId).pipe(
+    this.organizationService.getOrganization(organizationId).pipe(
       finalize(() => this.loading.set(false))
     ).subscribe({
       next: (organization) => {
@@ -89,9 +85,9 @@ export class OrganizationDetailsComponent implements OnInit {
   }
 
   async refresh(): Promise<void> {
-    const externalOrgId = this.externalOrganizationId();
-    if (!externalOrgId) return;
-    await firstValueFrom(this.organizationService.getOrganizationByExternalId(externalOrgId).pipe(
+    const orgId = this.organizationId();
+    if (!orgId) return;
+    await firstValueFrom(this.organizationService.getOrganization(orgId).pipe(
       finalize(() => this.loading.set(false))
     )).then((organization) => {
       if (organization) {

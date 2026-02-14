@@ -3,7 +3,7 @@ using Wolverine;
 
 namespace ProperTea.User.Features.UserProfiles.Lifecycle;
 
-public record UpdateLastSeenCommand(string ExternalUserId);
+public record UpdateLastSeenCommand(string UserId);
 
 public class UpdateLastSeenHandler : IWolverineHandler
 {
@@ -13,7 +13,7 @@ public class UpdateLastSeenHandler : IWolverineHandler
         CancellationToken cancellationToken)
     {
         var profile = await session.Query<UserProfileAggregate>()
-            .FirstOrDefaultAsync(x => x.ExternalUserId == command.ExternalUserId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.UserId == command.UserId, cancellationToken);
 
         if (profile is null)
         {
