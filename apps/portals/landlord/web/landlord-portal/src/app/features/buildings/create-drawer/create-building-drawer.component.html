@@ -1,0 +1,153 @@
+<!-- Backdrop -->
+@if (open()) {
+  <div
+    class="fixed inset-0 z-50 bg-background/80 backdrop-blur-[2px] transition-opacity duration-300"
+    [class.opacity-0]="!open()"
+    [class.opacity-100]="open()"
+    (click)="close()"></div>
+
+  <!-- Drawer Content -->
+  <div
+    class="fixed inset-y-0 right-0 z-50 w-full border-l bg-background text-foreground shadow-lg transition-transform duration-300 sm:max-w-md"
+    [class.translate-x-full]="!open()"
+    [class.translate-x-0]="open()">
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b px-6 py-4">
+      <h2 class="text-lg font-semibold">
+        {{ 'buildings.newBuilding' | transloco }}
+      </h2>
+      <button
+        type="button"
+        class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+        [attr.aria-label]="'common.close' | transloco"
+        (click)="close()">
+        <app-icon name="close" [size]="20" />
+      </button>
+    </div>
+
+    <!-- Body -->
+    <form [formGroup]="form" (ngSubmit)="submit()" class="flex h-[calc(100%-8rem)] flex-col">
+      <div class="flex-1 space-y-6 overflow-y-auto px-6 py-6">
+        <!-- Help text -->
+        <p class="text-sm text-muted-foreground">
+          {{ 'buildings.createHint' | transloco }}
+        </p>
+
+        <!-- Property Field -->
+        <div class="space-y-2">
+          <label for="building-property" class="text-sm font-medium">
+            {{ 'buildings.property' | transloco }}
+            <span class="text-destructive">*</span>
+          </label>
+
+          <app-autocomplete
+            [value]="form.controls.propertyId.value"
+            [optionsProvider]="getPropertyOptionsProvider"
+            [placeholder]="'buildings.selectProperty'"
+            [ariaLabel]="'buildings.property'"
+            (valueChange)="onPropertyChange($event)" />
+
+          @if (form.controls.propertyId.invalid && form.controls.propertyId.touched) {
+            @if (form.controls.propertyId.hasError('required')) {
+              <app-validation-error
+                [message]="'buildings.propertyRequired' | transloco"
+                [showIcon]="true" />
+            }
+          }
+        </div>
+
+        <!-- Code Field -->
+        <div class="space-y-2">
+          <label for="building-code" class="text-sm font-medium">
+            {{ 'buildings.code' | transloco }}
+            <span class="text-destructive">*</span>
+          </label>
+
+          <input
+            appTextInput
+            id="building-code"
+            type="text"
+            formControlName="code"
+            [placeholder]="'buildings.codePlaceholder' | transloco"
+            [variant]="
+              form.controls.code.invalid && form.controls.code.touched
+                ? 'error'
+                : 'default'
+            "
+            required />
+
+          @if (form.controls.code.invalid && form.controls.code.touched) {
+            @if (form.controls.code.hasError('required')) {
+              <app-validation-error
+                [message]="'buildings.codeRequired' | transloco"
+                [showIcon]="true" />
+            }
+            @if (form.controls.code.hasError('maxlength')) {
+              <app-validation-error
+                [message]="'buildings.codeTooLong' | transloco"
+                [showIcon]="true" />
+            }
+          }
+        </div>
+
+        <!-- Name Field -->
+        <div class="space-y-2">
+          <label for="building-name" class="text-sm font-medium">
+            {{ 'buildings.name' | transloco }}
+            <span class="text-destructive">*</span>
+          </label>
+
+          <input
+            appTextInput
+            id="building-name"
+            type="text"
+            formControlName="name"
+            [placeholder]="'buildings.namePlaceholder' | transloco"
+            [variant]="
+              form.controls.name.invalid && form.controls.name.touched
+                ? 'error'
+                : 'default'
+            "
+            required />
+
+          @if (form.controls.name.invalid && form.controls.name.touched) {
+            @if (form.controls.name.hasError('required')) {
+              <app-validation-error
+                [message]="'buildings.nameRequired' | transloco"
+                [showIcon]="true" />
+            }
+            @if (form.controls.name.hasError('maxlength')) {
+              <app-validation-error
+                [message]="'buildings.nameTooLong' | transloco"
+                [showIcon]="true" />
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div appDrawerFooter>
+        <button
+          type="button"
+          appBtn
+          variant="outline"
+          class="flex-1"
+          [disabled]="isSubmitting()"
+          (click)="close()">
+          {{ 'common.cancel' | transloco }}
+        </button>
+
+        <button
+          type="submit"
+          appBtn
+          class="flex-1"
+          [disabled]="!canSubmit()">
+          @if (isSubmitting()) {
+            <app-spinner size="sm" />
+          }
+          {{ 'common.create' | transloco }}
+        </button>
+      </div>
+    </form>
+  </div>
+}

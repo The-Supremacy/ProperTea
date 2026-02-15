@@ -2,6 +2,7 @@ using JasperFx;
 using JasperFx.Events;
 using Marten;
 using Npgsql;
+using ProperTea.Property.Features.Buildings.Configuration;
 using ProperTea.Property.Features.Companies.Configuration;
 using ProperTea.Property.Features.Properties.Configuration;
 using ProperTea.Property.Features.Units.Configuration;
@@ -45,6 +46,7 @@ public static class MartenConfiguration
 
             opts.ConfigureCompanyReferenceMarten();
             opts.ConfigurePropertyMarten();
+            opts.ConfigureBuildingMarten();
             opts.ConfigureUnitMarten();
         })
         .UseLightweightSessions()

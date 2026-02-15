@@ -23,16 +23,7 @@ public record CompanyListItem(Guid Id, string Code, string Name, string Status, 
 
 public record CompanyDetailResponse(Guid Id, string Code, string Name, string Status, DateTimeOffset CreatedAt);
 
-public record PagedCompaniesResponse(
-    IReadOnlyList<CompanyListItem> Items,
-    int TotalCount,
-    int Page,
-    int PageSize)
-{
-    public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
-    public bool HasNextPage => Page < TotalPages;
-    public bool HasPreviousPage => Page > 1;
-}
+
 
 public record CheckNameResponse(bool Available, Guid? ExistingCompanyId);
 
@@ -50,7 +41,7 @@ public class CompanyClient(HttpClient httpClient)
             ?? throw new InvalidOperationException("Failed to deserialize company response");
     }
 
-    public async Task<PagedCompaniesResponse> GetCompaniesAsync(
+    public async Task<PagedResult<CompanyListItem>> GetCompaniesAsync(
         ListCompaniesQuery query,
         PaginationQuery pagination,
         SortQuery sort,
@@ -67,8 +58,8 @@ public class CompanyClient(HttpClient httpClient)
         if (!string.IsNullOrWhiteSpace(sort.Sort))
             queryString["sort"] = sort.Sort;
 
-        return await httpClient.GetFromJsonAsync<PagedCompaniesResponse>($"/companies?{queryString}", ct)
-            ?? new PagedCompaniesResponse([], 0, pagination.Page, pagination.PageSize);
+        return await httpClient.GetFromJsonAsync<PagedResult<CompanyListItem>>($"/companies?{queryString}", ct)
+            ?? new PagedResult<CompanyListItem> { Items = [], TotalCount = 0, Page = pagination.Page, PageSize = pagination.PageSize };
     }
 
     public async Task<CompanyDetailResponse?> GetCompanyAsync(Guid id, CancellationToken ct = default)

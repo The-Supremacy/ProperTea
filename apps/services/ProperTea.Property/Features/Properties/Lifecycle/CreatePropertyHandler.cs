@@ -8,8 +8,7 @@ public record CreateProperty(
     Guid CompanyId,
     string Code,
     string Name,
-    string Address,
-    decimal? SquareFootage);
+    string Address);
 
 public class CreatePropertyHandler : IWolverineHandler
 {
@@ -18,8 +17,6 @@ public class CreatePropertyHandler : IWolverineHandler
         IDocumentSession session,
         IMessageBus bus)
     {
-        // Validate code uniqueness within company
-
         var existingProperty = await session.Query<PropertyAggregate>()
             .Where(p => p.CompanyId == command.CompanyId
                 && p.Code == command.Code
@@ -39,7 +36,6 @@ public class CreatePropertyHandler : IWolverineHandler
             command.Code,
             command.Name,
             command.Address,
-            command.SquareFootage,
             DateTimeOffset.UtcNow);
 
         _ = session.Events.StartStream<PropertyAggregate>(propertyId, created);
@@ -54,7 +50,6 @@ public class CreatePropertyHandler : IWolverineHandler
             Code = command.Code,
             Name = command.Name,
             Address = command.Address,
-            SquareFootage = command.SquareFootage,
             CreatedAt = created.CreatedAt
         });
 

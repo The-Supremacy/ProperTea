@@ -1,0 +1,141 @@
+<app-entity-details-view
+  [config]="detailsConfig()"
+  [loading]="loading()"
+  (refresh)="loadBuilding(buildingId())">
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-12">
+      <app-spinner size="lg" />
+    </div>
+  }
+
+  @if (!loading()) {
+    <div ngTabs>
+      <div ngTabList [(selectedTab)]="selectedTab" class="border-b">
+        <nav class="flex gap-4 px-4" aria-label="Tabs">
+          <div
+            ngTab
+            value="details"
+            class="tab-trigger">
+            {{ 'common.details' | transloco }}
+          </div>
+          <div
+            ngTab
+            value="history"
+            class="tab-trigger">
+            {{ 'common.history' | transloco }}
+          </div>
+        </nav>
+      </div>
+
+      <div ngTabPanel value="details">
+        <ng-template ngTabContent>
+          <div class="py-6">
+            <div class="container mx-auto px-4">
+              <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                <div class="space-y-6 lg:col-span-2">
+                  <div class="rounded-lg border bg-card shadow-sm">
+                    <div class="border-b bg-muted/40 px-6 py-4">
+                      <h2 class="text-lg font-semibold">{{ 'buildings.basicInfo' | transloco }}</h2>
+                    </div>
+                    <div class="p-6">
+                      <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
+                        <div>
+                          <label class="mb-2 block text-sm font-medium">
+                            {{ 'buildings.property' | transloco }}
+                          </label>
+                          <div class="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
+                            {{ propertyName() || '-' }}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label for="code" class="mb-2 block text-sm font-medium">
+                            {{ 'buildings.code' | transloco }}
+                          </label>
+                          <input
+                            id="code"
+                            type="text"
+                            formControlName="code"
+                            [placeholder]="'buildings.codePlaceholder' | transloco"
+                            class="input w-full"
+                            [class.border-destructive]="codeControl.invalid && codeControl.touched" />
+
+                          @if (codeControl.invalid && codeControl.touched) {
+                            <p class="mt-1 text-sm text-destructive">
+                              @if (codeControl.hasError('required')) {
+                                {{ 'buildings.codeRequired' | transloco }}
+                              }
+                              @if (codeControl.hasError('maxlength')) {
+                                {{ 'buildings.codeTooLong' | transloco }}
+                              }
+                            </p>
+                          }
+                        </div>
+
+                        <div>
+                          <label for="name" class="mb-2 block text-sm font-medium">
+                            {{ 'buildings.name' | transloco }}
+                          </label>
+                          <input
+                            id="name"
+                            type="text"
+                            formControlName="name"
+                            [placeholder]="'buildings.namePlaceholder' | transloco"
+                            class="input w-full"
+                            [class.border-destructive]="nameControl.invalid && nameControl.touched" />
+
+                          @if (nameControl.invalid && nameControl.touched) {
+                            <p class="mt-1 text-sm text-destructive">
+                              @if (nameControl.hasError('required')) {
+                                {{ 'buildings.nameRequired' | transloco }}
+                              }
+                              @if (nameControl.hasError('maxlength')) {
+                                {{ 'buildings.nameTooLong' | transloco }}
+                              }
+                            </p>
+                          }
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="space-y-6">
+                  <div class="rounded-lg border bg-card shadow-sm">
+                    <div class="border-b bg-muted/40 px-6 py-4">
+                      <h2 class="text-lg font-semibold">{{ 'common.status' | transloco }}</h2>
+                    </div>
+                    <div class="space-y-4 p-6">
+                      <div>
+                        <p class="mb-1 text-sm text-muted-foreground">{{ 'common.currentStatus' | transloco }}</p>
+                        <span [appStatusBadge]="building()?.status || 'Active'">
+                          {{ 'common.statuses.' + (building()?.status || 'Active') | transloco }}
+                        </span>
+                      </div>
+
+                      <div>
+                        <p class="mb-1 text-sm text-muted-foreground">{{ 'common.createdAt' | transloco }}</p>
+                        <p class="text-sm">{{ building()?.createdAt | date: 'medium' }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+      </div>
+
+      <div ngTabPanel value="history">
+        <ng-template ngTabContent>
+          <div class="py-6">
+            @if (building(); as currentBuilding) {
+              <app-building-audit-log [buildingId]="currentBuilding.id" />
+            }
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  }
+</app-entity-details-view>

@@ -16,10 +16,9 @@ public static class PropertyMartenConfiguration
             .Index(x => x.CurrentStatus);
 
         opts.Events.MapEventType<PropertyEvents.Created>("property.created.v1");
-        opts.Events.MapEventType<PropertyEvents.Updated>("property.updated.v1");
+        opts.Events.MapEventType<PropertyEvents.CodeUpdated>("property.code-updated.v1");
+        opts.Events.MapEventType<PropertyEvents.NameUpdated>("property.name-updated.v1");
+        opts.Events.MapEventType<PropertyEvents.AddressUpdated>("property.address-updated.v1");
         opts.Events.MapEventType<PropertyEvents.Deleted>("property.deleted.v1");
-        opts.Events.MapEventType<PropertyEvents.BuildingAdded>("property.building-added.v1");
-        opts.Events.MapEventType<PropertyEvents.BuildingUpdated>("property.building-updated.v1");
-        opts.Events.MapEventType<PropertyEvents.BuildingRemoved>("property.building-removed.v1");
     }
 }

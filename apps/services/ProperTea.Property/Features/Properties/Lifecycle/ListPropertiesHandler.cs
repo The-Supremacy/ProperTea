@@ -1,5 +1,6 @@
 using Marten;
 using ProperTea.Property.Features.Companies;
+using ProperTea.Property.Features.Buildings;
 using ProperTea.Infrastructure.Common.Pagination;
 using Wolverine;
 
@@ -24,7 +25,6 @@ public record PropertyListItemResponse(
     string Code,
     string Name,
     string Address,
-    decimal? SquareFootage,
     int BuildingCount,
     string Status,
     DateTimeOffset CreatedAt);
@@ -73,6 +73,15 @@ public class ListPropertiesHandler : IWolverineHandler
             .ToListAsync();
         var companyNameLookup = companies.ToDictionary(c => c.Id, c => c.Name);
 
+        var propertyIds = properties.Select(p => p.Id).ToList();
+        var buildings = await session.Query<BuildingAggregate>()
+            .Where(b => b.PropertyId.In(propertyIds)
+                && b.CurrentStatus == BuildingAggregate.Status.Active)
+            .ToListAsync();
+        var buildingCountLookup = buildings
+            .GroupBy(b => b.PropertyId)
+            .ToDictionary(g => g.Key, g => g.Count());
+
         var items = properties.Select(p => new PropertyListItemResponse(
             p.Id,
             p.CompanyId,
@@ -80,8 +89,7 @@ public class ListPropertiesHandler : IWolverineHandler
             p.Code,
             p.Name,
             p.Address,
-            p.SquareFootage,
-            p.Buildings.Count(b => !b.IsRemoved),
+            buildingCountLookup.GetValueOrDefault(p.Id, 0),
             p.CurrentStatus.ToString(),
             p.CreatedAt
         )).ToList();

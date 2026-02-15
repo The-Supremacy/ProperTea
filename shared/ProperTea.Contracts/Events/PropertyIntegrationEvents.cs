@@ -8,7 +8,6 @@ public interface IPropertyCreated
     public string Code { get; }
     public string Name { get; }
     public string Address { get; }
-    public decimal? SquareFootage { get; }
     public DateTimeOffset CreatedAt { get; }
 }
 
@@ -19,7 +18,6 @@ public interface IPropertyUpdated
     public string Code { get; }
     public string Name { get; }
     public string Address { get; }
-    public decimal? SquareFootage { get; }
     public DateTimeOffset UpdatedAt { get; }
 }
 

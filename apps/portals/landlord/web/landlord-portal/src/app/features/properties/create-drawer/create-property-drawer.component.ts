@@ -13,6 +13,7 @@ import { ButtonDirective } from '../../../../shared/components/button';
 import { IconComponent } from '../../../../shared/components/icon';
 import { SpinnerComponent } from '../../../../shared/components/spinner';
 import { AutocompleteComponent, AutocompleteOption } from '../../../../shared/components/autocomplete';
+import { DrawerFooterDirective } from '../../../../shared/components/drawer-footer';
 
 @Component({
   selector: 'app-create-property-drawer',
@@ -26,6 +27,7 @@ import { AutocompleteComponent, AutocompleteOption } from '../../../../shared/co
     IconComponent,
     SpinnerComponent,
     AutocompleteComponent,
+    DrawerFooterDirective,
   ],
   templateUrl: './create-property-drawer.component.html',
   styleUrl: './create-property-drawer.component.css',
@@ -52,7 +54,6 @@ export class CreatePropertyDrawerComponent {
     code: ['', [Validators.required, Validators.maxLength(50)]],
     name: ['', [Validators.required, Validators.maxLength(200)]],
     address: ['', [Validators.required, Validators.maxLength(500)]],
-    squareFootage: [null as number | null],
   });
 
   // Convert form status to signal for reactivity
@@ -94,7 +95,6 @@ export class CreatePropertyDrawerComponent {
         code: formValue.code.trim(),
         name: formValue.name.trim(),
         address: formValue.address.trim(),
-        squareFootage: formValue.squareFootage ?? undefined,
       })
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({

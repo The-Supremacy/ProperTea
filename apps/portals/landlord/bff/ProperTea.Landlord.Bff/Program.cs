@@ -1,6 +1,7 @@
 using Duende.AccessTokenManagement.OpenIdConnect;
 using ProperTea.Infrastructure.Common.ErrorHandling;
 using ProperTea.Landlord.Bff.Auth;
+using ProperTea.Landlord.Bff.Buildings;
 using ProperTea.Landlord.Bff.Companies;
 using ProperTea.Landlord.Bff.Config;
 using ProperTea.Landlord.Bff.Organizations;
@@ -68,6 +69,16 @@ builder.Services.AddHttpClient<PropertyClient>(client =>
 .AddUserAccessTokenHandler()
 .AddHttpMessageHandler<OrganizationHeaderHandler>();
 
+builder.Services.AddHttpClient<BuildingClient>(client =>
+{
+    var propertyServiceUrl = builder.Configuration["services:property:http:0"]
+        ?? builder.Configuration["services:property:https:0"]
+        ?? throw new InvalidOperationException("Property service URL not configured");
+    client.BaseAddress = new Uri(propertyServiceUrl);
+})
+.AddUserAccessTokenHandler()
+.AddHttpMessageHandler<OrganizationHeaderHandler>();
+
 var app = builder.Build();
 
 app.UseOpenApi(app.Configuration, app.Environment);
@@ -84,6 +95,7 @@ app.MapOrganizationEndpoints();
 app.MapUserEndpoints();
 app.MapCompanyEndpoints();
 app.MapPropertyEndpoints();
+app.MapBuildingEndpoints();
 app.MapDefaultEndpoints();
 
 app.Run();

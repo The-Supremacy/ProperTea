@@ -13,6 +13,7 @@ import { EntityDetailsViewComponent, EntityDetailsConfig } from '../../../../sha
 import { Tabs, TabPanel, TabList, Tab, TabContent } from '@angular/aria/tabs';
 import { SpinnerComponent } from '../../../../shared/components/spinner';
 import { StatusBadgeDirective } from '../../../../shared/directives';
+import { PropertyAuditLogComponent } from '../audit-log/property-audit-log.component';
 
 @Component({
   selector: 'app-property-details',
@@ -28,7 +29,8 @@ import { StatusBadgeDirective } from '../../../../shared/directives';
     TabPanel,
     TabContent,
     SpinnerComponent,
-    StatusBadgeDirective
+    StatusBadgeDirective,
+    PropertyAuditLogComponent
   ],
   templateUrl: './property-details.component.html',
   styleUrl: './property-details.component.css'
@@ -97,10 +99,6 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
     return this.form.get('address')!;
   }
 
-  get squareFootageControl() {
-    return this.form.get('squareFootage')!;
-  }
-
   ngOnInit(): void {
     this.route.params.pipe(
       takeUntil(this.destroy$)
@@ -127,8 +125,7 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
       companyId: [{ value: '', disabled: true }],
       code: ['', [Validators.required, Validators.maxLength(50)]],
       name: ['', [Validators.required, Validators.maxLength(200)]],
-      address: ['', [Validators.required, Validators.maxLength(500)]],
-      squareFootage: [null]
+      address: ['', [Validators.required, Validators.maxLength(500)]]
     });
   }
 
@@ -145,8 +142,7 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
             companyId: property.companyId,
             code: property.code,
             name: property.name,
-            address: property.address,
-            squareFootage: property.squareFootage
+            address: property.address
           });
 
           // Resolve company name for display
@@ -176,8 +172,7 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
     const request: UpdatePropertyRequest = {
       code: this.codeControl.value,
       name: this.nameControl.value,
-      address: this.addressControl.value,
-      squareFootage: this.squareFootageControl.value || undefined
+      address: this.addressControl.value
     };
 
     await firstValueFrom(

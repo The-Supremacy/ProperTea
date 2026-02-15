@@ -152,25 +152,10 @@
             }
           }
         </div>
-
-        <!-- Square Footage Field -->
-        <div class="space-y-2">
-          <label for="property-sqft" class="text-sm font-medium">
-            {{ 'properties.squareFootage' | transloco }}
-          </label>
-
-          <input
-            appTextInput
-            id="property-sqft"
-            type="number"
-            formControlName="squareFootage"
-            [placeholder]="'properties.squareFootagePlaceholder' | transloco"
-            min="0" />
-        </div>
       </div>
 
       <!-- Footer -->
-      <div class="flex gap-2 border-t p-4">
+      <div appDrawerFooter>
         <button
           type="button"
           appBtn

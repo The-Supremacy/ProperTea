@@ -13,6 +13,7 @@ import { ValidationErrorComponent } from '../../../../shared/components/form-fie
 import { ButtonDirective } from '../../../../shared/components/button';
 import { IconComponent } from '../../../../shared/components/icon';
 import { SpinnerComponent } from '../../../../shared/components/spinner';
+import { DrawerFooterDirective } from '../../../../shared/components/drawer-footer';
 
 @Component({
   selector: 'app-create-company-drawer',
@@ -25,6 +26,7 @@ import { SpinnerComponent } from '../../../../shared/components/spinner';
     ButtonDirective,
     IconComponent,
     SpinnerComponent,
+    DrawerFooterDirective,
   ],
   templateUrl: './create-company-drawer.component.html',
   styleUrl: './create-company-drawer.component.css',

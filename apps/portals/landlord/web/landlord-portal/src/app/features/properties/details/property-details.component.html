@@ -131,19 +131,6 @@
                           </p>
                         }
                       </div>
-
-                      <!-- Square Footage -->
-                      <div>
-                        <label for="squareFootage" class="mb-2 block text-sm font-medium">
-                          {{ 'properties.squareFootage' | transloco }}
-                        </label>
-                        <input
-                          id="squareFootage"
-                          type="number"
-                          formControlName="squareFootage"
-                          [placeholder]="'properties.squareFootagePlaceholder' | transloco"
-                          class="input w-full" />
-                      </div>
                     </form>
                   </div>
                 </div>
@@ -181,11 +168,9 @@
       <div ngTabPanel value="history">
         <ng-template ngTabContent>
           <div class="py-6">
-            <div class="container mx-auto px-4">
-              <div class="rounded-lg border bg-card shadow-sm p-6">
-                <p class="text-muted-foreground">{{ 'common.historyComingSoon' | transloco }}</p>
-              </div>
-            </div>
+            @if (property(); as prop) {
+              <app-property-audit-log [propertyId]="prop.id" />
+            }
           </div>
         </ng-template>
       </div>

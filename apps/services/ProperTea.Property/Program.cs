@@ -1,4 +1,5 @@
 using JasperFx;
+using ProperTea.Property.Features.Buildings.Configuration;
 using ProperTea.Property.Features.Properties.Configuration;
 using ProperTea.Property.Features.Units.Configuration;
 using ProperTea.Infrastructure.Common.ErrorHandling;
@@ -20,6 +21,7 @@ builder.Services.AddAuthenticationConfiguration(builder.Configuration, builder.E
 builder.Services.AddOpenApiConfiguration(builder.Configuration);
 
 builder.Services.AddPropertyFeature();
+builder.Services.AddBuildingFeature();
 builder.Services.AddUnitFeature();
 
 var app = builder.Build();

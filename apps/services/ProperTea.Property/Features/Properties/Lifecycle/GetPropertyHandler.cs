@@ -11,15 +11,8 @@ public record PropertyResponse(
     string Code,
     string Name,
     string Address,
-    decimal? SquareFootage,
-    List<BuildingResponse> Buildings,
     string Status,
     DateTimeOffset CreatedAt);
-
-public record BuildingResponse(
-    Guid Id,
-    string Code,
-    string Name);
 
 public class GetPropertyHandler : IWolverineHandler
 {
@@ -38,10 +31,6 @@ public class GetPropertyHandler : IWolverineHandler
             property.Code,
             property.Name,
             property.Address,
-            property.SquareFootage,
-            [.. property.Buildings
-                .Where(b => !b.IsRemoved)
-                .Select(b => new BuildingResponse(b.Id, b.Code, b.Name))],
             property.CurrentStatus.ToString(),
             property.CreatedAt);
     }
