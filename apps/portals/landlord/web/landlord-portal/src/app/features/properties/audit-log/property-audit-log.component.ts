@@ -4,20 +4,20 @@ import { finalize } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { PropertyService } from '../services/property.service';
 import { PropertyAuditLogEntry } from '../models/property.models';
-import { SpinnerComponent } from '../../../../shared/components/spinner';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { IconComponent } from '../../../../shared/components/icon';
 import { UserService, UserDetails } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-property-audit-log',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, TranslocoPipe, SpinnerComponent, IconComponent],
+  imports: [DatePipe, TranslocoPipe, HlmSpinner, IconComponent],
   template: `
     <div class="space-y-4">
       <!-- Loading State -->
       @if (loading()) {
         <div class="flex items-center justify-center py-12">
-          <app-spinner size="lg" />
+          <hlm-spinner size="lg" />
         </div>
       }
 

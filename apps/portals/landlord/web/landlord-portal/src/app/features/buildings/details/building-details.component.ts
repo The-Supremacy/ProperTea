@@ -5,9 +5,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom, map, Subject, takeUntil } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { Tabs, Tab, TabContent, TabList, TabPanel } from '@angular/aria/tabs';
+import { HlmTabsImports } from '@spartan-ng/helm/tabs';
+import { HlmInput } from '@spartan-ng/helm/input';
 import { EntityDetailsConfig, EntityDetailsViewComponent } from '../../../../shared/components/entity-details-view';
-import { SpinnerComponent } from '../../../../shared/components/spinner';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { StatusBadgeDirective } from '../../../../shared/directives';
 import { BuildingService } from '../services/building.service';
 import { PropertyService } from '../../properties/services/property.service';
@@ -24,17 +25,13 @@ import { BuildingAuditLogComponent } from '../audit-log/building-audit-log.compo
     DatePipe,
     TranslocoPipe,
     EntityDetailsViewComponent,
-    Tabs,
-    TabList,
-    Tab,
-    TabPanel,
-    TabContent,
-    SpinnerComponent,
+    HlmTabsImports,
+    HlmInput,
+    HlmSpinner,
     StatusBadgeDirective,
     BuildingAuditLogComponent,
   ],
   templateUrl: './building-details.component.html',
-  styleUrl: './building-details.component.css',
 })
 export class BuildingDetailsComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);

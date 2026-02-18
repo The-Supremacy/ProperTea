@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, input, signal } fro
 import { DatePipe } from '@angular/common';
 import { finalize } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { SpinnerComponent } from '../../../../shared/components/spinner';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { IconComponent } from '../../../../shared/components/icon';
 import { UserDetails, UserService } from '../../../core/services/user.service';
 import { BuildingService } from '../services/building.service';
@@ -11,12 +11,12 @@ import { BuildingAuditLogEntry } from '../models/building.models';
 @Component({
   selector: 'app-building-audit-log',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, TranslocoPipe, SpinnerComponent, IconComponent],
+  imports: [DatePipe, TranslocoPipe, HlmSpinner, IconComponent],
   template: `
     <div class="space-y-4">
       @if (loading()) {
         <div class="flex items-center justify-center py-12">
-          <app-spinner size="lg" />
+          <hlm-spinner size="lg" />
         </div>
       }
 

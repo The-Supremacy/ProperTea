@@ -1,45 +1,32 @@
 import { inject, Injectable } from '@angular/core';
-import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { TranslocoService } from '@jsverse/transloco';
-
-export interface ToastOptions {
-  duration?: number;
-  action?: string;
-}
+import { toast } from 'ngx-sonner';
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {
-  private snackBar = inject(MatSnackBar);
-  private translocoService = inject(TranslocoService);
+  private readonly transloco = inject(TranslocoService);
 
-  show(messageKey: string, options: ToastOptions = {}) {
-    const message = this.translocoService.translate(messageKey);
-    const config: MatSnackBarConfig = {
-      duration: options.duration ?? 3000,
-      horizontalPosition: 'end',
-      verticalPosition: 'bottom',
-      panelClass: ['toast-panel'],
-    };
-    this.snackBar.open(message, options.action, config);
+  private t(key: string): string {
+    return this.transloco.translate(key);
   }
 
-  success(messageKey: string, options: ToastOptions = {}) {
-    const message = this.translocoService.translate(messageKey);
-    this.show(`✓ ${message}`, options);
+  show(messageKey: string): void {
+    toast(this.t(messageKey));
   }
 
-  error(messageKey: string, options: ToastOptions = {}) {
-    const message = this.translocoService.translate(messageKey);
-    this.show(`✗ ${message}`, { ...options, duration: 5000 });
+  success(messageKey: string): void {
+    toast.success(this.t(messageKey));
   }
 
-  info(messageKey: string, options: ToastOptions = {}) {
-    const message = this.translocoService.translate(messageKey);
-    this.show(`ℹ ${message}`, options);
+  error(messageKey: string): void {
+    toast.error(this.t(messageKey));
   }
 
-  warning(messageKey: string, options: ToastOptions = {}) {
-    const message = this.translocoService.translate(messageKey);
-    this.show(`⚠ ${message}`, options);
+  info(messageKey: string): void {
+    toast.info(this.t(messageKey));
+  }
+
+  warning(messageKey: string): void {
+    toast.warning(this.t(messageKey));
   }
 }

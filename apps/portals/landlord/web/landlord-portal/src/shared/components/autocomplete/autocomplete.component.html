@@ -1,55 +1,26 @@
-<div ngCombobox #combobox="ngCombobox" filterMode="manual" [disabled]="disabled()">
-  <div #origin class="relative">
-    <input
-      #inputEl
-      ngComboboxInput
-      type="text"
-      [value]="query()"
-      (input)="onQueryChange($any($event.target).value)"
-      (click)="onInputClick()"
-      [placeholder]="placeholder() | transloco"
-      [attr.aria-label]="ariaLabel() | transloco"
-      [disabled]="disabled()"
-      class="h-10 w-full rounded-md border border-input bg-background px-3 pr-9 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-      autocomplete="off" />
-    <app-icon
-      name="search"
-      [size]="16"
-      class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-  </div>
+<hlm-autocomplete
+  [value]="selectedOption()"
+  [isItemEqualToValue]="isItemEqualToValue"
+  [disabled]="disabled()"
+  [search]="search()"
+  (searchChange)="search.set($event)"
+  (valueChange)="onValueChange($event)">
+  <hlm-autocomplete-input
+    [placeholder]="translatedPlaceholder()"
+    [attr.aria-label]="ariaLabel() || null" />
 
-  <ng-template ngComboboxPopupContainer>
-    <ng-template
-      [cdkConnectedOverlay]="{origin, usePopover: 'inline', matchWidth: true}"
-      [cdkConnectedOverlayOpen]="combobox.expanded()">
-      <div class="max-h-60 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
-        @if (loading()) {
-          <div class="flex items-center justify-center py-6">
-            <app-spinner size="sm" />
-          </div>
-        } @else if (filteredOptions().length === 0) {
-          <div class="px-2 py-6 text-center text-sm text-muted-foreground">
-            {{ 'common.noResults' | transloco }}
-          </div>
-        } @else {
-          <div ngListbox>
-            @for (option of filteredOptions(); track option.value) {
-              <div
-                ngOption
-                [value]="option.value"
-                [label]="option.label"
-                (click)="onSelect(option.value)"
-                class="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-selected:bg-accent data-active:bg-accent">
-                <span class="flex-1">{{ option.label }}</span>
-                <app-icon
-                  name="check"
-                  [size]="16"
-                  class="opacity-0 data-selected:opacity-100" />
-              </div>
-            }
-          </div>
+  <hlm-autocomplete-content *hlmAutocompletePortal>
+    @if (data.isLoading()) {
+      <hlm-autocomplete-status>
+        <hlm-spinner size="sm" />
+      </hlm-autocomplete-status>
+    } @else {
+      <hlm-autocomplete-empty>{{ 'common.noResults' | transloco }}</hlm-autocomplete-empty>
+      <div hlmAutocompleteList>
+        @for (option of filteredOptions(); track option.value) {
+          <hlm-autocomplete-item [value]="option">{{ option.label }}</hlm-autocomplete-item>
         }
       </div>
-    </ng-template>
-  </ng-template>
-</div>
+    }
+  </hlm-autocomplete-content>
+</hlm-autocomplete>

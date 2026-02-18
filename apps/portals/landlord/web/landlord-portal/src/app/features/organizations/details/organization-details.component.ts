@@ -7,9 +7,9 @@ import { OrganizationService } from '../services/organization.service';
 import { OrganizationDetailResponse } from '../models/organization.models';
 import { SessionService } from '../../../core/services/session.service';
 import { EntityDetailsViewComponent, EntityDetailsConfig } from '../../../../shared/components/entity-details-view';
-import { Tabs, TabPanel, TabList, Tab, TabContent } from '@angular/aria/tabs';
+import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { OrganizationAuditLogComponent } from '../audit-log/organization-audit-log.component';
-import { SpinnerComponent } from '../../../../shared/components/spinner';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { StatusBadgeDirective } from '../../../../shared/directives';
 
 @Component({
@@ -19,17 +19,12 @@ import { StatusBadgeDirective } from '../../../../shared/directives';
     DatePipe,
     TranslocoPipe,
     EntityDetailsViewComponent,
-    Tabs,
-    TabList,
-    Tab,
-    TabPanel,
-    TabContent,
+    HlmTabsImports,
     OrganizationAuditLogComponent,
-    SpinnerComponent,
+    HlmSpinner,
     StatusBadgeDirective
   ],
-  templateUrl: './organization-details.component.html',
-  styleUrl: './organization-details.component.css'
+  templateUrl: './organization-details.component.html'
 })
 export class OrganizationDetailsComponent implements OnInit {
   private router = inject(Router);

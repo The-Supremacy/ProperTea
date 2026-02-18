@@ -7,13 +7,14 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { PropertyService } from '../services/property.service';
 import { CompanyService } from '../../companies/services/company.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { TextInputDirective } from '../../../../shared/components/form-field/text-input.directive';
-import { ValidationErrorComponent } from '../../../../shared/components/form-field/validation-error.component';
-import { ButtonDirective } from '../../../../shared/components/button';
+import { HlmInput } from '@spartan-ng/helm/input';
+import { HlmFormFieldImports } from '@spartan-ng/helm/form-field';
+import { HlmLabel } from '@spartan-ng/helm/label';
+import { HlmButton } from '@spartan-ng/helm/button';
 import { IconComponent } from '../../../../shared/components/icon';
-import { SpinnerComponent } from '../../../../shared/components/spinner';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { AutocompleteComponent, AutocompleteOption } from '../../../../shared/components/autocomplete';
-import { DrawerFooterDirective } from '../../../../shared/components/drawer-footer';
+import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 
 @Component({
   selector: 'app-create-property-drawer',
@@ -21,16 +22,16 @@ import { DrawerFooterDirective } from '../../../../shared/components/drawer-foot
   imports: [
     ReactiveFormsModule,
     TranslocoPipe,
-    TextInputDirective,
-    ValidationErrorComponent,
-    ButtonDirective,
+    HlmInput,
+    HlmFormFieldImports,
+    HlmLabel,
+    HlmButton,
     IconComponent,
-    SpinnerComponent,
+    HlmSpinner,
     AutocompleteComponent,
-    DrawerFooterDirective,
+    HlmSheetImports,
   ],
   templateUrl: './create-property-drawer.component.html',
-  styleUrl: './create-property-drawer.component.css',
 })
 export class CreatePropertyDrawerComponent {
   private fb = inject(FormBuilder);
@@ -81,6 +82,11 @@ export class CreatePropertyDrawerComponent {
     if (this.isSubmitting()) return;
     this.openChange.emit(false);
     this.form.reset();
+  }
+
+  onSheetClosed(): void {
+    this.form.reset();
+    this.openChange.emit(false);
   }
 
   submit(): void {

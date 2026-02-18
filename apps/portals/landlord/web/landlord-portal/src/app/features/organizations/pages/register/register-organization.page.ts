@@ -21,8 +21,8 @@ import { SessionService } from '../../../../core/services/session.service';
 import { OrganizationService } from '../../services/organization.service';
 import { ToastService } from '../../../../core/services/toast.service';
 import { LogoComponent } from '../../../../../shared/components/logo';
-import { SpinnerComponent } from '../../../../../shared/components/spinner';
-import { ButtonDirective } from '../../../../../shared/components/button/button.directive';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { HlmButton } from '@spartan-ng/helm/button';
 
 @Component({
   selector: 'app-register-organization',
@@ -30,8 +30,8 @@ import { ButtonDirective } from '../../../../../shared/components/button/button.
   imports: [
     ReactiveFormsModule,
     LogoComponent,
-    SpinnerComponent,
-    ButtonDirective,
+    HlmSpinner,
+    HlmButton,
     TranslocoPipe,
   ],
   template: `
@@ -74,7 +74,7 @@ import { ButtonDirective } from '../../../../../shared/components/button/button.
                   />
                   @if (checkingName()) {
                     <div class="absolute right-3 top-1/2 -translate-y-1/2">
-                      <app-spinner size="sm" />
+                      <hlm-spinner size="sm" />
                     </div>
                   }
                   @if (nameCheckResult() === 'available') {
@@ -200,7 +200,7 @@ import { ButtonDirective } from '../../../../../shared/components/button/button.
                     [class.border-destructive]="
                       form.get('userPassword')?.invalid && form.get('userPassword')?.touched
                     "
-                    placeholder="••••••••"
+                    [placeholder]="'register.passwordPlaceholder' | transloco"
                   />
                   @if (
                     form.get('userPassword')?.hasError('required') &&
@@ -236,7 +236,7 @@ import { ButtonDirective } from '../../../../../shared/components/button/button.
                     [class.border-destructive]="
                       form.get('confirmPassword')?.invalid && form.get('confirmPassword')?.touched
                     "
-                    placeholder="••••••••"
+                    [placeholder]="'register.passwordPlaceholder' | transloco"
                   />
                   @if (
                     form.get('confirmPassword')?.hasError('required') &&
@@ -259,13 +259,13 @@ import { ButtonDirective } from '../../../../../shared/components/button/button.
 
               <!-- Submit Button -->
               <button
-                appBtn
+                hlmBtn
                 type="submit"
                 class="w-full"
                 [disabled]="form.invalid || submitting() || nameCheckResult() === 'taken'"
               >
                 @if (submitting()) {
-                  <app-spinner size="sm" />
+                  <hlm-spinner size="sm" />
                   <span class="ml-2">{{ 'register.submitting' | transloco }}</span>
                 } @else {
                   {{ 'register.submit' | transloco }}
@@ -276,7 +276,7 @@ import { ButtonDirective } from '../../../../../shared/components/button/button.
               <div class="mt-6 text-center">
                 <p class="text-sm text-muted-foreground">
                   {{ 'register.alreadyHaveAccount' | transloco }}
-                  <button type="button" appBtn variant="link" class="p-0 h-auto" (click)="signIn()">
+                  <button type="button" hlmBtn variant="link" class="p-0 h-auto" (click)="signIn()">
                     {{ 'register.signIn' | transloco }}
                   </button>
                 </p>

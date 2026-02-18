@@ -1,14 +1,14 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { UserPreferencesService } from '../../services/user-preferences.service';
-import { ButtonDirective } from '../../../../shared/components/button';
+import { HlmButton } from '@spartan-ng/helm/button';
 
 @Component({
   selector: 'app-theme-toggle',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonDirective],
+  imports: [HlmButton],
   template: `
     <button
-      appBtn
+      hlmBtn
       variant="ghost"
       size="icon"
       (click)="toggleTheme()"

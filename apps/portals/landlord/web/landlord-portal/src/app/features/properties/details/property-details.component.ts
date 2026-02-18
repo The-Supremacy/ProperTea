@@ -10,10 +10,17 @@ import { PropertyDetailResponse, UpdatePropertyRequest } from '../models/propert
 import { DialogService } from '../../../core/services/dialog.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { EntityDetailsViewComponent, EntityDetailsConfig } from '../../../../shared/components/entity-details-view';
-import { Tabs, TabPanel, TabList, Tab, TabContent } from '@angular/aria/tabs';
-import { SpinnerComponent } from '../../../../shared/components/spinner';
+import { HlmTabsImports } from '@spartan-ng/helm/tabs';
+import { HlmAccordionImports } from '@spartan-ng/helm/accordion';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmInput } from '@spartan-ng/helm/input';
+import { HlmTextarea } from '@spartan-ng/helm/textarea';
+import { IconComponent } from '../../../../shared/components/icon';
 import { StatusBadgeDirective } from '../../../../shared/directives';
 import { PropertyAuditLogComponent } from '../audit-log/property-audit-log.component';
+import { BuildingsEmbeddedListComponent } from '../../buildings/embedded-list/buildings-embedded-list.component';
+import { CreateBuildingDrawerComponent } from '../../buildings/create-drawer/create-building-drawer.component';
 
 @Component({
   selector: 'app-property-details',
@@ -23,17 +30,19 @@ import { PropertyAuditLogComponent } from '../audit-log/property-audit-log.compo
     DatePipe,
     TranslocoPipe,
     EntityDetailsViewComponent,
-    Tabs,
-    TabList,
-    Tab,
-    TabPanel,
-    TabContent,
-    SpinnerComponent,
+    HlmTabsImports,
+    HlmAccordionImports,
+    HlmSpinner,
+    HlmButton,
+    HlmInput,
+    HlmTextarea,
+    IconComponent,
     StatusBadgeDirective,
-    PropertyAuditLogComponent
+    PropertyAuditLogComponent,
+    BuildingsEmbeddedListComponent,
+    CreateBuildingDrawerComponent
   ],
-  templateUrl: './property-details.component.html',
-  styleUrl: './property-details.component.css'
+  templateUrl: './property-details.component.html'
 })
 export class PropertyDetailsComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
@@ -54,6 +63,8 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
   propertyId = signal<string>('');
   companyName = signal<string>('');
   selectedTab = signal<string>('details');
+  buildingsAccordionOpen = signal(false);
+  createBuildingDrawerOpen = signal(false);
 
   // Details view configuration
   detailsConfig = computed<EntityDetailsConfig>(() => {

@@ -11,7 +11,99 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "target": "ES2022",
-    "module": "preserve"
+    "module": "preserve",
+    "paths": {
+      "@spartan-ng/helm/button": [
+        "./src/shared/components/ui/button/src/index.ts"
+      ],
+      "@spartan-ng/helm/utils": [
+        "./src/shared/components/ui/utils/src/index.ts"
+      ],
+      "@spartan-ng/helm/badge": [
+        "./src/shared/components/ui/badge/src/index.ts"
+      ],
+      "@spartan-ng/helm/input": [
+        "./src/shared/components/ui/input/src/index.ts"
+      ],
+      "@spartan-ng/helm/dialog": [
+        "./src/shared/components/ui/dialog/src/index.ts"
+      ],
+      "@spartan-ng/helm/icon": [
+        "./src/shared/components/ui/icon/src/index.ts"
+      ],
+      "@spartan-ng/helm/alert-dialog": [
+        "./src/shared/components/ui/alert-dialog/src/index.ts"
+      ],
+      "@spartan-ng/helm/select": [
+        "./src/shared/components/ui/select/src/index.ts"
+      ],
+      "@spartan-ng/helm/tabs": [
+        "./src/shared/components/ui/tabs/src/index.ts"
+      ],
+      "@spartan-ng/helm/accordion": [
+        "./src/shared/components/ui/accordion/src/index.ts"
+      ],
+      "@spartan-ng/helm/dropdown-menu": [
+        "./src/shared/components/ui/dropdown-menu/src/index.ts"
+      ],
+      "@spartan-ng/helm/sheet": [
+        "./src/shared/components/ui/sheet/src/index.ts"
+      ],
+      "@spartan-ng/helm/separator": [
+        "./src/shared/components/ui/separator/src/index.ts"
+      ],
+      "@spartan-ng/helm/spinner": [
+        "./src/shared/components/ui/spinner/src/index.ts"
+      ],
+      "@spartan-ng/helm/sonner": [
+        "./src/shared/components/ui/sonner/src/index.ts"
+      ],
+      "@spartan-ng/helm/label": [
+        "./src/shared/components/ui/label/src/index.ts"
+      ],
+      "@spartan-ng/helm/tooltip": [
+        "./src/shared/components/ui/tooltip/src/index.ts"
+      ],
+      "@spartan-ng/helm/form-field": [
+        "./src/shared/components/ui/form-field/src/index.ts"
+      ],
+      "@spartan-ng/helm/textarea": [
+        "./src/shared/components/ui/textarea/src/index.ts"
+      ],
+      "@spartan-ng/helm/autocomplete": [
+        "./src/shared/components/ui/autocomplete/src/index.ts"
+      ],
+      "@spartan-ng/helm/popover": [
+        "./src/shared/components/ui/popover/src/index.ts"
+      ],
+      "@spartan-ng/helm/input-group": [
+        "./src/shared/components/ui/input-group/src/index.ts"
+      ],
+      "@spartan-ng/helm/table": [
+        "./src/shared/components/ui/table/src/index.ts"
+      ],
+      "@spartan-ng/helm/card": [
+        "./src/shared/components/ui/card/src/index.ts"
+      ],
+      "@spartan-ng/helm/checkbox": [
+        "./src/shared/components/ui/checkbox/src/index.ts"
+      ],
+      "@spartan-ng/helm/skeleton": [
+        "./src/shared/components/ui/skeleton/src/index.ts"
+      ],
+      "@spartan-ng/helm/avatar": [
+        "./src/shared/components/ui/avatar/src/index.ts"
+      ],
+      "@spartan-ng/helm/switch": [
+        "./src/shared/components/ui/switch/src/index.ts"
+      ],
+      "@spartan-ng/helm/empty": [
+        "./src/shared/components/ui/empty/src/index.ts"
+      ],
+      "@spartan-ng/helm/navigation-menu": [
+        "./src/shared/components/ui/navigation-menu/src/index.ts"
+      ]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

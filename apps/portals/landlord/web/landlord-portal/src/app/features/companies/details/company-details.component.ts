@@ -9,9 +9,10 @@ import { CompanyDetailResponse, CreateCompanyRequest, UpdateCompanyRequest } fro
 import { DialogService } from '../../../core/services/dialog.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { EntityDetailsViewComponent, EntityDetailsConfig } from '../../../../shared/components/entity-details-view';
-import { Tabs, TabPanel, TabList, Tab, TabContent } from '@angular/aria/tabs';
+import { HlmTabsImports } from '@spartan-ng/helm/tabs';
+import { HlmInput } from '@spartan-ng/helm/input';
 import { CompanyAuditLogComponent } from '../audit-log/company-audit-log.component';
-import { SpinnerComponent } from '../../../../shared/components/spinner';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { StatusBadgeDirective } from '../../../../shared/directives';
 
 @Component({
@@ -22,17 +23,13 @@ import { StatusBadgeDirective } from '../../../../shared/directives';
     DatePipe,
     TranslocoPipe,
     EntityDetailsViewComponent,
-    Tabs,
-    TabList,
-    Tab,
-    TabPanel,
-    TabContent,
+    HlmTabsImports,
+    HlmInput,
     CompanyAuditLogComponent,
-    SpinnerComponent,
+    HlmSpinner,
     StatusBadgeDirective
   ],
-  templateUrl: './company-details.component.html',
-  styleUrl: './company-details.component.css'
+  templateUrl: './company-details.component.html'
 })
 export class CompanyDetailsComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);

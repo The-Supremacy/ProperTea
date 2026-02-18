@@ -93,3 +93,6 @@ dotnet_diagnostic.CA1305.severity = suggestion
 # CA1305: Reserved names (like Property)
 dotnet_diagnostic.CA1716.severity = suggestion
 
+
+# CA1873: Avoid potentially expensive logging
+dotnet_diagnostic.CA1873.severity = suggestion

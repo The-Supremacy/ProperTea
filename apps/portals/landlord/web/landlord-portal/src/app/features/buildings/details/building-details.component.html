@@ -5,36 +5,23 @@
 
   @if (loading()) {
     <div class="flex items-center justify-center py-12">
-      <app-spinner size="lg" />
+      <hlm-spinner size="lg" />
     </div>
   }
 
   @if (!loading()) {
-    <div ngTabs>
-      <div ngTabList [(selectedTab)]="selectedTab" class="border-b">
-        <nav class="flex gap-4 px-4" aria-label="Tabs">
-          <div
-            ngTab
-            value="details"
-            class="tab-trigger">
-            {{ 'common.details' | transloco }}
-          </div>
-          <div
-            ngTab
-            value="history"
-            class="tab-trigger">
-            {{ 'common.history' | transloco }}
-          </div>
-        </nav>
-      </div>
-
-      <div ngTabPanel value="details">
-        <ng-template ngTabContent>
+    <div hlmTabs [tab]="selectedTab()" (tabActivated)="selectedTab.set($event)">
+        <div class="border-b px-4">
+          <div hlmTabsList class="justify-start gap-4 rounded-none bg-transparent">
+            <button hlmTabsTrigger="details">{{ 'common.details' | transloco }}</button>
+            <button hlmTabsTrigger="history">{{ 'common.history' | transloco }}</button>
+          </div>        </div>
+      <div hlmTabsContent="details">
           <div class="py-6">
             <div class="container mx-auto px-4">
               <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 <div class="space-y-6 lg:col-span-2">
-                  <div class="rounded-lg border bg-card shadow-sm">
+                  <div class="overflow-hidden rounded-lg border bg-card shadow-sm">
                     <div class="border-b bg-muted/40 px-6 py-4">
                       <h2 class="text-lg font-semibold">{{ 'buildings.basicInfo' | transloco }}</h2>
                     </div>
@@ -58,7 +45,8 @@
                             type="text"
                             formControlName="code"
                             [placeholder]="'buildings.codePlaceholder' | transloco"
-                            class="input w-full"
+                            hlmInput
+                            class="w-full"
                             [class.border-destructive]="codeControl.invalid && codeControl.touched" />
 
                           @if (codeControl.invalid && codeControl.touched) {
@@ -82,7 +70,8 @@
                             type="text"
                             formControlName="name"
                             [placeholder]="'buildings.namePlaceholder' | transloco"
-                            class="input w-full"
+                            hlmInput
+                            class="w-full"
                             [class.border-destructive]="nameControl.invalid && nameControl.touched" />
 
                           @if (nameControl.invalid && nameControl.touched) {
@@ -102,7 +91,7 @@
                 </div>
 
                 <div class="space-y-6">
-                  <div class="rounded-lg border bg-card shadow-sm">
+                  <div class="overflow-hidden rounded-lg border bg-card shadow-sm">
                     <div class="border-b bg-muted/40 px-6 py-4">
                       <h2 class="text-lg font-semibold">{{ 'common.status' | transloco }}</h2>
                     </div>
@@ -124,17 +113,14 @@
               </div>
             </div>
           </div>
-        </ng-template>
       </div>
 
-      <div ngTabPanel value="history">
-        <ng-template ngTabContent>
+      <div hlmTabsContent="history">
           <div class="py-6">
             @if (building(); as currentBuilding) {
               <app-building-audit-log [buildingId]="currentBuilding.id" />
             }
           </div>
-        </ng-template>
       </div>
     </div>
   }

@@ -94,7 +94,8 @@
     },
     "success": {
       "created": "Організацію успішно створено!"
-    }
+    },
+    "passwordPlaceholder": "••••••••"
   },
   "dashboard": {
     "title": "Панель керування",
@@ -184,7 +185,8 @@
       "activated": "Організацію активовано",
       "deactivated": "Організацію деактивовано",
       "externallinked": "Зовнішню організацію підключено",
-      "externalorganizationcreated": "Зовнішню організацію підключено"
+      "externalorganizationcreated": "Зовнішню організацію підключено",
+      "linked": "Організацію зв'язано"
     },
     "error": {
       "loadFailed": "Не вдалося завантажити деталі організації"
@@ -262,6 +264,7 @@
     "searchByCode": "Пошук за кодом будівлі...",
     "selectProperty": "Виберіть об'єкт нерухомості...",
     "noBuildings": "Будівель ще немає",
+    "noBuildingsInProperty": "У цьому об'єкті ще немає будівель.",
     "noBuildingsDescription": "Оберіть об'єкт нерухомості, щоб переглянути будівлі.",
     "emptyDescription": "Почніть зі створення вашої першої будівлі.",
     "deleteConfirmTitle": "Видалити будівлю",

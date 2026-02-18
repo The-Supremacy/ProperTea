@@ -8,6 +8,7 @@ import { SessionService } from '../core/services/session.service';
 import { HealthService } from '../core/services/health.service';
 import { UserPreferencesService } from '../core/services/user-preferences.service';
 import { ResponsiveService } from '../core/services/responsive.service';
+import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 
 // TODO: Move to environment config or read from BFF config endpoint
 const IDP_BASE_URL = 'http://localhost:9080';
@@ -25,7 +26,8 @@ const AVAILABLE_LANGUAGES: LanguageOption[] = [
     HeaderComponent,
     NavigationComponent,
     FooterComponent,
-    BreadcrumbComponent
+    BreadcrumbComponent,
+    HlmSheetImports,
   ],
   template: `
     <div class="flex h-screen flex-col overflow-hidden bg-background text-foreground">
@@ -48,19 +50,15 @@ const AVAILABLE_LANGUAGES: LanguageOption[] = [
             (toggleCollapse)="toggleNavCollapse()" />
         }
 
-        @if (responsive.isMobile() && mobileDrawerOpen()) {
-          <div
-            class="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
-            (click)="closeMobileDrawer()">
-            <div
-              class="fixed inset-y-0 left-0 w-64 bg-background shadow-lg"
-              (click)="$event.stopPropagation()">
+        @if (responsive.isMobile()) {
+          <hlm-sheet side="left" [state]="mobileDrawerOpen() ? 'open' : 'closed'" (closed)="closeMobileDrawer()">
+            <hlm-sheet-content *hlmSheetPortal [showCloseButton]="false" class="w-64 p-0">
               <app-navigation
                 [menuItems]="menuItems"
                 [collapsed]="false"
                 [showLogo]="true" />
-            </div>
-          </div>
+            </hlm-sheet-content>
+          </hlm-sheet>
         }
 
         <main class="flex flex-1 flex-col overflow-hidden">

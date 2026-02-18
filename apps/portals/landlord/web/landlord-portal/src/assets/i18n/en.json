@@ -103,7 +103,8 @@
     },
     "success": {
       "created": "Organization created successfully!"
-    }
+    },
+    "passwordPlaceholder": "••••••••"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -279,6 +280,7 @@
     "searchByCode": "Search by building code...",
     "selectProperty": "Select a property...",
     "noBuildings": "No Buildings Yet",
+    "noBuildingsInProperty": "No buildings in this property yet.",
     "noBuildingsDescription": "Select a property to view buildings.",
     "emptyDescription": "Get started by creating your first building.",
     "deleteConfirmTitle": "Delete Building",
@@ -347,7 +349,8 @@
       "activated": "Organization Activated",
       "deactivated": "Organization Deactivated",
       "externallinked": "External Organization Linked",
-      "externalorganizationcreated": "External Organization Linked"
+      "externalorganizationcreated": "External Organization Linked",
+      "linked": "Organization Linked"
     },
     "error": {
       "loadFailed": "Failed to load organization details"

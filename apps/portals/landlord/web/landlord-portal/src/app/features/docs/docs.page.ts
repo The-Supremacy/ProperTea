@@ -2,7 +2,7 @@ import { Component, signal, inject, ChangeDetectionStrategy } from '@angular/cor
 import { Router } from '@angular/router';
 import { UserPreferencesService } from '../../core/services/user-preferences.service';
 import { LogoComponent } from '../../../shared/components/logo';
-import { ButtonDirective } from '../../../shared/components/button/button.directive';
+import { HlmButton } from '@spartan-ng/helm/button';
 import { ThemeToggleComponent } from '../../core/components/theme-toggle';
 import { LanguageSelectorComponent } from '../../core/components/language-selector';
 
@@ -20,14 +20,14 @@ interface DocItem {
 @Component({
   selector: 'app-docs',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LogoComponent, ButtonDirective, ThemeToggleComponent, LanguageSelectorComponent],
+  imports: [LogoComponent, HlmButton, ThemeToggleComponent, LanguageSelectorComponent],
   template: `
     <div class="min-h-screen flex flex-col bg-background text-foreground">
       <!-- Header -->
       <header class="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
         <div class="flex h-16 items-center px-4 sm:px-6 lg:px-8">
           <button
-            appBtn
+            hlmBtn
             variant="ghost"
             size="icon"
             class="lg:hidden mr-2"
@@ -44,7 +44,7 @@ interface DocItem {
             <app-language-selector />
             <app-theme-toggle />
 
-            <button appBtn variant="outline" size="sm" (click)="navigateToHome()">
+            <button hlmBtn variant="outline" size="sm" (click)="navigateToHome()">
               Back to Home
             </button>
           </div>
@@ -75,7 +75,7 @@ interface DocItem {
                   @for (item of section.items; track item.id) {
                     <li>
                       <button
-                        appBtn
+                        hlmBtn
                         variant="ghost"
                         class="w-full justify-start"
                         [class.bg-accent]="selectedItem() === item.id"

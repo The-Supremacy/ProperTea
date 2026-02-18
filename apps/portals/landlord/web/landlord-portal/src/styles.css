@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import '@angular/cdk/overlay-prebuilt.css';
+@import "@spartan-ng/brain/hlm-tailwind-preset.css";
 
 @theme {
   --color-background: hsl(0 0% 100%);
@@ -28,6 +28,13 @@
 }
 
 @layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
   .dark {
     --color-background: hsl(222.2 84% 4.9%);
     --color-foreground: hsl(210 40% 98%);
@@ -51,97 +58,4 @@
   }
 }
 
-:root {
-  --mat-sys-on-surface: var(--color-foreground);
-  --mat-mdc-dialog-container-bg: var(--color-card);
-}
 
-@layer components {
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2
-           text-sm font-medium transition-colors focus-visible:outline-none
-           focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none
-           disabled:opacity-50;
-  }
-  .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90;
-  }
-  .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
-  }
-  .btn-ghost {
-    @apply hover:bg-accent hover:text-accent-foreground;
-  }
-  .btn-destructive {
-    @apply bg-destructive text-destructive-foreground hover:bg-destructive/90;
-  }
-
-  .input {
-    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2
-           text-sm ring-offset-background file:border-0 file:bg-transparent
-           file:text-sm file:font-medium placeholder:text-muted-foreground
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
-           disabled:cursor-not-allowed disabled:opacity-50;
-  }
-
-  .card {
-    @apply rounded-lg border bg-card text-card-foreground shadow-sm;
-  }
-  .card-header {
-    @apply flex flex-col space-y-1.5 p-6;
-  }
-  .card-title {
-    @apply text-2xl font-semibold leading-none tracking-tight;
-  }
-  .card-description {
-    @apply text-sm text-muted-foreground;
-  }
-  .card-content {
-    @apply p-6 pt-0;
-  }
-  .card-footer {
-    @apply flex items-center p-6 pt-0;
-  }
-
-  .listbox {
-    @apply rounded-md border bg-popover p-1 text-popover-foreground shadow-md;
-  }
-  .listbox-option {
-    @apply relative flex cursor-pointer select-none items-center rounded-sm
-           px-2 py-1.5 text-sm outline-none transition-colors
-           hover:bg-accent hover:text-accent-foreground
-           data-disabled:pointer-events-none data-disabled:opacity-50;
-  }
-  .listbox-option-selected {
-    @apply bg-accent text-accent-foreground;
-  }
-
-  .badge {
-    @apply inline-flex items-center rounded-full border px-2.5 py-0.5
-           text-xs font-semibold transition-colors;
-  }
-  .badge-primary {
-    @apply border-transparent bg-primary text-primary-foreground;
-  }
-  .badge-secondary {
-    @apply border-transparent bg-secondary text-secondary-foreground;
-  }
-  .badge-destructive {
-    @apply border-transparent bg-destructive text-destructive-foreground;
-  }
-  .badge-outline {
-    @apply text-foreground;
-  }
-
-  .toast-panel {
-    @apply rounded-md border bg-card text-card-foreground shadow-lg;
-  }
-
-  .dialog-panel {
-    @apply rounded-lg border bg-card text-card-foreground shadow-lg;
-  }
-
-  .mat-mdc-dialog-surface {
-    background-color: transparent !important;
-  }
-}

@@ -1,24 +1,15 @@
-<!-- Backdrop -->
-@if (open()) {
-  <div
-    class="fixed inset-0 z-50 bg-background/80 backdrop-blur-[2px] transition-opacity duration-300"
-    [class.opacity-0]="!open()"
-    [class.opacity-100]="open()"
-    (click)="close()"></div>
-
-  <!-- Drawer Content -->
-  <div
-    class="fixed inset-y-0 right-0 z-50 w-full border-l bg-background text-foreground shadow-lg transition-transform duration-300 sm:max-w-md"
-    [class.translate-x-full]="!open()"
-    [class.translate-x-0]="open()">
+<hlm-sheet side="right" [state]="open() ? 'open' : 'closed'" (closed)="onSheetClosed()">
+  <hlm-sheet-content *hlmSheetPortal [showCloseButton]="false" class="sm:max-w-md flex flex-col p-0">
     <!-- Header -->
-    <div class="flex items-center justify-between border-b px-6 py-4">
+    <div class="flex shrink-0 items-center justify-between border-b px-6 py-4">
       <h2 class="text-lg font-semibold">
         {{ 'properties.newProperty' | transloco }}
       </h2>
       <button
         type="button"
-        class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+        hlmBtn
+        variant="ghost"
+        size="icon"
         [attr.aria-label]="'common.close' | transloco"
         (click)="close()">
         <app-icon name="close" [size]="20" />
@@ -26,7 +17,7 @@
     </div>
 
     <!-- Body -->
-    <form [formGroup]="form" (ngSubmit)="submit()" class="flex h-[calc(100%-8rem)] flex-col">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="flex min-h-0 flex-1 flex-col">
       <div class="flex-1 space-y-6 overflow-y-auto px-6 py-6">
         <!-- Help text -->
         <p class="text-sm text-muted-foreground">
@@ -49,116 +40,92 @@
 
           @if (form.controls.companyId.invalid && form.controls.companyId.touched) {
             @if (form.controls.companyId.hasError('required')) {
-              <app-validation-error
-                [message]="'properties.companyRequired' | transloco"
-                [showIcon]="true" />
+              <p class="text-sm text-destructive">{{ 'properties.companyRequired' | transloco }}</p>
             }
           }
         </div>
 
         <!-- Code Field -->
-        <div class="space-y-2">
-          <label for="property-code" class="text-sm font-medium">
+        <hlm-form-field>
+          <label hlmLabel for="property-code">
             {{ 'properties.code' | transloco }}
             <span class="text-destructive">*</span>
           </label>
 
           <input
-            appTextInput
+            hlmInput
             id="property-code"
             type="text"
             formControlName="code"
+            class="w-full"
             [placeholder]="'properties.codePlaceholder' | transloco"
-            [variant]="
-              form.controls.code.invalid && form.controls.code.touched
-                ? 'error'
-                : 'default'
-            "
             required />
 
           @if (form.controls.code.invalid && form.controls.code.touched) {
             @if (form.controls.code.hasError('required')) {
-              <app-validation-error
-                [message]="'properties.codeRequired' | transloco"
-                [showIcon]="true" />
+              <hlm-error>{{ 'properties.codeRequired' | transloco }}</hlm-error>
             }
             @if (form.controls.code.hasError('maxlength')) {
-              <app-validation-error
-                [message]="'properties.codeTooLong' | transloco"
-                [showIcon]="true" />
+              <hlm-error>{{ 'properties.codeTooLong' | transloco }}</hlm-error>
             }
           }
-        </div>
+        </hlm-form-field>
 
         <!-- Name Field -->
-        <div class="space-y-2">
-          <label for="property-name" class="text-sm font-medium">
+        <hlm-form-field>
+          <label hlmLabel for="property-name">
             {{ 'properties.name' | transloco }}
             <span class="text-destructive">*</span>
           </label>
 
           <input
-            appTextInput
+            hlmInput
             id="property-name"
             type="text"
             formControlName="name"
+            class="w-full"
             [placeholder]="'properties.namePlaceholder' | transloco"
-            [variant]="
-              form.controls.name.invalid && form.controls.name.touched
-                ? 'error'
-                : 'default'
-            "
             required />
 
           @if (form.controls.name.invalid && form.controls.name.touched) {
             @if (form.controls.name.hasError('required')) {
-              <app-validation-error
-                [message]="'properties.nameRequired' | transloco"
-                [showIcon]="true" />
+              <hlm-error>{{ 'properties.nameRequired' | transloco }}</hlm-error>
             }
             @if (form.controls.name.hasError('maxlength')) {
-              <app-validation-error
-                [message]="'properties.nameTooLong' | transloco"
-                [showIcon]="true" />
+              <hlm-error>{{ 'properties.nameTooLong' | transloco }}</hlm-error>
             }
           }
-        </div>
+        </hlm-form-field>
 
         <!-- Address Field -->
-        <div class="space-y-2">
-          <label for="property-address" class="text-sm font-medium">
+        <hlm-form-field>
+          <label hlmLabel for="property-address">
             {{ 'properties.address' | transloco }}
             <span class="text-destructive">*</span>
           </label>
 
           <input
-            appTextInput
+            hlmInput
             id="property-address"
             type="text"
             formControlName="address"
+            class="w-full"
             [placeholder]="'properties.addressPlaceholder' | transloco"
-            [variant]="
-              form.controls.address.invalid && form.controls.address.touched
-                ? 'error'
-                : 'default'
-            "
             required />
 
           @if (form.controls.address.invalid && form.controls.address.touched) {
             @if (form.controls.address.hasError('required')) {
-              <app-validation-error
-                [message]="'properties.addressRequired' | transloco"
-                [showIcon]="true" />
+              <hlm-error>{{ 'properties.addressRequired' | transloco }}</hlm-error>
             }
           }
-        </div>
+        </hlm-form-field>
       </div>
 
       <!-- Footer -->
-      <div appDrawerFooter>
+      <div class="flex shrink-0 items-center gap-2 border-t px-6 py-4">
         <button
           type="button"
-          appBtn
+          hlmBtn
           variant="outline"
           class="flex-1"
           [disabled]="isSubmitting()"
@@ -168,15 +135,15 @@
 
         <button
           type="submit"
-          appBtn
+          hlmBtn
           class="flex-1"
           [disabled]="!canSubmit()">
           @if (isSubmitting()) {
-            <app-spinner size="sm" />
+            <hlm-spinner size="sm" />
           }
           {{ 'common.create' | transloco }}
         </button>
       </div>
     </form>
-  </div>
-}
+  </hlm-sheet-content>
+</hlm-sheet>

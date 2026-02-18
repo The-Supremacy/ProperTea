@@ -8,12 +8,13 @@ import { CompanyService } from '../services/company.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { uniqueCompanyName } from '../validators/company-name.validators';
 import { uniqueCompanyCode } from '../validators/company-code.validators';
-import { TextInputDirective } from '../../../../shared/components/form-field/text-input.directive';
-import { ValidationErrorComponent } from '../../../../shared/components/form-field/validation-error.component';
-import { ButtonDirective } from '../../../../shared/components/button';
+import { HlmInput } from '@spartan-ng/helm/input';
+import { HlmFormFieldImports } from '@spartan-ng/helm/form-field';
+import { HlmLabel } from '@spartan-ng/helm/label';
+import { HlmButton } from '@spartan-ng/helm/button';
 import { IconComponent } from '../../../../shared/components/icon';
-import { SpinnerComponent } from '../../../../shared/components/spinner';
-import { DrawerFooterDirective } from '../../../../shared/components/drawer-footer';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 
 @Component({
   selector: 'app-create-company-drawer',
@@ -21,15 +22,15 @@ import { DrawerFooterDirective } from '../../../../shared/components/drawer-foot
   imports: [
     ReactiveFormsModule,
     TranslocoPipe,
-    TextInputDirective,
-    ValidationErrorComponent,
-    ButtonDirective,
+    HlmInput,
+    HlmFormFieldImports,
+    HlmLabel,
+    HlmButton,
     IconComponent,
-    SpinnerComponent,
-    DrawerFooterDirective,
+    HlmSpinner,
+    HlmSheetImports,
   ],
   templateUrl: './create-company-drawer.component.html',
-  styleUrl: './create-company-drawer.component.css',
 })
 export class CreateCompanyDrawerComponent {
   private fb = inject(FormBuilder);
@@ -64,6 +65,11 @@ export class CreateCompanyDrawerComponent {
     if (this.isSubmitting()) return;
     this.openChange.emit(false);
     this.form.reset();
+  }
+
+  onSheetClosed(): void {
+    this.form.reset();
+    this.openChange.emit(false);
   }
 
   submit(): void {

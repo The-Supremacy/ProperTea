@@ -5,7 +5,7 @@ import { SessionService } from '../../core/services/session.service';
 import { LogoComponent } from '../../../shared/components/logo';
 import { ThemeToggleComponent } from '../../core/components/theme-toggle';
 import { LanguageSelectorComponent } from '../../core/components/language-selector';
-import { ButtonDirective } from '../../../shared/components/button/button.directive';
+import { HlmButton } from '@spartan-ng/helm/button';
 
 @Component({
   selector: 'app-landing',
@@ -14,7 +14,7 @@ import { ButtonDirective } from '../../../shared/components/button/button.direct
     LogoComponent,
     ThemeToggleComponent,
     LanguageSelectorComponent,
-    ButtonDirective,
+    HlmButton,
     TranslocoPipe,
   ],
   template: `
@@ -44,15 +44,15 @@ import { ButtonDirective } from '../../../shared/components/button/button.direct
 
           <!-- CTA Buttons -->
           <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button appBtn size="lg" (click)="navigateToRegister()">
+            <button hlmBtn size="lg" (click)="navigateToRegister()">
               {{ 'landing.cta.getStarted' | transloco }}
             </button>
 
-            <button appBtn variant="outline" size="lg" (click)="signIn()">
+            <button hlmBtn variant="outline" size="lg" (click)="signIn()">
               {{ 'landing.cta.signIn' | transloco }}
             </button>
 
-            <button appBtn variant="ghost" size="lg" (click)="navigateToDocs()">
+            <button hlmBtn variant="ghost" size="lg" (click)="navigateToDocs()">
               {{ 'landing.cta.documentation' | transloco }}
             </button>
           </div>

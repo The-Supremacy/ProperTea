@@ -6,42 +6,31 @@
   <!-- Loading State -->
   @if (loading()) {
     <div class="flex items-center justify-center py-12">
-      <app-spinner size="lg" />
+      <hlm-spinner size="lg" />
     </div>
   }
 
   <!-- Tabs -->
   @if (!loading()) {
-    <div ngTabs>
+    <div hlmTabs [tab]="selectedTab()" (tabActivated)="selectedTab.set($event)">
       <!-- Tab List -->
-      <div ngTabList [(selectedTab)]="selectedTab" class="border-b">
-        <nav class="flex gap-4 px-4" aria-label="Tabs">
-          <div
-            ngTab
-            value="details"
-            class="tab-trigger">
-            {{ 'common.details' | transloco }}
-          </div>
-          <div
-            ngTab
-            value="history"
-            class="tab-trigger">
-            {{ 'common.history' | transloco }}
-          </div>
-        </nav>
+      <div class="border-b px-4">
+        <div hlmTabsList class="justify-start gap-4 rounded-none bg-transparent">
+          <button hlmTabsTrigger="details">{{ 'common.details' | transloco }}</button>
+          <button hlmTabsTrigger="history">{{ 'common.history' | transloco }}</button>
+        </div>
       </div>
 
       <!-- Tab Panels -->
       <!-- Details Tab -->
-      <div ngTabPanel value="details">
-        <ng-template ngTabContent>
+      <div hlmTabsContent="details">
           <div class="py-6">
             <div class="container mx-auto px-4">
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <!-- Main Content - Takes 2 columns on large screens -->
               <div class="lg:col-span-2 space-y-6">
                 <!-- Basic Information Card -->
-                <div class="rounded-lg border bg-card shadow-sm">
+                <div class="overflow-hidden rounded-lg border bg-card shadow-sm">
                   <div class="border-b bg-muted/40 px-6 py-4">
                     <h2 class="text-lg font-semibold">{{ 'properties.basicInfo' | transloco }}</h2>
                   </div>
@@ -67,7 +56,8 @@
                           type="text"
                           formControlName="code"
                           [placeholder]="'properties.codePlaceholder' | transloco"
-                          class="input w-full"
+                          hlmInput
+                          class="w-full"
                           [class.border-destructive]="codeControl.invalid && codeControl.touched" />
 
                         @if (codeControl.invalid && codeControl.touched) {
@@ -92,7 +82,8 @@
                           type="text"
                           formControlName="name"
                           [placeholder]="'properties.namePlaceholder' | transloco"
-                          class="input w-full"
+                          hlmInput
+                          class="w-full"
                           [class.border-destructive]="nameControl.invalid && nameControl.touched" />
 
                         @if (nameControl.invalid && nameControl.touched) {
@@ -117,7 +108,7 @@
                           formControlName="address"
                           rows="3"
                           [placeholder]="'properties.addressPlaceholder' | transloco"
-                          class="input w-full"
+                          hlmTextarea class="w-full"
                           [class.border-destructive]="addressControl.invalid && addressControl.touched"></textarea>
 
                         @if (addressControl.invalid && addressControl.touched) {
@@ -134,12 +125,43 @@
                     </form>
                   </div>
                 </div>
+
+                <!-- Buildings Accordion -->
+                <div hlmAccordion class="rounded-lg border bg-card shadow-sm">
+                  <div hlmAccordionItem [isOpened]="buildingsAccordionOpen()" (openedChange)="buildingsAccordionOpen.set($event)">
+                    <!-- Two siblings in h2: the trigger and the action button -->
+                    <h2 class="flex items-center rounded-t-lg border-b bg-muted/40">
+                      <button
+                        hlmAccordionTrigger
+                        class="flex flex-1 items-center gap-2 px-6 py-4 text-left text-lg font-semibold transition-all hover:bg-muted/60">
+                        <span>{{ 'buildings.title' | transloco }}</span>
+                        <app-icon
+                          name="expand_more"
+                          [size]="20"
+                          [class.rotate-180]="buildingsAccordionOpen()"
+                          class="ml-auto shrink-0 transition-transform duration-200" />
+                      </button>
+                      <button
+                        type="button"
+                        hlmBtn
+                        variant="ghost"
+                        size="icon"
+                        class="mr-2 shrink-0"
+                        (click)="createBuildingDrawerOpen.set(true)">
+                        <app-icon name="add" [size]="20" />
+                      </button>
+                    </h2>
+                    <hlm-accordion-content>
+                      <app-buildings-embedded-list [propertyId]="propertyId()" />
+                    </hlm-accordion-content>
+                  </div>
+                </div>
               </div>
 
               <!-- Sidebar - Takes 1 column on large screens -->
               <div class="space-y-6">
                 <!-- Status Card -->
-                <div class="rounded-lg border bg-card shadow-sm">
+                <div class="overflow-hidden rounded-lg border bg-card shadow-sm">
                   <div class="border-b bg-muted/40 px-6 py-4">
                     <h2 class="text-lg font-semibold">{{ 'common.status' | transloco }}</h2>
                   </div>
@@ -161,19 +183,22 @@
             </div>
             </div>
           </div>
-        </ng-template>
       </div>
 
       <!-- History Tab -->
-      <div ngTabPanel value="history">
-        <ng-template ngTabContent>
+      <div hlmTabsContent="history">
           <div class="py-6">
             @if (property(); as prop) {
               <app-property-audit-log [propertyId]="prop.id" />
             }
           </div>
-        </ng-template>
       </div>
     </div>
   }
 </app-entity-details-view>
+
+<!-- Create Building Drawer -->
+<app-create-building-drawer
+  [open]="createBuildingDrawerOpen()"
+  (openChange)="createBuildingDrawerOpen.set($event)"
+/>

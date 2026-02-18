@@ -27,7 +27,6 @@ public class UpdatePropertyHandler : IWolverineHandler
 
         if (!string.IsNullOrWhiteSpace(command.Code) && property.Code != command.Code)
         {
-            // Validate code uniqueness within company (exclude self)
             var codeExists = await session.Query<PropertyAggregate>()
                 .Where(p => p.CompanyId == property.CompanyId
                     && p.Code == command.Code

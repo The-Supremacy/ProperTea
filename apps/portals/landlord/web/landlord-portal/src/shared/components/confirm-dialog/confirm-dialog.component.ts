@@ -1,7 +1,13 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { ButtonDirective } from '../button';
+import { BrnDialogRef, injectBrnDialogContext } from '@spartan-ng/brain/dialog';
+import { HlmButton } from '@spartan-ng/helm/button';
+import {
+  HlmAlertDialogDescription,
+  HlmAlertDialogFooter,
+  HlmAlertDialogHeader,
+  HlmAlertDialogTitle,
+} from '@spartan-ng/helm/alert-dialog';
 
 export interface ConfirmDialogData {
   title: string;
@@ -14,31 +20,38 @@ export interface ConfirmDialogData {
 @Component({
   selector: 'app-confirm-dialog',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatDialogModule, ButtonDirective, TranslocoPipe],
+  imports: [
+    HlmButton,
+    TranslocoPipe,
+    HlmAlertDialogHeader,
+    HlmAlertDialogTitle,
+    HlmAlertDialogDescription,
+    HlmAlertDialogFooter,
+  ],
   template: `
-    <div class="p-6 text-foreground">
-      <h2 class="text-lg font-semibold" mat-dialog-title>{{ data.title }}</h2>
-      <div mat-dialog-content class="mt-2">
-        <p class="text-sm text-muted-foreground">
-          {{ data.description }}
-        </p>
-      </div>
-      <div mat-dialog-actions class="mt-6 flex justify-end gap-2">
-        <button appBtn variant="outline" [mat-dialog-close]="false">
-          {{ data.cancelText || ('common.cancel' | transloco) }}
-        </button>
-        <button
-          appBtn
-          [variant]="data.variant === 'destructive' ? 'destructive' : 'default'"
-          [mat-dialog-close]="true"
-        >
-          {{ data.confirmText || ('common.confirm' | transloco) }}
-        </button>
-      </div>
-    </div>
+    <hlm-alert-dialog-header>
+      <h3 hlmAlertDialogTitle>{{ data.title }}</h3>
+      <p hlmAlertDialogDescription>{{ data.description }}</p>
+    </hlm-alert-dialog-header>
+    <hlm-alert-dialog-footer class="mt-4 flex justify-end gap-2">
+      <button hlmBtn variant="outline" (click)="close(false)">
+        {{ data.cancelText || ('common.cancel' | transloco) }}
+      </button>
+      <button
+        hlmBtn
+        [variant]="data.variant === 'destructive' ? 'destructive' : 'default'"
+        (click)="close(true)"
+      >
+        {{ data.confirmText || ('common.confirm' | transloco) }}
+      </button>
+    </hlm-alert-dialog-footer>
   `,
 })
 export class ConfirmDialogComponent {
-  data = inject<ConfirmDialogData>(MAT_DIALOG_DATA);
-  dialogRef = inject(MatDialogRef<ConfirmDialogComponent>);
+  protected readonly data = injectBrnDialogContext<ConfirmDialogData>();
+  private readonly dialogRef = inject(BrnDialogRef<boolean>);
+
+  protected close(result: boolean): void {
+    this.dialogRef.close(result);
+  }
 }

@@ -1,33 +1,148 @@
-import { Component, input, ChangeDetectionStrategy } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideArrowDown,
+  lucideArrowLeft,
+  lucideArrowUp,
+  lucideArrowUpDown,
+  lucideBuilding,
+  lucideBuilding2,
+  lucideCheck,
+  lucideChevronDown,
+  lucideChevronLeft,
+  lucideChevronRight,
+  lucideChevronUp,
+  lucideCircle,
+  lucideCircleAlert,
+  lucideCircleCheck,
+  lucideCircleUser,
+  lucideCoffee,
+  lucideColumns2,
+  lucideDownload,
+  lucideEllipsis,
+  lucideEllipsisVertical,
+  lucideFilter,
+  lucideHistory,
+  lucideHourglass,
+  lucideInbox,
+  lucideLandmark,
+  lucideLayoutDashboard,
+  lucideLogOut,
+  lucideMenu,
+  lucideMonitor,
+  lucideMoon,
+  lucideNetwork,
+  lucidePencil,
+  lucidePlus,
+  lucideRotateCw,
+  lucideSave,
+  lucideSearch,
+  lucideSettings,
+  lucideSun,
+  lucideTrash2,
+  lucideUser,
+  lucideX,
+} from '@ng-icons/lucide';
+
+/** Maps legacy Material icon names to their Lucide equivalents. */
+const ICON_MAP: Record<string, string> = {
+  account_circle: 'lucideCircleUser',
+  add: 'lucidePlus',
+  apartment: 'lucideBuilding',
+  arrow_back: 'lucideArrowLeft',
+  arrow_downward: 'lucideArrowDown',
+  arrow_upward: 'lucideArrowUp',
+  business: 'lucideBuilding2',
+  check_circle: 'lucideCircleCheck',
+  chevron_left: 'lucideChevronLeft',
+  chevron_right: 'lucideChevronRight',
+  close: 'lucideX',
+  corporate_fare: 'lucideNetwork',
+  dark_mode: 'lucideMoon',
+  dashboard: 'lucideLayoutDashboard',
+  delete: 'lucideTrash2',
+  domain: 'lucideLandmark',
+  download: 'lucideDownload',
+  edit: 'lucidePencil',
+  error: 'lucideCircleAlert',
+  expand_more: 'lucideChevronDown',
+  filter_list: 'lucideFilter',
+  history: 'lucideHistory',
+  hourglass_empty: 'lucideHourglass',
+  inbox: 'lucideInbox',
+  light_mode: 'lucideSun',
+  local_cafe: 'lucideCoffee',
+  logout: 'lucideLogOut',
+  menu: 'lucideMenu',
+  more_horiz: 'lucideEllipsis',
+  more_vert: 'lucideEllipsisVertical',
+  person: 'lucideUser',
+  refresh: 'lucideRotateCw',
+  save: 'lucideSave',
+  search: 'lucideSearch',
+  settings: 'lucideSettings',
+  unfold_more: 'lucideArrowUpDown',
+  view_column: 'lucideColumns2',
+  viewport: 'lucideMonitor',
+};
 
 @Component({
   selector: 'app-icon',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatIconModule],
-  template: `
-    <mat-icon
-      [fontIcon]="name()"
-      [style.fontSize.px]="size()"
-      [style.width.px]="size()"
-      [style.height.px]="size()">
-    </mat-icon>
-  `,
-  styles: [`
-    :host {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-    mat-icon {
-      width: auto !important;
-      height: auto !important;
-      font-size: inherit;
-    }
-  `]
+  imports: [NgIcon],
+  providers: [
+    provideIcons({
+      lucideArrowDown,
+      lucideArrowLeft,
+      lucideArrowUp,
+      lucideArrowUpDown,
+      lucideBuilding,
+      lucideBuilding2,
+      lucideCheck,
+      lucideChevronDown,
+      lucideChevronLeft,
+      lucideChevronRight,
+      lucideChevronUp,
+      lucideCircle,
+      lucideCircleAlert,
+      lucideCircleCheck,
+      lucideCircleUser,
+      lucideCoffee,
+      lucideColumns2,
+      lucideDownload,
+      lucideEllipsis,
+      lucideEllipsisVertical,
+      lucideFilter,
+      lucideHistory,
+      lucideHourglass,
+      lucideInbox,
+      lucideLandmark,
+      lucideLayoutDashboard,
+      lucideLogOut,
+      lucideMenu,
+      lucideMonitor,
+      lucideMoon,
+      lucideNetwork,
+      lucidePencil,
+      lucidePlus,
+      lucideRotateCw,
+      lucideSave,
+      lucideSearch,
+      lucideSettings,
+      lucideSun,
+      lucideTrash2,
+      lucideUser,
+      lucideX,
+    }),
+  ],
+  host: {
+    class: 'inline-flex items-center justify-center',
+  },
+  template: `<ng-icon [name]="resolvedName()" [style.font-size.px]="size()" />`,
 })
 export class IconComponent {
-  name = input.required<string>();
-  size = input<number>(24);
-}
+  readonly name = input.required<string>();
+  readonly size = input<number>(24);
 
+  protected readonly resolvedName = computed(() => ICON_MAP[this.name()] ?? this.name());
+}
