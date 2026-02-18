@@ -89,7 +89,7 @@ public class RegisterOrganizationHandler : IWolverineHandler
         {
             OrganizationAggregate.Create(streamId),
             OrganizationAggregate.LinkExternalOrganization(streamId, externalOrgId),
-            new OrganizationEvents.Activated(streamId, DateTime.UtcNow)
+            new OrganizationEvents.Activated(streamId, DateTimeOffset.UtcNow)
         };
         _ = session.Events.StartStream<OrganizationAggregate>(streamId, [.. events]);
         await session.SaveChangesAsync(ct);
