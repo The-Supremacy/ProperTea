@@ -41,8 +41,10 @@ public class UpdateCompanyHandler : IWolverineHandler
         if (!string.IsNullOrWhiteSpace(command.Name) && company.Name != command.Name)
         {
             // Validate name uniqueness within tenant
+            var normalizedName = command.Name!.ToLower();
             var nameExists = await session.Query<CompanyAggregate>()
-                .Where(c => c.Name.Equals(command.Name, StringComparison.OrdinalIgnoreCase)
+                .Where(c => c.Name != null
+                    && c.Name.ToLower() == normalizedName
                     && c.CurrentStatus == CompanyAggregate.Status.Active
                     && c.Id != command.CompanyId)
                 .AnyAsync();
