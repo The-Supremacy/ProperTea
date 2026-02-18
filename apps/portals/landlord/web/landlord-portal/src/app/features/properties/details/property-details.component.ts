@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, viewChild, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil, finalize, firstValueFrom, map } from 'rxjs';
@@ -65,6 +65,12 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
   selectedTab = signal<string>('details');
   buildingsAccordionOpen = signal(false);
   createBuildingDrawerOpen = signal(false);
+
+  private buildingsEmbeddedList = viewChild(BuildingsEmbeddedListComponent);
+
+  onBuildingCreated(): void {
+    this.buildingsEmbeddedList()?.refresh();
+  }
 
   // Details view configuration
   detailsConfig = computed<EntityDetailsConfig>(() => {

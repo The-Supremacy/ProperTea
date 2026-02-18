@@ -1,4 +1,4 @@
-import { Component, inject, signal, input, output, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, input, output, computed, effect, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize, map } from 'rxjs';
@@ -42,9 +42,12 @@ export class CreateBuildingDrawerComponent {
 
   // Inputs
   open = input.required<boolean>();
+  defaultPropertyId = input<string | null>(null);
+  navigateAfterCreate = input<boolean>(true);
 
   // Outputs
   openChange = output<boolean>();
+  created = output<string>();
 
   // State
   protected isSubmitting = signal(false);
@@ -55,6 +58,16 @@ export class CreateBuildingDrawerComponent {
     code: ['', [Validators.required, Validators.maxLength(50)]],
     name: ['', [Validators.required, Validators.maxLength(200)]],
   });
+
+  constructor() {
+    // Pre-fill property when the drawer opens with a default
+    effect(() => {
+      const defaultId = this.defaultPropertyId();
+      if (defaultId && this.open()) {
+        this.form.controls.propertyId.setValue(defaultId);
+      }
+    });
+  }
 
   // Convert form status to signal for reactivity
   private formStatus = toSignal(this.form.statusChanges, { initialValue: this.form.status });
@@ -103,8 +116,12 @@ export class CreateBuildingDrawerComponent {
       .subscribe({
         next: (response) => {
           this.toastService.success('buildings.success.created');
+          this.created.emit(response.id);
+          this.isSubmitting.set(false); // clear before close() so the guard doesn't block
           this.close();
-          this.router.navigate(['/buildings', response.id]);
+          if (this.navigateAfterCreate()) {
+            this.router.navigate(['/buildings', response.id]);
+          }
         },
         error: () => {
           this.toastService.error('buildings.error.createFailed');

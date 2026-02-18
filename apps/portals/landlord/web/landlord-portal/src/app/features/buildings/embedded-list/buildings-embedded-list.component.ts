@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { map } from 'rxjs';
 import { TranslocoService } from '@jsverse/transloco';
@@ -32,7 +32,14 @@ export class BuildingsEmbeddedListComponent {
 
   propertyId = input.required<string>();
 
+  private refreshTrigger = signal(0);
+
+  public refresh(): void {
+    this.refreshTrigger.update((n) => n + 1);
+  }
+
   protected listConfig = computed<EntityListConfig<BuildingListItem, BuildingFilters>>(() => {
+    this.refreshTrigger(); // tracked so refresh() causes a reload
     const filters: BuildingFilters = {
       propertyId: this.propertyId(),
     };

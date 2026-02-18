@@ -128,7 +128,7 @@
 
                 <!-- Buildings Accordion -->
                 <div hlmAccordion class="rounded-lg border bg-card shadow-sm">
-                  <div hlmAccordionItem [isOpened]="buildingsAccordionOpen()" (openedChange)="buildingsAccordionOpen.set($event)">
+                  <div hlmAccordionItem class="border-b-0" [isOpened]="buildingsAccordionOpen()" (openedChange)="buildingsAccordionOpen.set($event)">
                     <!-- Two siblings in h2: the trigger and the action button -->
                     <h2 class="flex items-center rounded-t-lg border-b bg-muted/40">
                       <button
@@ -200,5 +200,8 @@
 <!-- Create Building Drawer -->
 <app-create-building-drawer
   [open]="createBuildingDrawerOpen()"
+  [defaultPropertyId]="propertyId()"
+  [navigateAfterCreate]="false"
   (openChange)="createBuildingDrawerOpen.set($event)"
+  (created)="onBuildingCreated()"
 />
