@@ -131,6 +131,7 @@
   },
   "companies": {
     "title": "Companies",
+    "detailsTitle": "Company Details",
     "newCompany": "New Company",
     "basicInfo": "Basic Information",
     "currentStatus": "Current Status",
@@ -199,6 +200,7 @@
   },
   "properties": {
     "title": "Properties",
+    "detailsTitle": "Property Details",
     "newProperty": "New Property",
     "basicInfo": "Basic Information",
     "currentStatus": "Current Status",
@@ -272,6 +274,7 @@
   },
   "buildings": {
     "title": "Buildings",
+    "detailsTitle": "Building Details",
     "newBuilding": "New Building",
     "basicInfo": "Basic Information",
     "editTitle": "Edit Building",

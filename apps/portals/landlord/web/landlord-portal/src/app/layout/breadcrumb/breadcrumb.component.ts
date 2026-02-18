@@ -30,12 +30,12 @@ export interface Breadcrumb {
             <li class="text-muted-foreground">/</li>
             <li>
               @if (isLast) {
-                <span class="text-foreground font-semibold">{{ crumb.label }}</span>
+                <span class="text-foreground font-semibold">{{ crumb.label | transloco }}</span>
               } @else {
                 <a
                   [routerLink]="crumb.url"
                   class="text-muted-foreground hover:text-foreground transition-colors font-medium underline decoration-transparent hover:decoration-current underline-offset-2">
-                  {{ crumb.label }}
+                  {{ crumb.label | transloco }}
                 </a>
               }
             </li>

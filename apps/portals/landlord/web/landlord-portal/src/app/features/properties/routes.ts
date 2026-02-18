@@ -10,6 +10,6 @@ export const propertiesRoutes: Routes = [
     path: ':id',
     loadComponent: () =>
       import('./details/property-details.component').then((m) => m.PropertyDetailsComponent),
-    data: { breadcrumb: 'Property Details' },
+    data: { breadcrumb: 'properties.detailsTitle' },
   },
 ];

@@ -122,6 +122,7 @@
   },
   "companies": {
     "title": "Компанії",
+    "detailsTitle": "Деталі компанії",
     "basicInfo": "Основна інформація",
     "currentStatus": "Поточний статус",
     "quickActionsPlaceholder": "Швидкі дії з'являться тут",
@@ -194,6 +195,7 @@
   },
   "properties": {
     "title": "Об'єкти нерухомості",
+    "detailsTitle": "Деталі об'єкта",
     "newProperty": "Новий об'єкт",
     "basicInfo": "Основна інформація",
     "currentStatus": "Поточний статус",
@@ -256,6 +258,7 @@
   },
   "buildings": {
     "title": "Будівлі",
+    "detailsTitle": "Деталі будівлі",
     "newBuilding": "Нова будівля",
     "basicInfo": "Основна інформація",
     "editTitle": "Редагувати будівлю",
