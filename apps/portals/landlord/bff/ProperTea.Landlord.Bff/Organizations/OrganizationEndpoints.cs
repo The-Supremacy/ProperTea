@@ -6,26 +6,23 @@ public static class OrganizationEndpoints
 {
     public static IEndpointRouteBuilder MapOrganizationEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/organizations")
-            .WithTags("Organizations");
-
-        _ = group.MapGet("/check-name", CheckName)
+        _ = endpoints.MapGet("/api/organizations_/check-name", CheckName)
+            .WithTags("Organizations")
             .WithName("CheckName")
             .AllowAnonymous();
+
+        var group = endpoints.MapGroup("/api/organizations")
+            .WithTags("Organizations");
 
         _ = group.MapPost("/", RegisterOrganization)
             .WithName("RegisterOrganization")
             .AllowAnonymous();
 
-        _ = group.MapGet("/{id:guid}", GetOrganization)
+        _ = group.MapGet("/{organizationId}", GetOrganization)
             .WithName("GetOrganization")
             .RequireAuthorization();
 
-        _ = group.MapGet("/external/{externalOrgId}", GetOrganizationByExternalId)
-            .WithName("GetOrganizationByExternalId")
-            .RequireAuthorization();
-
-        _ = group.MapGet("/{id:guid}/audit-log", GetAuditLog)
+        _ = group.MapGet("/{organizationId}/audit-log", GetAuditLog)
             .WithName("GetOrganizationAuditLog")
             .RequireAuthorization();
 
@@ -51,29 +48,20 @@ public static class OrganizationEndpoints
     }
 
     private static async Task<IResult> GetOrganization(
-        Guid id,
+        string organizationId,
         OrganizationClient client,
         CancellationToken ct)
     {
-        var organization = await client.GetOrganizationAsync(id, ct);
-        return organization is null ? Results.NotFound() : Results.Ok(organization);
-    }
-
-    private static async Task<IResult> GetOrganizationByExternalId(
-        string externalOrgId,
-        OrganizationClient client,
-        CancellationToken ct)
-    {
-        var organization = await client.GetOrganizationByExternalIdAsync(externalOrgId, ct);
+        var organization = await client.GetOrganizationAsync(organizationId, ct);
         return organization is null ? Results.NotFound() : Results.Ok(organization);
     }
 
     private static async Task<IResult> GetAuditLog(
-        Guid id,
+        string organizationId,
         OrganizationClient client,
         CancellationToken ct)
     {
-        var auditLog = await client.GetAuditLogAsync(id, ct);
+        var auditLog = await client.GetAuditLogAsync(organizationId, ct);
         return auditLog is null ? Results.NotFound() : Results.Ok(auditLog);
     }
 }

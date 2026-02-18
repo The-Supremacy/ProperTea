@@ -7,11 +7,14 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { CompanyService } from '../services/company.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { uniqueCompanyName } from '../validators/company-name.validators';
-import { TextInputDirective } from '../../../../shared/components/form-field/text-input.directive';
-import { ValidationErrorComponent } from '../../../../shared/components/form-field/validation-error.component';
-import { ButtonDirective } from '../../../../shared/components/button';
+import { uniqueCompanyCode } from '../validators/company-code.validators';
+import { HlmInput } from '@spartan-ng/helm/input';
+import { HlmFormFieldImports } from '@spartan-ng/helm/form-field';
+import { HlmLabel } from '@spartan-ng/helm/label';
+import { HlmButton } from '@spartan-ng/helm/button';
 import { IconComponent } from '../../../../shared/components/icon';
-import { SpinnerComponent } from '../../../../shared/components/spinner';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 
 @Component({
   selector: 'app-create-company-drawer',
@@ -19,14 +22,15 @@ import { SpinnerComponent } from '../../../../shared/components/spinner';
   imports: [
     ReactiveFormsModule,
     TranslocoPipe,
-    TextInputDirective,
-    ValidationErrorComponent,
-    ButtonDirective,
+    HlmInput,
+    HlmFormFieldImports,
+    HlmLabel,
+    HlmButton,
     IconComponent,
-    SpinnerComponent,
+    HlmSpinner,
+    HlmSheetImports,
   ],
   templateUrl: './create-company-drawer.component.html',
-  styleUrl: './create-company-drawer.component.css',
 })
 export class CreateCompanyDrawerComponent {
   private fb = inject(FormBuilder);
@@ -45,6 +49,7 @@ export class CreateCompanyDrawerComponent {
 
   // Form
   protected form = this.fb.nonNullable.group({
+    code: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(20)], [uniqueCompanyCode()]],
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)], [uniqueCompanyName()]],
   });
 
@@ -52,6 +57,7 @@ export class CreateCompanyDrawerComponent {
   private formStatus = toSignal(this.form.statusChanges, { initialValue: this.form.status });
 
   // Computed values
+  protected codeControl = computed(() => this.form.controls.code);
   protected nameControl = computed(() => this.form.controls.name);
   protected canSubmit = computed(() => this.formStatus() === 'VALID' && !this.isSubmitting());
 
@@ -61,11 +67,19 @@ export class CreateCompanyDrawerComponent {
     this.form.reset();
   }
 
+  onSheetClosed(): void {
+    this.form.reset();
+    this.openChange.emit(false);
+  }
+
   submit(): void {
     if (!this.canSubmit()) return;
 
     this.isSubmitting.set(true);
-    const request = { name: this.form.value.name!.trim() };
+    const request = {
+      code: this.form.value.code!.trim().toUpperCase(),
+      name: this.form.value.name!.trim()
+    };
 
     this.companyService
       .create(request)

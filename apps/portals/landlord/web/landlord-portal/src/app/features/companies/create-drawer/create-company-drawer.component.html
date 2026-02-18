@@ -1,24 +1,15 @@
-<!-- Backdrop -->
-@if (open()) {
-  <div
-    class="fixed inset-0 z-50 bg-background/80 backdrop-blur-[2px] transition-opacity duration-300"
-    [class.opacity-0]="!open()"
-    [class.opacity-100]="open()"
-    (click)="close()"></div>
-
-  <!-- Drawer Content -->
-  <div
-    class="fixed inset-y-0 right-0 z-50 w-full border-l bg-background text-foreground shadow-lg transition-transform duration-300 sm:max-w-md"
-    [class.translate-x-full]="!open()"
-    [class.translate-x-0]="open()">
+<hlm-sheet side="right" [state]="open() ? 'open' : 'closed'" (closed)="onSheetClosed()">
+  <hlm-sheet-content *hlmSheetPortal [showCloseButton]="false" class="sm:max-w-md flex flex-col p-0">
     <!-- Header -->
-    <div class="flex items-center justify-between border-b px-6 py-4">
+    <div class="flex shrink-0 items-center justify-between border-b px-6 py-4">
       <h2 class="text-lg font-semibold">
         {{ 'companies.newCompany' | transloco }}
       </h2>
       <button
         type="button"
-        class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+        hlmBtn
+        variant="ghost"
+        size="icon"
         [attr.aria-label]="'common.close' | transloco"
         (click)="close()">
         <app-icon name="close" [size]="20" />
@@ -26,85 +17,119 @@
     </div>
 
     <!-- Body -->
-    <form [formGroup]="form" (ngSubmit)="submit()" class="flex h-[calc(100%-8rem)] flex-col">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="flex min-h-0 flex-1 flex-col">
       <div class="flex-1 space-y-6 overflow-y-auto px-6 py-6">
         <!-- Help text -->
         <p class="text-sm text-muted-foreground">
           {{ 'companies.createHint' | transloco }}
         </p>
 
+        <!-- Code Field -->
+        <hlm-form-field>
+          <label hlmLabel for="company-code">
+            {{ 'companies.code' | transloco }}
+            <span class="text-destructive">*</span>
+          </label>
+
+          <input
+            hlmInput
+            id="company-code"
+            type="text"
+            formControlName="code"
+            class="w-full font-mono uppercase"
+            [placeholder]="'companies.codePlaceholder' | transloco"
+            required
+            autocomplete="off" />
+
+          <!-- Validation Errors -->
+          @if (codeControl().invalid && codeControl().touched) {
+            @if (codeControl().hasError('required')) {
+              <hlm-error>{{ 'companies.codeRequired' | transloco }}</hlm-error>
+            }
+            @if (codeControl().hasError('minlength')) {
+              <hlm-error>{{ 'companies.codeTooShort' | transloco }}</hlm-error>
+            }
+            @if (codeControl().hasError('maxlength')) {
+              <hlm-error>{{ 'companies.codeTooLong' | transloco }}</hlm-error>
+            }
+            @if (codeControl().hasError('codeTaken')) {
+              <hlm-error>{{ 'companies.codeTaken' | transloco }}</hlm-error>
+            }
+          }
+        </hlm-form-field>
+
+        <!-- Checking state -->
+        @if (codeControl().pending) {
+          <p class="flex items-center gap-1 text-sm text-muted-foreground">
+            <app-icon name="hourglass_empty" [size]="14" />
+            {{ 'companies.checkingCode' | transloco }}
+          </p>
+        }
+
+        <!-- Success state -->
+        @if (codeControl().valid && codeControl().touched && !codeControl().pending) {
+          <p class="flex items-center gap-1 text-sm text-green-600">
+            <app-icon name="check_circle" [size]="14" />
+            {{ 'companies.codeAvailable' | transloco }}
+          </p>
+        }
+
         <!-- Name Field -->
-        <div class="space-y-2">
-          <label for="company-name" class="text-sm font-medium">
+        <hlm-form-field>
+          <label hlmLabel for="company-name">
             {{ 'companies.name' | transloco }}
             <span class="text-destructive">*</span>
           </label>
 
           <input
-            appTextInput
+            hlmInput
             id="company-name"
             type="text"
             formControlName="name"
+            class="w-full"
             [placeholder]="'companies.namePlaceholder' | transloco"
-            [variant]="
-              nameControl().invalid && nameControl().touched
-                ? 'error'
-                : nameControl().pending
-                  ? 'default'
-                  : 'default'
-            "
             required
             autocomplete="organization" />
 
           <!-- Validation Errors -->
           @if (nameControl().invalid && nameControl().touched) {
             @if (nameControl().hasError('required')) {
-              <app-validation-error
-                [message]="'companies.nameRequired' | transloco"
-                [showIcon]="true" />
+              <hlm-error>{{ 'companies.nameRequired' | transloco }}</hlm-error>
             }
             @if (nameControl().hasError('minlength')) {
-              <app-validation-error
-                [message]="'companies.nameTooShort' | transloco"
-                [showIcon]="true" />
+              <hlm-error>{{ 'companies.nameTooShort' | transloco }}</hlm-error>
             }
             @if (nameControl().hasError('maxlength')) {
-              <app-validation-error
-                [message]="'companies.nameTooLong' | transloco"
-                [showIcon]="true" />
+              <hlm-error>{{ 'companies.nameTooLong' | transloco }}</hlm-error>
             }
             @if (nameControl().hasError('nameTaken')) {
-              <app-validation-error
-                [message]="'companies.nameTaken' | transloco"
-                [showIcon]="true" />
+              <hlm-error>{{ 'companies.nameTaken' | transloco }}</hlm-error>
             }
           }
+        </hlm-form-field>
 
-          <!-- Checking state -->
-          @if (nameControl().pending) {
-            <app-validation-error
-              variant="info"
-              [message]="'companies.checkingName' | transloco"
-              icon="hourglass_empty"
-              [showIcon]="true" />
-          }
+        <!-- Checking state -->
+        @if (nameControl().pending) {
+          <p class="flex items-center gap-1 text-sm text-muted-foreground">
+            <app-icon name="hourglass_empty" [size]="14" />
+            {{ 'companies.checkingName' | transloco }}
+          </p>
+        }
 
-          <!-- Success state (optional, shows when valid and touched) -->
-          @if (nameControl().valid && nameControl().touched && !nameControl().pending) {
-            <app-validation-error
-              variant="success"
-              [message]="'companies.nameAvailable' | transloco"
-              icon="check_circle"
-              [showIcon]="true" />
-          }
-        </div>
+        <!-- Success state -->
+        @if (nameControl().valid && nameControl().touched && !nameControl().pending) {
+          <p class="flex items-center gap-1 text-sm text-green-600">
+            <app-icon name="check_circle" [size]="14" />
+            {{ 'companies.nameAvailable' | transloco }}
+          </p>
+        }
       </div>
 
       <!-- Footer -->
-      <div class="flex gap-2 border-t p-4">
+      <div class="flex shrink-0 items-center gap-2 border-t px-6 py-4">
         <button
           type="button"
-          appBtn
+          hlmBtn
           variant="outline"
           class="flex-1"
           [disabled]="isSubmitting()"
@@ -114,15 +139,15 @@
 
         <button
           type="submit"
-          appBtn
+          hlmBtn
           class="flex-1"
           [disabled]="!canSubmit()">
           @if (isSubmitting()) {
-            <app-spinner size="sm" />
+            <hlm-spinner size="sm" />
           }
           {{ 'common.create' | transloco }}
         </button>
       </div>
     </form>
-  </div>
-}
+  </hlm-sheet-content>
+</hlm-sheet>

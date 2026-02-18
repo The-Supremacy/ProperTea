@@ -17,7 +17,7 @@ public class CompanyCreatedHandler : IWolverineHandler
             Name = message.Name,
             IsDeleted = false,
             LastUpdatedAt = message.CreatedAt,
-            TenantId = message.OrganizationId.ToString()
+            TenantId = message.OrganizationId
         };
 
         session.Store(reference);

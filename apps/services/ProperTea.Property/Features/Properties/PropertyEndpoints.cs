@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ProperTea.Property.Features.Properties.Buildings;
 using ProperTea.Property.Features.Properties.Lifecycle;
 using ProperTea.Infrastructure.Common.Auth;
 using ProperTea.Infrastructure.Common.Pagination;
@@ -27,8 +26,7 @@ public static class PropertyEndpoints
                 request.CompanyId,
                 request.Code,
                 request.Name,
-                request.Address,
-                request.SquareFootage));
+                request.Address));
 
         return Results.Created($"/properties/{propertyId}", new { Id = propertyId });
     }
@@ -103,8 +101,7 @@ public static class PropertyEndpoints
                 id,
                 request.Code,
                 request.Name,
-                request.Address,
-                request.SquareFootage));
+                request.Address));
 
         return Results.NoContent();
     }
@@ -136,101 +133,11 @@ public static class PropertyEndpoints
         var tenantId = orgProvider.GetOrganizationId()
             ?? throw new UnauthorizedAccessException("Organization ID required");
 
-        var result = await bus.InvokeForTenantAsync<List<PropertyAuditLogEntry>>(
+        var result = await bus.InvokeForTenantAsync<PropertyAuditLogResponse>(
             tenantId,
-            new GetPropertyAuditLog(id));
+            new GetPropertyAuditLogQuery(id));
 
         return Results.Ok(result);
-    }
-
-
-    [WolverineGet("/properties/{propertyId}/buildings")]
-    [Authorize]
-    public static async Task<IResult> ListBuildings(
-        Guid propertyId,
-        IMessageBus bus,
-        IOrganizationIdProvider orgProvider)
-    {
-        var tenantId = orgProvider.GetOrganizationId()
-            ?? throw new UnauthorizedAccessException("Organization ID required");
-
-        var result = await bus.InvokeForTenantAsync<List<BuildingResponse>>(
-            tenantId,
-            new ListBuildings(propertyId));
-
-        return Results.Ok(result);
-    }
-
-    [WolverineGet("/properties/{propertyId}/buildings/select")]
-    [Authorize]
-    public static async Task<IResult> SelectBuildings(
-        Guid propertyId,
-        IMessageBus bus,
-        IOrganizationIdProvider orgProvider)
-    {
-        var tenantId = orgProvider.GetOrganizationId()
-            ?? throw new UnauthorizedAccessException("Organization ID required");
-
-        var result = await bus.InvokeForTenantAsync<List<BuildingSelectItem>>(
-            tenantId,
-            new SelectBuildings(propertyId));
-
-        return Results.Ok(result);
-    }
-
-    [WolverinePost("/properties/{propertyId}/buildings")]
-    [Authorize]
-    public static async Task<IResult> AddBuilding(
-        Guid propertyId,
-        BuildingRequest request,
-        IMessageBus bus,
-        IOrganizationIdProvider orgProvider)
-    {
-        var tenantId = orgProvider.GetOrganizationId()
-            ?? throw new UnauthorizedAccessException("Organization ID required");
-
-        var buildingId = await bus.InvokeForTenantAsync<Guid>(
-            tenantId,
-            new AddBuilding(propertyId, request.Code, request.Name));
-
-        return Results.Created($"/properties/{propertyId}/buildings/{buildingId}", new { Id = buildingId });
-    }
-
-    [WolverinePut("/properties/{propertyId}/buildings/{buildingId}")]
-    [Authorize]
-    public static async Task<IResult> UpdateBuilding(
-        Guid propertyId,
-        Guid buildingId,
-        BuildingRequest request,
-        IMessageBus bus,
-        IOrganizationIdProvider orgProvider)
-    {
-        var tenantId = orgProvider.GetOrganizationId()
-            ?? throw new UnauthorizedAccessException("Organization ID required");
-
-        await bus.InvokeForTenantAsync(
-            tenantId,
-            new UpdateBuilding(propertyId, buildingId, request.Code, request.Name));
-
-        return Results.NoContent();
-    }
-
-    [WolverineDelete("/properties/{propertyId}/buildings/{buildingId}")]
-    [Authorize]
-    public static async Task<IResult> RemoveBuilding(
-        Guid propertyId,
-        Guid buildingId,
-        IMessageBus bus,
-        IOrganizationIdProvider orgProvider)
-    {
-        var tenantId = orgProvider.GetOrganizationId()
-            ?? throw new UnauthorizedAccessException("Organization ID required");
-
-        await bus.InvokeForTenantAsync(
-            tenantId,
-            new RemoveBuilding(propertyId, buildingId));
-
-        return Results.NoContent();
     }
 }
 
@@ -238,15 +145,9 @@ public record CreatePropertyRequest(
     Guid CompanyId,
     string Code,
     string Name,
-    string Address,
-    decimal? SquareFootage);
+    string Address);
 
 public record UpdatePropertyRequest(
-    string Code,
-    string Name,
-    string Address,
-    decimal? SquareFootage);
-
-public record BuildingRequest(
-    string Code,
-    string Name);
+    string? Code,
+    string? Name,
+    string? Address);

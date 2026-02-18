@@ -25,7 +25,16 @@
     "history": "History",
     "select": "Select...",
     "loading": "Loading...",
-    "noResults": "No results found"
+    "noResults": "No results found",
+    "status": "Status",
+    "currentStatus": "Current Status",
+    "createdAt": "Created",
+    "historyComingSoon": "History coming soon",
+    "statuses": {
+      "Active": "Active",
+      "Inactive": "Inactive",
+      "Deleted": "Deleted"
+    }
   },
   "user": {
     "profile": "Profile",
@@ -41,6 +50,7 @@
     "dashboard": "Dashboard",
     "companies": "Companies",
     "properties": "Properties",
+    "buildings": "Buildings",
     "organization": "Organization",
     "home": "Home"
   },
@@ -93,7 +103,8 @@
     },
     "success": {
       "created": "Organization created successfully!"
-    }
+    },
+    "passwordPlaceholder": "••••••••"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -120,18 +131,28 @@
   },
   "companies": {
     "title": "Companies",
+    "detailsTitle": "Company Details",
     "newCompany": "New Company",
     "basicInfo": "Basic Information",
     "currentStatus": "Current Status",
     "quickActionsPlaceholder": "Quick actions will appear here",
     "createHint": "Enter the company name to get started. Additional details can be configured after creation.",
     "searchByName": "Search by company name...",
+    "searchByCode": "Search by company code...",
     "noCompanies": "No Companies Yet",
     "noCompaniesDescription": "Get started by creating your first company.",
     "noResults": "No companies found",
     "loading": "Loading companies...",
     "deleteConfirm": "Are you sure you want to delete '{{name}}'? This action cannot be undone.",
     "filtersPlaceholder": "Additional filters will be available here.",
+    "code": "Company Code",
+    "codePlaceholder": "ACME",
+    "codeRequired": "Company code is required",
+    "codeTaken": "This company code is already in use",
+    "codeTooShort": "Company code must be at least 2 characters",
+    "codeTooLong": "Company code cannot exceed 20 characters",
+    "codeAvailable": "Company code is available",
+    "checkingCode": "Checking code availability...",
     "name": "Company Name",
     "namePlaceholder": "Acme Corporation",
     "nameRequired": "Company name is required",
@@ -157,9 +178,11 @@
     "noAuditLogs": "No Activity Yet",
     "noAuditLogsDescription": "Company activity history will appear here",
     "companyDeleted": "Company was deleted",
+    "newCode": "New Code",
     "newName": "New Name",
     "events": {
       "created": "Company Created",
+      "codeupdated": "Code Updated",
       "nameupdated": "Name Updated",
       "deleted": "Company Deleted"
     },
@@ -177,9 +200,11 @@
   },
   "properties": {
     "title": "Properties",
+    "detailsTitle": "Property Details",
     "newProperty": "New Property",
     "basicInfo": "Basic Information",
     "currentStatus": "Current Status",
+    "editTitle": "Edit Property",
     "createHint": "Select a company and fill in the property details to get started.",
     "searchByName": "Search by property name...",
     "searchByCode": "Search by property code...",
@@ -217,9 +242,19 @@
     "unsavedChangesConfirm": "You have unsaved changes. Are you sure you want to leave?",
     "noAuditLogs": "No Activity Yet",
     "noAuditLogsDescription": "Property activity history will appear here",
+    "newCode": "New Code",
+    "newName": "New Name",
+    "newAddress": "New Address",
+    "buildingCode": "Building Code",
+    "buildingName": "Building Name",
+    "buildingUpdated": "Building details updated",
+    "buildingRemoved": "Building removed from property",
+    "propertyDeleted": "Property was deleted",
     "events": {
       "created": "Property Created",
-      "updated": "Property Updated",
+      "codeupdated": "Code Updated",
+      "nameupdated": "Name Updated",
+      "addressupdated": "Address Updated",
       "deleted": "Property Deleted",
       "buildingadded": "Building Added",
       "buildingupdated": "Building Updated",
@@ -237,12 +272,72 @@
       "deleteFailed": "Failed to delete property"
     }
   },
+  "buildings": {
+    "title": "Buildings",
+    "detailsTitle": "Building Details",
+    "newBuilding": "New Building",
+    "basicInfo": "Basic Information",
+    "editTitle": "Edit Building",
+    "createHint": "Enter the building details. Code and name are required. The building will be associated with the selected property.",
+    "searchByName": "Search by building name...",
+    "searchByCode": "Search by building code...",
+    "selectProperty": "Select a property...",
+    "noBuildings": "No Buildings Yet",
+    "noBuildingsInProperty": "No buildings in this property yet.",
+    "noBuildingsDescription": "Select a property to view buildings.",
+    "emptyDescription": "Get started by creating your first building.",
+    "deleteConfirmTitle": "Delete Building",
+    "deleteConfirmMessage": "Are you sure you want to delete '{{name}}'? This action cannot be undone.",
+    "deleteConfirm": "Are you sure you want to delete '{{name}}'? This action cannot be undone.",
+    "code": "Code",
+    "codePlaceholder": "BLD-001",
+    "codeRequired": "Building code is required",
+    "codeTooLong": "Building code cannot exceed 50 characters",
+    "name": "Building Name",
+    "namePlaceholder": "Tower A",
+    "nameRequired": "Building name is required",
+    "nameTooLong": "Building name cannot exceed 200 characters",
+    "property": "Property",
+    "propertyRequired": "Property is required",
+    "status": "Status",
+    "createdAt": "Created",
+    "active": "Active",
+    "inactive": "Inactive",
+    "deleted": "Deleted",
+    "edit": "Edit Building",
+    "delete": "Delete Building",
+    "noAuditLogs": "No Activity Yet",
+    "noAuditLogsDescription": "Building activity history will appear here",
+    "newCode": "New Code",
+    "newName": "New Name",
+    "buildingDeleted": "Building was deleted",
+    "events": {
+      "created": "Building Created",
+      "codeupdated": "Code Updated",
+      "nameupdated": "Name Updated",
+      "deleted": "Building Deleted"
+    },
+    "success": {
+      "created": "Building created successfully",
+      "updated": "Building updated successfully",
+      "deleted": "Building deleted successfully"
+    },
+    "error": {
+      "loadFailed": "Failed to load buildings",
+      "createFailed": "Failed to create building",
+      "updateFailed": "Failed to update building",
+      "deleteFailed": "Failed to delete building"
+    },
+    "deleteSuccess": "Building deleted successfully",
+    "deleteError": "Failed to delete building"
+  },
   "organizations": {
     "detailsTitle": "Organization Details",
     "basicInfo": "Basic Information",
     "status": "Status",
     "currentStatus": "Current Status",
     "name": "Organization Name",
+    "organizationId": "Organization ID",
     "tier": "Subscription Tier",
     "externalId": "External Organization ID",
     "createdAt": "Created",
@@ -257,7 +352,8 @@
       "activated": "Organization Activated",
       "deactivated": "Organization Deactivated",
       "externallinked": "External Organization Linked",
-      "externalorganizationcreated": "External Organization Linked"
+      "externalorganizationcreated": "External Organization Linked",
+      "linked": "Organization Linked"
     },
     "error": {
       "loadFailed": "Failed to load organization details"
@@ -266,6 +362,7 @@
   "errors": {
     "COMPANY_NOT_FOUND": "Company not found",
     "COMPANY_NAME_REQUIRED": "Company name is required",
+    "COMPANY_NAME_ALREADY_EXISTS": "A company with this name already exists",
     "COMPANY_CODE_REQUIRED": "Company code is required",
     "COMPANY_CODE_TOO_LONG": "Company code cannot exceed 50 characters",
     "COMPANY_CODE_ALREADY_EXISTS": "A company with this code already exists",

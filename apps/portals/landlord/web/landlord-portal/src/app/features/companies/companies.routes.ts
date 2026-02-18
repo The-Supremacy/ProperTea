@@ -10,6 +10,6 @@ export const companiesRoutes: Routes = [
   {
     path: ':id',
     component: CompanyDetailsComponent,
-    data: { breadcrumb: 'Company Details' },
+    data: { breadcrumb: 'companies.detailsTitle' },
   },
 ];

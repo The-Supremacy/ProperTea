@@ -29,6 +29,9 @@ public static class PropertyEndpoints
         _ = group.MapDelete("/{id:guid}", DeleteProperty)
             .WithName("DeleteProperty");
 
+        _ = group.MapGet("/{id:guid}/audit-log", GetPropertyAuditLog)
+            .WithName("GetPropertyAuditLog");
+
         return app;
     }
 
@@ -87,5 +90,14 @@ public static class PropertyEndpoints
     {
         await client.DeletePropertyAsync(id, ct);
         return Results.NoContent();
+    }
+
+    private static async Task<IResult> GetPropertyAuditLog(
+        Guid id,
+        [FromServices] PropertyClient client,
+        CancellationToken ct)
+    {
+        var auditLog = await client.GetPropertyAuditLogAsync(id, ct);
+        return Results.Ok(auditLog);
     }
 }

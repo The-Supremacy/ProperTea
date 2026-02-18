@@ -5,6 +5,7 @@ public static class CompanyErrorCodes
 {
     public const string COMPANY_NOT_FOUND = "COMPANY_NOT_FOUND";
     public const string COMPANY_NAME_REQUIRED = "COMPANY_NAME_REQUIRED";
+    public const string COMPANY_NAME_ALREADY_EXISTS = "COMPANY_NAME_ALREADY_EXISTS";
     public const string COMPANY_CODE_REQUIRED = "COMPANY_CODE_REQUIRED";
     public const string COMPANY_CODE_TOO_LONG = "COMPANY_CODE_TOO_LONG";
     public const string COMPANY_CODE_ALREADY_EXISTS = "COMPANY_CODE_ALREADY_EXISTS";

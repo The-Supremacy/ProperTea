@@ -4,20 +4,20 @@ import { finalize } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CompanyService } from '../services/company.service';
 import { CompanyAuditLogEntry } from '../models/company.models';
-import { SpinnerComponent } from '../../../../shared/components/spinner';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { IconComponent } from '../../../../shared/components/icon';
 import { UserService, UserDetails } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-company-audit-log',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, TranslocoPipe, SpinnerComponent, IconComponent],
+  imports: [DatePipe, TranslocoPipe, HlmSpinner, IconComponent],
   template: `
     <div class="space-y-4">
       <!-- Loading State -->
       @if (loading()) {
         <div class="flex items-center justify-center py-12">
-          <app-spinner size="lg" />
+          <hlm-spinner size="lg" />
         </div>
       }
 
@@ -143,7 +143,12 @@ export class CompanyAuditLogComponent implements OnInit {
 
     switch (normalized.toLowerCase()) {
       case 'created':
-        return `${this.translocoService.translate('companies.name')}: ${data.name || ''}`;
+        return `${this.translocoService.translate('companies.code')}: ${data.code || ''}, ${this.translocoService.translate('companies.name')}: ${data.name || ''}`;
+      case 'codeupdated':
+        if (data.oldCode && data.newCode) {
+          return `${data.oldCode} → ${data.newCode}`;
+        }
+        return `${this.translocoService.translate('companies.newCode')}: ${data.newCode || ''}`;
       case 'nameupdated':
         if (data.oldName && data.newName) {
           return `${data.oldName} → ${data.newName}`;

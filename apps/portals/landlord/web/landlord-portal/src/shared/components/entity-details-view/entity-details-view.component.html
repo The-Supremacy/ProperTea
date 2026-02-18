@@ -1,13 +1,13 @@
 <div class="flex h-full flex-col">
   <!-- Toolbar -->
   <div class="border-b bg-background px-4 py-3">
-    <div cdkToolbar class="flex items-center justify-between gap-4">
+    <div role="toolbar" class="flex items-center justify-between gap-4">
       <!-- Left side: Back + Refresh + Title -->
       <div class="flex items-center gap-3 min-w-0 flex-1">
         @if (config().showBackButton) {
           <button
             type="button"
-            appBtn
+            hlmBtn
             variant="ghost"
             size="sm"
             (click)="goBack()"
@@ -19,7 +19,7 @@
         @if (config().showRefresh) {
           <button
             type="button"
-            appBtn
+            hlmBtn
             variant="ghost"
             size="sm"
             (click)="onRefresh()"
@@ -53,10 +53,10 @@
           <!-- Mobile: All actions in menu -->
           <button
             type="button"
-            appBtn
+            hlmBtn
             variant="default"
             size="sm"
-            cdkMenuTriggerFor="mobileActionsMenu"
+            [hlmDropdownMenuTrigger]="mobileActionsMenu"
             [attr.aria-label]="'common.actions' | transloco">
             <app-icon name="more_horiz" [size]="20" />
             <span class="sr-only">{{ 'common.actions' | transloco }}</span>
@@ -66,7 +66,7 @@
           @for (action of config().primaryActions; track trackByLabel($index, action)) {
             <button
               type="button"
-              appBtn
+              hlmBtn
               [variant]="action.variant || 'default'"
               [disabled]="action.disabled"
               (click)="handleAction(action)">
@@ -81,10 +81,10 @@
           @if (config().secondaryActions && config().secondaryActions!.length > 0) {
             <button
               type="button"
-              appBtn
+              hlmBtn
               variant="ghost"
               size="sm"
-              cdkMenuTriggerFor="actionsMenu"
+              [hlmDropdownMenuTrigger]="actionsMenu"
               [attr.aria-label]="'common.more' | transloco">
               <app-icon name="more_vert" [size]="20" />
             </button>
@@ -101,70 +101,62 @@
 </div>
 
 <!-- Secondary Actions Menu (Desktop) -->
-@if (config().secondaryActions && config().secondaryActions!.length > 0) {
-  <ng-template #actionsMenu>
-    <div
-      cdkMenu
-      class="menu-content min-w-50">
-      @for (action of config().secondaryActions; track trackByLabel($index, action)) {
-        @if (action.separatorBefore) {
-          <div class="menu-separator"></div>
-        }
-        <button
-          type="button"
-          cdkMenuItem
-          [disabled]="action.disabled"
-          [attr.data-variant]="action.variant || 'default'"
-          (cdkMenuItemTriggered)="handleAction(action)">
-          @if (action.icon) {
-            <app-icon [name]="action.icon" [size]="16" />
-          }
-          <span>{{ action.label | transloco }}</span>
-        </button>
+<ng-template #actionsMenu>
+  <div hlmDropdownMenu class="min-w-50">
+    @for (action of config().secondaryActions ?? []; track trackByLabel($index, action)) {
+      @if (action.separatorBefore) {
+        <div hlmDropdownMenuSeparator></div>
       }
-    </div>
-  </ng-template>
-}
+      <button
+        type="button"
+        hlmDropdownMenuItem
+        [disabled]="action.disabled"
+        [variant]="action.variant === 'destructive' ? 'destructive' : 'default'"
+        (click)="handleAction(action)">
+        @if (action.icon) {
+          <app-icon [name]="action.icon" [size]="16" />
+        }
+        <span>{{ action.label | transloco }}</span>
+      </button>
+    }
+  </div>
+</ng-template>
 
 <!-- Mobile: All Actions Menu -->
-@if (responsive.isMobile() && config().primaryActions && config().primaryActions!.length > 0) {
-  <ng-template #mobileActionsMenu>
-    <div
-      cdkMenu
-      class="menu-content min-w-50">
-      @for (action of config().primaryActions; track trackByLabel($index, action)) {
-        @if (action.separatorBefore) {
-          <div class="menu-separator"></div>
+<ng-template #mobileActionsMenu>
+  <div hlmDropdownMenu class="min-w-50">
+    @for (action of config().primaryActions ?? []; track trackByLabel($index, action)) {
+      @if (action.separatorBefore) {
+        <div hlmDropdownMenuSeparator></div>
+      }
+      <button
+        type="button"
+        hlmDropdownMenuItem
+        [disabled]="action.disabled"
+        [variant]="action.variant === 'destructive' ? 'destructive' : 'default'"
+        (click)="handleAction(action)">
+        @if (action.icon) {
+          <app-icon [name]="action.icon" [size]="16" />
         }
+        <span>{{ action.label | transloco }}</span>
+      </button>
+    }
+
+    @if (config().secondaryActions && config().secondaryActions!.length > 0) {
+      <div hlmDropdownMenuSeparator></div>
+      @for (action of config().secondaryActions ?? []; track trackByLabel($index, action)) {
         <button
           type="button"
-          cdkMenuItem
+          hlmDropdownMenuItem
           [disabled]="action.disabled"
-          [attr.data-variant]="action.variant || 'default'"
-          (cdkMenuItemTriggered)="handleAction(action)">
+          [variant]="action.variant === 'destructive' ? 'destructive' : 'default'"
+          (click)="handleAction(action)">
           @if (action.icon) {
             <app-icon [name]="action.icon" [size]="16" />
           }
           <span>{{ action.label | transloco }}</span>
         </button>
       }
-
-      @if (config().secondaryActions && config().secondaryActions!.length > 0) {
-        <div class="menu-separator"></div>
-        @for (action of config().secondaryActions; track trackByLabel($index, action)) {
-          <button
-            type="button"
-            cdkMenuItem
-            [disabled]="action.disabled"
-            [attr.data-variant]="action.variant || 'default'"
-            (cdkMenuItemTriggered)="handleAction(action)">
-            @if (action.icon) {
-              <app-icon [name]="action.icon" [size]="16" />
-            }
-            <span>{{ action.label | transloco }}</span>
-          </button>
-        }
-      }
-    </div>
-  </ng-template>
-}
+    }
+  </div>
+</ng-template>

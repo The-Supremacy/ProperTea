@@ -3,8 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, tap, catchError } from 'rxjs';
 
 export interface UserDetails {
-  internalId?: string; // GUID from internal user profile
-  externalId: string;  // External user ID from Zitadel (used in tokens/audit logs)
+  userId: string;
   email: string;
   firstName?: string;
   lastName?: string;
@@ -16,35 +15,31 @@ export interface UserDetails {
 })
 export class UserService {
   private http = inject(HttpClient);
-  // Cache keyed by external user ID (from tokens/audit logs)
   private userCache = signal(new Map<string, UserDetails>());
 
-  getUserDetails(externalUserId: string): Observable<UserDetails | null> {
-    // Check cache first (cached by external user ID)
-    const cached = this.userCache().get(externalUserId);
+  getUserDetails(userId: string): Observable<UserDetails | null> {
+    const cached = this.userCache().get(userId);
     if (cached) {
       return of(cached);
     }
 
-    // Fetch from API and cache
-    return this.http.get<UserDetails>(`/api/users/external/${externalUserId}`).pipe(
+    return this.http.get<UserDetails>(`/api/users/${userId}`).pipe(
       tap(userDetails => {
         this.userCache.update(cache => {
           const newCache = new Map(cache);
-          newCache.set(externalUserId, userDetails);
+          newCache.set(userId, userDetails);
           return newCache;
         });
       }),
       catchError(() => {
-        // Return a fallback if user not found
         const fallback: UserDetails = {
-          externalId: externalUserId,
-          email: externalUserId,
-          displayName: externalUserId.substring(0, 8) // Show shortened ID
+          userId: userId,
+          email: userId,
+          displayName: userId.substring(0, 8)
         };
         this.userCache.update(cache => {
           const newCache = new Map(cache);
-          newCache.set(externalUserId, fallback);
+          newCache.set(userId, fallback);
           return newCache;
         });
         return of(fallback);

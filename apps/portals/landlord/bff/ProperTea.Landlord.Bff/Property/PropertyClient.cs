@@ -9,21 +9,11 @@ public record PropertyListItem(
     string Code,
     string Name,
     string Address,
-    decimal? SquareFootage,
     int BuildingCount,
     string Status,
     DateTimeOffset CreatedAt);
 
-public record PagedPropertiesResponse(
-    IReadOnlyList<PropertyListItem> Items,
-    int TotalCount,
-    int Page,
-    int PageSize)
-{
-    public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
-    public bool HasNextPage => Page < TotalPages;
-    public bool HasPreviousPage => Page > 1;
-}
+
 
 public record PropertyDetailResponse(
     Guid Id,
@@ -31,12 +21,8 @@ public record PropertyDetailResponse(
     string Code,
     string Name,
     string Address,
-    decimal? SquareFootage,
-    IReadOnlyList<BuildingResponse> Buildings,
     string Status,
     DateTimeOffset CreatedAt);
-
-public record BuildingResponse(Guid Id, string Code, string Name);
 
 public record PropertySelectItem(Guid Id, string Name);
 
@@ -44,18 +30,27 @@ public record CreatePropertyRequest(
     Guid CompanyId,
     string Code,
     string Name,
-    string Address,
-    decimal? SquareFootage);
+    string Address);
 
 public record UpdatePropertyRequest(
-    string Code,
-    string Name,
-    string Address,
-    decimal? SquareFootage);
+    string? Code,
+    string? Name,
+    string? Address);
+
+public record PropertyAuditLogResponse(
+    Guid PropertyId,
+    IReadOnlyList<PropertyAuditLogEntry> Entries);
+
+public record PropertyAuditLogEntry(
+    string EventType,
+    DateTimeOffset Timestamp,
+    string? Username,
+    int Version,
+    object Data);
 
 public class PropertyClient(HttpClient httpClient)
 {
-    public async Task<PagedPropertiesResponse> GetPropertiesAsync(
+    public async Task<PagedResult<PropertyListItem>> GetPropertiesAsync(
         ListPropertiesQuery query,
         PaginationQuery pagination,
         SortQuery sort,
@@ -78,8 +73,8 @@ public class PropertyClient(HttpClient httpClient)
         if (!string.IsNullOrWhiteSpace(sort.Sort))
             queryString["sort"] = sort.Sort;
 
-        return await httpClient.GetFromJsonAsync<PagedPropertiesResponse>($"/properties?{queryString}", ct)
-            ?? new PagedPropertiesResponse([], 0, pagination.Page, pagination.PageSize);
+        return await httpClient.GetFromJsonAsync<PagedResult<PropertyListItem>>($"/properties?{queryString}", ct)
+            ?? new PagedResult<PropertyListItem> { Items = [], TotalCount = 0, Page = pagination.Page, PageSize = pagination.PageSize };
     }
 
     public async Task<PropertyDetailResponse?> GetPropertyAsync(Guid id, CancellationToken ct = default)
@@ -110,6 +105,12 @@ public class PropertyClient(HttpClient httpClient)
     {
         var response = await httpClient.DeleteAsync($"/properties/{id}", ct);
         _ = response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<PropertyAuditLogResponse> GetPropertyAuditLogAsync(Guid id, CancellationToken ct = default)
+    {
+        return await httpClient.GetFromJsonAsync<PropertyAuditLogResponse>($"/properties/{id}/audit-log", ct)
+            ?? throw new InvalidOperationException("Failed to fetch property audit log");
     }
 
     public async Task<List<PropertySelectItem>> SelectPropertiesAsync(

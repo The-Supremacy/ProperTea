@@ -36,44 +36,33 @@ public static class OrganizationEndpoints
         ));
     }
 
-    [WolverineGet("/organizations/{id}")]
-    [Authorize]
-    public static async Task<IResult> GetOrganization(
-        Guid id,
-        IMessageBus bus)
-    {
-        var query = new GetOrganization(id);
-        var result = await bus.InvokeAsync<OrganizationResponse?>(query);
-        return result is not null ? Results.Ok(result) : Results.NotFound();
-    }
-
-    [WolverineGet("/organizations/external/{externalOrgId}")]
-    [Authorize]
-    public static async Task<IResult> GetOrganizationByExternalId(
-        string externalOrgId,
-        IMessageBus bus)
-    {
-        var query = new GetOrganizationByExternalId(externalOrgId);
-        var result = await bus.InvokeAsync<OrganizationResponse?>(query);
-        return result is not null ? Results.Ok(result) : Results.NotFound();
-    }
-
-    [WolverineGet("/organizations/{id}/audit-log")]
-    public static async Task<AuditLogResponse> GetAuditLog(
-        Guid id,
-        IMessageBus bus)
-    {
-        var query = new GetAuditLogQuery(id);
-        return await bus.InvokeAsync<AuditLogResponse>(query);
-    }
-
-    [WolverineGet("/organizations/check-name")]
+    [WolverineGet("/organizations_/check-name")]
     [AllowAnonymous]
     public static async Task<CheckNameResult> CheckName(
         [AsParameters] CheckNameQuery query,
         IMessageBus bus)
     {
         return await bus.InvokeAsync<CheckNameResult>(query);
+    }
+
+    [WolverineGet("/organizations/{organizationId}")]
+    [Authorize]
+    public static async Task<IResult> GetOrganization(
+        string organizationId,
+        IMessageBus bus)
+    {
+        var query = new GetOrganization(organizationId);
+        var result = await bus.InvokeAsync<OrganizationResponse?>(query);
+        return result is not null ? Results.Ok(result) : Results.NotFound();
+    }
+
+    [WolverineGet("/organizations/{organizationId}/audit-log")]
+    public static async Task<AuditLogResponse> GetAuditLog(
+        string organizationId,
+        IMessageBus bus)
+    {
+        var query = new GetAuditLogQuery(organizationId);
+        return await bus.InvokeAsync<AuditLogResponse>(query);
     }
 }
 
@@ -86,5 +75,5 @@ public record CreateOrganizationRequest(
 );
 
 public record CreateOrganizationResult(
-    Guid OrganizationId
+    string OrganizationId
 );

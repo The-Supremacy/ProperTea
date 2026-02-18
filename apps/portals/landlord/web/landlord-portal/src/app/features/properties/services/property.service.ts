@@ -9,6 +9,7 @@ import {
   CreatePropertyRequest,
   UpdatePropertyRequest,
   PropertySelectItem,
+  PropertyAuditLogResponse,
 } from '../models/property.models';
 
 @Injectable({
@@ -68,5 +69,9 @@ export class PropertyService {
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`/api/properties/${id}`);
+  }
+
+  getAuditLog(id: string): Observable<PropertyAuditLogResponse> {
+    return this.http.get<PropertyAuditLogResponse>(`/api/properties/${id}/audit-log`);
   }
 }

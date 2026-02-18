@@ -115,7 +115,7 @@ public static class CompanyEndpoints
         return Results.NoContent();
     }
 
-    [WolverineGet("/companies/check-name")]
+    [WolverineGet("/companies_/check-name")]
     [Authorize]
     public static async Task<IResult> CheckCompanyName(
         string name,
@@ -129,6 +129,24 @@ public static class CompanyEndpoints
         var result = await bus.InvokeForTenantAsync<CheckCompanyNameResult>(
             tenantId,
             new CheckCompanyName(name, excludeId));
+
+        return Results.Ok(result);
+    }
+
+    [WolverineGet("/companies_/check-code")]
+    [Authorize]
+    public static async Task<IResult> CheckCompanyCode(
+        string code,
+        IMessageBus bus,
+        IOrganizationIdProvider orgProvider,
+        Guid? excludeId = null)
+    {
+        var tenantId = orgProvider.GetOrganizationId()
+            ?? throw new UnauthorizedAccessException("Organization ID required");
+
+        var result = await bus.InvokeForTenantAsync<CheckCompanyCodeResult>(
+            tenantId,
+            new CheckCompanyCode(code, excludeId));
 
         return Results.Ok(result);
     }

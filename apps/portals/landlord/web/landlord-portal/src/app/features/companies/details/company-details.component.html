@@ -6,47 +6,72 @@
   <!-- Loading State -->
   @if (loading()) {
     <div class="flex items-center justify-center py-12">
-      <app-spinner size="lg" />
+      <hlm-spinner size="lg" />
     </div>
   }
 
   <!-- Tabs -->
   @if (!loading()) {
-    <div ngTabs>
+    <div hlmTabs [tab]="selectedTab()" (tabActivated)="selectedTab.set($event)">
       <!-- Tab List -->
-      <div ngTabList [(selectedTab)]="selectedTab" class="border-b">
-        <nav class="flex gap-4 px-4" aria-label="Tabs">
-          <div
-            ngTab
-            value="details"
-            class="tab-trigger">
-            {{ 'common.details' | transloco }}
-          </div>
-          <div
-            ngTab
-            value="history"
-            class="tab-trigger">
-            {{ 'common.history' | transloco }}
-          </div>
-        </nav>
+      <div hlmTabsList class="w-full justify-start gap-4 rounded-none border-b bg-transparent px-4">
+        <button hlmTabsTrigger="details">{{ 'common.details' | transloco }}</button>
+        <button hlmTabsTrigger="history">{{ 'common.history' | transloco }}</button>
       </div>
 
       <!-- Tab Panels -->
       <!-- Details Tab -->
-      <div ngTabPanel value="details">
-        <ng-template ngTabContent>
+      <div hlmTabsContent="details">
           <div class="py-6">
             <div class="container mx-auto px-4">
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <!-- Main Content - Takes 2 columns on large screens -->
               <div class="lg:col-span-2 space-y-6">
                 <!-- Basic Information Card -->
-                <div class="rounded-lg border bg-card shadow-sm">
+                <div class="overflow-hidden rounded-lg border bg-card shadow-sm">
                   <div class="border-b bg-muted/40 px-6 py-4">
                     <h2 class="text-lg font-semibold">{{ 'companies.basicInfo' | transloco }}</h2>
                   </div>
                   <div class="p-6">
                     <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
+                      <!-- Code Field -->
+                      <div>
+                        <label for="code" class="mb-2 block text-sm font-medium">
+                          {{ 'companies.code' | transloco }}
+                        </label>
+                        <input
+                          id="code"
+                          type="text"
+                          formControlName="code"
+                          [placeholder]="'companies.codePlaceholder' | transloco"
+                          hlmInput
+                          class="w-full font-mono uppercase"
+                          [class.border-destructive]="codeControl.invalid && codeControl.touched" />
+
+                        @if (codeControl.invalid && codeControl.touched) {
+                          <p class="mt-1 text-sm text-destructive">
+                            @if (codeControl.hasError('required')) {
+                              {{ 'companies.codeRequired' | transloco }}
+                            }
+                            @if (codeControl.hasError('minlength')) {
+                              {{ 'companies.codeTooShort' | transloco }}
+                            }
+                            @if (codeControl.hasError('maxlength')) {
+                              {{ 'companies.codeTooLong' | transloco }}
+                            }
+                            @if (codeControl.hasError('codeTaken')) {
+                              {{ 'companies.codeTaken' | transloco }}
+                            }
+                          </p>
+                        }
+
+                        @if (codeControl.pending) {
+                          <p class="mt-1 text-sm text-muted-foreground">
+                            {{ 'companies.checkingCode' | transloco }}
+                          </p>
+                        }
+                      </div>
+
                       <!-- Name Field -->
                       <div>
                         <label for="name" class="mb-2 block text-sm font-medium">
@@ -57,7 +82,8 @@
                           type="text"
                           formControlName="name"
                           [placeholder]="'companies.namePlaceholder' | transloco"
-                          class="input w-full"
+                          hlmInput
+                          class="w-full"
                           [class.border-destructive]="nameControl.invalid && nameControl.touched" />
 
                         @if (nameControl.invalid && nameControl.touched) {
@@ -86,7 +112,7 @@
               <div class="space-y-6">
                 <!-- Status Card -->
                 @if (company()) {
-                  <div class="rounded-lg border bg-card shadow-sm">
+                  <div class="overflow-hidden rounded-lg border bg-card shadow-sm">
                     <div class="border-b bg-muted/40 px-6 py-4">
                       <h2 class="text-lg font-semibold">{{ 'companies.status' | transloco }}</h2>
                     </div>
@@ -107,7 +133,7 @@
                 }
 
                 <!-- Quick Actions Card -->
-                <div class="rounded-lg border bg-card shadow-sm">
+                <div class="overflow-hidden rounded-lg border bg-card shadow-sm">
                   <div class="border-b bg-muted/40 px-6 py-4">
                     <h2 class="text-lg font-semibold">{{ 'common.quickActions' | transloco }}</h2>
                   </div>
@@ -121,18 +147,15 @@
               </div>
             </div>
           </div>
-        </ng-template>
       </div>
 
       <!-- History Tab -->
-      <div ngTabPanel value="history">
-        <ng-template ngTabContent>
+      <div hlmTabsContent="history">
           <div class="py-6">
             <div class="container mx-auto px-4 max-w-4xl">
               <app-company-audit-log [companyId]="companyId()" />
             </div>
           </div>
-        </ng-template>
       </div>
     </div>
   }

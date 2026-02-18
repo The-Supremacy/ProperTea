@@ -1,6 +1,6 @@
 # ADR 0012: Pure Angular Component Strategy
 
-**Status**: Accepted
+**Status**: Superseded by [ADR 0016](0016-spartan-ui-adoption.md)
 **Date**: 2026-02-05
 **Deciders**: Team
 

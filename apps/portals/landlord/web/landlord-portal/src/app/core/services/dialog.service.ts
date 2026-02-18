@@ -1,19 +1,21 @@
 import { inject, Injectable } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-import { Observable, map } from 'rxjs';
+import { map, take } from 'rxjs';
+import { Observable } from 'rxjs';
+import { HlmDialogService } from '@spartan-ng/helm/dialog';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../../shared/components/confirm-dialog';
 
 @Injectable({ providedIn: 'root' })
 export class DialogService {
-  private dialog = inject(MatDialog);
+  private readonly dialogService = inject(HlmDialogService);
 
   confirm(data: ConfirmDialogData): Observable<boolean> {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      data,
-      maxWidth: '28rem',
-      panelClass: 'dialog-panel'
+    const ref = this.dialogService.open(ConfirmDialogComponent, {
+      context: data,
     });
 
-    return dialogRef.afterClosed().pipe(map((result) => result === true));
+    return ref.closed$.pipe(
+      take(1),
+      map((result) => result === true),
+    );
   }
 }

@@ -11,7 +11,7 @@ public static class UnitIntegrationEvents
         public Guid UnitId { get; set; }
         public Guid PropertyId { get; set; }
         public Guid? BuildingId { get; set; }
-        public Guid OrganizationId { get; set; }
+        public string OrganizationId { get; set; } = null!;
         public string Code { get; set; } = null!;
         public string UnitNumber { get; set; } = null!;
         public string Category { get; set; } = null!;
@@ -27,7 +27,7 @@ public static class UnitIntegrationEvents
         public Guid UnitId { get; set; }
         public Guid PropertyId { get; set; }
         public Guid? BuildingId { get; set; }
-        public Guid OrganizationId { get; set; }
+        public string OrganizationId { get; set; } = null!;
         public string Code { get; set; } = null!;
         public string UnitNumber { get; set; } = null!;
         public string Category { get; set; } = null!;
@@ -42,7 +42,7 @@ public static class UnitIntegrationEvents
     {
         public Guid UnitId { get; set; }
         public Guid PropertyId { get; set; }
-        public Guid OrganizationId { get; set; }
+        public string OrganizationId { get; set; } = null!;
         public DateTimeOffset DeletedAt { get; set; }
     }
 }

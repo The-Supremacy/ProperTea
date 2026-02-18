@@ -2,18 +2,22 @@ import { PagedResult } from '../../../../shared/components/entity-list-view';
 
 export interface CompanyFilters {
   name?: string;
+  code?: string;
 }
 
 export interface CreateCompanyRequest {
+  code: string;
   name: string;
 }
 
 export interface UpdateCompanyRequest {
+  code?: string;
   name: string;
 }
 
 export interface CompanyListItem {
   id: string;
+  code: string;
   name: string;
   status: string;
   createdAt: Date;
@@ -21,6 +25,7 @@ export interface CompanyListItem {
 
 export interface CompanyDetailResponse {
   id: string;
+  code: string;
   name: string;
   status: string;
   createdAt: Date;
@@ -29,6 +34,11 @@ export interface CompanyDetailResponse {
 export type PagedCompaniesResponse = PagedResult<CompanyListItem>;
 
 export interface CheckNameResponse {
+  available: boolean;
+  existingCompanyId?: string;
+}
+
+export interface CheckCodeResponse {
   available: boolean;
   existingCompanyId?: string;
 }
@@ -48,5 +58,6 @@ export interface CompanyAuditLogResponse {
 
 export interface CompanySelectItem {
   id: string;
+  code: string;
   name: string;
 }

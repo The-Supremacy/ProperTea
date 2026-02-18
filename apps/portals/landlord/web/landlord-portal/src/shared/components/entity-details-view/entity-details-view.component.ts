@@ -3,15 +3,14 @@ import {
   ChangeDetectionStrategy,
   input,
   output,
-  signal,
   inject,
 } from '@angular/core';
 import { Location } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { OverlayModule } from '@angular/cdk/overlay';
+import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 
 import { EntityDetailsConfig, EntityDetailsAction } from './entity-details-view.models';
-import { ButtonDirective } from '../button';
+import { HlmButton } from '@spartan-ng/helm/button';
 import { IconComponent } from '../icon';
 import { ResponsiveService } from '../../../app/core/services/responsive.service';
 
@@ -33,13 +32,12 @@ import { ResponsiveService } from '../../../app/core/services/responsive.service
   selector: 'app-entity-details-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    OverlayModule,
+    HlmDropdownMenuImports,
     TranslocoPipe,
-    ButtonDirective,
+    HlmButton,
     IconComponent,
   ],
   templateUrl: './entity-details-view.component.html',
-  styleUrl: './entity-details-view.component.css',
 })
 export class EntityDetailsViewComponent {
   // Services
@@ -52,9 +50,6 @@ export class EntityDetailsViewComponent {
 
   // Outputs
   refresh = output<void>();
-
-  // State
-  protected actionsMenuOpen = signal(false);
 
   protected goBack(): void {
     this.location.back();

@@ -1,4 +1,5 @@
 using Marten;
+using ProperTea.Property.Features.Buildings;
 using ProperTea.Property.Features.Companies;
 using ProperTea.Property.Features.Properties;
 using ProperTea.Infrastructure.Common.Pagination;
@@ -113,6 +114,16 @@ public class ListUnitsHandler : IWolverineHandler
             .ToListAsync();
         var companyNameLookup = companies.ToDictionary(c => c.Id, c => c.Name);
 
+        var buildingIds = units
+            .Where(u => u.BuildingId.HasValue)
+            .Select(u => u.BuildingId!.Value)
+            .Distinct()
+            .ToList();
+        var buildings = await session.Query<BuildingAggregate>()
+            .Where(b => b.Id.In(buildingIds) && b.CurrentStatus == BuildingAggregate.Status.Active)
+            .ToListAsync();
+        var buildingNameLookup = buildings.ToDictionary(b => b.Id, b => b.Name);
+
         var items = units.Select(u =>
         {
             var prop = propertyLookup.GetValueOrDefault(u.PropertyId);
@@ -120,13 +131,9 @@ public class ListUnitsHandler : IWolverineHandler
                 ? companyNameLookup.GetValueOrDefault(prop.CompanyId)
                 : null;
 
-            // Resolve building name from property's buildings list
-            string? buildingName = null;
-            if (u.BuildingId.HasValue && prop != null)
-            {
-                buildingName = prop.Buildings?
-                    .FirstOrDefault(b => b.Id == u.BuildingId.Value && !b.IsRemoved)?.Name;
-            }
+            var buildingName = u.BuildingId.HasValue
+                ? buildingNameLookup.GetValueOrDefault(u.BuildingId.Value)
+                : null;
 
             return new UnitListItemResponse(
                 u.Id,

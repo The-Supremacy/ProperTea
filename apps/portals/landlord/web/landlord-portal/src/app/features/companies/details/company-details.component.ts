@@ -9,9 +9,10 @@ import { CompanyDetailResponse, CreateCompanyRequest, UpdateCompanyRequest } fro
 import { DialogService } from '../../../core/services/dialog.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { EntityDetailsViewComponent, EntityDetailsConfig } from '../../../../shared/components/entity-details-view';
-import { Tabs, TabPanel, TabList, Tab, TabContent } from '@angular/aria/tabs';
+import { HlmTabsImports } from '@spartan-ng/helm/tabs';
+import { HlmInput } from '@spartan-ng/helm/input';
 import { CompanyAuditLogComponent } from '../audit-log/company-audit-log.component';
-import { SpinnerComponent } from '../../../../shared/components/spinner';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { StatusBadgeDirective } from '../../../../shared/directives';
 
 @Component({
@@ -22,17 +23,13 @@ import { StatusBadgeDirective } from '../../../../shared/directives';
     DatePipe,
     TranslocoPipe,
     EntityDetailsViewComponent,
-    Tabs,
-    TabList,
-    Tab,
-    TabPanel,
-    TabContent,
+    HlmTabsImports,
+    HlmInput,
     CompanyAuditLogComponent,
-    SpinnerComponent,
+    HlmSpinner,
     StatusBadgeDirective
   ],
-  templateUrl: './company-details.component.html',
-  styleUrl: './company-details.component.css'
+  templateUrl: './company-details.component.html'
 })
 export class CompanyDetailsComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
@@ -84,6 +81,10 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
   // Form
   form!: FormGroup;
 
+  get codeControl() {
+    return this.form.get('code')!;
+  }
+
   get nameControl() {
     return this.form.get('name')!;
   }
@@ -111,8 +112,28 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
 
   private initializeForm(): void {
     this.form = this.fb.group({
+      code: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(20)], [this.codeUniqueValidator()]],
       name: ['', [Validators.required], [this.nameUniqueValidator()]]
     });
+  }
+
+  private codeUniqueValidator(): AsyncValidatorFn {
+    return (control: AbstractControl): Observable<ValidationErrors | null> => {
+      if (!control.value) {
+        return of(null);
+      }
+
+      return of(control.value).pipe(
+        debounceTime(400),
+        distinctUntilChanged(),
+        switchMap(code => {
+          const excludeId = this.companyId();
+          return this.companyService.checkCode(code, excludeId);
+        }),
+        map(response => response.available ? null : { codeTaken: true }),
+        first()
+      );
+    };
   }
 
   private nameUniqueValidator(): AsyncValidatorFn {
@@ -143,7 +164,11 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
       next: (company) => {
         if (company) {
           this.company.set(company);
-          this.form.patchValue({ name: company.name });
+          this.form.patchValue({
+            code: company.code,
+            name: company.name
+          });
+          this.form.markAsPristine();
         } else {
           this.toastService.error('companies.error.loadFailed');
           this.router.navigate(['/companies']);
@@ -164,8 +189,9 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
     this.saving.set(true);
 
     const id = this.companyId();
+    const code = this.codeControl.value?.trim().toUpperCase() ?? undefined;
     const name = this.nameControl.value;
-    const request: UpdateCompanyRequest = { name };
+    const request: UpdateCompanyRequest = { code, name };
 
     await firstValueFrom(
       this.companyService.update(id, request).pipe(

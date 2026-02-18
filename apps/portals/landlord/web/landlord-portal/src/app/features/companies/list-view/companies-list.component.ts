@@ -68,6 +68,14 @@ export class CompaniesListComponent {
   private getColumnDefinitions(): ColumnDef<CompanyListItem>[] {
     return [
       {
+        id: 'code',
+        header: this.translocoService.translate('companies.code'),
+        accessorKey: 'code',
+        cell: (info) => `<span class="font-mono text-sm">${info.getValue()}</span>`,
+        meta: { useInnerHTML: true },
+        enableSorting: true,
+      },
+      {
         id: 'name',
         header: this.translocoService.translate('companies.name'),
         accessorKey: 'name',
@@ -134,6 +142,12 @@ export class CompaniesListComponent {
 
   private getFilterFields(): FilterField<CompanyFilters>[] {
     return [
+      {
+        key: 'code',
+        label: 'companies.code',
+        type: 'text',
+        placeholder: 'companies.searchByCode',
+      },
       {
         key: 'name',
         label: 'companies.name',

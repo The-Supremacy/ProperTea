@@ -1,15 +1,13 @@
 namespace ProperTea.Landlord.Bff.Users;
 
 public record UserProfileDto(
-    Guid Id,
-    string ExternalUserId,
+    string UserId,
     DateTimeOffset CreatedAt,
     DateTimeOffset? LastSeenAt
 );
 
 public record UserDetailsDto(
-    Guid? InternalId,
-    string ExternalId,
+    string UserId,
     string Email,
     string? FirstName,
     string? LastName,

@@ -7,12 +7,14 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { PropertyService } from '../services/property.service';
 import { CompanyService } from '../../companies/services/company.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { TextInputDirective } from '../../../../shared/components/form-field/text-input.directive';
-import { ValidationErrorComponent } from '../../../../shared/components/form-field/validation-error.component';
-import { ButtonDirective } from '../../../../shared/components/button';
+import { HlmInput } from '@spartan-ng/helm/input';
+import { HlmFormFieldImports } from '@spartan-ng/helm/form-field';
+import { HlmLabel } from '@spartan-ng/helm/label';
+import { HlmButton } from '@spartan-ng/helm/button';
 import { IconComponent } from '../../../../shared/components/icon';
-import { SpinnerComponent } from '../../../../shared/components/spinner';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { AutocompleteComponent, AutocompleteOption } from '../../../../shared/components/autocomplete';
+import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 
 @Component({
   selector: 'app-create-property-drawer',
@@ -20,15 +22,16 @@ import { AutocompleteComponent, AutocompleteOption } from '../../../../shared/co
   imports: [
     ReactiveFormsModule,
     TranslocoPipe,
-    TextInputDirective,
-    ValidationErrorComponent,
-    ButtonDirective,
+    HlmInput,
+    HlmFormFieldImports,
+    HlmLabel,
+    HlmButton,
     IconComponent,
-    SpinnerComponent,
+    HlmSpinner,
     AutocompleteComponent,
+    HlmSheetImports,
   ],
   templateUrl: './create-property-drawer.component.html',
-  styleUrl: './create-property-drawer.component.css',
 })
 export class CreatePropertyDrawerComponent {
   private fb = inject(FormBuilder);
@@ -52,7 +55,6 @@ export class CreatePropertyDrawerComponent {
     code: ['', [Validators.required, Validators.maxLength(50)]],
     name: ['', [Validators.required, Validators.maxLength(200)]],
     address: ['', [Validators.required, Validators.maxLength(500)]],
-    squareFootage: [null as number | null],
   });
 
   // Convert form status to signal for reactivity
@@ -82,6 +84,11 @@ export class CreatePropertyDrawerComponent {
     this.form.reset();
   }
 
+  onSheetClosed(): void {
+    this.form.reset();
+    this.openChange.emit(false);
+  }
+
   submit(): void {
     if (!this.canSubmit()) return;
 
@@ -94,7 +101,6 @@ export class CreatePropertyDrawerComponent {
         code: formValue.code.trim(),
         name: formValue.name.trim(),
         address: formValue.address.trim(),
-        squareFootage: formValue.squareFootage ?? undefined,
       })
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({

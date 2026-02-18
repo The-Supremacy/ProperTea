@@ -8,34 +8,21 @@ public static class PropertyEvents
         string Code,
         string Name,
         string Address,
-        decimal? SquareFootage,
         DateTimeOffset CreatedAt);
 
-    public record Updated(
+    public record CodeUpdated(
         Guid PropertyId,
-        string Code,
-        string Name,
-        string Address,
-        decimal? SquareFootage);
+        string Code);
+
+    public record NameUpdated(
+        Guid PropertyId,
+        string Name);
+
+    public record AddressUpdated(
+        Guid PropertyId,
+        string Address);
 
     public record Deleted(
         Guid PropertyId,
         DateTimeOffset DeletedAt);
-
-    // Building child entity events
-    public record BuildingAdded(
-        Guid PropertyId,
-        Guid BuildingId,
-        string Code,
-        string Name);
-
-    public record BuildingUpdated(
-        Guid PropertyId,
-        Guid BuildingId,
-        string Code,
-        string Name);
-
-    public record BuildingRemoved(
-        Guid PropertyId,
-        Guid BuildingId);
 }

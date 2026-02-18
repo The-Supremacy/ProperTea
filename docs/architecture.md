@@ -99,10 +99,10 @@ ZITADEL org ID = Marten `TenantId` directly (ADR 0010). No mapping layer.
 1. **Organization isolation**: Marten multi-tenancy. Automatic, no code needed per query.
 2. **Resource permissions**: OpenFGA checks. `ListObjects` returns authorized IDs, service filters query results. Contextual tuples for cross-tenant access (ADR 0004).
 
-### Identity (Dual ID)
-- Internal: `Guid Id` for all FKs and integration events.
-- External: `string ExternalOrganizationId` / `string ExternalUserId` for ZITADEL references.
-- Services read standard `sub` claim, not ZITADEL-specific claims (ADR 0009).
+### Identity (Canonical External IDs)
+- ZITADEL IDs are canonical: `string OrganizationId` / `string UserId` everywhere in APIs and events (ADR 0014).
+- Internal: `Guid Id` private Marten stream key. Not exposed in APIs or integration events.
+- Services read standard OAuth2 `sub` claim for user ID (not ZITADEL-specific claims) (ADR 0009).
 
 ## Shared Libraries
 

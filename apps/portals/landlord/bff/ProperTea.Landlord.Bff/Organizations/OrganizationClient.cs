@@ -14,7 +14,7 @@ public class OrganizationClientAnonymous(HttpClient httpClient)
 
         var queryString = query.Count > 0 ? "?" + string.Join("&", query) : "";
         return (await httpClient.GetFromJsonAsync<CheckNameResponse>(
-            $"/organizations/check-name{queryString}", ct))!;
+            $"/organizations_/check-name{queryString}", ct))!;
     }
 
     public async Task<RegisterOrganizationResponse> RegisterOrganizationAsync(
@@ -29,11 +29,11 @@ public class OrganizationClientAnonymous(HttpClient httpClient)
 
 public class OrganizationClient(HttpClient httpClient)
 {
-    public async Task<OrganizationDetailResponse?> GetOrganizationAsync(Guid id, CancellationToken ct = default)
+    public async Task<OrganizationDetailResponse?> GetOrganizationAsync(string organizationId, CancellationToken ct = default)
     {
         try
         {
-            return await httpClient.GetFromJsonAsync<OrganizationDetailResponse>($"/organizations/{id}", ct);
+            return await httpClient.GetFromJsonAsync<OrganizationDetailResponse>($"/organizations/{organizationId}", ct);
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
@@ -41,23 +41,11 @@ public class OrganizationClient(HttpClient httpClient)
         }
     }
 
-    public async Task<OrganizationDetailResponse?> GetOrganizationByExternalIdAsync(string externalOrgId, CancellationToken ct = default)
+    public async Task<AuditLogResponse?> GetAuditLogAsync(string organizationId, CancellationToken ct = default)
     {
         try
         {
-            return await httpClient.GetFromJsonAsync<OrganizationDetailResponse>($"/organizations/external/{externalOrgId}", ct);
-        }
-        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-        {
-            return null;
-        }
-    }
-
-    public async Task<AuditLogResponse?> GetAuditLogAsync(Guid id, CancellationToken ct = default)
-    {
-        try
-        {
-            return await httpClient.GetFromJsonAsync<AuditLogResponse>($"/organizations/{id}/audit-log", ct);
+            return await httpClient.GetFromJsonAsync<AuditLogResponse>($"/organizations/{organizationId}/audit-log", ct);
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {

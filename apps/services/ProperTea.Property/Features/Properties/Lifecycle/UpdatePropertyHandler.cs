@@ -6,10 +6,9 @@ namespace ProperTea.Property.Features.Properties.Lifecycle;
 
 public record UpdateProperty(
     Guid PropertyId,
-    string Code,
-    string Name,
-    string Address,
-    decimal? SquareFootage);
+    string? Code,
+    string? Name,
+    string? Address);
 
 public class UpdatePropertyHandler : IWolverineHandler
 {
@@ -24,8 +23,9 @@ public class UpdatePropertyHandler : IWolverineHandler
                 "Property",
                 command.PropertyId);
 
-        // Validate code uniqueness within company (exclude self)
-        if (property.Code != command.Code)
+        var events = new List<object>();
+
+        if (!string.IsNullOrWhiteSpace(command.Code) && property.Code != command.Code)
         {
             var codeExists = await session.Query<PropertyAggregate>()
                 .Where(p => p.CompanyId == property.CompanyId
@@ -38,27 +38,34 @@ public class UpdatePropertyHandler : IWolverineHandler
                 throw new ConflictException(
                     PropertyErrorCodes.PROPERTY_CODE_ALREADY_EXISTS,
                     $"A property with code '{command.Code}' already exists in this company");
+
+            events.Add(property.UpdateCode(command.Code));
         }
 
-        var updated = property.Update(
-            command.Code,
-            command.Name,
-            command.Address,
-            command.SquareFootage);
-
-        _ = session.Events.Append(command.PropertyId, updated);
-        await session.SaveChangesAsync();
-
-        var organizationId = Guid.Parse(session.TenantId);
-        await bus.PublishAsync(new PropertyIntegrationEvents.PropertyUpdated
+        if (!string.IsNullOrWhiteSpace(command.Name) && property.Name != command.Name)
         {
-            PropertyId = command.PropertyId,
-            OrganizationId = organizationId,
-            Code = command.Code,
-            Name = command.Name,
-            Address = command.Address,
-            SquareFootage = command.SquareFootage,
-            UpdatedAt = DateTimeOffset.UtcNow
-        });
+            events.Add(property.UpdateName(command.Name));
+        }
+
+        if (!string.IsNullOrWhiteSpace(command.Address) && property.Address != command.Address)
+        {
+            events.Add(property.UpdateAddress(command.Address));
+        }
+
+        if (events.Count > 0)
+        {
+            _ = session.Events.Append(command.PropertyId, [.. events]);
+            await session.SaveChangesAsync();
+
+            await bus.PublishAsync(new PropertyIntegrationEvents.PropertyUpdated
+            {
+                PropertyId = command.PropertyId,
+                OrganizationId = session.TenantId,
+                Code = command.Code ?? property.Code,
+                Name = command.Name ?? property.Name,
+                Address = command.Address ?? property.Address,
+                UpdatedAt = DateTimeOffset.UtcNow
+            });
+        }
     }
 }

@@ -13,7 +13,7 @@ public static class UserEndpoints
         _ = group.MapGet("/me", GetMyProfile)
             .WithName("GetMyProfile");
 
-        _ = group.MapGet("/external/{externalUserId}", GetUserDetails)
+        _ = group.MapGet("/{userId}", GetUserDetails)
             .WithName("GetUserDetails");
 
         _ = group.MapGet("/preferences", GetPreferences)
@@ -34,11 +34,11 @@ public static class UserEndpoints
     }
 
     private static async Task<IResult> GetUserDetails(
-        string externalUserId,
+        string userId,
         UserClient client,
         CancellationToken ct)
     {
-        var userDetails = await client.GetUserDetailsAsync(externalUserId, ct);
+        var userDetails = await client.GetUserDetailsAsync(userId, ct);
 
         if (userDetails == null)
         {

@@ -4,20 +4,20 @@ import { finalize } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { OrganizationService } from '../services/organization.service';
 import { OrganizationAuditLogEntry } from '../models/organization.models';
-import { SpinnerComponent } from '../../../../shared/components/spinner';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { IconComponent } from '../../../../shared/components/icon';
 import { UserService, UserDetails } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-organization-audit-log',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, TranslocoPipe, SpinnerComponent, IconComponent],
+  imports: [DatePipe, TranslocoPipe, HlmSpinner, IconComponent],
   template: `
     <div class="space-y-4">
       <!-- Loading State -->
       @if (loading()) {
         <div class="flex items-center justify-center py-12">
-          <app-spinner size="lg" />
+          <hlm-spinner size="lg" />
         </div>
       }
 
@@ -144,8 +144,8 @@ export class OrganizationAuditLogComponent implements OnInit {
     switch (normalized.toLowerCase()) {
       case 'created':
         return this.translocoService.translate('organizations.organizationCreated');
-      case 'externalorganizationcreated':
-        return `${this.translocoService.translate('organizations.externalOrgLinked')}: ${data.externalOrganizationId || ''}`;
+      case 'organizationlinked':
+        return `${this.translocoService.translate('organizations.externalOrgLinked')}: ${data.organizationId || ''}`;
       case 'activated':
         if (data.oldStatus && data.newStatus) {
           return `${data.oldStatus} → ${data.newStatus}`;

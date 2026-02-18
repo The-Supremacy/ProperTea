@@ -9,7 +9,7 @@ public class OrganizationAggregate : IRevisioned
     public Guid Id { get; set; }
     public Status CurrentStatus { get; set; }
     public SubscriptionTier CurrentTier { get; set; }
-    public string? ExternalOrganizationId { get; set; }
+    public string? OrganizationId { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public int Version { get; set; }
 
@@ -19,15 +19,15 @@ public class OrganizationAggregate : IRevisioned
         return new Created(id, SubscriptionTier.Trial, DateTimeOffset.UtcNow);
     }
 
-    public static ExternalOrganizationCreated LinkExternalOrganization(Guid organizationId, string externalOrganizationId)
+    public static OrganizationLinked LinkExternalOrganization(Guid streamId, string organizationId)
     {
-        if (string.IsNullOrWhiteSpace(externalOrganizationId))
+        if (string.IsNullOrWhiteSpace(organizationId))
             throw new BusinessViolationException(
                 OrganizationErrorCodes.EXTERNAL_ID_REQUIRED,
-                nameof(externalOrganizationId),
-                "External Organization ID is required");
+                nameof(organizationId),
+                "Organization ID is required");
 
-        return new ExternalOrganizationCreated(organizationId, externalOrganizationId);
+        return new OrganizationLinked(streamId, organizationId);
     }
 
     public Activated Activate()
@@ -46,9 +46,9 @@ public class OrganizationAggregate : IRevisioned
         CurrentTier = e.Tier;
     }
 
-    public void Apply(ExternalOrganizationCreated e)
+    public void Apply(OrganizationLinked e)
     {
-        ExternalOrganizationId = e.ExternalOrganizationId;
+        OrganizationId = e.OrganizationId;
     }
 
     public void Apply(Activated e)

@@ -10,9 +10,17 @@ import { PropertyDetailResponse, UpdatePropertyRequest } from '../models/propert
 import { DialogService } from '../../../core/services/dialog.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { EntityDetailsViewComponent, EntityDetailsConfig } from '../../../../shared/components/entity-details-view';
-import { Tabs, TabPanel, TabList, Tab, TabContent } from '@angular/aria/tabs';
-import { SpinnerComponent } from '../../../../shared/components/spinner';
+import { HlmTabsImports } from '@spartan-ng/helm/tabs';
+import { HlmAccordionImports } from '@spartan-ng/helm/accordion';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmInput } from '@spartan-ng/helm/input';
+import { HlmTextarea } from '@spartan-ng/helm/textarea';
+import { IconComponent } from '../../../../shared/components/icon';
 import { StatusBadgeDirective } from '../../../../shared/directives';
+import { PropertyAuditLogComponent } from '../audit-log/property-audit-log.component';
+import { BuildingsEmbeddedListComponent } from '../../buildings/embedded-list/buildings-embedded-list.component';
+import { CreateBuildingDrawerComponent } from '../../buildings/create-drawer/create-building-drawer.component';
 
 @Component({
   selector: 'app-property-details',
@@ -22,16 +30,19 @@ import { StatusBadgeDirective } from '../../../../shared/directives';
     DatePipe,
     TranslocoPipe,
     EntityDetailsViewComponent,
-    Tabs,
-    TabList,
-    Tab,
-    TabPanel,
-    TabContent,
-    SpinnerComponent,
-    StatusBadgeDirective
+    HlmTabsImports,
+    HlmAccordionImports,
+    HlmSpinner,
+    HlmButton,
+    HlmInput,
+    HlmTextarea,
+    IconComponent,
+    StatusBadgeDirective,
+    PropertyAuditLogComponent,
+    BuildingsEmbeddedListComponent,
+    CreateBuildingDrawerComponent
   ],
-  templateUrl: './property-details.component.html',
-  styleUrl: './property-details.component.css'
+  templateUrl: './property-details.component.html'
 })
 export class PropertyDetailsComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
@@ -52,6 +63,8 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
   propertyId = signal<string>('');
   companyName = signal<string>('');
   selectedTab = signal<string>('details');
+  buildingsAccordionOpen = signal(false);
+  createBuildingDrawerOpen = signal(false);
 
   // Details view configuration
   detailsConfig = computed<EntityDetailsConfig>(() => {
@@ -97,10 +110,6 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
     return this.form.get('address')!;
   }
 
-  get squareFootageControl() {
-    return this.form.get('squareFootage')!;
-  }
-
   ngOnInit(): void {
     this.route.params.pipe(
       takeUntil(this.destroy$)
@@ -127,8 +136,7 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
       companyId: [{ value: '', disabled: true }],
       code: ['', [Validators.required, Validators.maxLength(50)]],
       name: ['', [Validators.required, Validators.maxLength(200)]],
-      address: ['', [Validators.required, Validators.maxLength(500)]],
-      squareFootage: [null]
+      address: ['', [Validators.required, Validators.maxLength(500)]]
     });
   }
 
@@ -145,8 +153,7 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
             companyId: property.companyId,
             code: property.code,
             name: property.name,
-            address: property.address,
-            squareFootage: property.squareFootage
+            address: property.address
           });
 
           // Resolve company name for display
@@ -176,8 +183,7 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
     const request: UpdatePropertyRequest = {
       code: this.codeControl.value,
       name: this.nameControl.value,
-      address: this.addressControl.value,
-      squareFootage: this.squareFootageControl.value || undefined
+      address: this.addressControl.value
     };
 
     await firstValueFrom(

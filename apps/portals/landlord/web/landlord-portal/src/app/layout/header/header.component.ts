@@ -1,11 +1,11 @@
-import { Component, output, input, inject, viewChild, signal, ChangeDetectionStrategy } from '@angular/core';
-import { Menu, MenuContent, MenuItem as NgAriaMenuItem, MenuTrigger } from '@angular/aria/menu';
-import { OverlayModule } from '@angular/cdk/overlay';
+import { Component, output, input, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ResponsiveService } from '../../core/services/responsive.service';
 import { UserPreferencesService } from '../../core/services/user-preferences.service';
 import { SessionService } from '../../core/services/session.service';
-import { ButtonDirective } from '../../../shared/components/button';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmInput } from '@spartan-ng/helm/input';
+import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { IconComponent } from '../../../shared/components/icon';
 import { LogoComponent } from '../../../shared/components/logo';
 
@@ -18,26 +18,18 @@ export interface LanguageOption {
 @Component({
   selector: 'app-header',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Menu, MenuContent, NgAriaMenuItem, MenuTrigger, OverlayModule, ButtonDirective, IconComponent, TranslocoPipe, LogoComponent],
-
+  imports: [HlmDropdownMenuImports, HlmButton, HlmInput, IconComponent, TranslocoPipe, LogoComponent],
   template: `
     <header class="flex h-16 items-center justify-between border-b bg-background px-4">
       <!-- Left: Logo + Burger (mobile) -->
       <div class="flex items-center gap-4">
         @if (responsive.isMobile()) {
-          <button
-            appBtn
-            variant="ghost"
-            size="icon"
-            (click)="menuToggle.emit()">
+          <button hlmBtn variant="ghost" size="icon" (click)="menuToggle.emit()">
             <app-icon name="menu" [size]="20" />
           </button>
         }
 
-        <button
-          appBtn
-          variant="ghost"
-          (click)="logoClick.emit()">
+        <button hlmBtn variant="ghost" (click)="logoClick.emit()">
           <app-logo [showText]="!responsive.isMobile()" />
         </button>
       </div>
@@ -48,121 +40,88 @@ export interface LanguageOption {
           <input
             type="search"
             [placeholder]="'common.search' | transloco"
-            class="input w-full"
+            hlmInput
+            class="w-full"
             disabled />
         }
       </div>
 
       <!-- Right: User Menu -->
       <button
-        appBtn
+        hlmBtn
         variant="ghost"
         size="icon"
-        ngMenuTrigger
-        #trigger="ngMenuTrigger"
-        #origin
-        [menu]="userMenu()"
+        [hlmDropdownMenuTrigger]="userMenu"
         class="rounded-full bg-muted hover:bg-accent">
         <app-icon name="account_circle" [size]="20" />
       </button>
 
-      <ng-template
-        [cdkConnectedOverlayOpen]="trigger.expanded()"
-        [cdkConnectedOverlay]="{origin, usePopover: 'inline'}"
-        [cdkConnectedOverlayPositions]="[
-          {originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 4}
-        ]"
-        cdkAttachPopoverAsChild>
+      <ng-template #userMenu>
+        <div hlmDropdownMenu class="min-w-56">
+          <!-- User Name Label -->
+          <div class="px-2 py-1.5 text-sm font-semibold text-foreground">
+            {{ sessionService.userName() }}
+          </div>
+          <div hlmDropdownMenuSeparator></div>
 
-        <div
-          ngMenu
-          #userMenu="ngMenu"
-          class="min-w-56 rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
-          <ng-template ngMenuContent>
-            <!-- User Name Label -->
-            <div class="px-2 py-1.5 text-sm font-semibold text-foreground">{{ sessionService.userName() }}</div>
-            <div role="separator" aria-orientation="horizontal" class="my-1 h-px bg-border"></div>
+          <!-- Profile -->
+          <button hlmDropdownMenuItem (click)="profileClick.emit()">
+            <app-icon name="person" [size]="16" />
+            <span>{{ 'user.profile' | transloco }}</span>
+          </button>
 
-            <!-- Profile -->
-            <div
-              ngMenuItem
-              value="profile"
-              (click)="profileClick.emit()"
-              class="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent focus:bg-accent">
-              <app-icon name="person" [size]="16" />
-              <span>{{ 'user.profile' | transloco }}</span>
-            </div>
+          <!-- Preferences -->
+          <button hlmDropdownMenuItem (click)="preferencesClick.emit()">
+            <app-icon name="settings" [size]="16" />
+            <span>{{ 'user.preferences' | transloco }}</span>
+          </button>
 
-            <!-- Preferences -->
-            <div
-              ngMenuItem
-              value="preferences"
-              (click)="preferencesClick.emit()"
-              class="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent focus:bg-accent">
-              <app-icon name="settings" [size]="16" />
-              <span>{{ 'user.preferences' | transloco }}</span>
-            </div>
+          <!-- Switch Account -->
+          <button hlmDropdownMenuItem (click)="switchAccountClick.emit()">
+            <app-icon name="business" [size]="16" />
+            <span>{{ 'user.switchAccount' | transloco }}</span>
+          </button>
 
-            <!-- Switch Account -->
-            <div
-              ngMenuItem
-              value="switch-account"
-              (click)="switchAccountClick.emit()"
-              class="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent focus:bg-accent">
-              <app-icon name="business" [size]="16" />
-              <span>{{ 'user.switchAccount' | transloco }}</span>
-            </div>
+          <div hlmDropdownMenuSeparator></div>
 
-            <div role="separator" aria-orientation="horizontal" class="my-1 h-px bg-border"></div>
+          <!-- Sign Out -->
+          <button hlmDropdownMenuItem (click)="signOutClick.emit()">
+            <app-icon name="logout" [size]="16" />
+            <span>{{ 'user.signOut' | transloco }}</span>
+          </button>
 
-            <!-- Sign Out -->
-            <div
-              ngMenuItem
-              value="sign-out"
-              (click)="signOutClick.emit()"
-              class="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent focus:bg-accent">
-              <app-icon name="logout" [size]="16" />
-              <span>{{ 'user.signOut' | transloco }}</span>
-            </div>
+          <div hlmDropdownMenuSeparator></div>
 
-            <div role="separator" aria-orientation="horizontal" class="my-1 h-px bg-border"></div>
+          <!-- Theme Toggle -->
+          <button hlmDropdownMenuItem (click)="preferencesService.toggleTheme()">
+            @if (preferencesService.theme() === 'dark') {
+              <app-icon name="light_mode" [size]="16" />
+              <span>{{ 'user.lightMode' | transloco }}</span>
+            } @else {
+              <app-icon name="dark_mode" [size]="16" />
+              <span>{{ 'user.darkMode' | transloco }}</span>
+            }
+          </button>
 
-            <!-- Theme Toggle -->
-            <div
-              ngMenuItem
-              value="theme"
-              (click)="preferencesService.toggleTheme()"
-              class="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent focus:bg-accent">
-              @if (preferencesService.theme() === 'dark') {
-                <app-icon name="light_mode" [size]="16" />
-                <span>{{ 'user.lightMode' | transloco }}</span>
-              } @else {
-                <app-icon name="dark_mode" [size]="16" />
-                <span>{{ 'user.darkMode' | transloco }}</span>
-              }
-            </div>
+          <div hlmDropdownMenuSeparator></div>
 
-            <div role="separator" aria-orientation="horizontal" class="my-1 h-px bg-border"></div>
-
-            <!-- Language Selector (Flags) -->
-            <div class="flex flex-wrap gap-2 px-2 py-1.5">
-              @for (lang of languages(); track lang.code) {
-                <button
-                  ngMenuItem
-                  [value]="lang.code"
-                  (click)="languageChange.emit(lang.code)"
-                  [class]="'flex h-8 w-8 items-center justify-center rounded text-lg transition-colors hover:bg-accent ' +
-                    (lang.code === currentLanguage().code ? 'ring-2 ring-primary' : '')"
-                  [title]="lang.name">
-                  {{ lang.flag }}
-                </button>
-              }
-            </div>
-          </ng-template>
+          <!-- Language Selector (Flags) -->
+          <div class="flex flex-wrap gap-2 px-2 py-1.5">
+            @for (lang of languages(); track lang.code) {
+              <button
+                hlmDropdownMenuItem
+                (click)="languageChange.emit(lang.code)"
+                [class]="'flex h-8 w-8 items-center justify-center rounded text-lg transition-colors hover:bg-accent ' +
+                  (lang.code === currentLanguage().code ? 'ring-2 ring-primary' : '')"
+                [title]="lang.name">
+                {{ lang.flag }}
+              </button>
+            }
+          </div>
         </div>
       </ng-template>
     </header>
-  `
+  `,
 })
 export class HeaderComponent {
   protected readonly responsive = inject(ResponsiveService);
@@ -179,7 +138,4 @@ export class HeaderComponent {
   switchAccountClick = output<void>();
   languageChange = output<string>();
   signOutClick = output<void>();
-
-  // ViewChild for menu reference
-  protected userMenu = viewChild<Menu<string>>('userMenu');
 }

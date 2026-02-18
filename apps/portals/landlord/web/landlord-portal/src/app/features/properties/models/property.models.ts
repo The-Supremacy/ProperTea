@@ -13,16 +13,9 @@ export interface PropertyListItem {
   code: string;
   name: string;
   address: string;
-  squareFootage: number | null;
   buildingCount: number;
   status: string;
   createdAt: Date;
-}
-
-export interface BuildingResponse {
-  id: string;
-  code: string;
-  name: string;
 }
 
 export interface PropertyDetailResponse {
@@ -31,8 +24,6 @@ export interface PropertyDetailResponse {
   code: string;
   name: string;
   address: string;
-  squareFootage: number | null;
-  buildings: BuildingResponse[];
   status: string;
   createdAt: Date;
 }
@@ -44,17 +35,28 @@ export interface CreatePropertyRequest {
   code: string;
   name: string;
   address: string;
-  squareFootage?: number;
 }
 
 export interface UpdatePropertyRequest {
-  code: string;
-  name: string;
-  address: string;
-  squareFootage?: number;
+  code?: string;
+  name?: string;
+  address?: string;
 }
 
 export interface PropertySelectItem {
   id: string;
   name: string;
+}
+
+export interface PropertyAuditLogEntry {
+  eventType: string;
+  timestamp: Date;
+  username?: string;
+  version: number;
+  data: unknown;
+}
+
+export interface PropertyAuditLogResponse {
+  propertyId: string;
+  entries: PropertyAuditLogEntry[];
 }

@@ -1,4 +1,5 @@
 using Marten;
+using ProperTea.Property.Features.Buildings;
 using ProperTea.Property.Features.Properties;
 using ProperTea.Infrastructure.Common.Exceptions;
 using Wolverine;
@@ -44,12 +45,18 @@ public class CreateUnitHandler : IWolverineHandler
         // Validate building belongs to property if specified
         if (command.BuildingId.HasValue)
         {
-            var building = property.Buildings
-                .FirstOrDefault(b => b.Id == command.BuildingId.Value && !b.IsRemoved)
-                ?? throw new NotFoundException(
-                    PropertyErrorCodes.BUILDING_NOT_FOUND,
+            var building = await session.LoadAsync<BuildingAggregate>(command.BuildingId.Value);
+
+            if (building is null || building.CurrentStatus == BuildingAggregate.Status.Deleted)
+                throw new NotFoundException(
+                    BuildingErrorCodes.BUILDING_NOT_FOUND,
                     "Building",
                     command.BuildingId.Value);
+
+            if (building.PropertyId != command.PropertyId)
+                throw new BusinessViolationException(
+                    BuildingErrorCodes.BUILDING_NOT_FOUND,
+                    "Building does not belong to this property");
         }
 
         var unitId = Guid.NewGuid();
@@ -68,7 +75,7 @@ public class CreateUnitHandler : IWolverineHandler
         _ = session.Events.StartStream<UnitAggregate>(unitId, created);
         await session.SaveChangesAsync();
 
-        var organizationId = Guid.Parse(session.TenantId);
+        var organizationId = session.TenantId;
         await bus.PublishAsync(new UnitIntegrationEvents.UnitCreated
         {
             UnitId = unitId,

@@ -7,13 +7,12 @@ public static class OrganizationIntegrationEvents
 {
     [MessageIdentity("organizations.registered.v1")]
     public record OrganizationRegistered(
-        Guid OrganizationId,
+        string OrganizationId,
         string Name,
-        string ExternalOrganizationId,
         DateTimeOffset RegisteredAt) : IOrganizationRegistered;
 
     [MessageIdentity("organizations.activated.v1")]
     public record OrganizationActivated(
-        Guid OrganizationId,
+        string OrganizationId,
         DateTimeOffset ActivatedAt) : IOrganizationActivated;
 }

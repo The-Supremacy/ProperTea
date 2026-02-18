@@ -7,9 +7,9 @@ import { OrganizationService } from '../services/organization.service';
 import { OrganizationDetailResponse } from '../models/organization.models';
 import { SessionService } from '../../../core/services/session.service';
 import { EntityDetailsViewComponent, EntityDetailsConfig } from '../../../../shared/components/entity-details-view';
-import { Tabs, TabPanel, TabList, Tab, TabContent } from '@angular/aria/tabs';
+import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { OrganizationAuditLogComponent } from '../audit-log/organization-audit-log.component';
-import { SpinnerComponent } from '../../../../shared/components/spinner';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { StatusBadgeDirective } from '../../../../shared/directives';
 
 @Component({
@@ -19,17 +19,12 @@ import { StatusBadgeDirective } from '../../../../shared/directives';
     DatePipe,
     TranslocoPipe,
     EntityDetailsViewComponent,
-    Tabs,
-    TabList,
-    Tab,
-    TabPanel,
-    TabContent,
+    HlmTabsImports,
     OrganizationAuditLogComponent,
-    SpinnerComponent,
+    HlmSpinner,
     StatusBadgeDirective
   ],
-  templateUrl: './organization-details.component.html',
-  styleUrl: './organization-details.component.css'
+  templateUrl: './organization-details.component.html'
 })
 export class OrganizationDetailsComponent implements OnInit {
   private router = inject(Router);
@@ -42,12 +37,8 @@ export class OrganizationDetailsComponent implements OnInit {
   loading = signal(false);
   selectedTab = signal<string>('details');
 
-  // Get external organization ID from token (via session)
-  externalOrganizationId = computed(() => this.sessionService.context()?.externalOrganizationId ?? '');
+  organizationId = computed(() => this.sessionService.context()?.organizationId ?? '');
   organizationName = computed(() => this.sessionService.organizationName());
-
-  // Internal organization ID from fetched organization (for audit log)
-  internalOrganizationId = computed(() => this.organization()?.id ?? '');
 
   // Details view configuration
   detailsConfig = computed<EntityDetailsConfig>(() => ({
@@ -60,19 +51,19 @@ export class OrganizationDetailsComponent implements OnInit {
   }));
 
   ngOnInit(): void {
-    const externalOrgId = this.externalOrganizationId();
-    if (!externalOrgId) {
+    const orgId = this.organizationId();
+    if (!orgId) {
       this.router.navigate(['/']);
       return;
     }
 
-    this.loadOrganization(externalOrgId);
+    this.loadOrganization(orgId);
   }
 
-  protected loadOrganization(externalOrgId: string): void {
+  protected loadOrganization(organizationId: string): void {
     this.loading.set(true);
 
-    this.organizationService.getOrganizationByExternalId(externalOrgId).pipe(
+    this.organizationService.getOrganization(organizationId).pipe(
       finalize(() => this.loading.set(false))
     ).subscribe({
       next: (organization) => {
@@ -89,9 +80,9 @@ export class OrganizationDetailsComponent implements OnInit {
   }
 
   async refresh(): Promise<void> {
-    const externalOrgId = this.externalOrganizationId();
-    if (!externalOrgId) return;
-    await firstValueFrom(this.organizationService.getOrganizationByExternalId(externalOrgId).pipe(
+    const orgId = this.organizationId();
+    if (!orgId) return;
+    await firstValueFrom(this.organizationService.getOrganization(orgId).pipe(
       finalize(() => this.loading.set(false))
     )).then((organization) => {
       if (organization) {

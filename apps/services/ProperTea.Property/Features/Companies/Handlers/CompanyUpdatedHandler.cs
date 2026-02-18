@@ -22,7 +22,7 @@ public class CompanyUpdatedHandler : IWolverineHandler
                 Name = message.Name,
                 IsDeleted = false,
                 LastUpdatedAt = message.UpdatedAt,
-                TenantId = message.OrganizationId.ToString()
+                TenantId = message.OrganizationId
             };
             session.Store(reference);
         }

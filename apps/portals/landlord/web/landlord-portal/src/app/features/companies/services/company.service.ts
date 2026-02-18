@@ -9,6 +9,7 @@ import {
   CreateCompanyRequest,
   UpdateCompanyRequest,
   CheckNameResponse,
+  CheckCodeResponse,
   CompanyAuditLogResponse,
   CompanySelectItem,
 } from '../models/company.models';
@@ -27,6 +28,10 @@ export class CompanyService {
     let params = new HttpParams()
       .set('page', pagination.page.toString())
       .set('pageSize', pagination.pageSize.toString());
+
+    if (filters.code) {
+      params = params.set('code', filters.code);
+    }
 
     if (filters.name) {
       params = params.set('name', filters.name);
@@ -67,7 +72,17 @@ export class CompanyService {
       params = params.set('excludeId', excludeId);
     }
 
-    return this.http.get<CheckNameResponse>('/api/companies/check-name', { params });
+    return this.http.get<CheckNameResponse>('/api/companies_/check-name', { params });
+  }
+
+  checkCode(code: string, excludeId?: string): Observable<CheckCodeResponse> {
+    let params = new HttpParams().set('code', code);
+
+    if (excludeId) {
+      params = params.set('excludeId', excludeId);
+    }
+
+    return this.http.get<CheckCodeResponse>('/api/companies_/check-code', { params });
   }
 
   getAuditLog(id: string): Observable<CompanyAuditLogResponse> {

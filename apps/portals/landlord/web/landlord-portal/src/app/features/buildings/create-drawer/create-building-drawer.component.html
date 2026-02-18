@@ -1,0 +1,126 @@
+<hlm-sheet side="right" [state]="open() ? 'open' : 'closed'" (closed)="onSheetClosed()">
+  <hlm-sheet-content *hlmSheetPortal [showCloseButton]="false" class="sm:max-w-md flex flex-col p-0">
+    <!-- Header -->
+    <div class="flex shrink-0 items-center justify-between border-b px-6 py-4">
+      <h2 class="text-lg font-semibold">
+        {{ 'buildings.newBuilding' | transloco }}
+      </h2>
+      <button
+        type="button"
+        hlmBtn
+        variant="ghost"
+        size="icon"
+        [attr.aria-label]="'common.close' | transloco"
+        (click)="close()">
+        <app-icon name="close" [size]="20" />
+      </button>
+    </div>
+
+    <!-- Body -->
+    <form [formGroup]="form" (ngSubmit)="submit()" class="flex min-h-0 flex-1 flex-col">
+      <div class="flex-1 space-y-6 overflow-y-auto px-6 py-6">
+        <!-- Help text -->
+        <p class="text-sm text-muted-foreground">
+          {{ 'buildings.createHint' | transloco }}
+        </p>
+
+        <!-- Property Field -->
+        <div class="space-y-2">
+          <label for="building-property" class="text-sm font-medium">
+            {{ 'buildings.property' | transloco }}
+            <span class="text-destructive">*</span>
+          </label>
+
+          <app-autocomplete
+            [value]="form.controls.propertyId.value"
+            [optionsProvider]="getPropertyOptionsProvider"
+            [placeholder]="'buildings.selectProperty'"
+            [ariaLabel]="'buildings.property'"
+            (valueChange)="onPropertyChange($event)" />
+
+          @if (form.controls.propertyId.invalid && form.controls.propertyId.touched) {
+            @if (form.controls.propertyId.hasError('required')) {
+              <p class="text-sm text-destructive">{{ 'buildings.propertyRequired' | transloco }}</p>
+            }
+          }
+        </div>
+
+        <!-- Code Field -->
+        <hlm-form-field>
+          <label hlmLabel for="building-code">
+            {{ 'buildings.code' | transloco }}
+            <span class="text-destructive">*</span>
+          </label>
+
+          <input
+            hlmInput
+            id="building-code"
+            type="text"
+            formControlName="code"
+            class="w-full"
+            [placeholder]="'buildings.codePlaceholder' | transloco"
+            required />
+
+          @if (form.controls.code.invalid && form.controls.code.touched) {
+            @if (form.controls.code.hasError('required')) {
+              <hlm-error>{{ 'buildings.codeRequired' | transloco }}</hlm-error>
+            }
+            @if (form.controls.code.hasError('maxlength')) {
+              <hlm-error>{{ 'buildings.codeTooLong' | transloco }}</hlm-error>
+            }
+          }
+        </hlm-form-field>
+
+        <!-- Name Field -->
+        <hlm-form-field>
+          <label hlmLabel for="building-name">
+            {{ 'buildings.name' | transloco }}
+            <span class="text-destructive">*</span>
+          </label>
+
+          <input
+            hlmInput
+            id="building-name"
+            type="text"
+            formControlName="name"
+            class="w-full"
+            [placeholder]="'buildings.namePlaceholder' | transloco"
+            required />
+
+          @if (form.controls.name.invalid && form.controls.name.touched) {
+            @if (form.controls.name.hasError('required')) {
+              <hlm-error>{{ 'buildings.nameRequired' | transloco }}</hlm-error>
+            }
+            @if (form.controls.name.hasError('maxlength')) {
+              <hlm-error>{{ 'buildings.nameTooLong' | transloco }}</hlm-error>
+            }
+          }
+        </hlm-form-field>
+      </div>
+
+      <!-- Footer -->
+      <div class="flex shrink-0 items-center gap-2 border-t px-6 py-4">
+        <button
+          type="button"
+          hlmBtn
+          variant="outline"
+          class="flex-1"
+          [disabled]="isSubmitting()"
+          (click)="close()">
+          {{ 'common.cancel' | transloco }}
+        </button>
+
+        <button
+          type="submit"
+          hlmBtn
+          class="flex-1"
+          [disabled]="!canSubmit()">
+          @if (isSubmitting()) {
+            <hlm-spinner size="sm" />
+          }
+          {{ 'common.create' | transloco }}
+        </button>
+      </div>
+    </form>
+  </hlm-sheet-content>
+</hlm-sheet>

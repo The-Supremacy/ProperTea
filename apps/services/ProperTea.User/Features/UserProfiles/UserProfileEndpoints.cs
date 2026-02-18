@@ -8,15 +8,13 @@ using ProperTea.User.Features.UserProfiles.Infrastructure;
 namespace ProperTea.User.Features.UserProfiles;
 
 public record UserProfileResponse(
-    Guid Id,
-    string ExternalUserId,
+    string UserId,
     DateTimeOffset CreatedAt,
     DateTimeOffset? LastSeenAt
 );
 
 public record UserDetailsResponse(
-    Guid? InternalId,
-    string ExternalId,
+    string UserId,
     string Email,
     string? FirstName,
     string? LastName,
@@ -30,18 +28,18 @@ public static class UserProfileEndpoints
         ClaimsPrincipal user,
         IMessageBus bus)
     {
-        var externalUserId = user.FindFirst("sub")?.Value;
-        if (string.IsNullOrEmpty(externalUserId))
+        var userId = user.FindFirst("sub")?.Value;
+        if (string.IsNullOrEmpty(userId))
         {
             return Results.Unauthorized();
         }
 
-        var query = new GetProfileQuery(externalUserId);
+        var query = new GetProfileQuery(userId);
         var result = await bus.InvokeAsync<UserProfileResponse?>(query);
 
         if (result is null)
         {
-            var createCommand = new CreateProfileCommand(externalUserId);
+            var createCommand = new CreateProfileCommand(userId);
             _ = await bus.InvokeAsync<CreateProfileResult>(createCommand);
 
             result = await bus.InvokeAsync<UserProfileResponse?>(query);
@@ -52,32 +50,27 @@ public static class UserProfileEndpoints
             }
         }
 
-        await bus.PublishAsync(new UpdateLastSeenCommand(externalUserId));
+        await bus.PublishAsync(new UpdateLastSeenCommand(userId));
 
         return Results.Ok(result);
     }
 
-    [WolverineGet("/users/external/{externalUserId}")]
+    [WolverineGet("/users/{userId}")]
     public static async Task<IResult> GetUserDetails(
-        string externalUserId,
+        string userId,
         IExternalUserClient externalUserClient,
         IDocumentSession session,
         CancellationToken ct)
     {
         // Get details from Zitadel
-        var userDetails = await externalUserClient.GetUserDetailsAsync(externalUserId, ct);
+        var userDetails = await externalUserClient.GetUserDetailsAsync(userId, ct);
 
         if (userDetails is null)
         {
             return Results.NotFound();
         }
 
-        // Try to get internal profile ID if it exists
-        var profile = await session.Query<UserProfileAggregate>()
-            .FirstOrDefaultAsync(x => x.ExternalUserId == externalUserId, ct);
-
         return Results.Ok(new UserDetailsResponse(
-            profile?.Id,
             userDetails.Id,
             userDetails.Email,
             userDetails.FirstName,

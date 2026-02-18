@@ -5,7 +5,7 @@ export const organizationsRoutes: Routes = [
     path: 'details',
     loadComponent: () =>
       import('./details/organization-details.component').then((m) => m.OrganizationDetailsComponent),
-    data: { breadcrumb: 'Organization Details' },
+    data: { breadcrumb: 'organizations.detailsTitle' },
   },
   {
     path: 'register',

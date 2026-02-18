@@ -14,7 +14,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { DatePipe, NgTemplateOutlet } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Subject, finalize, takeUntil } from 'rxjs';
 import {
   createAngularTable,
@@ -26,10 +26,12 @@ import {
   VisibilityState,
   ColumnDef,
 } from '@tanstack/angular-table';
-import { Menu, MenuContent, MenuItem, MenuTrigger } from '@angular/aria/menu';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Toolbar, ToolbarWidget } from '@angular/aria/toolbar';
-import { OverlayModule } from '@angular/cdk/overlay';
+import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
+import { HlmSheetImports } from '@spartan-ng/helm/sheet';
+import { HlmTableImports } from '@spartan-ng/helm/table';
+import { HlmInput } from '@spartan-ng/helm/input';
+import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 
 import {
   EntityListConfig,
@@ -44,10 +46,10 @@ import {
   FilterField,
 } from './entity-list-view.models';
 import { TablePaginationDirective } from '../../directives/table-pagination';
-import { ButtonDirective } from '../button';
+import { HlmButton } from '@spartan-ng/helm/button';
 import { IconComponent } from '../icon';
-import { SpinnerComponent } from '../spinner';
-import { SelectComponent } from '../select';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { AsyncSelectComponent } from '../async-select';
 import { AutocompleteComponent } from '../autocomplete';
 import { ResponsiveService } from '../../../app/core/services/responsive.service';
 
@@ -76,21 +78,20 @@ import { ResponsiveService } from '../../../app/core/services/responsive.service
   selector: 'app-entity-list-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    Menu,
-    MenuContent,
-    MenuItem,
-    MenuTrigger,
-    Toolbar,
-    ToolbarWidget,
-    OverlayModule,
+    HlmDropdownMenuImports,
+    HlmSheetImports,
+    HlmTableImports,
+    HlmInput,
+    HlmEmptyImports,
+    RouterLink,
     NgTemplateOutlet,
     TranslocoPipe,
     FlexRenderDirective,
     TablePaginationDirective,
-    ButtonDirective,
+    HlmButton,
     IconComponent,
-    SpinnerComponent,
-    SelectComponent,
+    HlmSpinner,
+    AsyncSelectComponent,
     AutocompleteComponent,
   ],
   templateUrl: './entity-list-view.component.html',
@@ -116,10 +117,7 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
   // Content children
   protected mobileCardTemplate = contentChild<TemplateRef<{ $implicit: TEntity }>>('mobileCard');
 
-  // ViewChildren for menu references
-  protected tableMenu = viewChild<Menu<string>>('tableMenu');
-  protected actionMenu = viewChild<Menu<string>>('actionMenu');
-  protected mobileActionMenu = viewChild<Menu<string>>('mobileActionMenu');
+
 
   // State signals
   private data = signal<TEntity[]>([]);
@@ -322,8 +320,16 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
     this.filterDrawerOpen.update((open) => !open);
   }
 
+  protected closeFilterDrawer(): void {
+    this.filterDrawerOpen.set(false);
+  }
+
   protected toggleColumnDrawer(): void {
     this.columnDrawerOpen.update((open) => !open);
+  }
+
+  protected closeColumnDrawer(): void {
+    this.columnDrawerOpen.set(false);
   }
 
   protected resetColumnVisibility(): void {

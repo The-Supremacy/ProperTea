@@ -1,11 +1,9 @@
-import { Component, ChangeDetectionStrategy, input, output, signal, computed, effect, viewChild, ElementRef, OnInit, OnDestroy } from '@angular/core';
-import { Combobox, ComboboxInput, ComboboxPopupContainer } from '@angular/aria/combobox';
-import { Listbox, Option } from '@angular/aria/listbox';
-import { OverlayModule } from '@angular/cdk/overlay';
-import { TranslocoPipe } from '@jsverse/transloco';
-import { Observable, Subject, finalize, takeUntil } from 'rxjs';
-import { IconComponent } from '../icon';
-import { SpinnerComponent } from '../spinner';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { Observable } from 'rxjs';
+import { HlmAutocompleteImports } from '@spartan-ng/helm/autocomplete';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
 
 export interface AutocompleteOption {
   label: string;
@@ -13,124 +11,66 @@ export interface AutocompleteOption {
 }
 
 /**
- * Headless autocomplete component using Angular ARIA.
- * Provides filtering, keyboard navigation, and accessible selection.
+ * Autocomplete dropdown with async option loading.
+ * Backed by Spartan brain — handles keyboard nav, a11y, and dropdown management.
  *
  * @example
- * ```typescript
+ * ```html
  * <app-autocomplete
- *   [options]="companyOptions()"
- *   [value]="selectedCompanyId()"
+ *   [optionsProvider]="getOptions"
+ *   [value]="selectedId()"
  *   [placeholder]="'common.search' | transloco"
- *   (valueChange)="onCompanyChange($event)" />
+ *   (valueChange)="selectedId.set($event)" />
  * ```
  */
 @Component({
   selector: 'app-autocomplete',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    Combobox,
-    ComboboxInput,
-    ComboboxPopupContainer,
-    Listbox,
-    Option,
-    OverlayModule,
-    TranslocoPipe,
-    IconComponent,
-    SpinnerComponent,
-  ],
+  imports: [HlmAutocompleteImports, HlmSpinner, TranslocoPipe],
   templateUrl: './autocomplete.component.html',
-  styleUrl: './autocomplete.component.css',
 })
-export class AutocompleteComponent implements OnInit, OnDestroy {
-  // Inputs
-  optionsProvider = input.required<() => Observable<AutocompleteOption[]>>();
-  value = input<string>('');
-  placeholder = input<string>('');
-  disabled = input<boolean>(false);
-  ariaLabel = input<string>('');
-  expandOnFocus = input<boolean>(true);
+export class AutocompleteComponent {
+  readonly optionsProvider = input.required<() => Observable<AutocompleteOption[]>>();
+  readonly value = input<string>('');
+  readonly placeholder = input<string>('');
+  readonly disabled = input<boolean>(false);
+  readonly ariaLabel = input<string>('');
 
-  // Outputs
-  valueChange = output<string>();
+  readonly valueChange = output<string>();
 
-  // ViewChild
-  protected inputElement = viewChild<ElementRef<HTMLInputElement>>('inputEl');
+  private readonly translocoService = inject(TranslocoService);
 
-  // Internal state
-  protected query = signal('');
-  protected options = signal<AutocompleteOption[]>([]);
-  protected loading = signal(false);
-  private destroy$ = new Subject<void>();
-
-  // Computed filtered options based on query
-  protected filteredOptions = computed(() => {
-    const q = this.query().toLowerCase();
-    const opts = this.options();
-    return q ? opts.filter((opt) => opt.label.toLowerCase().includes(q)) : opts;
+  protected readonly translatedPlaceholder = computed(() => {
+    const key = this.placeholder();
+    return key ? this.translocoService.translate(key) : '';
   });
 
-  // Sync query with selected value label
-  constructor() {
-    effect(() => {
-      const selectedValue = this.value();
-      const opts = this.options();
+  // rxResource: loads options, auto-cancels on destroy, reacts to optionsProvider changes.
+  protected readonly data = rxResource< AutocompleteOption[], () => Observable<AutocompleteOption[]>>({
+    params: () => this.optionsProvider(),
+    stream: ({ params: provider }) => provider(),
+  });
 
-      // When value changes externally, update query to show label
-      if (selectedValue) {
-        const option = opts.find((opt) => opt.value === selectedValue);
-        if (option) {
-          this.query.set(option.label);
-        }
-      } else {
-        this.query.set('');
-      }
-    });
-  }
+  // Brain drives search input; we filter locally (options are loaded once).
+  protected readonly search = signal('');
 
-  ngOnInit(): void {
-    this.loadOptions();
-  }
+  protected readonly filteredOptions = computed(() => {
+    const q = this.search().toLowerCase();
+    const opts = this.data.value() ?? [];
+    return q ? opts.filter((o) => o.label.toLowerCase().includes(q)) : opts;
+  });
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
+  protected readonly selectedOption = computed<AutocompleteOption | null>(() => {
+    const id = this.value();
+    return this.data.value()?.find((o) => o.value === id) ?? null;
+  });
 
-  private loadOptions(): void {
-    this.loading.set(true);
+  protected readonly isItemEqualToValue = (
+    item: AutocompleteOption,
+    selected: AutocompleteOption | null,
+  ): boolean => item.value === selected?.value;
 
-    this.optionsProvider()()
-      .pipe(
-        finalize(() => this.loading.set(false)),
-        takeUntil(this.destroy$),
-      )
-      .subscribe({
-        next: (options) => {
-          this.options.set(options);
-        },
-        error: (error) => {
-          console.error('Failed to load autocomplete options:', error);
-          this.options.set([]);
-        },
-      });
-  }
-
-  protected onQueryChange(newQuery: string): void {
-    this.query.set(newQuery);
-  }
-
-  protected onInputClick(): void {
-    if (this.expandOnFocus()) {
-      const input = this.inputElement()?.nativeElement;
-      if (input) {
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-      }
-    }
-  }
-
-  protected onSelect(value: string): void {
-    this.valueChange.emit(value);
-    // Query will be updated by effect when value input changes
+  protected onValueChange(option: AutocompleteOption | null): void {
+    this.valueChange.emit(option?.value ?? '');
   }
 }

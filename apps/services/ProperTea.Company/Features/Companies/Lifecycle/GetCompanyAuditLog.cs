@@ -17,7 +17,9 @@ public record CompanyAuditLogEntry(
 
 public static class CompanyAuditEventData
 {
-    public record CompanyCreated(string Name, DateTimeOffset CreatedAt);
+    public record CompanyCreated(string Code, string Name, DateTimeOffset CreatedAt);
+
+    public record CodeChanged(string OldCode, string NewCode);
 
     public record NameChanged(string OldName, string NewName);
 
@@ -48,7 +50,10 @@ public class GetCompanyAuditLogHandler(IQuerySession session) : IWolverineHandle
         {
             var data = evt.Data switch
             {
-                Created e => (object)new CompanyAuditEventData.CompanyCreated(e.Name, e.CreatedAt),
+                Created e => (object)new CompanyAuditEventData.CompanyCreated(e.Code, e.Name, e.CreatedAt),
+                CodeUpdated e => new CompanyAuditEventData.CodeChanged(
+                    OldCode: previousState?.Code ?? "",
+                    NewCode: e.Code),
                 NameUpdated e => new CompanyAuditEventData.NameChanged(
                     OldName: previousState?.Name ?? "",
                     NewName: e.Name),
@@ -69,6 +74,7 @@ public class GetCompanyAuditLogHandler(IQuerySession session) : IWolverineHandle
             switch (evt.Data)
             {
                 case Created e: previousState.Apply(e); break;
+                case CodeUpdated e: previousState.Apply(e); break;
                 case NameUpdated e: previousState.Apply(e); break;
                 case Deleted e: previousState.Apply(e); break;
                 default:

@@ -2,9 +2,9 @@ using ProperTea.Infrastructure.Common.Pagination;
 
 namespace ProperTea.Landlord.Bff.Companies;
 
-public record CreateCompanyRequest(string Name);
+public record CreateCompanyRequest(string Code, string Name);
 
-public record UpdateCompanyRequest(string Name);
+public record UpdateCompanyRequest(string? Code, string? Name);
 
 public record CompanyAuditLogResponse(
     Guid CompanyId,
@@ -19,24 +19,17 @@ public record CompanyAuditLogEntry(
 
 public record CompanyResponse(Guid Id);
 
-public record CompanyListItem(Guid Id, string Name, string Status, DateTimeOffset CreatedAt);
+public record CompanyListItem(Guid Id, string Code, string Name, string Status, DateTimeOffset CreatedAt);
 
-public record CompanyDetailResponse(Guid Id, string Name, string Status, DateTimeOffset CreatedAt);
+public record CompanyDetailResponse(Guid Id, string Code, string Name, string Status, DateTimeOffset CreatedAt);
 
-public record PagedCompaniesResponse(
-    IReadOnlyList<CompanyListItem> Items,
-    int TotalCount,
-    int Page,
-    int PageSize)
-{
-    public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
-    public bool HasNextPage => Page < TotalPages;
-    public bool HasPreviousPage => Page > 1;
-}
+
 
 public record CheckNameResponse(bool Available, Guid? ExistingCompanyId);
 
-public record CompanySelectItem(Guid Id, string Name);
+public record CheckCodeResponse(bool Available, Guid? ExistingCompanyId);
+
+public record CompanySelectItem(Guid Id, string Code, string Name);
 
 public class CompanyClient(HttpClient httpClient)
 {
@@ -48,7 +41,7 @@ public class CompanyClient(HttpClient httpClient)
             ?? throw new InvalidOperationException("Failed to deserialize company response");
     }
 
-    public async Task<PagedCompaniesResponse> GetCompaniesAsync(
+    public async Task<PagedResult<CompanyListItem>> GetCompaniesAsync(
         ListCompaniesQuery query,
         PaginationQuery pagination,
         SortQuery sort,
@@ -65,8 +58,8 @@ public class CompanyClient(HttpClient httpClient)
         if (!string.IsNullOrWhiteSpace(sort.Sort))
             queryString["sort"] = sort.Sort;
 
-        return await httpClient.GetFromJsonAsync<PagedCompaniesResponse>($"/companies?{queryString}", ct)
-            ?? new PagedCompaniesResponse([], 0, pagination.Page, pagination.PageSize);
+        return await httpClient.GetFromJsonAsync<PagedResult<CompanyListItem>>($"/companies?{queryString}", ct)
+            ?? new PagedResult<CompanyListItem> { Items = [], TotalCount = 0, Page = pagination.Page, PageSize = pagination.PageSize };
     }
 
     public async Task<CompanyDetailResponse?> GetCompanyAsync(Guid id, CancellationToken ct = default)
@@ -108,8 +101,23 @@ public class CompanyClient(HttpClient httpClient)
         if (excludeId.HasValue)
             queryString["excludeId"] = excludeId.Value.ToString();
 
-        return await httpClient.GetFromJsonAsync<CheckNameResponse>($"/companies/check-name?{queryString}", ct)
+        return await httpClient.GetFromJsonAsync<CheckNameResponse>($"/companies_/check-name?{queryString}", ct)
             ?? throw new InvalidOperationException("Failed to check company name");
+    }
+
+    public async Task<CheckCodeResponse> CheckCompanyCodeAsync(
+        string code,
+        Guid? excludeId = null,
+        CancellationToken ct = default)
+    {
+        var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
+        queryString["code"] = code;
+
+        if (excludeId.HasValue)
+            queryString["excludeId"] = excludeId.Value.ToString();
+
+        return await httpClient.GetFromJsonAsync<CheckCodeResponse>($"/companies_/check-code?{queryString}", ct)
+            ?? throw new InvalidOperationException("Failed to check company code");
     }
 
     public async Task<List<CompanySelectItem>> SelectCompaniesAsync(CancellationToken ct = default)

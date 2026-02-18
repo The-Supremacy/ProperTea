@@ -1,5 +1,6 @@
 using Marten;
 using ProperTea.Infrastructure.Common.Exceptions;
+using ProperTea.Organization.Features.Organizations.Projections;
 using Wolverine;
 
 namespace ProperTea.Organization.Features.Organizations.Lifecycle;
@@ -12,8 +13,15 @@ public class ActivateHandler : IWolverineHandler
         IMessageBus messageBus,
         ILogger logger)
     {
+        var orgView = await session.Query<OrganizationDetailsView>()
+            .FirstOrDefaultAsync(o => o.OrganizationId == command.OrganizationId)
+            ?? throw new NotFoundException(
+                OrganizationErrorCodes.NOT_FOUND,
+                nameof(OrganizationAggregate),
+                command.OrganizationId);
+
         var org =
-            await session.Events.AggregateStreamAsync<OrganizationAggregate>(command.OrganizationId)
+            await session.Events.AggregateStreamAsync<OrganizationAggregate>(orgView.Id)
             ?? throw new NotFoundException(
                 OrganizationErrorCodes.NOT_FOUND,
                 nameof(OrganizationAggregate),
@@ -21,7 +29,7 @@ public class ActivateHandler : IWolverineHandler
 
         var activated = org.Activate();
 
-        _ = session.Events.Append(command.OrganizationId, activated);
+        _ = session.Events.Append(orgView.Id, activated);
         await session.SaveChangesAsync(command.CancellationToken);
 
         var integrationEvent = new OrganizationIntegrationEvents.OrganizationActivated(
@@ -36,5 +44,5 @@ public class ActivateHandler : IWolverineHandler
 }
 
 public record ActivateCommand(
-    Guid OrganizationId,
+    string OrganizationId,
     CancellationToken CancellationToken = default);

@@ -3,6 +3,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { organizationsRoutes } from './features/organizations/organizations.routes';
 import { companiesRoutes } from './features/companies/companies.routes';
 import { propertiesRoutes } from './features/properties/routes';
+import { buildingsRoutes } from './features/buildings/routes';
 // Units feature temporarily removed from navigation
 // import { unitsRoutes } from './features/units/routes';
 
@@ -26,19 +27,24 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
-        data: { breadcrumb: 'Dashboard' },
+        data: { breadcrumb: 'nav.dashboard' },
         loadComponent: () =>
           import('./features/dashboard/dashboard-home.page').then((m) => m.DashboardHomePage),
       },
       {
         path: 'companies',
-        data: { breadcrumb: 'Companies' },
+        data: { breadcrumb: 'nav.companies' },
         children: companiesRoutes,
       },
       {
         path: 'properties',
-        data: { breadcrumb: 'Properties' },
+        data: { breadcrumb: 'nav.properties' },
         children: propertiesRoutes,
+      },
+      {
+        path: 'buildings',
+        data: { breadcrumb: 'nav.buildings' },
+        children: buildingsRoutes,
       },
       // Units feature temporarily removed from navigation
       // {

@@ -43,6 +43,6 @@ public static class UserProfileConfiguration
         _ = opts.Projections.Snapshot<UserProfileAggregate>(SnapshotLifecycle.Inline);
 
         _ = opts.Schema.For<UserProfileAggregate>()
-            .Index(x => x.ExternalUserId, idx => idx.IsUnique = true);
+            .Index(x => x.UserId, idx => idx.IsUnique = true);
     }
 }

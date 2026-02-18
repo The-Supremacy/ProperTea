@@ -23,7 +23,7 @@ public class DeletePropertyHandler : IWolverineHandler
         _ = session.Events.Append(command.PropertyId, deleted);
         await session.SaveChangesAsync();
 
-        var organizationId = Guid.Parse(session.TenantId);
+        var organizationId = session.TenantId;
         await bus.PublishAsync(new PropertyIntegrationEvents.PropertyDeleted
         {
             PropertyId = command.PropertyId,

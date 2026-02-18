@@ -7,7 +7,7 @@ namespace ProperTea.User.Features.UserProfiles;
 public class UserProfileAggregate : IRevisioned, ITenanted
 {
     public Guid Id { get; set; }
-    public string ExternalUserId { get; set; } = string.Empty;
+    public string UserId { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? LastSeenAt { get; set; }
     public DateTimeOffset? OrganizationDeactivatedAt { get; set; }
@@ -16,15 +16,15 @@ public class UserProfileAggregate : IRevisioned, ITenanted
 
     #region Factory Methods
 
-    public static Created Create(Guid profileId, string externalUserId)
+    public static Created Create(Guid profileId, string userId)
     {
-        if (string.IsNullOrWhiteSpace(externalUserId))
+        if (string.IsNullOrWhiteSpace(userId))
             throw new BusinessViolationException(
                 UserProfileErrorCodes.EXTERNAL_ID_REQUIRED,
-                nameof(externalUserId),
-                "External User ID is required");
+                nameof(userId),
+                "User ID is required");
 
-        return new Created(profileId, externalUserId, DateTimeOffset.UtcNow);
+        return new Created(profileId, userId, DateTimeOffset.UtcNow);
     }
 
     public LastSeenUpdated UpdateLastSeen()
@@ -39,7 +39,7 @@ public class UserProfileAggregate : IRevisioned, ITenanted
     public void Apply(Created e)
     {
         Id = e.ProfileId;
-        ExternalUserId = e.ExternalUserId;
+        UserId = e.UserId;
         CreatedAt = e.CreatedAt;
     }
 

@@ -1,26 +1,23 @@
 namespace ProperTea.Landlord.Bff.Organizations;
 
 public record OrganizationDto(
-    Guid Id,
+    string OrganizationId,
     string Name,
     string Status,
-    string? ExternalOrganizationId,
     DateTimeOffset CreatedAt,
     int Version
 );
 
 public record OrganizationDetailResponse(
-    Guid Id,
+    string OrganizationId,
     string? Name,
     string Status,
     string Tier,
-    string? ExternalOrganizationId,
     DateTimeOffset CreatedAt
 );
 
 public record OrganizationContextDto(
-    Guid? LocalOrgId,
-    string? ExternalOrganizationId,
+    string? OrganizationId,
     string? OrgName,
     bool IsSynced
 );
@@ -33,7 +30,7 @@ public record RegisterOrganizationRequest(
     string UserPassword);
 
 public record RegisterOrganizationResponse(
-    Guid OrganizationId
+    string OrganizationId
 );
 
 public record CheckNameResponse(
@@ -49,6 +46,6 @@ public record AuditLogEntryDto(
 );
 
 public record AuditLogResponse(
-    Guid OrganizationId,
+    string OrganizationId,
     IReadOnlyList<AuditLogEntryDto> Entries
 );

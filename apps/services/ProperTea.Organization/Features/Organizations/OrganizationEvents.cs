@@ -7,9 +7,9 @@ public static class OrganizationEvents
         OrganizationAggregate.SubscriptionTier Tier,
         DateTimeOffset CreatedAt);
 
-    public record ExternalOrganizationCreated(
-        Guid OrganizationId,
-        string ExternalOrganizationId);
+    public record OrganizationLinked(
+        Guid StreamId,
+        string OrganizationId);
 
     public record Activated(
         Guid OrganizationId,
