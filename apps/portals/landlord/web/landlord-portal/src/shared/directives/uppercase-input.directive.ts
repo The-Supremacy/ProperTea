@@ -16,7 +16,9 @@ export class UppercaseInputDirective {
     const end = input.selectionEnd;
     const upper = input.value.toUpperCase();
     input.value = upper;
-    input.setSelectionRange(start, end);
+    if (start !== null && end !== null) {
+      input.setSelectionRange(start, end);
+    }
     this.ngControl?.control?.setValue(upper, { emitEvent: true });
   }
 }

@@ -120,7 +120,7 @@ public class CreateUnitHandler : IWolverineHandler
             Code = command.Code,
             UnitReference = unitReference,
             Category = command.Category.ToString(),
-            Address = new Contracts.Events.AddressData(
+            Address = new AddressData(
                 address.Country.ToString(),
                 address.City,
                 address.ZipCode,

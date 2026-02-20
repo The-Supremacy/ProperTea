@@ -10,11 +10,13 @@ public static class CompanyEvents
 
     public record CodeUpdated(
         Guid CompanyId,
-        string Code);
+        string Code,
+        DateTimeOffset UpdatedAt);
 
     public record NameUpdated(
         Guid CompanyId,
-        string Name);
+        string Name,
+        DateTimeOffset UpdatedAt);
 
     public record Deleted(
         Guid CompanyId,

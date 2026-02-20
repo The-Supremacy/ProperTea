@@ -19,6 +19,7 @@ public static class UnitIntegrationEvents
         public AddressData Address { get; set; } = null!;
         public int? Floor { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
+        IAddressData IUnitCreated.Address => Address;
     }
 
     [MessageIdentity("units.updated.v1")]
@@ -35,6 +36,7 @@ public static class UnitIntegrationEvents
         public AddressData Address { get; set; } = null!;
         public int? Floor { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }
+        IAddressData IUnitUpdated.Address => Address;
     }
 
     [MessageIdentity("units.deleted.v1")]

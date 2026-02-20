@@ -126,7 +126,7 @@ public class UpdateUnitHandler : IWolverineHandler
         if (unit.PropertyId != command.PropertyId || unit.BuildingId != command.BuildingId || unit.EntranceId != command.EntranceId)
             events.Add(unit.ChangeLocation(command.PropertyId, command.BuildingId, command.EntranceId, command.Category));
 
-        if (!unit.Address.Equals(address))
+        if (!Equals(unit.Address, address))
             events.Add(unit.UpdateAddress(address));
 
         if (unit.Floor != command.Floor)
@@ -152,7 +152,7 @@ public class UpdateUnitHandler : IWolverineHandler
                 Code = command.Code,
                 UnitReference = unitReference,
                 Category = command.Category.ToString(),
-                Address = new Contracts.Events.AddressData(
+                Address = new AddressData(
                     address.Country.ToString(),
                     address.City,
                     address.ZipCode,

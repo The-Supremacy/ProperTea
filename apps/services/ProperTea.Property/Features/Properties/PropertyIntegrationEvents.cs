@@ -15,6 +15,7 @@ public static class PropertyIntegrationEvents
         public string Name { get; set; } = null!;
         public AddressData Address { get; set; } = null!;
         public DateTimeOffset CreatedAt { get; set; }
+        IAddressData IPropertyCreated.Address => Address;
     }
 
     [MessageIdentity("properties.updated.v1")]
@@ -27,6 +28,7 @@ public static class PropertyIntegrationEvents
         public string Name { get; set; } = null!;
         public AddressData Address { get; set; } = null!;
         public DateTimeOffset UpdatedAt { get; set; }
+        IAddressData IPropertyUpdated.Address => Address;
     }
 
     [MessageIdentity("properties.deleted.v1")]

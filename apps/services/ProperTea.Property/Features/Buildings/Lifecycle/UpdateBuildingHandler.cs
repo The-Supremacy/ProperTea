@@ -65,7 +65,7 @@ public class UpdateBuildingHandler : IWolverineHandler
                 OrganizationId = organizationId,
                 Code = command.Code ?? building.Code,
                 Name = command.Name ?? building.Name,
-                Address = new Contracts.Events.AddressData(
+                Address = new AddressData(
                     effectiveAddress.Country.ToString(),
                     effectiveAddress.City,
                     effectiveAddress.ZipCode,

@@ -174,7 +174,7 @@ public class ListUnitsHandler : IWolverineHandler
             "code" => sortQuery.IsDescending
                 ? query.OrderByDescending(u => u.Code)
                 : query.OrderBy(u => u.Code),
-            "unitnumber" => sortQuery.IsDescending
+            "unitreference" or "unitnumber" => sortQuery.IsDescending
                 ? query.OrderByDescending(u => u.UnitReference)
                 : query.OrderBy(u => u.UnitReference),
             "category" => sortQuery.IsDescending

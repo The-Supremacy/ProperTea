@@ -119,7 +119,9 @@ public class ListPropertiesHandler : IWolverineHandler
             "name" => sortQuery.IsDescending
                 ? query.OrderByDescending(p => p.Name)
                 : query.OrderBy(p => p.Name),
-            "address" => query.OrderByDescending(p => p.CreatedAt), // address is a value object; sort by createdAt as fallback
+            "address" => sortQuery.IsDescending
+                ? query.OrderByDescending(p => p.CreatedAt)
+                : query.OrderBy(p => p.CreatedAt), // address is a value object; sort by createdAt as fallback
             "created" or "createdat" => sortQuery.IsDescending
                 ? query.OrderByDescending(p => p.CreatedAt)
                 : query.OrderBy(p => p.CreatedAt),

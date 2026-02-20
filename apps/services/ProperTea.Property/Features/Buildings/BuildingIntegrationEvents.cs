@@ -15,6 +15,7 @@ public static class BuildingIntegrationEvents
         public string Name { get; set; } = null!;
         public AddressData Address { get; set; } = null!;
         public DateTimeOffset CreatedAt { get; set; }
+        IAddressData IBuildingCreated.Address => Address;
     }
 
     [MessageIdentity("buildings.updated.v1")]
@@ -27,6 +28,7 @@ public static class BuildingIntegrationEvents
         public string Name { get; set; } = null!;
         public AddressData Address { get; set; } = null!;
         public DateTimeOffset UpdatedAt { get; set; }
+        IAddressData IBuildingUpdated.Address => Address;
     }
 
     [MessageIdentity("buildings.deleted.v1")]
