@@ -26,6 +26,12 @@ public static class BuildingEndpoints
         _ = group.MapGet("/{id:guid}/audit-log", GetBuildingAuditLog)
             .WithName("GetBuildingAuditLog");
 
+        _ = group.MapPost("/{id:guid}/entrances", AddEntrance)
+            .WithName("AddEntrance");
+
+        _ = group.MapDelete("/{id:guid}/entrances/{entranceId:guid}", RemoveEntrance)
+            .WithName("RemoveEntrance");
+
         _ = group.MapGet("/property/{propertyId:guid}", GetBuildings)
             .WithName("GetBuildings");
 
@@ -115,5 +121,25 @@ public static class BuildingEndpoints
     {
         var auditLog = await client.GetBuildingAuditLogAsync(id, ct);
         return Results.Ok(auditLog);
+    }
+
+    private static async Task<IResult> AddEntrance(
+        Guid id,
+        [FromBody] AddEntranceRequest request,
+        [FromServices] BuildingClient client,
+        CancellationToken ct)
+    {
+        var entranceId = await client.AddEntranceAsync(id, request, ct);
+        return Results.Created($"/api/buildings/{id}/entrances/{entranceId}", new { Id = entranceId });
+    }
+
+    private static async Task<IResult> RemoveEntrance(
+        Guid id,
+        Guid entranceId,
+        [FromServices] BuildingClient client,
+        CancellationToken ct)
+    {
+        await client.RemoveEntranceAsync(id, entranceId, ct);
+        return Results.NoContent();
     }
 }

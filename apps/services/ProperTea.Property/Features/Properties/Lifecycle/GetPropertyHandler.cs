@@ -1,4 +1,5 @@
 using Marten;
+using ProperTea.Infrastructure.Common.Address;
 using Wolverine;
 
 namespace ProperTea.Property.Features.Properties.Lifecycle;
@@ -10,7 +11,7 @@ public record PropertyResponse(
     Guid CompanyId,
     string Code,
     string Name,
-    string Address,
+    Address Address,
     string Status,
     DateTimeOffset CreatedAt);
 
@@ -22,7 +23,7 @@ public class GetPropertyHandler : IWolverineHandler
     {
         var property = await session.Events.AggregateStreamAsync<PropertyAggregate>(query.PropertyId);
 
-        if (property == null)
+        if (property is null || property.CurrentStatus == PropertyAggregate.Status.Deleted)
             return null;
 
         return new PropertyResponse(

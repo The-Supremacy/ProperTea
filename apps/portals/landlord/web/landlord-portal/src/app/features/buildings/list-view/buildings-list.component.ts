@@ -154,7 +154,7 @@ export class BuildingsListComponent {
         optionsProvider: () =>
           this.propertyService.select().pipe(
             map((properties) =>
-              properties.map((property) => ({ value: property.id, label: property.name }))
+              properties.map((property) => ({ value: property.id, label: `${property.code} – ${property.name}` }))
             ),
           ),
       },
@@ -193,10 +193,10 @@ export class BuildingsListComponent {
 
     this.buildingService.delete(building.id).subscribe({
       next: () => {
-        this.toastService.success('buildings.deleteSuccess');
+        this.toastService.success('buildings.success.deleted');
       },
       error: () => {
-        this.toastService.error('buildings.deleteError');
+        this.toastService.error('buildings.error.deleteFailed');
       },
     });
   }

@@ -1,5 +1,7 @@
 using Marten.Metadata;
+using ProperTea.Infrastructure.Common.Address;
 using ProperTea.Infrastructure.Common.Exceptions;
+using ProperTea.Infrastructure.Common.Validation;
 using static ProperTea.Property.Features.Units.UnitEvents;
 
 namespace ProperTea.Property.Features.Units;
@@ -9,6 +11,7 @@ public enum UnitCategory
     Apartment = 1,
     Commercial = 2,
     Parking = 3,
+    House = 4,
     Other = 99
 }
 
@@ -17,12 +20,12 @@ public class UnitAggregate : IRevisioned, ITenanted
     public Guid Id { get; set; }
     public Guid PropertyId { get; set; }
     public Guid? BuildingId { get; set; }
+    public Guid? EntranceId { get; set; }
     public string Code { get; set; } = null!;
-    public string UnitNumber { get; set; } = null!;
+    public string UnitReference { get; set; } = null!;
     public UnitCategory Category { get; set; }
+    public Address Address { get; set; } = null!;
     public int? Floor { get; set; }
-    public decimal? SquareFootage { get; set; }
-    public int? RoomCount { get; set; }
     public Status CurrentStatus { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public int Version { get; set; }
@@ -35,12 +38,12 @@ public class UnitAggregate : IRevisioned, ITenanted
         Guid id,
         Guid propertyId,
         Guid? buildingId,
+        Guid? entranceId,
         string code,
-        string unitNumber,
+        string unitReference,
         UnitCategory category,
+        Address address,
         int? floor,
-        decimal? squareFootage,
-        int? roomCount,
         DateTimeOffset createdAt)
     {
         if (propertyId == Guid.Empty)
@@ -49,33 +52,54 @@ public class UnitAggregate : IRevisioned, ITenanted
                 "Unit must belong to a property");
 
         ValidateCode(code);
+        ValidateBuildingRules(category, buildingId);
+        ValidateEntranceRules(entranceId, buildingId);
+        ValidateAddress(address);
 
-        if (string.IsNullOrWhiteSpace(unitNumber))
-            throw new BusinessViolationException(
-                UnitErrorCodes.UNIT_NUMBER_REQUIRED,
-                "Unit number is required");
-
-        return new Created(id, propertyId, buildingId, code, unitNumber, category, floor, squareFootage, roomCount, createdAt);
+        return new Created(id, propertyId, buildingId, entranceId, code, unitReference,
+            category, address, floor, createdAt);
     }
 
-    public Updated Update(
-        Guid? buildingId,
-        string code,
-        string unitNumber,
-        UnitCategory category,
-        int? floor,
-        decimal? squareFootage,
-        int? roomCount)
+    public CodeUpdated UpdateCode(string newCode)
     {
         EnsureNotDeleted();
-        ValidateCode(code);
+        ValidateCode(newCode);
+        return new CodeUpdated(Id, Code, newCode);
+    }
 
-        if (string.IsNullOrWhiteSpace(unitNumber))
-            throw new BusinessViolationException(
-                UnitErrorCodes.UNIT_NUMBER_REQUIRED,
-                "Unit number is required");
+    public UnitReferenceRegenerated RegenerateReference(string newReference)
+    {
+        EnsureNotDeleted();
+        return new(Id, UnitReference, newReference);
+    }
 
-        return new Updated(Id, buildingId, code, unitNumber, category, floor, squareFootage, roomCount);
+    public CategoryChanged ChangeCategory(UnitCategory newCategory, Guid? buildingId)
+    {
+        EnsureNotDeleted();
+        ValidateBuildingRules(newCategory, buildingId);
+        return new CategoryChanged(Id, Category, newCategory);
+    }
+
+    public LocationChanged ChangeLocation(
+        Guid newPropertyId, Guid? newBuildingId, Guid? newEntranceId, UnitCategory currentCategory)
+    {
+        EnsureNotDeleted();
+        ValidateBuildingRules(currentCategory, newBuildingId);
+        ValidateEntranceRules(newEntranceId, newBuildingId);
+        return new LocationChanged(Id, PropertyId, newPropertyId, BuildingId, newBuildingId, EntranceId, newEntranceId);
+    }
+
+    public AddressUpdated UpdateAddress(Address address)
+    {
+        EnsureNotDeleted();
+        ValidateAddress(address);
+        return new AddressUpdated(Id, address);
+    }
+
+    public FloorUpdated UpdateFloor(int? newFloor)
+    {
+        EnsureNotDeleted();
+        return new FloorUpdated(Id, Floor, newFloor);
     }
 
     public Deleted Delete(DateTimeOffset deletedAt)
@@ -97,26 +121,22 @@ public class UnitAggregate : IRevisioned, ITenanted
         Id = e.UnitId;
         PropertyId = e.PropertyId;
         BuildingId = e.BuildingId;
+        EntranceId = e.EntranceId;
         Code = e.Code;
-        UnitNumber = e.UnitNumber;
+        UnitReference = e.UnitReference;
         Category = e.Category;
+        Address = e.Address;
         Floor = e.Floor;
-        SquareFootage = e.SquareFootage;
-        RoomCount = e.RoomCount;
         CreatedAt = e.CreatedAt;
         CurrentStatus = Status.Active;
     }
 
-    public void Apply(Updated e)
-    {
-        BuildingId = e.BuildingId;
-        Code = e.Code;
-        UnitNumber = e.UnitNumber;
-        Category = e.Category;
-        Floor = e.Floor;
-        SquareFootage = e.SquareFootage;
-        RoomCount = e.RoomCount;
-    }
+    public void Apply(CodeUpdated e)         => Code = e.NewCode;
+    public void Apply(UnitReferenceRegenerated e) => UnitReference = e.NewReference;
+    public void Apply(CategoryChanged e)     => Category = e.NewCategory;
+    public void Apply(LocationChanged e)     { PropertyId = e.NewPropertyId; BuildingId = e.NewBuildingId; EntranceId = e.NewEntranceId; }
+    public void Apply(AddressUpdated e)      => Address = e.Address;
+    public void Apply(FloorUpdated e)        => Floor = e.NewFloor;
 
     public void Apply(Deleted e)
     {
@@ -135,15 +155,51 @@ public class UnitAggregate : IRevisioned, ITenanted
 
     private static void ValidateCode(string code)
     {
-        if (string.IsNullOrWhiteSpace(code))
-            throw new BusinessViolationException(
-                UnitErrorCodes.UNIT_CODE_REQUIRED,
-                "Unit code is required");
+        CodeValidator.Validate(
+            code,
+            maxLength: 10,
+            errorRequired: UnitErrorCodes.UNIT_CODE_REQUIRED,
+            errorTooLong: UnitErrorCodes.UNIT_CODE_TOO_LONG,
+            errorInvalidFormat: UnitErrorCodes.UNIT_CODE_INVALID_FORMAT);
+    }
 
-        if (code.Length > 50)
+    private static void ValidateBuildingRules(UnitCategory category, Guid? buildingId)
+    {
+        if (category == UnitCategory.Apartment && !buildingId.HasValue)
             throw new BusinessViolationException(
-                UnitErrorCodes.UNIT_CODE_TOO_LONG,
-                "Unit code cannot exceed 50 characters");
+                UnitErrorCodes.UNIT_BUILDING_REQUIRED,
+                "Apartment units must be assigned to a building");
+
+        if (category == UnitCategory.House && buildingId.HasValue)
+            throw new BusinessViolationException(
+                UnitErrorCodes.UNIT_BUILDING_NOT_ALLOWED,
+                "House units cannot be assigned to a building");
+    }
+
+    private static void ValidateEntranceRules(Guid? entranceId, Guid? buildingId)
+    {
+        if (entranceId.HasValue && !buildingId.HasValue)
+            throw new BusinessViolationException(
+                UnitErrorCodes.UNIT_ENTRANCE_REQUIRES_BUILDING,
+                "An entrance can only be set when the unit belongs to a building");
+    }
+
+    private static void ValidateAddress(Address address)
+    {
+        if (string.IsNullOrWhiteSpace(address?.City))
+            throw new BusinessViolationException(
+                UnitErrorCodes.UNIT_ADDRESS_REQUIRED,
+                "Unit address city is required");
+
+        if (string.IsNullOrWhiteSpace(address?.ZipCode))
+            throw new BusinessViolationException(
+                UnitErrorCodes.UNIT_ADDRESS_REQUIRED,
+                "Unit address zip code is required");
+
+        if (string.IsNullOrWhiteSpace(address?.StreetAddress))
+            throw new BusinessViolationException(
+                UnitErrorCodes.UNIT_ADDRESS_REQUIRED,
+                "Unit street address is required");
     }
 
     public enum Status
@@ -152,3 +208,4 @@ public class UnitAggregate : IRevisioned, ITenanted
         Deleted = 2
     }
 }
+

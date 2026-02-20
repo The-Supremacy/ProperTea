@@ -1,4 +1,5 @@
 using Marten;
+using ProperTea.Infrastructure.Common.Address;
 using ProperTea.Property.Features.Companies;
 using ProperTea.Property.Features.Buildings;
 using ProperTea.Infrastructure.Common.Pagination;
@@ -24,7 +25,7 @@ public record PropertyListItemResponse(
     string? CompanyName,
     string Code,
     string Name,
-    string Address,
+    Address Address,
     int BuildingCount,
     string Status,
     DateTimeOffset CreatedAt);
@@ -118,9 +119,7 @@ public class ListPropertiesHandler : IWolverineHandler
             "name" => sortQuery.IsDescending
                 ? query.OrderByDescending(p => p.Name)
                 : query.OrderBy(p => p.Name),
-            "address" => sortQuery.IsDescending
-                ? query.OrderByDescending(p => p.Address)
-                : query.OrderBy(p => p.Address),
+            "address" => query.OrderByDescending(p => p.CreatedAt), // address is a value object; sort by createdAt as fallback
             "created" or "createdat" => sortQuery.IsDescending
                 ? query.OrderByDescending(p => p.CreatedAt)
                 : query.OrderBy(p => p.CreatedAt),

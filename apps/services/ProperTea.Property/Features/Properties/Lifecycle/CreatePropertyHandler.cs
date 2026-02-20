@@ -1,5 +1,7 @@
 using Marten;
+using ProperTea.Infrastructure.Common.Address;
 using ProperTea.Infrastructure.Common.Exceptions;
+using ProperTea.Property.Features.Companies;
 using Wolverine;
 
 namespace ProperTea.Property.Features.Properties.Lifecycle;
@@ -8,7 +10,7 @@ public record CreateProperty(
     Guid CompanyId,
     string Code,
     string Name,
-    string Address);
+    Address Address);
 
 public class CreatePropertyHandler : IWolverineHandler
 {
@@ -17,12 +19,18 @@ public class CreatePropertyHandler : IWolverineHandler
         IDocumentSession session,
         IMessageBus bus)
     {
-        var existingProperty = await session.Query<PropertyAggregate>()
+        var companyRef = await session.LoadAsync<CompanyReference>(command.CompanyId);
+        if (companyRef is null || companyRef.IsDeleted)
+            throw new NotFoundException(
+                PropertyErrorCodes.PROPERTY_COMPANY_NOT_FOUND,
+                "CompanyReference",
+                command.CompanyId);
+
+        var codeExists = await session.Query<PropertyAggregate>()
             .Where(p => p.CompanyId == command.CompanyId
                 && p.Code == command.Code
                 && p.CurrentStatus == PropertyAggregate.Status.Active)
-                .ToListAsync();
-        var codeExists = existingProperty.Any();
+                .AnyAsync();
 
         if (codeExists)
             throw new ConflictException(
@@ -49,7 +57,11 @@ public class CreatePropertyHandler : IWolverineHandler
             CompanyId = command.CompanyId,
             Code = command.Code,
             Name = command.Name,
-            Address = command.Address,
+            Address = new Contracts.Events.AddressData(
+                command.Address.Country.ToString(),
+                command.Address.City,
+                command.Address.ZipCode,
+                command.Address.StreetAddress),
             CreatedAt = created.CreatedAt
         });
 

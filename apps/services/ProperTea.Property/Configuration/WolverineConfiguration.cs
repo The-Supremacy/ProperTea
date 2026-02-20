@@ -1,6 +1,7 @@
 using JasperFx;
 using JasperFx.Core;
 using JasperFx.Resources;
+using ProperTea.Property.Features.Buildings.Configuration;
 using ProperTea.Property.Features.Properties.Configuration;
 using ProperTea.Property.Features.Units.Configuration;
 using ProperTea.Infrastructure.Common.Auth;
@@ -43,6 +44,7 @@ public static class WolverineConfiguration
             _ = opts.ListenToRabbitQueue("property.company-events").UseDurableInbox();
 
             opts.ConfigurePropertyIntegrationEvents();
+            opts.ConfigureBuildingIntegrationEvents();
             opts.ConfigureUnitIntegrationEvents();
 
             _ = opts

@@ -5,7 +5,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ColumnDef } from '@tanstack/angular-table';
 import { PropertyService } from '../services/property.service';
 import { CompanyService } from '../../companies/services/company.service';
-import { PropertyListItem, PropertyFilters } from '../models/property.models';
+import { PropertyListItem, PropertyFilters, PropertyAddress, formatAddress } from '../models/property.models';
 import {
   EntityListViewComponent,
   EntityListConfig,
@@ -109,7 +109,7 @@ export class PropertiesListComponent {
         id: 'address',
         header: this.translocoService.translate('properties.address'),
         accessorKey: 'address',
-        cell: (info) => info.getValue(),
+        cell: (info) => formatAddress(info.getValue() as PropertyAddress),
         enableSorting: true,
       },
       {
@@ -187,7 +187,7 @@ export class PropertiesListComponent {
         placeholder: 'common.search',
         optionsProvider: () =>
           this.companyService.select().pipe(
-            map((companies) => companies.map((company) => ({ value: company.id, label: company.name }))),
+            map((companies) => companies.map((company) => ({ value: company.id, label: `${company.code} – ${company.name}` }))),
           ),
       }
     ];
@@ -217,10 +217,10 @@ export class PropertiesListComponent {
 
     this.propertyService.delete(property.id).subscribe({
       next: () => {
-        this.toastService.success(this.translocoService.translate('properties.deleteSuccess'));
+        this.toastService.success('properties.success.deleted');
       },
       error: () => {
-        this.toastService.error(this.translocoService.translate('properties.deleteError'));
+        this.toastService.error('properties.error.deleteFailed');
       },
     });
   }

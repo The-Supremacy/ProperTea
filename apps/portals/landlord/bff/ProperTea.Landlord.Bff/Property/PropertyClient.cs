@@ -1,6 +1,9 @@
 using ProperTea.Infrastructure.Common.Pagination;
+using ProperTea.Landlord.Bff.Errors;
 
 namespace ProperTea.Landlord.Bff.Property;
+
+public record PropertyAddressDto(string Country, string City, string ZipCode, string StreetAddress);
 
 public record PropertyListItem(
     Guid Id,
@@ -8,7 +11,7 @@ public record PropertyListItem(
     string? CompanyName,
     string Code,
     string Name,
-    string Address,
+    PropertyAddressDto Address,
     int BuildingCount,
     string Status,
     DateTimeOffset CreatedAt);
@@ -20,22 +23,24 @@ public record PropertyDetailResponse(
     Guid CompanyId,
     string Code,
     string Name,
-    string Address,
+    PropertyAddressDto Address,
     string Status,
     DateTimeOffset CreatedAt);
 
-public record PropertySelectItem(Guid Id, string Name);
+public record PropertySelectItem(Guid Id, string Code, string Name);
+
+public record PropertyAddressInput(string Country, string City, string ZipCode, string StreetAddress);
 
 public record CreatePropertyRequest(
     Guid CompanyId,
     string Code,
     string Name,
-    string Address);
+    PropertyAddressInput? Address);
 
 public record UpdatePropertyRequest(
     string? Code,
     string? Name,
-    string? Address);
+    PropertyAddressInput? Address);
 
 public record PropertyAuditLogResponse(
     Guid PropertyId,
@@ -83,14 +88,14 @@ public class PropertyClient(HttpClient httpClient)
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             return null;
 
-        _ = response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessOrProxyAsync(ct);
         return await response.Content.ReadFromJsonAsync<PropertyDetailResponse>(ct);
     }
 
     public async Task<object> CreatePropertyAsync(CreatePropertyRequest request, CancellationToken ct = default)
     {
         var response = await httpClient.PostAsJsonAsync("/properties", request, ct);
-        _ = response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessOrProxyAsync(ct);
         return await response.Content.ReadFromJsonAsync<object>(ct)
             ?? throw new InvalidOperationException("Failed to deserialize property response");
     }
@@ -98,13 +103,13 @@ public class PropertyClient(HttpClient httpClient)
     public async Task UpdatePropertyAsync(Guid id, UpdatePropertyRequest request, CancellationToken ct = default)
     {
         var response = await httpClient.PutAsJsonAsync($"/properties/{id}", request, ct);
-        _ = response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessOrProxyAsync(ct);
     }
 
     public async Task DeletePropertyAsync(Guid id, CancellationToken ct = default)
     {
         var response = await httpClient.DeleteAsync($"/properties/{id}", ct);
-        _ = response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessOrProxyAsync(ct);
     }
 
     public async Task<PropertyAuditLogResponse> GetPropertyAuditLogAsync(Guid id, CancellationToken ct = default)

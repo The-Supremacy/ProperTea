@@ -13,8 +13,7 @@ public static class PropertyIntegrationEvents
         public Guid CompanyId { get; set; }
         public string Code { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public string Address { get; set; } = null!;
-        public decimal? SquareFootage { get; set; }
+        public AddressData Address { get; set; } = null!;
         public DateTimeOffset CreatedAt { get; set; }
     }
 
@@ -23,10 +22,10 @@ public static class PropertyIntegrationEvents
     {
         public Guid PropertyId { get; set; }
         public string OrganizationId { get; set; } = null!;
+        public Guid CompanyId { get; set; }
         public string Code { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public string Address { get; set; } = null!;
-        public decimal? SquareFootage { get; set; }
+        public AddressData Address { get; set; } = null!;
         public DateTimeOffset UpdatedAt { get; set; }
     }
 

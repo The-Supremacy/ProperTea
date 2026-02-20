@@ -13,6 +13,8 @@ import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { AutocompleteComponent } from '../../../../shared/components/autocomplete';
+import { AddressFormComponent } from '../../../../shared/components/address-form';
+import { UppercaseInputDirective } from '../../../../shared/directives';
 import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 
 @Component({
@@ -27,6 +29,8 @@ import { HlmSheetImports } from '@spartan-ng/helm/sheet';
     HlmButton,
     HlmSpinner,
     AutocompleteComponent,
+    AddressFormComponent,
+    UppercaseInputDirective,
     HlmSheetImports,
   ],
   templateUrl: './create-building-drawer.component.html',
@@ -53,8 +57,14 @@ export class CreateBuildingDrawerComponent {
   // Form
   protected form = this.fb.nonNullable.group({
     propertyId: ['', [Validators.required]],
-    code: ['', [Validators.required, Validators.maxLength(50)]],
+    code: ['', [Validators.required, Validators.maxLength(5), Validators.pattern(/^[A-Z0-9]*$/)]],
     name: ['', [Validators.required, Validators.maxLength(200)]],
+    address: this.fb.group({
+      country: [''],
+      streetAddress: [''],
+      city: [''],
+      zipCode: [''],
+    }),
   });
 
   constructor() {
@@ -78,7 +88,7 @@ export class CreateBuildingDrawerComponent {
       .select()
       .pipe(
         map((properties) =>
-          properties.map((p) => ({ value: p.id, label: p.name }))
+          properties.map((p) => ({ value: p.id, label: `${p.code} – ${p.name}` }))
         )
       );
   };
@@ -86,6 +96,20 @@ export class CreateBuildingDrawerComponent {
   protected onPropertyChange(value: string): void {
     this.form.controls.propertyId.setValue(value);
     this.form.controls.propertyId.markAsTouched();
+
+    // Pre-fill address from parent property
+    if (value) {
+      this.propertyService.get(value).subscribe((property) => {
+        if (property?.address) {
+          this.form.controls.address.patchValue({
+            country: property.address.country ?? '',
+            streetAddress: property.address.streetAddress ?? '',
+            city: property.address.city ?? '',
+            zipCode: property.address.zipCode ?? '',
+          });
+        }
+      });
+    }
   }
 
   close(): void {
@@ -109,6 +133,14 @@ export class CreateBuildingDrawerComponent {
       .create(formValue.propertyId, {
         code: formValue.code.trim(),
         name: formValue.name.trim(),
+        address: formValue.address.streetAddress || formValue.address.city || formValue.address.zipCode
+          ? {
+              country: formValue.address.country || 'UA',
+              streetAddress: formValue.address.streetAddress ?? '',
+              city: formValue.address.city ?? '',
+              zipCode: formValue.address.zipCode ?? '',
+            }
+          : undefined,
       })
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({

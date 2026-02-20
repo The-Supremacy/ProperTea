@@ -8,8 +8,10 @@ public class CompanyUpdatedHandler : IWolverineHandler
 {
     public async Task Handle(
         ICompanyUpdated message,
-        IDocumentSession session)
+        IDocumentStore store)
     {
+        await using var session = store.LightweightSession(message.OrganizationId);
+
         var existing = await session.LoadAsync<CompanyReference>(message.CompanyId);
         if (existing != null && existing.LastUpdatedAt >= message.UpdatedAt)
             return;

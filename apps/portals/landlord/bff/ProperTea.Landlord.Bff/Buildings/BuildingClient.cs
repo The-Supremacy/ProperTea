@@ -1,6 +1,11 @@
 using ProperTea.Infrastructure.Common.Pagination;
+using ProperTea.Landlord.Bff.Errors;
 
 namespace ProperTea.Landlord.Bff.Buildings;
+
+public record BuildingAddressDto(string Country, string City, string ZipCode, string StreetAddress);
+
+public record EntranceItemDto(Guid Id, string Code, string Name);
 
 public record BuildingListItem(
     Guid Id,
@@ -17,14 +22,16 @@ public record BuildingDetailResponse(
     Guid PropertyId,
     string Code,
     string Name,
+    BuildingAddressDto? Address,
     string Status,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    IReadOnlyList<EntranceItemDto> Entrances);
 
 public record BuildingSelectItem(Guid Id, string Code, string Name);
 
-public record CreateBuildingRequest(string Code, string Name);
-
-public record UpdateBuildingRequest(string? Code, string? Name);
+public record CreateBuildingRequest(string Code, string Name, BuildingAddressDto? Address);
+public record UpdateBuildingRequest(string? Code, string? Name, BuildingAddressDto? Address);
+public record AddEntranceRequest(string Code, string Name);
 
 public record BuildingAuditLogResponse(
     Guid BuildingId,
@@ -79,14 +86,14 @@ public class BuildingClient(HttpClient httpClient)
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             return null;
 
-        _ = response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessOrProxyAsync(ct);
         return await response.Content.ReadFromJsonAsync<BuildingDetailResponse>(ct);
     }
 
     public async Task<object> CreateBuildingAsync(Guid propertyId, CreateBuildingRequest request, CancellationToken ct = default)
     {
         var response = await httpClient.PostAsJsonAsync($"/properties/{propertyId}/buildings", request, ct);
-        _ = response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessOrProxyAsync(ct);
         return await response.Content.ReadFromJsonAsync<object>(ct)
             ?? throw new InvalidOperationException("Failed to deserialize building response");
     }
@@ -94,18 +101,32 @@ public class BuildingClient(HttpClient httpClient)
     public async Task UpdateBuildingAsync(Guid id, UpdateBuildingRequest request, CancellationToken ct = default)
     {
         var response = await httpClient.PutAsJsonAsync($"/buildings/{id}", request, ct);
-        _ = response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessOrProxyAsync(ct);
     }
 
     public async Task DeleteBuildingAsync(Guid id, CancellationToken ct = default)
     {
         var response = await httpClient.DeleteAsync($"/buildings/{id}", ct);
-        _ = response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessOrProxyAsync(ct);
     }
 
     public async Task<BuildingAuditLogResponse> GetBuildingAuditLogAsync(Guid id, CancellationToken ct = default)
     {
         return await httpClient.GetFromJsonAsync<BuildingAuditLogResponse>($"/buildings/{id}/audit-log", ct)
             ?? throw new InvalidOperationException("Failed to fetch building audit log");
+    }
+
+    public async Task<Guid> AddEntranceAsync(Guid buildingId, AddEntranceRequest request, CancellationToken ct = default)
+    {
+        var response = await httpClient.PostAsJsonAsync($"/buildings/{buildingId}/entrances", request, ct);
+        await response.EnsureSuccessOrProxyAsync(ct);
+        var result = await response.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>(ct);
+        return result.GetProperty("id").GetGuid();
+    }
+
+    public async Task RemoveEntranceAsync(Guid buildingId, Guid entranceId, CancellationToken ct = default)
+    {
+        var response = await httpClient.DeleteAsync($"/buildings/{buildingId}/entrances/{entranceId}", ct);
+        await response.EnsureSuccessOrProxyAsync(ct);
     }
 }

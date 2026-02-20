@@ -51,6 +51,7 @@
                         </label>
                         <input
                           id="code"
+                          appUppercase
                           type="text"
                           formControlName="code"
                           [placeholder]="'properties.codePlaceholder' | transloco"
@@ -63,6 +64,9 @@
                           }
                           @if (codeControl.hasError('maxlength')) {
                             <hlm-error>{{ 'properties.codeTooLong' | transloco }}</hlm-error>
+                          }
+                          @if (codeControl.hasError('pattern')) {
+                            <hlm-error>{{ 'common.codeInvalidFormat' | transloco }}</hlm-error>
                           }
                         }
                       </hlm-form-field>
@@ -91,26 +95,7 @@
                       </hlm-form-field>
 
                       <!-- Address Field -->
-                      <hlm-form-field>
-                        <label hlmLabel for="address">
-                          {{ 'properties.address' | transloco }}
-                        </label>
-                        <textarea
-                          id="address"
-                          formControlName="address"
-                          rows="3"
-                          [placeholder]="'properties.addressPlaceholder' | transloco"
-                          hlmTextarea class="w-full"></textarea>
-
-                        @if (addressControl.invalid && addressControl.touched) {
-                          @if (addressControl.hasError('required')) {
-                            <hlm-error>{{ 'properties.addressRequired' | transloco }}</hlm-error>
-                          }
-                          @if (addressControl.hasError('maxlength')) {
-                            <hlm-error>{{ 'properties.addressTooLong' | transloco }}</hlm-error>
-                          }
-                        }
-                      </hlm-form-field>
+                      <app-address-form [addressGroup]="$any(form.get('address'))" [required]="false" />
                     </form>
                   </div>
                 </section>
@@ -155,6 +140,7 @@
                         variant="ghost"
                         size="icon"
                         class="mr-2 shrink-0"
+                        [attr.aria-label]="'properties.addBuilding' | transloco"
                         (click)="createBuildingDrawerOpen.set(true)">
                         <app-icon name="add" [size]="20" />
                       </button>

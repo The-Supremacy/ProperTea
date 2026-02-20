@@ -1,7 +1,7 @@
 import { Component, inject, signal, input, output, computed, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize, firstValueFrom, map } from 'rxjs';
+import { finalize, map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { PropertyService } from '../services/property.service';
@@ -12,7 +12,9 @@ import { HlmFormFieldImports } from '@spartan-ng/helm/form-field';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
-import { AutocompleteComponent, AutocompleteOption } from '../../../../shared/components/autocomplete';
+import { AutocompleteComponent } from '../../../../shared/components/autocomplete';
+import { AddressFormComponent } from '../../../../shared/components/address-form';
+import { UppercaseInputDirective } from '../../../../shared/directives';
 import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 
 @Component({
@@ -27,6 +29,8 @@ import { HlmSheetImports } from '@spartan-ng/helm/sheet';
     HlmButton,
     HlmSpinner,
     AutocompleteComponent,
+    AddressFormComponent,
+    UppercaseInputDirective,
     HlmSheetImports,
   ],
   templateUrl: './create-property-drawer.component.html',
@@ -50,9 +54,14 @@ export class CreatePropertyDrawerComponent {
   // Form
   protected form = this.fb.nonNullable.group({
     companyId: ['', [Validators.required]],
-    code: ['', [Validators.required, Validators.maxLength(50)]],
+    code: ['', [Validators.required, Validators.maxLength(10), Validators.pattern(/^[A-Z0-9]*$/)]],
     name: ['', [Validators.required, Validators.maxLength(200)]],
-    address: ['', [Validators.required, Validators.maxLength(500)]],
+    address: this.fb.group({
+      country: [''],
+      streetAddress: [''],
+      city: [''],
+      zipCode: [''],
+    }),
   });
 
   // Convert form status to signal for reactivity
@@ -66,7 +75,7 @@ export class CreatePropertyDrawerComponent {
       .select()
       .pipe(
         map((companies) =>
-          companies.map((c) => ({ value: c.id, label: c.name }))
+          companies.map((c) => ({ value: c.id, label: `${c.code} – ${c.name}` }))
         )
       );
   };
@@ -98,7 +107,14 @@ export class CreatePropertyDrawerComponent {
         companyId: formValue.companyId,
         code: formValue.code.trim(),
         name: formValue.name.trim(),
-        address: formValue.address.trim(),
+        address: formValue.address.streetAddress || formValue.address.city || formValue.address.zipCode
+          ? {
+              country: formValue.address.country || 'UA',
+              streetAddress: formValue.address.streetAddress ?? '',
+              city: formValue.address.city ?? '',
+              zipCode: formValue.address.zipCode ?? '',
+            }
+          : undefined,
       })
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({

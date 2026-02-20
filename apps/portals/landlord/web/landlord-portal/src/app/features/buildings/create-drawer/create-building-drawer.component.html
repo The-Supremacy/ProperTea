@@ -39,6 +39,7 @@
           <input
             hlmInput
             id="building-code"
+            appUppercase
             type="text"
             formControlName="code"
             class="w-full"
@@ -51,6 +52,9 @@
             }
             @if (form.controls.code.hasError('maxlength')) {
               <hlm-error>{{ 'buildings.codeTooLong' | transloco }}</hlm-error>
+            }
+            @if (form.controls.code.hasError('pattern')) {
+              <hlm-error>{{ 'common.codeInvalidFormat' | transloco }}</hlm-error>
             }
           }
         </hlm-form-field>
@@ -80,6 +84,9 @@
             }
           }
         </hlm-form-field>
+
+        <!-- Address (optional) -->
+        <app-address-form [addressGroup]="$any(form.controls.address)" [required]="false" />
       </div>
 
       <hlm-sheet-footer>

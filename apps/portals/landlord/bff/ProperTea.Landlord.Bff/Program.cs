@@ -4,10 +4,12 @@ using ProperTea.Landlord.Bff.Auth;
 using ProperTea.Landlord.Bff.Buildings;
 using ProperTea.Landlord.Bff.Companies;
 using ProperTea.Landlord.Bff.Config;
+using ProperTea.Landlord.Bff.Errors;
 using ProperTea.Landlord.Bff.Organizations;
 using ProperTea.Landlord.Bff.Property;
 using ProperTea.Landlord.Bff.Session;
 using ProperTea.Landlord.Bff.Users;
+using ProperTea.Landlord.Bff.Units;
 using ProperTea.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +17,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddBffInfrastructure();
 builder.Services.AddBffAuthentication(builder.Configuration, builder.Environment.IsDevelopment());
 builder.Services.AddOpenApiConfiguration();
+
+// Register downstream proxy handler first — it intercepts known DownstreamApiExceptions
+// and proxies them verbatim. The shared GlobalExceptionHandler catches everything else.
+builder.Services.AddExceptionHandler<DownstreamExceptionHandler>();
 builder.AddGlobalErrorHandling();
 
 builder.Services.AddHttpContextAccessor();
@@ -79,6 +85,16 @@ builder.Services.AddHttpClient<BuildingClient>(client =>
 .AddUserAccessTokenHandler()
 .AddHttpMessageHandler<OrganizationHeaderHandler>();
 
+builder.Services.AddHttpClient<UnitClient>(client =>
+{
+    var propertyServiceUrl = builder.Configuration["services:property:http:0"]
+        ?? builder.Configuration["services:property:https:0"]
+        ?? throw new InvalidOperationException("Property service URL not configured");
+    client.BaseAddress = new Uri(propertyServiceUrl);
+})
+.AddUserAccessTokenHandler()
+.AddHttpMessageHandler<OrganizationHeaderHandler>();
+
 var app = builder.Build();
 
 app.UseOpenApi(app.Configuration, app.Environment);
@@ -96,6 +112,7 @@ app.MapUserEndpoints();
 app.MapCompanyEndpoints();
 app.MapPropertyEndpoints();
 app.MapBuildingEndpoints();
+app.MapUnitEndpoints();
 app.MapDefaultEndpoints();
 
 app.Run();

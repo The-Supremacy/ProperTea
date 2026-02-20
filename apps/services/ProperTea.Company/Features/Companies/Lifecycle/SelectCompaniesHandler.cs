@@ -5,7 +5,7 @@ namespace ProperTea.Company.Features.Companies.Lifecycle;
 
 public record SelectCompanies;
 
-public record SelectItem(Guid Id, string Name);
+public record SelectItem(Guid Id, string Code, string Name);
 
 public class SelectCompaniesHandler : IWolverineHandler
 {
@@ -15,10 +15,10 @@ public class SelectCompaniesHandler : IWolverineHandler
     {
         var companies = await session.Query<CompanyAggregate>()
             .Where(c => c.CurrentStatus == CompanyAggregate.Status.Active)
-            .OrderBy(c => c.Name)
-            .Select(c => new { c.Id, c.Name })
+            .OrderBy(c => c.Code)
+            .Select(c => new { c.Id, c.Code, c.Name })
             .ToListAsync();
 
-        return [.. companies.Select(c => new SelectItem(c.Id, c.Name))];
+        return [.. companies.Select(c => new SelectItem(c.Id, c.Code, c.Name))];
     }
 }

@@ -1,18 +1,22 @@
 using Marten;
+using ProperTea.Infrastructure.Common.Address;
 using ProperTea.Infrastructure.Common.Exceptions;
+using ProperTea.Property.Features.Buildings;
+using ProperTea.Property.Features.Companies;
+using ProperTea.Property.Features.Properties;
 using Wolverine;
 
 namespace ProperTea.Property.Features.Units.Lifecycle;
 
 public record UpdateUnit(
     Guid UnitId,
+    Guid PropertyId,
     Guid? BuildingId,
+    Guid? EntranceId,
     string Code,
-    string UnitNumber,
     UnitCategory Category,
-    int? Floor,
-    decimal? SquareFootage,
-    int? RoomCount);
+    AddressRequest Address,
+    int? Floor);
 
 public class UpdateUnitHandler : IWolverineHandler
 {
@@ -27,11 +31,31 @@ public class UpdateUnitHandler : IWolverineHandler
                 "Unit",
                 command.UnitId);
 
-        // Validate code uniqueness within property (exclude self)
-        if (unit.Code != command.Code)
+        // Category-based building enforcement
+        if (command.Category == UnitCategory.Apartment && !command.BuildingId.HasValue)
+            throw new BusinessViolationException(
+                UnitErrorCodes.UNIT_BUILDING_REQUIRED,
+                "Apartment units must be assigned to a building");
+
+        if (command.Category == UnitCategory.House && command.BuildingId.HasValue)
+            throw new BusinessViolationException(
+                UnitErrorCodes.UNIT_BUILDING_NOT_ALLOWED,
+                "House units cannot be assigned to a building");
+
+        // Validate target property exists and is active
+        var targetProperty = await session.LoadAsync<PropertyAggregate>(command.PropertyId)
+            ?? throw new NotFoundException(
+                PropertyErrorCodes.PROPERTY_NOT_FOUND, "Property", command.PropertyId);
+
+        if (targetProperty.CurrentStatus == PropertyAggregate.Status.Deleted)
+            throw new NotFoundException(
+                PropertyErrorCodes.PROPERTY_NOT_FOUND, "Property", command.PropertyId);
+
+        // Validate code uniqueness within the target property (exclude self)
+        if (unit.Code != command.Code || unit.PropertyId != command.PropertyId)
         {
             var codeExists = await session.Query<UnitAggregate>()
-                .Where(u => u.PropertyId == unit.PropertyId
+                .Where(u => u.PropertyId == command.PropertyId
                     && u.Code == command.Code
                     && u.CurrentStatus == UnitAggregate.Status.Active
                     && u.Id != command.UnitId)
@@ -43,32 +67,99 @@ public class UpdateUnitHandler : IWolverineHandler
                     $"A unit with code '{command.Code}' already exists in this property");
         }
 
-        var updated = unit.Update(
-            command.BuildingId,
-            command.Code,
-            command.UnitNumber,
-            command.Category,
-            command.Floor,
-            command.SquareFootage,
-            command.RoomCount);
-
-        _ = session.Events.Append(command.UnitId, updated);
-        await session.SaveChangesAsync();
-
-        var organizationId = session.TenantId;
-        await bus.PublishAsync(new UnitIntegrationEvents.UnitUpdated
+        // Load building, validate ownership against the target property, validate entrance
+        BuildingAggregate? building = null;
+        if (command.BuildingId.HasValue)
         {
-            UnitId = command.UnitId,
-            PropertyId = unit.PropertyId,
-            BuildingId = command.BuildingId,
-            OrganizationId = organizationId,
-            Code = command.Code,
-            UnitNumber = command.UnitNumber,
-            Category = command.Category.ToString(),
-            Floor = command.Floor,
-            SquareFootage = command.SquareFootage,
-            RoomCount = command.RoomCount,
-            UpdatedAt = DateTimeOffset.UtcNow
-        });
+            building = await session.LoadAsync<BuildingAggregate>(command.BuildingId.Value);
+
+            if (building is null || building.CurrentStatus == BuildingAggregate.Status.Deleted)
+                throw new NotFoundException(
+                    BuildingErrorCodes.BUILDING_NOT_FOUND,
+                    "Building",
+                    command.BuildingId.Value);
+
+            if (building.PropertyId != command.PropertyId)
+                throw new BusinessViolationException(
+                    UnitErrorCodes.UNIT_BUILDING_WRONG_PROPERTY,
+                    "Building does not belong to this property");
+
+            if (command.EntranceId.HasValue &&
+                !building.Entrances.Any(e => e.Id == command.EntranceId.Value))
+                throw new NotFoundException(
+                    UnitErrorCodes.UNIT_ENTRANCE_NOT_FOUND,
+                    "Entrance",
+                    command.EntranceId.Value);
+        }
+
+        // Regenerate UnitReference if code, property, or building changed
+        var needsRefRegen = unit.Code != command.Code
+            || unit.PropertyId != command.PropertyId
+            || unit.BuildingId != command.BuildingId;
+        string unitReference;
+        if (needsRefRegen)
+        {
+            var companyRef = await session.LoadAsync<CompanyReference>(targetProperty.CompanyId)
+                ?? throw new NotFoundException(
+                    UnitErrorCodes.COMPANY_REF_NOT_FOUND, "CompanyReference", targetProperty.CompanyId);
+
+            unitReference = building != null
+                ? $"{companyRef.Code}-{targetProperty.Code}-{building.Code}-{command.Code}"
+                : $"{companyRef.Code}-{targetProperty.Code}-{command.Code}";
+        }
+        else
+        {
+            unitReference = unit.UnitReference;
+        }
+
+        var address = command.Address.ToAddress();
+
+        // Build the list of granular domain events
+        var events = new List<object>();
+
+        if (unit.Code != command.Code)
+            events.Add(unit.UpdateCode(command.Code));
+
+        if (command.Category != unit.Category)
+            events.Add(unit.ChangeCategory(command.Category, command.BuildingId));
+
+        if (unit.PropertyId != command.PropertyId || unit.BuildingId != command.BuildingId || unit.EntranceId != command.EntranceId)
+            events.Add(unit.ChangeLocation(command.PropertyId, command.BuildingId, command.EntranceId, command.Category));
+
+        if (!unit.Address.Equals(address))
+            events.Add(unit.UpdateAddress(address));
+
+        if (unit.Floor != command.Floor)
+            events.Add(unit.UpdateFloor(command.Floor));
+
+        // Reference needs regeneration if code or building changed
+        if (needsRefRegen)
+            events.Add(unit.RegenerateReference(unitReference));
+
+        if (events.Count > 0)
+        {
+            session.Events.Append(command.UnitId, events.ToArray());
+            await session.SaveChangesAsync();
+
+            var organizationId = session.TenantId;
+            await bus.PublishAsync(new UnitIntegrationEvents.UnitUpdated
+            {
+                UnitId = command.UnitId,
+                PropertyId = command.PropertyId,
+                BuildingId = command.BuildingId,
+                EntranceId = command.EntranceId,
+                OrganizationId = organizationId,
+                Code = command.Code,
+                UnitReference = unitReference,
+                Category = command.Category.ToString(),
+                Address = new Contracts.Events.AddressData(
+                    address.Country.ToString(),
+                    address.City,
+                    address.ZipCode,
+                    address.StreetAddress),
+                Floor = command.Floor,
+                UpdatedAt = DateTimeOffset.UtcNow
+            });
+        }
     }
 }

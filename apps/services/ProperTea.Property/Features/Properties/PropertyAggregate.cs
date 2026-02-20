@@ -1,5 +1,7 @@
 using Marten.Metadata;
+using ProperTea.Infrastructure.Common.Address;
 using ProperTea.Infrastructure.Common.Exceptions;
+using ProperTea.Infrastructure.Common.Validation;
 using static ProperTea.Property.Features.Properties.PropertyEvents;
 
 namespace ProperTea.Property.Features.Properties;
@@ -10,7 +12,7 @@ public class PropertyAggregate : IRevisioned, ITenanted
     public Guid CompanyId { get; set; }
     public string Code { get; set; } = null!;
     public string Name { get; set; } = null!;
-    public string Address { get; set; } = null!;
+    public Address Address { get; set; } = null!;
     public Status CurrentStatus { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public int Version { get; set; }
@@ -24,7 +26,7 @@ public class PropertyAggregate : IRevisioned, ITenanted
         Guid companyId,
         string code,
         string name,
-        string address,
+        Address address,
         DateTimeOffset createdAt)
     {
         if (companyId == Guid.Empty)
@@ -33,16 +35,12 @@ public class PropertyAggregate : IRevisioned, ITenanted
                 "Property must be owned by a company");
 
         ValidateCode(code);
+        ValidateAddress(address);
 
         if (string.IsNullOrWhiteSpace(name))
             throw new BusinessViolationException(
                 PropertyErrorCodes.PROPERTY_NAME_REQUIRED,
                 "Property name is required");
-
-        if (string.IsNullOrWhiteSpace(address))
-            throw new BusinessViolationException(
-                PropertyErrorCodes.PROPERTY_ADDRESS_REQUIRED,
-                "Property address is required");
 
         return new Created(id, companyId, code, name, address, createdAt);
     }
@@ -66,15 +64,10 @@ public class PropertyAggregate : IRevisioned, ITenanted
         return new NameUpdated(Id, name);
     }
 
-    public AddressUpdated UpdateAddress(string address)
+    public AddressUpdated UpdateAddress(Address address)
     {
         EnsureNotDeleted();
-
-        if (string.IsNullOrWhiteSpace(address))
-            throw new BusinessViolationException(
-                PropertyErrorCodes.PROPERTY_ADDRESS_REQUIRED,
-                "Property address is required");
-
+        ValidateAddress(address);
         return new AddressUpdated(Id, address);
     }
 
@@ -135,15 +128,17 @@ public class PropertyAggregate : IRevisioned, ITenanted
 
     private static void ValidateCode(string code)
     {
-        if (string.IsNullOrWhiteSpace(code))
-            throw new BusinessViolationException(
-                PropertyErrorCodes.PROPERTY_CODE_REQUIRED,
-                "Property code is required");
+        CodeValidator.Validate(
+            code,
+            maxLength: 10,
+            errorRequired: PropertyErrorCodes.PROPERTY_CODE_REQUIRED,
+            errorTooLong: PropertyErrorCodes.PROPERTY_CODE_TOO_LONG,
+            errorInvalidFormat: PropertyErrorCodes.PROPERTY_CODE_INVALID_FORMAT);
+    }
 
-        if (code.Length > 50)
-            throw new BusinessViolationException(
-                PropertyErrorCodes.PROPERTY_CODE_TOO_LONG,
-                "Property code cannot exceed 50 characters");
+    private static void ValidateAddress(Address address)
+    {
+        // Address is optional for properties; no strict field validation.
     }
 
     public enum Status

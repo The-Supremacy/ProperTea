@@ -6,7 +6,7 @@ import { DatePipe } from '@angular/common';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { PropertyService } from '../services/property.service';
 import { CompanyService } from '../../companies/services/company.service';
-import { PropertyDetailResponse, UpdatePropertyRequest } from '../models/property.models';
+import { PropertyDetailResponse, UpdatePropertyRequest, formatAddress } from '../models/property.models';
 import { DialogService } from '../../../core/services/dialog.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { EntityDetailsViewComponent, EntityDetailsConfig } from '../../../../shared/components/entity-details-view';
@@ -15,16 +15,16 @@ import { HlmAccordionImports } from '@spartan-ng/helm/accordion';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmFormFieldImports } from '@spartan-ng/helm/form-field';
-import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmButton } from '@spartan-ng/helm/button';
-import { HlmInput } from '@spartan-ng/helm/input';
-import { HlmTextarea } from '@spartan-ng/helm/textarea';
 import { IconComponent } from '../../../../shared/components/icon';
 import { StatusBadgeDirective } from '../../../../shared/directives';
 import { PropertyAuditLogComponent } from '../audit-log/property-audit-log.component';
 import { BuildingsEmbeddedListComponent } from '../../buildings/embedded-list/buildings-embedded-list.component';
 import { CreateBuildingDrawerComponent } from '../../buildings/create-drawer/create-building-drawer.component';
+import { AddressFormComponent } from '../../../../shared/components/address-form';
+import { UppercaseInputDirective } from '../../../../shared/directives';
 
 @Component({
   selector: 'app-property-details',
@@ -42,12 +42,13 @@ import { CreateBuildingDrawerComponent } from '../../buildings/create-drawer/cre
     HlmLabel,
     HlmButton,
     HlmInput,
-    HlmTextarea,
     IconComponent,
     StatusBadgeDirective,
     PropertyAuditLogComponent,
     BuildingsEmbeddedListComponent,
-    CreateBuildingDrawerComponent
+    CreateBuildingDrawerComponent,
+    AddressFormComponent,
+    UppercaseInputDirective,
   ],
   templateUrl: './property-details.component.html'
 })
@@ -119,10 +120,6 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
     return this.form.get('name')!;
   }
 
-  get addressControl() {
-    return this.form.get('address')!;
-  }
-
   ngOnInit(): void {
     this.route.params.pipe(
       takeUntil(this.destroy$)
@@ -147,9 +144,14 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
   private initializeForm(): void {
     this.form = this.fb.group({
       companyId: [{ value: '', disabled: true }],
-      code: ['', [Validators.required, Validators.maxLength(50)]],
+      code: ['', [Validators.required, Validators.maxLength(10), Validators.pattern(/^[A-Z0-9]*$/)]],
       name: ['', [Validators.required, Validators.maxLength(200)]],
-      address: ['', [Validators.required, Validators.maxLength(500)]]
+      address: this.fb.group({
+        country: [''],
+        streetAddress: [''],
+        city: [''],
+        zipCode: [''],
+      }),
     });
   }
 
@@ -166,13 +168,19 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
             companyId: property.companyId,
             code: property.code,
             name: property.name,
-            address: property.address
+            address: {
+              country: property.address?.country ?? '',
+              streetAddress: property.address?.streetAddress ?? '',
+              city: property.address?.city ?? '',
+              zipCode: property.address?.zipCode ?? '',
+            },
           });
           this.form.markAsPristine();
           this.form.markAsUntouched();
 
           // Resolve company name for display
           this.companyService.select().pipe(
+            takeUntil(this.destroy$),
             map(companies => companies.find(c => c.id === property.companyId)?.name ?? property.companyId)
           ).subscribe(name => this.companyName.set(name));
         } else {
@@ -195,10 +203,14 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
     this.saving.set(true);
 
     const id = this.propertyId();
+    const addressGroup = this.form.get('address');
+    const address = addressGroup?.getRawValue() as { country: string; streetAddress: string; city: string; zipCode: string };
     const request: UpdatePropertyRequest = {
       code: this.codeControl.value,
       name: this.nameControl.value,
-      address: this.addressControl.value
+      address: address.streetAddress || address.city || address.zipCode
+        ? { country: address.country || 'UA', streetAddress: address.streetAddress ?? '', city: address.city ?? '', zipCode: address.zipCode ?? '' }
+        : undefined,
     };
 
     await firstValueFrom(
@@ -210,7 +222,7 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
       this.form.markAsPristine();
       this.loadProperty(id);
     }).catch(() => {
-      this.toastService.error('properties.error.updateFailed');
+      // Global error interceptor already shows the API error toast.
     });
   }
 
@@ -219,7 +231,7 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
     if (!property) return;
 
     const title = this.translocoService.translate('common.delete');
-    const description = this.translocoService.translate('properties.deleteConfirm', { name: property.name });
+    const description = this.translocoService.translate('properties.deleteConfirmMessage', { name: property.name });
 
     const confirmed = await firstValueFrom(this.dialogService.confirm({
       title,

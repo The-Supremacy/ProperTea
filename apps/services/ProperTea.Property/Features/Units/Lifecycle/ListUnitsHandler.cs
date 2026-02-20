@@ -1,4 +1,5 @@
 using Marten;
+using ProperTea.Infrastructure.Common.Address;
 using ProperTea.Property.Features.Buildings;
 using ProperTea.Property.Features.Companies;
 using ProperTea.Property.Features.Properties;
@@ -9,7 +10,7 @@ namespace ProperTea.Property.Features.Units.Lifecycle;
 
 public record UnitFilters
 {
-    public string? UnitNumber { get; set; }
+    public string? UnitReference { get; set; }
     public string? Code { get; set; }
     public Guid? PropertyId { get; set; }
     public Guid? BuildingId { get; set; }
@@ -32,11 +33,10 @@ public record UnitListItemResponse(
     Guid? CompanyId,
     string? CompanyName,
     string Code,
-    string UnitNumber,
+    string UnitReference,
     string Category,
+    Address Address,
     int? Floor,
-    decimal? SquareFootage,
-    int? RoomCount,
     string Status,
     DateTimeOffset CreatedAt);
 
@@ -51,10 +51,10 @@ public class ListUnitsHandler : IWolverineHandler
         var baseQuery = session.Query<UnitAggregate>()
             .Where(u => u.CurrentStatus == UnitAggregate.Status.Active);
 
-        if (!string.IsNullOrWhiteSpace(command.Filters.UnitNumber))
+        if (!string.IsNullOrWhiteSpace(command.Filters.UnitReference))
         {
             baseQuery = baseQuery.Where(u =>
-                u.UnitNumber.Contains(command.Filters.UnitNumber, StringComparison.OrdinalIgnoreCase));
+                u.UnitReference.Contains(command.Filters.UnitReference, StringComparison.OrdinalIgnoreCase));
         }
 
         if (!string.IsNullOrWhiteSpace(command.Filters.Code))
@@ -144,11 +144,10 @@ public class ListUnitsHandler : IWolverineHandler
                 prop?.CompanyId != default ? prop?.CompanyId : null,
                 companyName,
                 u.Code,
-                u.UnitNumber,
+                u.UnitReference,
                 u.Category.ToString(),
+                u.Address,
                 u.Floor,
-                u.SquareFootage,
-                u.RoomCount,
                 u.CurrentStatus.ToString(),
                 u.CreatedAt
             );
@@ -176,8 +175,8 @@ public class ListUnitsHandler : IWolverineHandler
                 ? query.OrderByDescending(u => u.Code)
                 : query.OrderBy(u => u.Code),
             "unitnumber" => sortQuery.IsDescending
-                ? query.OrderByDescending(u => u.UnitNumber)
-                : query.OrderBy(u => u.UnitNumber),
+                ? query.OrderByDescending(u => u.UnitReference)
+                : query.OrderBy(u => u.UnitReference),
             "category" => sortQuery.IsDescending
                 ? query.OrderByDescending(u => u.Category)
                 : query.OrderBy(u => u.Category),

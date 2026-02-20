@@ -4,8 +4,7 @@ import { organizationsRoutes } from './features/organizations/organizations.rout
 import { companiesRoutes } from './features/companies/companies.routes';
 import { propertiesRoutes } from './features/properties/routes';
 import { buildingsRoutes } from './features/buildings/routes';
-// Units feature temporarily removed from navigation
-// import { unitsRoutes } from './features/units/routes';
+import { unitsRoutes } from './features/units/routes';
 
 export const routes: Routes = [
   {
@@ -46,12 +45,11 @@ export const routes: Routes = [
         data: { breadcrumb: 'nav.buildings' },
         children: buildingsRoutes,
       },
-      // Units feature temporarily removed from navigation
-      // {
-      //   path: 'units',
-      //   data: { breadcrumb: 'Units' },
-      //   children: unitsRoutes,
-      // },
+      {
+        path: 'units',
+        data: { breadcrumb: 'nav.units' },
+        children: unitsRoutes,
+      },
     ],
   },
   { path: '**', redirectTo: '' },
