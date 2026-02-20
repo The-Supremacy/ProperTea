@@ -3,7 +3,7 @@
   [loading]="loading()"
   (refresh)="loadCompany(companyId())">
 
-  <!-- Loading State -->
+  <!-- Loading -->
   @if (loading()) {
     <div class="flex items-center justify-center py-12">
       <hlm-spinner size="lg" />
@@ -12,11 +12,13 @@
 
   <!-- Tabs -->
   @if (!loading()) {
-    <div hlmTabs [tab]="selectedTab()" (tabActivated)="selectedTab.set($event)">
+    <hlm-tabs [tab]="selectedTab()" (tabActivated)="selectedTab.set($event)">
       <!-- Tab List -->
-      <div hlmTabsList class="w-full justify-start gap-4 rounded-none border-b bg-transparent px-4">
-        <button hlmTabsTrigger="details">{{ 'common.details' | transloco }}</button>
-        <button hlmTabsTrigger="history">{{ 'common.history' | transloco }}</button>
+      <div class="border-b px-4">
+        <hlm-tabs-list class="justify-start gap-4 rounded-none bg-transparent">
+          <button hlmTabsTrigger="details">{{ 'common.details' | transloco }}</button>
+          <button hlmTabsTrigger="history">{{ 'common.history' | transloco }}</button>
+        </hlm-tabs-list>
       </div>
 
       <!-- Tab Panels -->
@@ -28,15 +30,15 @@
               <!-- Main Content - Takes 2 columns on large screens -->
               <div class="lg:col-span-2 space-y-6">
                 <!-- Basic Information Card -->
-                <div class="overflow-hidden rounded-lg border bg-card shadow-sm">
-                  <div class="border-b bg-muted/40 px-6 py-4">
-                    <h2 class="text-lg font-semibold">{{ 'companies.basicInfo' | transloco }}</h2>
+                <section hlmCard>
+                  <div hlmCardHeader>
+                    <h3 hlmCardTitle>{{ 'companies.basicInfo' | transloco }}</h3>
                   </div>
-                  <div class="p-6">
+                  <div hlmCardContent>
                     <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
                       <!-- Code Field -->
-                      <div>
-                        <label for="code" class="mb-2 block text-sm font-medium">
+                      <hlm-form-field>
+                        <label hlmLabel for="code">
                           {{ 'companies.code' | transloco }}
                         </label>
                         <input
@@ -45,24 +47,21 @@
                           formControlName="code"
                           [placeholder]="'companies.codePlaceholder' | transloco"
                           hlmInput
-                          class="w-full font-mono uppercase"
-                          [class.border-destructive]="codeControl.invalid && codeControl.touched" />
+                          class="w-full font-mono uppercase" />
 
                         @if (codeControl.invalid && codeControl.touched) {
-                          <p class="mt-1 text-sm text-destructive">
-                            @if (codeControl.hasError('required')) {
-                              {{ 'companies.codeRequired' | transloco }}
-                            }
-                            @if (codeControl.hasError('minlength')) {
-                              {{ 'companies.codeTooShort' | transloco }}
-                            }
-                            @if (codeControl.hasError('maxlength')) {
-                              {{ 'companies.codeTooLong' | transloco }}
-                            }
-                            @if (codeControl.hasError('codeTaken')) {
-                              {{ 'companies.codeTaken' | transloco }}
-                            }
-                          </p>
+                          @if (codeControl.hasError('required')) {
+                            <hlm-error>{{ 'companies.codeRequired' | transloco }}</hlm-error>
+                          }
+                          @if (codeControl.hasError('minlength')) {
+                            <hlm-error>{{ 'companies.codeTooShort' | transloco }}</hlm-error>
+                          }
+                          @if (codeControl.hasError('maxlength')) {
+                            <hlm-error>{{ 'companies.codeTooLong' | transloco }}</hlm-error>
+                          }
+                          @if (codeControl.hasError('codeTaken')) {
+                            <hlm-error>{{ 'companies.codeTaken' | transloco }}</hlm-error>
+                          }
                         }
 
                         @if (codeControl.pending) {
@@ -70,11 +69,11 @@
                             {{ 'companies.checkingCode' | transloco }}
                           </p>
                         }
-                      </div>
+                      </hlm-form-field>
 
                       <!-- Name Field -->
-                      <div>
-                        <label for="name" class="mb-2 block text-sm font-medium">
+                      <hlm-form-field>
+                        <label hlmLabel for="name">
                           {{ 'companies.name' | transloco }}
                         </label>
                         <input
@@ -83,18 +82,15 @@
                           formControlName="name"
                           [placeholder]="'companies.namePlaceholder' | transloco"
                           hlmInput
-                          class="w-full"
-                          [class.border-destructive]="nameControl.invalid && nameControl.touched" />
+                          class="w-full" />
 
                         @if (nameControl.invalid && nameControl.touched) {
-                          <p class="mt-1 text-sm text-destructive">
-                            @if (nameControl.hasError('required')) {
-                              {{ 'companies.nameRequired' | transloco }}
-                            }
-                            @if (nameControl.hasError('nameTaken')) {
-                              {{ 'companies.nameTaken' | transloco }}
-                            }
-                          </p>
+                          @if (nameControl.hasError('required')) {
+                            <hlm-error>{{ 'companies.nameRequired' | transloco }}</hlm-error>
+                          }
+                          @if (nameControl.hasError('nameTaken')) {
+                            <hlm-error>{{ 'companies.nameTaken' | transloco }}</hlm-error>
+                          }
                         }
 
                         @if (nameControl.pending) {
@@ -102,21 +98,19 @@
                             {{ 'companies.checkingName' | transloco }}
                           </p>
                         }
-                      </div>
+                      </hlm-form-field>
                     </form>
                   </div>
-                </div>
+                </section>
               </div>
-
-              <!-- Sidebar - Takes 1 column on large screens -->
               <div class="space-y-6">
                 <!-- Status Card -->
                 @if (company()) {
-                  <div class="overflow-hidden rounded-lg border bg-card shadow-sm">
-                    <div class="border-b bg-muted/40 px-6 py-4">
-                      <h2 class="text-lg font-semibold">{{ 'companies.status' | transloco }}</h2>
+                  <section hlmCard>
+                    <div hlmCardHeader>
+                      <h3 hlmCardTitle>{{ 'companies.status' | transloco }}</h3>
                     </div>
-                    <div class="p-6 space-y-4">
+                    <div hlmCardContent class="space-y-4">
                       <div>
                         <p class="text-sm text-muted-foreground mb-2">{{ 'companies.currentStatus' | transloco }}</p>
                         <span [appStatusBadge]="company()!.status">
@@ -129,20 +123,20 @@
                         <p class="text-sm font-medium">{{ company()!.createdAt | date: 'medium' }}</p>
                       </div>
                     </div>
-                  </div>
+                  </section>
                 }
 
                 <!-- Quick Actions Card -->
-                <div class="overflow-hidden rounded-lg border bg-card shadow-sm">
-                  <div class="border-b bg-muted/40 px-6 py-4">
-                    <h2 class="text-lg font-semibold">{{ 'common.quickActions' | transloco }}</h2>
+                <section hlmCard>
+                  <div hlmCardHeader>
+                    <h3 hlmCardTitle>{{ 'common.quickActions' | transloco }}</h3>
                   </div>
-                  <div class="p-4 space-y-2">
+                  <div hlmCardContent>
                     <div class="text-sm text-muted-foreground text-center py-4">
                       {{ 'companies.quickActionsPlaceholder' | transloco }}
                     </div>
                   </div>
-                </div>
+                </section>
                 </div>
               </div>
             </div>
@@ -151,12 +145,14 @@
 
       <!-- History Tab -->
       <div hlmTabsContent="history">
+        <ng-template hlmTabsContentLazy>
           <div class="py-6">
             <div class="container mx-auto px-4 max-w-4xl">
               <app-company-audit-log [companyId]="companyId()" />
             </div>
           </div>
+        </ng-template>
       </div>
-    </div>
+    </hlm-tabs>
   }
 </app-entity-details-view>

@@ -7,24 +7,17 @@ import {
   computed,
   effect,
   inject,
-  contentChild,
-  viewChild,
-  TemplateRef,
   OnInit,
   OnDestroy,
 } from '@angular/core';
-import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Subject, finalize, takeUntil } from 'rxjs';
 import {
   createAngularTable,
   FlexRenderDirective,
   getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
   SortingState,
   VisibilityState,
-  ColumnDef,
 } from '@tanstack/angular-table';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
@@ -32,20 +25,21 @@ import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmEmptyImports } from '@spartan-ng/helm/empty';
+import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
+import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
+import { HlmLabel } from '@spartan-ng/helm/label';
+import { HlmCardImports } from '@spartan-ng/helm/card';
 
 import {
   EntityListConfig,
   EntityListQuery,
-  EntityListState,
   EntityAction,
   TableAction,
   PaginationQuery,
   SortQuery,
   PagedResult,
-  getPaginationMetadata,
-  FilterField,
 } from './entity-list-view.models';
-import { TablePaginationDirective } from '../../directives/table-pagination';
+import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { IconComponent } from '../icon';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
@@ -59,20 +53,6 @@ import { ResponsiveService } from '../../../app/core/services/responsive.service
  *
  * @template TEntity - The entity type being displayed
  * @template TFilters - The filters type (optional)
- *
- * @example
- * ```typescript
- * <app-entity-list-view
- *   [config]="listConfig()"
- *   [title]="'companies.title' | transloco"
- *   [createRoute]="'/companies/new'"
- *   [createLabel]="'common.new' | transloco">
- *
- *   <ng-template #mobileCard let-item>
- *     <!-- Custom mobile card template -->
- *   </ng-template>
- * </app-entity-list-view>
- * ```
  */
 @Component({
   selector: 'app-entity-list-view',
@@ -83,11 +63,14 @@ import { ResponsiveService } from '../../../app/core/services/responsive.service
     HlmTableImports,
     HlmInput,
     HlmEmptyImports,
+    HlmSkeletonImports,
+    HlmCheckboxImports,
+    HlmLabel,
+    HlmCardImports,
     RouterLink,
-    NgTemplateOutlet,
     TranslocoPipe,
     FlexRenderDirective,
-    TablePaginationDirective,
+    HlmPaginationImports,
     HlmButton,
     IconComponent,
     HlmSpinner,
@@ -114,19 +97,12 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
   createClick = output<void>();
   tableActionClick = output<string>();
 
-  // Content children
-  protected mobileCardTemplate = contentChild<TemplateRef<{ $implicit: TEntity }>>('mobileCard');
-
-
-
   // State signals
   private data = signal<TEntity[]>([]);
   private totalCount = signal(0);
   private loading = signal(false);
   private sortingState = signal<SortingState>([]);
   private columnVisibility = signal<VisibilityState>({});
-  private filterDrawerOpen = signal(false);
-  private columnDrawerOpen = signal(false);
   protected searchExpanded = signal(false);
 
   // Query state
@@ -164,8 +140,6 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
       data: this.data(),
       columns: cfg?.columns || [],
       getCoreRowModel: getCoreRowModel(),
-      getSortedRowModel: getSortedRowModel(),
-      getFilteredRowModel: getFilteredRowModel(),
       onSortingChange: (updater) => this.handleSortingChange(updater),
       onColumnVisibilityChange: (updater) => this.handleColumnVisibilityChange(updater),
       onGlobalFilterChange: (updater) => this.handleGlobalFilterChange(updater),
@@ -282,6 +256,10 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
     this.paginationQuery.update((p) => ({ ...p, page }));
   }
 
+  protected onPageSizeChange(pageSize: number): void {
+    this.paginationQuery.update(() => ({ page: 1, pageSize }));
+  }
+
   private handleGlobalFilterChange(updater: any): void {
     const newFilter = typeof updater === 'function' ? updater(this.globalFilter()) : updater;
     this.globalFilter.set(newFilter);
@@ -305,7 +283,6 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
   protected applyFilters(): void {
     this.filtersQuery.set(this.filterValues() as TFilters);
     this.paginationQuery.update((p) => ({ ...p, page: 1 }));
-    this.toggleFilterDrawer();
   }
 
   protected clearFilters(): void {
@@ -314,22 +291,6 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
     this.filterValues.set(initial);
     this.filtersQuery.set(initial as TFilters);
     this.paginationQuery.update((p) => ({ ...p, page: 1 }));
-  }
-
-  protected toggleFilterDrawer(): void {
-    this.filterDrawerOpen.update((open) => !open);
-  }
-
-  protected closeFilterDrawer(): void {
-    this.filterDrawerOpen.set(false);
-  }
-
-  protected toggleColumnDrawer(): void {
-    this.columnDrawerOpen.update((open) => !open);
-  }
-
-  protected closeColumnDrawer(): void {
-    this.columnDrawerOpen.set(false);
   }
 
   protected resetColumnVisibility(): void {
@@ -354,18 +315,6 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
     return !action.condition || action.condition(entity);
   }
 
-  protected shouldUseInnerHTML(columnId: string): boolean {
-    const column = this.config()?.columns?.find((col) => col.id === columnId);
-    return !!(column?.meta as any)?.useInnerHTML;
-  }
-
-  protected getCellContent(cell: any): string {
-    if (typeof cell.column.columnDef.cell === 'function') {
-      return cell.column.columnDef.cell(cell.getContext());
-    }
-    return cell.getValue() ?? '';
-  }
-
   protected onRowClick(entity: TEntity): void {
     const cfg = this.config();
 
@@ -385,10 +334,6 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
     return sort.desc ? 'arrow_downward' : 'arrow_upward';
   }
 
-  protected isColumnSortable(column: ColumnDef<TEntity>): boolean {
-    return column.enableSorting !== false;
-  }
-
   protected getEntityId(entity: TEntity): any {
     const cfg = this.config();
     return entity[cfg?.idField || ('id' as keyof TEntity)];
@@ -401,8 +346,6 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
       hasData: this.hasData(),
       isEmpty: this.isEmpty(),
       totalCount: this.totalCount(),
-      filterDrawerOpen: this.filterDrawerOpen(),
-      columnDrawerOpen: this.columnDrawerOpen(),
       pagination: this.paginationQuery(),
     };
   }

@@ -134,7 +134,6 @@ export class PropertiesListComponent {
           );
           return `<span class="${variantClass}">${translatedStatus}</span>`;
         },
-        meta: { useInnerHTML: true },
         enableSorting: false,
       },
       {

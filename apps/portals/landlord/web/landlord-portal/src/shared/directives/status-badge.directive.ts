@@ -1,20 +1,19 @@
 import { computed, Directive, input } from '@angular/core';
-import { hlm } from '@spartan-ng/helm/utils';
+import { HlmBadge } from '@spartan-ng/helm/badge';
+import { classes } from '@spartan-ng/helm/utils';
 
 export type StatusVariant = 'active' | 'inactive' | 'pending' | 'default';
 
 const STATUS_CLASSES: Record<StatusVariant, string> = {
-  active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  inactive: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
-  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-  default: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border-green-200 dark:border-green-800',
+  inactive: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700',
+  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800',
+  default: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border-blue-200 dark:border-blue-800',
 };
 
 @Directive({
   selector: '[appStatusBadge]',
-  host: {
-    '[class]': 'statusClasses()',
-  },
+  hostDirectives: [HlmBadge],
 })
 export class StatusBadgeDirective {
   readonly status = input.required<string>({ alias: 'appStatusBadge' });
@@ -29,10 +28,7 @@ export class StatusBadgeDirective {
     return 'default';
   });
 
-  protected readonly statusClasses = computed(() =>
-    hlm(
-      'inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap',
-      STATUS_CLASSES[this.resolvedVariant()],
-    ),
-  );
+  constructor() {
+    classes(() => STATUS_CLASSES[this.resolvedVariant()]);
+  }
 }

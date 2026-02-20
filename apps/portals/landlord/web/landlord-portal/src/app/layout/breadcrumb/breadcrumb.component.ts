@@ -1,7 +1,8 @@
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
-import { Router, NavigationEnd, ActivatedRoute, RouterLink } from '@angular/router';
+import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { HlmBreadCrumbImports } from '@spartan-ng/helm/breadcrumb';
 
 export interface Breadcrumb {
   label: string;
@@ -11,32 +12,22 @@ export interface Breadcrumb {
 @Component({
   selector: 'app-breadcrumb',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslocoPipe],
+  imports: [HlmBreadCrumbImports, TranslocoPipe],
   template: `
     <div class="border-b bg-muted/40 px-4 py-2">
-      <nav aria-label="breadcrumb">
-        <ol class="flex items-center gap-2 text-sm">
-          <!-- Home -->
-          <li>
-            <a
-              routerLink="/"
-              class="text-muted-foreground hover:text-foreground transition-colors font-medium underline decoration-transparent hover:decoration-current underline-offset-2">
-              {{ 'nav.home' | transloco }}
-            </a>
+      <nav hlmBreadcrumb>
+        <ol hlmBreadcrumbList>
+          <li hlmBreadcrumbItem>
+            <a hlmBreadcrumbLink link="/">{{ 'nav.home' | transloco }}</a>
           </li>
 
-          <!-- Dynamic breadcrumbs -->
           @for (crumb of breadcrumbs(); track crumb.url; let isLast = $last) {
-            <li class="text-muted-foreground">/</li>
-            <li>
+            <li hlmBreadcrumbSeparator></li>
+            <li hlmBreadcrumbItem>
               @if (isLast) {
-                <span class="text-foreground font-semibold">{{ crumb.label | transloco }}</span>
+                <span hlmBreadcrumbPage>{{ crumb.label | transloco }}</span>
               } @else {
-                <a
-                  [routerLink]="crumb.url"
-                  class="text-muted-foreground hover:text-foreground transition-colors font-medium underline decoration-transparent hover:decoration-current underline-offset-2">
-                  {{ crumb.label | transloco }}
-                </a>
+                <a hlmBreadcrumbLink [link]="crumb.url">{{ crumb.label | transloco }}</a>
               }
             </li>
           }

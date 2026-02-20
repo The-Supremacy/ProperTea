@@ -11,7 +11,6 @@ import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmFormFieldImports } from '@spartan-ng/helm/form-field';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmButton } from '@spartan-ng/helm/button';
-import { IconComponent } from '../../../../shared/components/icon';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { AutocompleteComponent } from '../../../../shared/components/autocomplete';
 import { HlmSheetImports } from '@spartan-ng/helm/sheet';
@@ -26,7 +25,6 @@ import { HlmSheetImports } from '@spartan-ng/helm/sheet';
     HlmFormFieldImports,
     HlmLabel,
     HlmButton,
-    IconComponent,
     HlmSpinner,
     AutocompleteComponent,
     HlmSheetImports,

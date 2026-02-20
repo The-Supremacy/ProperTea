@@ -1,9 +1,7 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, input, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { finalize } from 'rxjs';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { HlmSpinner } from '@spartan-ng/helm/spinner';
-import { IconComponent } from '../../../../shared/components/icon';
+import { TranslocoService } from '@jsverse/transloco';
+import { TimelineComponent, TimelineEntry } from '../../../../shared/components/timeline';
 import { UserDetails, UserService } from '../../../core/services/user.service';
 import { BuildingService } from '../services/building.service';
 import { BuildingAuditLogEntry } from '../models/building.models';
@@ -11,66 +9,37 @@ import { BuildingAuditLogEntry } from '../models/building.models';
 @Component({
   selector: 'app-building-audit-log',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, TranslocoPipe, HlmSpinner, IconComponent],
+  imports: [TimelineComponent],
   template: `
-    <div class="space-y-4">
-      @if (loading()) {
-        <div class="flex items-center justify-center py-12">
-          <hlm-spinner size="lg" />
-        </div>
-      }
-
-      @if (!loading() && entries().length === 0) {
-        <div class="py-12 text-center">
-          <app-icon name="history" [size]="48" class="mx-auto mb-4 text-muted-foreground" />
-          <h3 class="mb-2 text-lg font-semibold">{{ 'buildings.noAuditLogs' | transloco }}</h3>
-          <p class="text-sm text-muted-foreground">{{ 'buildings.noAuditLogsDescription' | transloco }}</p>
-        </div>
-      }
-
-      @if (!loading() && entries().length > 0) {
-        <div class="relative space-y-6 pl-8">
-          <div class="absolute bottom-0 left-2 top-0 w-px bg-border"></div>
-
-          @for (entry of entries(); track entry.version) {
-            <div class="relative">
-              <div class="absolute -left-8 top-1.5 h-3 w-3 rounded-full border-2 border-background bg-primary"></div>
-
-              <div class="rounded-lg border bg-card p-4 shadow-sm">
-                <div class="mb-2 flex items-start justify-between">
-                  <div>
-                    <h4 class="text-sm font-semibold">{{ getEventLabel(entry.eventType) }}</h4>
-                    <p class="mt-1 text-xs text-muted-foreground">
-                      {{ entry.timestamp | date: 'medium' }}
-                      @if (entry.username) {
-                        <span class="ml-2">• {{ getUserDisplayName(entry.username) }}</span>
-                      }
-                    </p>
-                  </div>
-                  <span class="font-mono text-xs text-muted-foreground">v{{ entry.version }}</span>
-                </div>
-
-                <div class="mt-3 text-sm">
-                  {{ formatEventData(entry) }}
-                </div>
-              </div>
-            </div>
-          }
-        </div>
-      }
-    </div>
+    <app-timeline
+      [entries]="timelineEntries()"
+      [loading]="loading()"
+      [emptyIcon]="'history'"
+      [emptyTitle]="t.translate('buildings.noAuditLogs')"
+      [emptyDescription]="t.translate('buildings.noAuditLogsDescription')" />
   `,
 })
 export class BuildingAuditLogComponent implements OnInit {
-  private buildingService = inject(BuildingService);
-  private translocoService = inject(TranslocoService);
-  private userService = inject(UserService);
+  private readonly buildingService = inject(BuildingService);
+  protected readonly t = inject(TranslocoService);
+  private readonly userService = inject(UserService);
 
-  buildingId = input.required<string>();
+  readonly buildingId = input.required<string>();
 
-  loading = signal(false);
-  entries = signal<BuildingAuditLogEntry[]>([]);
-  userDetailsMap = signal(new Map<string, UserDetails>());
+  readonly loading = signal(false);
+  private readonly entries = signal<BuildingAuditLogEntry[]>([]);
+  private readonly userDetailsMap = signal(new Map<string, UserDetails>());
+
+  protected readonly timelineEntries = computed<TimelineEntry[]>(() =>
+    this.entries().map((entry) => ({
+      id: entry.version,
+      label: this.getEventLabel(entry.eventType),
+      timestamp: entry.timestamp,
+      user: entry.username ? this.getUserDisplayName(entry.username) : undefined,
+      version: entry.version,
+      description: this.formatEventData(entry),
+    })),
+  );
 
   ngOnInit(): void {
     this.loadAuditLog();
@@ -109,7 +78,7 @@ export class BuildingAuditLogComponent implements OnInit {
     });
   }
 
-  protected getUserDisplayName(userId: string): string {
+  private getUserDisplayName(userId: string): string {
     const userDetails = this.userDetailsMap().get(userId);
     return userDetails?.displayName ?? userId.substring(0, 8);
   }
@@ -120,32 +89,32 @@ export class BuildingAuditLogComponent implements OnInit {
     return typeName.replace(/-/g, '');
   }
 
-  protected getEventLabel(eventType: string): string {
+  private getEventLabel(eventType: string): string {
     const normalized = this.normalizeEventType(eventType);
     const key = `buildings.events.${normalized.toLowerCase()}`;
-    const translated = this.translocoService.translate(key);
+    const translated = this.t.translate(key);
     return translated === key ? normalized : translated;
   }
 
-  protected formatEventData(entry: BuildingAuditLogEntry): string {
+  private formatEventData(entry: BuildingAuditLogEntry): string {
     const normalized = this.normalizeEventType(entry.eventType);
     const data = (entry.data || {}) as Record<string, unknown>;
 
     switch (normalized.toLowerCase()) {
       case 'created':
-        return `${this.translocoService.translate('buildings.code')}: ${data['code'] || ''}, ${this.translocoService.translate('buildings.name')}: ${data['name'] || ''}`;
+        return `${this.t.translate('buildings.code')}: ${data['code'] || ''}, ${this.t.translate('buildings.name')}: ${data['name'] || ''}`;
       case 'codeupdated':
         if (data['oldCode'] && data['newCode']) {
           return `${data['oldCode']} → ${data['newCode']}`;
         }
-        return `${this.translocoService.translate('buildings.newCode')}: ${data['newCode'] || ''}`;
+        return `${this.t.translate('buildings.newCode')}: ${data['newCode'] || ''}`;
       case 'nameupdated':
         if (data['oldName'] && data['newName']) {
           return `${data['oldName']} → ${data['newName']}`;
         }
-        return `${this.translocoService.translate('buildings.newName')}: ${data['newName'] || ''}`;
+        return `${this.t.translate('buildings.newName')}: ${data['newName'] || ''}`;
       case 'deleted':
-        return this.translocoService.translate('buildings.buildingDeleted');
+        return this.t.translate('buildings.buildingDeleted');
       default:
         return Object.entries(data)
           .map(([key, value]) => `${key}: ${value}`)

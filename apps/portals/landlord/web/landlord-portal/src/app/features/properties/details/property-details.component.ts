@@ -13,6 +13,9 @@ import { EntityDetailsViewComponent, EntityDetailsConfig } from '../../../../sha
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmAccordionImports } from '@spartan-ng/helm/accordion';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmFormFieldImports } from '@spartan-ng/helm/form-field';
+import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmTextarea } from '@spartan-ng/helm/textarea';
@@ -33,6 +36,9 @@ import { CreateBuildingDrawerComponent } from '../../buildings/create-drawer/cre
     HlmTabsImports,
     HlmAccordionImports,
     HlmSpinner,
+    HlmCardImports,
+    HlmFormFieldImports,
+    HlmLabel,
     HlmButton,
     HlmInput,
     HlmTextarea,

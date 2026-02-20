@@ -1,84 +1,45 @@
-import { Component, ChangeDetectionStrategy, input, signal, OnInit, inject, computed } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { Component, ChangeDetectionStrategy, input, signal, computed, OnInit, inject } from '@angular/core';
 import { finalize } from 'rxjs';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { CompanyService } from '../services/company.service';
 import { CompanyAuditLogEntry } from '../models/company.models';
-import { HlmSpinner } from '@spartan-ng/helm/spinner';
-import { IconComponent } from '../../../../shared/components/icon';
+import { TimelineComponent, TimelineEntry } from '../../../../shared/components/timeline';
 import { UserService, UserDetails } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-company-audit-log',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, TranslocoPipe, HlmSpinner, IconComponent],
+  imports: [TimelineComponent],
   template: `
-    <div class="space-y-4">
-      <!-- Loading State -->
-      @if (loading()) {
-        <div class="flex items-center justify-center py-12">
-          <hlm-spinner size="lg" />
-        </div>
-      }
-
-      <!-- Empty State -->
-      @if (!loading() && entries().length === 0) {
-        <div class="text-center py-12">
-          <app-icon name="history" [size]="48" class="mx-auto text-muted-foreground mb-4" />
-          <h3 class="text-lg font-semibold mb-2">{{ 'companies.noAuditLogs' | transloco }}</h3>
-          <p class="text-sm text-muted-foreground">{{ 'companies.noAuditLogsDescription' | transloco }}</p>
-        </div>
-      }
-
-      <!-- Timeline -->
-      @if (!loading() && entries().length > 0) {
-        <div class="relative space-y-6 pl-8">
-          <!-- Vertical line -->
-          <div class="absolute left-2 top-0 bottom-0 w-px bg-border"></div>
-
-          @for (entry of entries(); track entry.version) {
-            <div class="relative">
-              <!-- Dot on timeline -->
-              <div class="absolute -left-8 top-1.5 w-3 h-3 rounded-full bg-primary border-2 border-background"></div>
-
-              <!-- Event Card -->
-              <div class="rounded-lg border bg-card p-4 shadow-sm">
-                <div class="flex items-start justify-between mb-2">
-                  <div>
-                    <h4 class="font-semibold text-sm">{{ getEventLabel(entry.eventType) }}</h4>
-                    <p class="text-xs text-muted-foreground mt-1">
-                      {{ entry.timestamp | date: 'medium' }}
-                      @if (entry.username) {
-                        <span class="ml-2">• {{ getUserDisplayName(entry.username) }}</span>
-                      }
-                    </p>
-                  </div>
-                  <span class="text-xs font-mono text-muted-foreground">v{{ entry.version }}</span>
-                </div>
-
-                <!-- Event-specific data -->
-                <div class="mt-3 text-sm">
-                  {{ formatEventData(entry) }}
-                </div>
-              </div>
-            </div>
-          }
-        </div>
-      }
-    </div>
+    <app-timeline
+      [entries]="timelineEntries()"
+      [loading]="loading()"
+      [emptyIcon]="'history'"
+      [emptyTitle]="t.translate('companies.noAuditLogs')"
+      [emptyDescription]="t.translate('companies.noAuditLogsDescription')" />
   `,
-  styles: []
 })
 export class CompanyAuditLogComponent implements OnInit {
-  private companyService = inject(CompanyService);
-  private translocoService = inject(TranslocoService);
-  private userService = inject(UserService);
+  private readonly companyService = inject(CompanyService);
+  protected readonly t = inject(TranslocoService);
+  private readonly userService = inject(UserService);
 
-  companyId = input.required<string>();
+  readonly companyId = input.required<string>();
 
-  loading = signal(false);
-  entries = signal<CompanyAuditLogEntry[]>([]);
-  userDetailsMap = signal(new Map<string, UserDetails>());
+  readonly loading = signal(false);
+  private readonly entries = signal<CompanyAuditLogEntry[]>([]);
+  private readonly userDetailsMap = signal(new Map<string, UserDetails>());
+
+  protected readonly timelineEntries = computed<TimelineEntry[]>(() =>
+    this.entries().map((entry) => ({
+      id: entry.version,
+      label: this.getEventLabel(entry.eventType),
+      timestamp: entry.timestamp,
+      user: entry.username ? this.getUserDisplayName(entry.username) : undefined,
+      version: entry.version,
+      description: this.formatEventData(entry),
+    })),
+  );
 
   ngOnInit(): void {
     this.loadAuditLog();
@@ -92,11 +53,9 @@ export class CompanyAuditLogComponent implements OnInit {
     ).subscribe({
       next: (response) => {
         this.entries.set(response.entries);
-        // Fetch user details for all unique usernames
         this.loadUserDetails(response.entries);
       },
-      error: (error) => {
-        console.error('Failed to load audit log:', error);
+      error: () => {
         this.entries.set([]);
       }
     });
@@ -118,46 +77,44 @@ export class CompanyAuditLogComponent implements OnInit {
     });
   }
 
-  protected getUserDisplayName(userId: string): string {
+  private getUserDisplayName(userId: string): string {
     const userDetails = this.userDetailsMap().get(userId);
     return userDetails?.displayName ?? userId.substring(0, 8);
   }
 
   private normalizeEventType(eventType: string): string {
-    // Strip namespace and version: "company.created.v1" -> "created"
     const parts = eventType.split('.');
     const typeName = parts.length > 1 ? parts[parts.length - 2] : eventType;
     return typeName.replace(/-/g, '');
   }
 
-  protected getEventLabel(eventType: string): string {
+  private getEventLabel(eventType: string): string {
     const normalized = this.normalizeEventType(eventType);
     const key = `companies.events.${normalized.toLowerCase()}`;
-    const translated = this.translocoService.translate(key);
+    const translated = this.t.translate(key);
     return translated === key ? normalized : translated;
   }
 
-  protected formatEventData(entry: CompanyAuditLogEntry): string {
+  private formatEventData(entry: CompanyAuditLogEntry): string {
     const normalized = this.normalizeEventType(entry.eventType);
-    const data = entry.data as any;
+    const data = entry.data as Record<string, unknown>;
 
     switch (normalized.toLowerCase()) {
       case 'created':
-        return `${this.translocoService.translate('companies.code')}: ${data.code || ''}, ${this.translocoService.translate('companies.name')}: ${data.name || ''}`;
+        return `${this.t.translate('companies.code')}: ${data['code'] || ''}, ${this.t.translate('companies.name')}: ${data['name'] || ''}`;
       case 'codeupdated':
-        if (data.oldCode && data.newCode) {
-          return `${data.oldCode} → ${data.newCode}`;
+        if (data['oldCode'] && data['newCode']) {
+          return `${data['oldCode']} → ${data['newCode']}`;
         }
-        return `${this.translocoService.translate('companies.newCode')}: ${data.newCode || ''}`;
+        return `${this.t.translate('companies.newCode')}: ${data['newCode'] || ''}`;
       case 'nameupdated':
-        if (data.oldName && data.newName) {
-          return `${data.oldName} → ${data.newName}`;
+        if (data['oldName'] && data['newName']) {
+          return `${data['oldName']} → ${data['newName']}`;
         }
-        return `${this.translocoService.translate('companies.newName')}: ${data.newName || ''}`;
+        return `${this.t.translate('companies.newName')}: ${data['newName'] || ''}`;
       case 'deleted':
-        return this.translocoService.translate('companies.companyDeleted');
+        return this.t.translate('companies.companyDeleted');
       default:
-        // Format any other data gracefully
         return Object.entries(data)
           .map(([key, value]) => `${key}: ${value}`)
           .join(', ');

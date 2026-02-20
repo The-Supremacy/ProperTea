@@ -1,9 +1,9 @@
 <hlm-autocomplete
   [value]="selectedOption()"
   [isItemEqualToValue]="isItemEqualToValue"
+  [itemToString]="itemToString"
   [disabled]="disabled()"
-  [search]="search()"
-  (searchChange)="search.set($event)"
+  [(search)]="search"
   (valueChange)="onValueChange($event)">
   <hlm-autocomplete-input
     [placeholder]="translatedPlaceholder()"

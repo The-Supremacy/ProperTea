@@ -13,6 +13,9 @@ import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { CompanyAuditLogComponent } from '../audit-log/company-audit-log.component';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmFormFieldImports } from '@spartan-ng/helm/form-field';
+import { HlmLabel } from '@spartan-ng/helm/label';
 import { StatusBadgeDirective } from '../../../../shared/directives';
 
 @Component({
@@ -27,6 +30,9 @@ import { StatusBadgeDirective } from '../../../../shared/directives';
     HlmInput,
     CompanyAuditLogComponent,
     HlmSpinner,
+    HlmCardImports,
+    HlmFormFieldImports,
+    HlmLabel,
     StatusBadgeDirective
   ],
   templateUrl: './company-details.component.html'

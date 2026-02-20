@@ -3,7 +3,7 @@
   [loading]="loading()"
   (refresh)="refresh()">
 
-  <!-- Loading State -->
+  <!-- Loading -->
   @if (loading()) {
     <div class="flex items-center justify-center py-12">
       <hlm-spinner size="lg" />
@@ -12,12 +12,12 @@
 
   <!-- Tabs -->
   @if (!loading()) {
-    <div hlmTabs [tab]="selectedTab()" (tabActivated)="selectedTab.set($event)">
+    <hlm-tabs [tab]="selectedTab()" (tabActivated)="selectedTab.set($event)">
       <!-- Tab List -->
-      <div hlmTabsList class="w-full justify-start gap-4 rounded-none border-b bg-transparent px-4">
+      <hlm-tabs-list class="w-full justify-start gap-4 rounded-none border-b bg-transparent px-4">
         <button hlmTabsTrigger="details">{{ 'common.details' | transloco }}</button>
         <button hlmTabsTrigger="history">{{ 'common.history' | transloco }}</button>
-      </div>
+      </hlm-tabs-list>
 
       <!-- Tab Panels -->
       <!-- Details Tab -->
@@ -28,16 +28,16 @@
                 <!-- Main Content - Takes 2 columns on large screens -->
                 <div class="lg:col-span-2 space-y-6">
                   <!-- Basic Information Card -->
-                  <div class="overflow-hidden rounded-lg border bg-card shadow-sm">
-                    <div class="border-b bg-muted/40 px-6 py-4">
-                      <h2 class="text-lg font-semibold">{{ 'organizations.basicInfo' | transloco }}</h2>
+                  <section hlmCard>
+                    <div hlmCardHeader>
+                      <h3 hlmCardTitle>{{ 'organizations.basicInfo' | transloco }}</h3>
                     </div>
-                    <div class="p-6">
+                    <div hlmCardContent>
                       @if (organization()) {
                         <div class="space-y-4">
                           <!-- Name -->
                           <div>
-                            <label class="mb-1 block text-sm font-medium text-muted-foreground">
+                            <label hlmLabel class="text-muted-foreground">
                               {{ 'organizations.name' | transloco }}
                             </label>
                             <p class="text-base">{{ organization()!.name || organizationName() }}</p>
@@ -45,17 +45,19 @@
 
                           <!-- Tier -->
                           <div>
-                            <label class="mb-1 block text-sm font-medium text-muted-foreground">
+                            <label hlmLabel class="text-muted-foreground">
                               {{ 'organizations.tier' | transloco }}
                             </label>
-                            <span class="inline-flex rounded-full bg-blue-100 px-3 py-1.5 text-sm font-semibold text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                              {{ organization()!.tier }}
-                            </span>
+                            <div>
+                              <span hlmBadge>
+                                {{ organization()!.tier }}
+                              </span>
+                            </div>
                           </div>
 
                           <!-- Organization ID -->
                           <div>
-                            <label class="mb-1 block text-sm font-medium text-muted-foreground">
+                            <label hlmLabel class="text-muted-foreground">
                               {{ 'organizations.organizationId' | transloco }}
                             </label>
                             <p class="font-mono text-sm">{{ organization()!.organizationId }}</p>
@@ -63,18 +65,18 @@
                         </div>
                       }
                     </div>
-                  </div>
+                  </section>
                 </div>
 
                 <!-- Sidebar - Takes 1 column on large screens -->
                 <div class="space-y-6">
                   <!-- Status Card -->
                   @if (organization()) {
-                    <div class="overflow-hidden rounded-lg border bg-card shadow-sm">
-                      <div class="border-b bg-muted/40 px-6 py-4">
-                        <h2 class="text-lg font-semibold">{{ 'organizations.status' | transloco }}</h2>
+                    <section hlmCard>
+                      <div hlmCardHeader>
+                        <h3 hlmCardTitle>{{ 'organizations.status' | transloco }}</h3>
                       </div>
-                      <div class="p-6 space-y-4">
+                      <div hlmCardContent class="space-y-4">
                         <div>
                           <p class="text-sm text-muted-foreground mb-2">{{ 'organizations.currentStatus' | transloco }}</p>
                           <span [appStatusBadge]="organization()!.status">
@@ -87,7 +89,7 @@
                           <p class="text-base">{{ organization()!.createdAt | date:'medium' }}</p>
                         </div>
                       </div>
-                    </div>
+                    </section>
                   }
                 </div>
               </div>
@@ -97,12 +99,14 @@
 
       <!-- History Tab -->
       <div hlmTabsContent="history">
+        <ng-template hlmTabsContentLazy>
           <div class="py-6">
             <div class="container mx-auto px-4">
               <app-organization-audit-log [organizationId]="organizationId()" />
             </div>
           </div>
+        </ng-template>
       </div>
-    </div>
+    </hlm-tabs>
   }
 </app-entity-details-view>

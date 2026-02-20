@@ -102,6 +102,12 @@
       ],
       "@spartan-ng/helm/navigation-menu": [
         "./src/shared/components/ui/navigation-menu/src/index.ts"
+      ],
+      "@spartan-ng/helm/breadcrumb": [
+        "./src/shared/components/ui/breadcrumb/src/index.ts"
+      ],
+      "@spartan-ng/helm/pagination": [
+        "./src/shared/components/ui/pagination/src/index.ts"
       ]
     }
   },

@@ -72,7 +72,6 @@ export class CompaniesListComponent {
         header: this.translocoService.translate('companies.code'),
         accessorKey: 'code',
         cell: (info) => `<span class="font-mono text-sm">${info.getValue()}</span>`,
-        meta: { useInnerHTML: true },
         enableSorting: true,
       },
       {
@@ -97,7 +96,6 @@ export class CompaniesListComponent {
           );
           return `<span class="${variantClass}">${translatedStatus}</span>`;
         },
-        meta: { useInnerHTML: true },
         enableSorting: false,
       },
       {

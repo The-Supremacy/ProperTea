@@ -112,7 +112,6 @@ export class BuildingsListComponent {
           );
           return `<span class="${variantClass}">${translatedStatus}</span>`;
         },
-        meta: { useInnerHTML: true },
         enableSorting: false,
       },
       {

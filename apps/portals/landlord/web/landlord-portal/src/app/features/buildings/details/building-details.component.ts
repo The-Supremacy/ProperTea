@@ -9,6 +9,9 @@ import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { EntityDetailsConfig, EntityDetailsViewComponent } from '../../../../shared/components/entity-details-view';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmFormFieldImports } from '@spartan-ng/helm/form-field';
+import { HlmLabel } from '@spartan-ng/helm/label';
 import { StatusBadgeDirective } from '../../../../shared/directives';
 import { BuildingService } from '../services/building.service';
 import { PropertyService } from '../../properties/services/property.service';
@@ -28,6 +31,9 @@ import { BuildingAuditLogComponent } from '../audit-log/building-audit-log.compo
     HlmTabsImports,
     HlmInput,
     HlmSpinner,
+    HlmCardImports,
+    HlmFormFieldImports,
+    HlmLabel,
     StatusBadgeDirective,
     BuildingAuditLogComponent,
   ],

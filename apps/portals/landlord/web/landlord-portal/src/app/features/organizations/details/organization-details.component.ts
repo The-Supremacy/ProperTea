@@ -10,6 +10,9 @@ import { EntityDetailsViewComponent, EntityDetailsConfig } from '../../../../sha
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { OrganizationAuditLogComponent } from '../audit-log/organization-audit-log.component';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmLabel } from '@spartan-ng/helm/label';
+import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { StatusBadgeDirective } from '../../../../shared/directives';
 
 @Component({
@@ -22,6 +25,9 @@ import { StatusBadgeDirective } from '../../../../shared/directives';
     HlmTabsImports,
     OrganizationAuditLogComponent,
     HlmSpinner,
+    HlmCardImports,
+    HlmLabel,
+    HlmBadgeImports,
     StatusBadgeDirective
   ],
   templateUrl: './organization-details.component.html'

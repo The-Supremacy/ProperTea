@@ -1,6 +1,5 @@
-import { TemplateRef } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ColumnDef, SortingState, VisibilityState } from '@tanstack/angular-table';
+import { ColumnDef } from '@tanstack/angular-table';
 
 export interface PaginationQuery {
   page: number;
@@ -38,7 +37,6 @@ export interface EntityListConfig<TEntity, TFilters = any> {
   fetchFn: (query: EntityListQuery<TFilters>) => Observable<PagedResult<TEntity>>;
   columns: ColumnDef<TEntity>[];
   idField: keyof TEntity;
-  mobileCardTemplate?: TemplateRef<{ $implicit: TEntity }>;
   actions?: EntityAction<TEntity>[];
   tableActions?: TableAction[];
   filterConfig?: FilterConfig<TFilters>;
@@ -74,7 +72,6 @@ export interface TableAction {
 
 export interface FilterConfig<TFilters> {
   fields: FilterField<TFilters>[];
-  customTemplate?: TemplateRef<{ filters: TFilters }>;
 }
 
 export interface FilterField<TFilters> {
@@ -115,17 +112,4 @@ export interface EntityListNavigation<TEntity> {
 export interface ColumnPreferences {
   visibility: Record<string, boolean>;
   order: string[];
-}
-
-export interface EntityListState<TFilters = any> {
-  data: any[];
-  totalCount: number;
-  loading: boolean;
-  sorting: SortingState;
-  columnVisibility: VisibilityState;
-  pagination: PaginationQuery;
-  sort?: SortQuery;
-  filters?: TFilters;
-  filterDrawerOpen: boolean;
-  columnDrawerOpen: boolean;
 }

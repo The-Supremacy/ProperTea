@@ -1,7 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, resource, signal } from '@angular/core';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { HlmAutocompleteImports } from '@spartan-ng/helm/autocomplete';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
 
@@ -45,10 +44,10 @@ export class AutocompleteComponent {
     return key ? this.translocoService.translate(key) : '';
   });
 
-  // rxResource: loads options, auto-cancels on destroy, reacts to optionsProvider changes.
-  protected readonly data = rxResource< AutocompleteOption[], () => Observable<AutocompleteOption[]>>({
+  protected readonly data = resource({
+    defaultValue: [] as AutocompleteOption[],
     params: () => this.optionsProvider(),
-    stream: ({ params: provider }) => provider(),
+    loader: async ({ params: provider }) => firstValueFrom(provider()),
   });
 
   // Brain drives search input; we filter locally (options are loaded once).
@@ -69,6 +68,8 @@ export class AutocompleteComponent {
     item: AutocompleteOption,
     selected: AutocompleteOption | null,
   ): boolean => item.value === selected?.value;
+
+  protected readonly itemToString = (item: AutocompleteOption): string => item.label;
 
   protected onValueChange(option: AutocompleteOption | null): void {
     this.valueChange.emit(option?.value ?? '');
