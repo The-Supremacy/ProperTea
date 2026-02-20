@@ -293,7 +293,7 @@
     <!-- Reload Overlay (only when reloading with existing data) -->
     @if (state.loading && state.hasData) {
       <div
-        class="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/80 backdrop-blur-sm">
+        class="loading-delayed absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/80 backdrop-blur-sm">
         <hlm-spinner size="lg" />
       </div>
     }
@@ -301,7 +301,7 @@
     <!-- Skeleton Loading (initial load, no data yet) -->
     @if (state.loading && !state.hasData) {
       @if (!responsive.isMobile()) {
-        <div class="rounded-lg border">
+        <div class="loading-delayed rounded-lg border">
           <div class="bg-muted/50 flex gap-4 border-b px-4 py-3">
             <hlm-skeleton class="h-4 w-24" />
             <hlm-skeleton class="h-4 w-32" />
@@ -318,7 +318,7 @@
           }
         </div>
       } @else {
-        <div class="space-y-4">
+        <div class="loading-delayed space-y-4">
           @for (_ of [1, 2, 3]; track $index) {
             <div class="rounded-lg border p-4 space-y-3">
               <hlm-skeleton class="h-4 w-3/4" />

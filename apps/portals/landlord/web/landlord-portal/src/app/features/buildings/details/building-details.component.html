@@ -3,14 +3,14 @@
   [loading]="loading()"
   (refresh)="loadBuilding(buildingId())">
 
-  <!-- Loading -->
-  @if (loading()) {
+  <!-- Initial load spinner (shown only when no data yet) -->
+  @if (loading() && !building()) {
     <div class="flex items-center justify-center py-12">
       <hlm-spinner size="lg" />
     </div>
   }
 
-  @if (!loading()) {
+  @if (building()) {
     <hlm-tabs [tab]="selectedTab()" (tabActivated)="selectedTab.set($event)">
         <div class="border-b px-4">
           <hlm-tabs-list class="justify-start gap-4 rounded-none bg-transparent">
@@ -29,14 +29,14 @@
                     </div>
                     <div hlmCardContent>
                       <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
-                        <hlm-form-field>
+                        <div class="space-y-2">
                           <label hlmLabel>
                             {{ 'buildings.property' | transloco }}
                           </label>
                           <div class="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
                             {{ propertyName() || '-' }}
                           </div>
-                        </hlm-form-field>
+                        </div>
 
                         <hlm-form-field>
                           <label hlmLabel for="code">

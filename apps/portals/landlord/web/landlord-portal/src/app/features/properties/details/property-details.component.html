@@ -3,15 +3,15 @@
   [loading]="loading()"
   (refresh)="loadProperty(propertyId())">
 
-  <!-- Loading -->
-  @if (loading()) {
+  <!-- Initial load spinner (shown only when no data yet) -->
+  @if (loading() && !property()) {
     <div class="flex items-center justify-center py-12">
       <hlm-spinner size="lg" />
     </div>
   }
 
-  <!-- Tabs -->
-  @if (!loading()) {
+  <!-- Tabs (kept in DOM once data is loaded) -->
+  @if (property()) {
     <hlm-tabs [tab]="selectedTab()" (tabActivated)="selectedTab.set($event)">
       <!-- Tab List -->
       <div class="border-b px-4">
@@ -35,14 +35,14 @@
                   <div hlmCardContent>
                     <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
                       <!-- Company (Read-only Display) -->
-                      <hlm-form-field>
+                      <div class="space-y-2">
                         <label hlmLabel>
                           {{ 'properties.company' | transloco }}
                         </label>
                         <div class="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
                           {{ companyName() || '-' }}
                         </div>
-                      </hlm-form-field>
+                      </div>
 
                       <!-- Code Field -->
                       <hlm-form-field>

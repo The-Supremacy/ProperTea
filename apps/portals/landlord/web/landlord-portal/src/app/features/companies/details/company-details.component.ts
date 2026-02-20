@@ -175,6 +175,7 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
             name: company.name
           });
           this.form.markAsPristine();
+          this.form.markAsUntouched();
         } else {
           this.toastService.error('companies.error.loadFailed');
           this.router.navigate(['/companies']);

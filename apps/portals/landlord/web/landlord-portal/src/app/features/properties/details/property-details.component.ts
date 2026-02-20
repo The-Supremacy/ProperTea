@@ -15,6 +15,7 @@ import { HlmAccordionImports } from '@spartan-ng/helm/accordion';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmFormFieldImports } from '@spartan-ng/helm/form-field';
+import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
@@ -167,6 +168,8 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
             name: property.name,
             address: property.address
           });
+          this.form.markAsPristine();
+          this.form.markAsUntouched();
 
           // Resolve company name for display
           this.companyService.select().pipe(

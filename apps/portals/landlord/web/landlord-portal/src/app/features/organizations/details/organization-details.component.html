@@ -3,21 +3,23 @@
   [loading]="loading()"
   (refresh)="refresh()">
 
-  <!-- Loading -->
-  @if (loading()) {
+  <!-- Initial load spinner (shown only when no data yet) -->
+  @if (loading() && !organization()) {
     <div class="flex items-center justify-center py-12">
       <hlm-spinner size="lg" />
     </div>
   }
 
-  <!-- Tabs -->
-  @if (!loading()) {
+  <!-- Tabs (kept in DOM once data is loaded) -->
+  @if (organization()) {
     <hlm-tabs [tab]="selectedTab()" (tabActivated)="selectedTab.set($event)">
       <!-- Tab List -->
-      <hlm-tabs-list class="w-full justify-start gap-4 rounded-none border-b bg-transparent px-4">
-        <button hlmTabsTrigger="details">{{ 'common.details' | transloco }}</button>
-        <button hlmTabsTrigger="history">{{ 'common.history' | transloco }}</button>
-      </hlm-tabs-list>
+      <div class="border-b px-4">
+        <hlm-tabs-list class="justify-start gap-4 rounded-none bg-transparent">
+          <button hlmTabsTrigger="details">{{ 'common.details' | transloco }}</button>
+          <button hlmTabsTrigger="history">{{ 'common.history' | transloco }}</button>
+        </hlm-tabs-list>
+      </div>
 
       <!-- Tab Panels -->
       <!-- Details Tab -->

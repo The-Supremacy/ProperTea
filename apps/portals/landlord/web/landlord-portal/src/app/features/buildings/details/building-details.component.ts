@@ -144,6 +144,7 @@ export class BuildingDetailsComponent implements OnInit, OnDestroy {
             name: building.name,
           });
           this.form.markAsPristine();
+          this.form.markAsUntouched();
 
           this.propertyService
             .get(building.propertyId)
