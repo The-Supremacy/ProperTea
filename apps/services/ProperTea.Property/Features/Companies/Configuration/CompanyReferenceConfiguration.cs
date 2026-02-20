@@ -11,4 +11,14 @@ public static class CompanyReferenceConfiguration
             .Index(x => x.Name)
             .Index(x => x.IsDeleted);
     }
+
+    public static IServiceCollection AddCompanyReferenceHttpClient(this IServiceCollection services)
+    {
+        _ = services.AddHttpClient("company", client =>
+        {
+            client.BaseAddress = new Uri("https+http://company");
+        });
+
+        return services;
+    }
 }

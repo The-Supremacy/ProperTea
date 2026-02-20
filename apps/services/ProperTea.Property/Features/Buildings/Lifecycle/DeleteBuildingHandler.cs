@@ -1,3 +1,4 @@
+using JasperFx.Events;
 using Marten;
 using ProperTea.Infrastructure.Common.Exceptions;
 using Wolverine;
@@ -17,6 +18,6 @@ public class DeleteBuildingHandler : IWolverineHandler
                 command.BuildingId);
 
         var deleted = building.Delete(DateTimeOffset.UtcNow);
-        _ = session.Events.Append(command.BuildingId, deleted);
+        _ = session.Events.Append(command.BuildingId, deleted, new Archived("Building deleted"));
     }
 }

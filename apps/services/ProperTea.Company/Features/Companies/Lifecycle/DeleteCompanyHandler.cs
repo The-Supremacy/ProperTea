@@ -1,3 +1,4 @@
+using JasperFx.Events;
 using Marten;
 using ProperTea.Infrastructure.Common.Exceptions;
 using Wolverine;
@@ -20,7 +21,7 @@ public class DeleteCompanyHandler : IWolverineHandler
                 command.CompanyId);
 
         var deleted = company.Delete(DateTimeOffset.UtcNow);
-        _ = session.Events.Append(command.CompanyId, deleted);
+        _ = session.Events.Append(command.CompanyId, deleted, new Archived("Company deleted"));
         await session.SaveChangesAsync();
 
         await bus.PublishAsync(new CompanyIntegrationEvents.CompanyDeleted

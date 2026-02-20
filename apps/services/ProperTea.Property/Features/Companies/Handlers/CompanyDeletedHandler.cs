@@ -10,14 +10,19 @@ public class CompanyDeletedHandler : IWolverineHandler
         ICompanyDeleted message,
         IDocumentSession session)
     {
-        var reference = await session.LoadAsync<CompanyReference>(message.CompanyId);
+        var existing = await session.LoadAsync<CompanyReference>(message.CompanyId);
+        if (existing != null && existing.LastUpdatedAt >= message.DeletedAt)
+            return;
 
-        if (reference != null)
+        session.Store(new CompanyReference
         {
-            reference.IsDeleted = true;
-            reference.LastUpdatedAt = message.DeletedAt;
-            session.Update(reference);
-            await session.SaveChangesAsync();
-        }
+            Id = message.CompanyId,
+            Code = existing?.Code ?? string.Empty,
+            Name = existing?.Name ?? string.Empty,
+            IsDeleted = true,
+            LastUpdatedAt = message.DeletedAt,
+            TenantId = message.OrganizationId
+        });
+        await session.SaveChangesAsync();
     }
 }

@@ -1,5 +1,6 @@
 using JasperFx;
 using ProperTea.Property.Features.Buildings.Configuration;
+using ProperTea.Property.Features.Companies.Configuration;
 using ProperTea.Property.Features.Properties.Configuration;
 using ProperTea.Property.Features.Units.Configuration;
 using ProperTea.Infrastructure.Common.ErrorHandling;
@@ -23,6 +24,7 @@ builder.Services.AddOpenApiConfiguration(builder.Configuration);
 builder.Services.AddPropertyFeature();
 builder.Services.AddBuildingFeature();
 builder.Services.AddUnitFeature();
+builder.Services.AddCompanyReferenceHttpClient();
 
 var app = builder.Build();
 

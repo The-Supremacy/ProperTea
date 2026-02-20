@@ -1,3 +1,4 @@
+using JasperFx.Events;
 using Marten;
 using ProperTea.Property.Features.Properties;
 using Wolverine;
@@ -19,7 +20,7 @@ public class DeleteUnitsForPropertyHandler : IWolverineHandler
         foreach (var unit in units)
         {
             var deleted = unit.Delete(message.DeletedAt);
-            _ = session.Events.Append(unit.Id, deleted);
+            _ = session.Events.Append(unit.Id, deleted, new Archived("Property deleted cascade"));
 
             await bus.PublishAsync(new UnitIntegrationEvents.UnitDeleted
             {

@@ -161,6 +161,7 @@ var propertyService = builder.AddProject<Projects.ProperTea_Property>("property"
     .WithEnvironment("Scalar__ClientId", scalarClientId)
     .WithReference(propertyDb)
     .WithReference(rabbitmq)
+    .WithReference(companyService)
     .WaitFor(postgres)
     .WaitFor(rabbitmq)
     .WaitFor(zitadel)

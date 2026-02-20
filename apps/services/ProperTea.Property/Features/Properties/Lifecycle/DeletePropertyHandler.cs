@@ -1,3 +1,4 @@
+using JasperFx.Events;
 using Marten;
 using ProperTea.Infrastructure.Common.Exceptions;
 using Wolverine;
@@ -20,7 +21,7 @@ public class DeletePropertyHandler : IWolverineHandler
                 command.PropertyId);
 
         var deleted = property.Delete(DateTimeOffset.UtcNow);
-        _ = session.Events.Append(command.PropertyId, deleted);
+        _ = session.Events.Append(command.PropertyId, deleted, new Archived("Property deleted"));
         await session.SaveChangesAsync();
 
         var organizationId = session.TenantId;
