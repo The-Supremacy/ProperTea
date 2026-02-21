@@ -34,93 +34,112 @@
                   </div>
                   <div hlmCardContent>
                     <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
-                      <!-- Company (Read-only Display) -->
-                      <div class="space-y-2">
-                        <label hlmLabel>
-                          {{ 'properties.company' | transloco }}
-                        </label>
-                        <div class="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
-                          {{ companyName() || '-' }}
+                      <div class="grid grid-cols-12 gap-4">
+                        <!-- Company (Read-only) -->
+                        <div class="col-span-12 sm:col-span-4 space-y-1.5">
+                          <label hlmLabel>{{ 'properties.company' | transloco }}</label>
+                          <div class="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
+                            {{ companyName() || '-' }}
+                          </div>
+                        </div>
+
+                        <!-- Code Field -->
+                        <div class="col-span-12 sm:col-span-4">
+                          <hlm-form-field class="w-full">
+                            <label hlmLabel for="code">{{ 'properties.code' | transloco }}</label>
+                            <input
+                              id="code"
+                              appUppercase
+                              type="text"
+                              formControlName="code"
+                              [placeholder]="'properties.codePlaceholder' | transloco"
+                              hlmInput
+                              class="w-full" />
+
+                            @if (codeControl.invalid && codeControl.touched) {
+                              @if (codeControl.hasError('required')) {
+                                <hlm-error>{{ 'properties.codeRequired' | transloco }}</hlm-error>
+                              }
+                              @if (codeControl.hasError('maxlength')) {
+                                <hlm-error>{{ 'properties.codeTooLong' | transloco }}</hlm-error>
+                              }
+                              @if (codeControl.hasError('pattern')) {
+                                <hlm-error>{{ 'common.codeInvalidFormat' | transloco }}</hlm-error>
+                              }
+                            }
+                          </hlm-form-field>
+                        </div>
+
+                        <!-- Name Field -->
+                        <div class="col-span-12 sm:col-span-4">
+                          <hlm-form-field class="w-full">
+                            <label hlmLabel for="name">{{ 'properties.name' | transloco }}</label>
+                            <input
+                              id="name"
+                              type="text"
+                              formControlName="name"
+                              [placeholder]="'properties.namePlaceholder' | transloco"
+                              hlmInput
+                              class="w-full" />
+
+                            @if (nameControl.invalid && nameControl.touched) {
+                              @if (nameControl.hasError('required')) {
+                                <hlm-error>{{ 'properties.nameRequired' | transloco }}</hlm-error>
+                              }
+                              @if (nameControl.hasError('maxlength')) {
+                                <hlm-error>{{ 'properties.nameTooLong' | transloco }}</hlm-error>
+                              }
+                            }
+                          </hlm-form-field>
                         </div>
                       </div>
-
-                      <!-- Code Field -->
-                      <hlm-form-field>
-                        <label hlmLabel for="code">
-                          {{ 'properties.code' | transloco }}
-                        </label>
-                        <input
-                          id="code"
-                          appUppercase
-                          type="text"
-                          formControlName="code"
-                          [placeholder]="'properties.codePlaceholder' | transloco"
-                          hlmInput
-                          class="w-full" />
-
-                        @if (codeControl.invalid && codeControl.touched) {
-                          @if (codeControl.hasError('required')) {
-                            <hlm-error>{{ 'properties.codeRequired' | transloco }}</hlm-error>
-                          }
-                          @if (codeControl.hasError('maxlength')) {
-                            <hlm-error>{{ 'properties.codeTooLong' | transloco }}</hlm-error>
-                          }
-                          @if (codeControl.hasError('pattern')) {
-                            <hlm-error>{{ 'common.codeInvalidFormat' | transloco }}</hlm-error>
-                          }
-                        }
-                      </hlm-form-field>
-
-                      <!-- Name Field -->
-                      <hlm-form-field>
-                        <label hlmLabel for="name">
-                          {{ 'properties.name' | transloco }}
-                        </label>
-                        <input
-                          id="name"
-                          type="text"
-                          formControlName="name"
-                          [placeholder]="'properties.namePlaceholder' | transloco"
-                          hlmInput
-                          class="w-full" />
-
-                        @if (nameControl.invalid && nameControl.touched) {
-                          @if (nameControl.hasError('required')) {
-                            <hlm-error>{{ 'properties.nameRequired' | transloco }}</hlm-error>
-                          }
-                          @if (nameControl.hasError('maxlength')) {
-                            <hlm-error>{{ 'properties.nameTooLong' | transloco }}</hlm-error>
-                          }
-                        }
-                      </hlm-form-field>
-
-                      <!-- Address Field -->
-                      <app-address-form [addressGroup]="$any(form.get('address'))" [required]="false" />
                     </form>
                   </div>
-                </section>
 
-                <!-- Status Card - second on mobile, sidebar on desktop -->
-                <section hlmCard class="order-2">
-                  <div hlmCardHeader>
-                    <h3 hlmCardTitle>{{ 'common.status' | transloco }}</h3>
-                  </div>
-                  <div hlmCardContent class="space-y-4">
-                    <div>
-                      <p class="text-sm text-muted-foreground mb-1">{{ 'common.currentStatus' | transloco }}</p>
-                      <span [appStatusBadge]="property()?.status || 'Active'">
-                        {{ 'common.statuses.' + (property()?.status || 'Active') | transloco }}
-                      </span>
-                    </div>
-
-                    <div>
-                      <p class="text-sm text-muted-foreground mb-1">{{ 'common.createdAt' | transloco }}</p>
-                      <p class="text-sm">{{ property()?.createdAt | date: 'medium' }}</p>
-                    </div>
+                  <!-- Address -->
+                  <div hlmCardContent>
+                    <h4 class="mb-4 text-sm font-medium text-muted-foreground">{{ 'properties.address' | transloco }}</h4>
+                    <app-address-form [addressGroup]="$any(form.get('address'))" [required]="false" />
                   </div>
                 </section>
 
-                <!-- Buildings Accordion - third on mobile, under Basic Info on desktop -->
+                <!-- Sidebar -->
+                <div class="order-2 space-y-6">
+                  <!-- Status Card -->
+                  <section hlmCard>
+                    <div hlmCardHeader>
+                      <h3 hlmCardTitle>{{ 'common.status' | transloco }}</h3>
+                    </div>
+                    <div hlmCardContent>
+                      <div class="grid grid-cols-2 gap-4">
+                        <div>
+                          <p class="text-sm text-muted-foreground mb-1">{{ 'common.currentStatus' | transloco }}</p>
+                          <span [appStatusBadge]="property()?.status || 'Active'">
+                            {{ 'common.statuses.' + (property()?.status || 'Active') | transloco }}
+                          </span>
+                        </div>
+                        <div>
+                          <p class="text-sm text-muted-foreground mb-1">{{ 'common.createdAt' | transloco }}</p>
+                          <p class="text-sm">{{ property()?.createdAt | date: 'medium' }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <!-- Quick Actions Card -->
+                  <section hlmCard class="hidden lg:block">
+                    <div hlmCardHeader>
+                      <h3 hlmCardTitle>{{ 'common.quickActions' | transloco }}</h3>
+                    </div>
+                    <div hlmCardContent>
+                      <p class="py-4 text-center text-sm text-muted-foreground">
+                        {{ 'common.noQuickActions' | transloco }}
+                      </p>
+                    </div>
+                  </section>
+                </div>
+
+                <!-- Buildings Accordion -->
                 <div hlmAccordion class="rounded-lg border bg-card shadow-sm lg:col-span-2 order-3">
                   <div hlmAccordionItem class="border-b-0" [isOpened]="buildingsAccordionOpen()" (openedChange)="buildingsAccordionOpen.set($event)">
                     <h2 class="flex items-center rounded-t-lg bg-muted/40" [class.rounded-b-lg]="!buildingsAccordionOpen()" [class.border-b]="buildingsAccordionOpen()">

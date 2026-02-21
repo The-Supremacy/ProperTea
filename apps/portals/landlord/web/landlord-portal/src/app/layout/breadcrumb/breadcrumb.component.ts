@@ -1,6 +1,7 @@
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { filter, map } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { HlmBreadCrumbImports } from '@spartan-ng/helm/breadcrumb';
 
@@ -21,7 +22,7 @@ export interface Breadcrumb {
             <a hlmBreadcrumbLink link="/">{{ 'nav.home' | transloco }}</a>
           </li>
 
-          @for (crumb of breadcrumbs(); track crumb.url; let isLast = $last) {
+          @for (crumb of breadcrumbs(); track $index; let isLast = $last) {
             <li hlmBreadcrumbSeparator></li>
             <li hlmBreadcrumbItem>
               @if (isLast) {
@@ -46,7 +47,8 @@ export class BreadcrumbComponent {
     this.router.events
       .pipe(
         filter(event => event instanceof NavigationEnd),
-        map(() => this.buildBreadcrumbs(this.activatedRoute.root))
+        map(() => this.buildBreadcrumbs(this.activatedRoute.root)),
+        takeUntilDestroyed(),
       )
       .subscribe(breadcrumbs => this.breadcrumbs.set(breadcrumbs));
 

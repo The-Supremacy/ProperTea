@@ -63,21 +63,21 @@ import { HlmCardImports } from '@spartan-ng/helm/card';
         <div hlmCardContent>
           <div class="space-y-4">
             <div class="flex items-center gap-4">
-              <div class="h-2 w-2 rounded-full bg-green-500"></div>
+              <div class="h-2 w-2 rounded-full bg-green-500" aria-hidden="true"></div>
               <div class="flex-1">
                 <p class="text-sm font-medium">{{ 'dashboard.activity.leaseSigned' | transloco: {unit: '4B'} }}</p>
                 <p class="text-xs text-muted-foreground">{{ 'dashboard.activity.hoursAgo' | transloco: {hours: 2} }}</p>
               </div>
             </div>
             <div class="flex items-center gap-4">
-              <div class="h-2 w-2 rounded-full bg-yellow-500"></div>
+              <div class="h-2 w-2 rounded-full bg-yellow-500" aria-hidden="true"></div>
               <div class="flex-1">
                 <p class="text-sm font-medium">{{ 'dashboard.activity.maintenanceRequest' | transloco: {location: 'Building A'} }}</p>
                 <p class="text-xs text-muted-foreground">{{ 'dashboard.activity.hoursAgo' | transloco: {hours: 5} }}</p>
               </div>
             </div>
             <div class="flex items-center gap-4">
-              <div class="h-2 w-2 rounded-full bg-blue-500"></div>
+              <div class="h-2 w-2 rounded-full bg-blue-500" aria-hidden="true"></div>
               <div class="flex-1">
                 <p class="text-sm font-medium">{{ 'dashboard.activity.paymentReceived' | transloco: {amount: '\$2,500'} }}</p>
                 <p class="text-xs text-muted-foreground">{{ 'dashboard.activity.daysAgo' | transloco: {days: 1} }}</p>

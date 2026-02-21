@@ -113,10 +113,12 @@ export class UnitAuditLogComponent implements OnInit {
         return `${data['oldCategory'] || '?'} → ${data['newCategory'] || '?'}`;
       case 'locationchanged': {
         const parts: string[] = [];
-        if (data['oldPropertyId'] !== data['newPropertyId'])
-          parts.push(`${this.t.translate('units.property')}: ${String(data['oldPropertyId']).substring(0, 8)} \u2192 ${String(data['newPropertyId']).substring(0, 8)}`);
-        if (data['oldBuildingId'] !== data['newBuildingId'])
-          parts.push(`${this.t.translate('units.building')}: ${data['newBuildingId'] ? String(data['newBuildingId']).substring(0, 8) : '\u2014'}`);
+        if (data['oldPropertyCode'] !== data['newPropertyCode'])
+          parts.push(`${this.t.translate('units.property')}: ${data['oldPropertyCode'] || '?'} \u2192 ${data['newPropertyCode'] || '?'}`);
+        if (data['oldBuildingCode'] !== data['newBuildingCode'])
+          parts.push(`${this.t.translate('units.building')}: ${data['oldBuildingCode'] || '\u2014'} \u2192 ${data['newBuildingCode'] || '\u2014'}`);
+        if (data['oldEntranceCode'] !== data['newEntranceCode'])
+          parts.push(`${this.t.translate('units.entrance')}: ${data['oldEntranceCode'] || '\u2014'} \u2192 ${data['newEntranceCode'] || '\u2014'}`);
         return parts.join(', ') || '\u2014';
       }
       case 'addressupdated':

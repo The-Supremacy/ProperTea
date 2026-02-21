@@ -48,7 +48,7 @@ export interface CompanyAuditLogEntry {
   timestamp: Date;
   username?: string;
   version: number;
-  data: any;
+  data: unknown;
 }
 
 export interface CompanyAuditLogResponse {

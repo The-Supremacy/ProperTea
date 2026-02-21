@@ -27,72 +27,64 @@
           <div class="py-6">
             <div class="container mx-auto px-4">
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Main Content - Takes 2 columns on large screens -->
-                <div class="lg:col-span-2 space-y-6">
-                  <!-- Basic Information Card -->
-                  <section hlmCard>
-                    <div hlmCardHeader>
-                      <h3 hlmCardTitle>{{ 'organizations.basicInfo' | transloco }}</h3>
-                    </div>
-                    <div hlmCardContent>
-                      @if (organization()) {
-                        <div class="space-y-4">
-                          <!-- Name -->
-                          <div>
-                            <label hlmLabel class="text-muted-foreground">
-                              {{ 'organizations.name' | transloco }}
-                            </label>
-                            <p class="text-base">{{ organization()!.name || organizationName() }}</p>
-                          </div>
+                <!-- Basic Information Card -->
+                <section hlmCard class="lg:col-span-2 order-1">
+                  <div hlmCardHeader>
+                    <h3 hlmCardTitle>{{ 'organizations.basicInfo' | transloco }}</h3>
+                  </div>
+                  <div hlmCardContent>
+                    @if (organization()) {
+                      <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm">
+                        <dt class="text-muted-foreground">{{ 'organizations.name' | transloco }}</dt>
+                        <dd>{{ organization()!.name || organizationName() }}</dd>
 
-                          <!-- Tier -->
-                          <div>
-                            <label hlmLabel class="text-muted-foreground">
-                              {{ 'organizations.tier' | transloco }}
-                            </label>
-                            <div>
-                              <span hlmBadge>
-                                {{ organization()!.tier }}
-                              </span>
-                            </div>
-                          </div>
+                        <dt class="text-muted-foreground">{{ 'organizations.tier' | transloco }}</dt>
+                        <dd><span hlmBadge>{{ organization()!.tier }}</span></dd>
 
-                          <!-- Organization ID -->
-                          <div>
-                            <label hlmLabel class="text-muted-foreground">
-                              {{ 'organizations.organizationId' | transloco }}
-                            </label>
-                            <p class="font-mono text-sm">{{ organization()!.organizationId }}</p>
-                          </div>
-                        </div>
-                      }
-                    </div>
-                  </section>
-                </div>
+                        <dt class="text-muted-foreground">{{ 'organizations.organizationId' | transloco }}</dt>
+                        <dd class="font-mono">{{ organization()!.organizationId }}</dd>
+                      </dl>
+                    }
+                  </div>
+                </section>
 
-                <!-- Sidebar - Takes 1 column on large screens -->
-                <div class="space-y-6">
+                <!-- Sidebar -->
+                <div class="order-2 space-y-6">
                   <!-- Status Card -->
                   @if (organization()) {
                     <section hlmCard>
                       <div hlmCardHeader>
                         <h3 hlmCardTitle>{{ 'organizations.status' | transloco }}</h3>
                       </div>
-                      <div hlmCardContent class="space-y-4">
-                        <div>
-                          <p class="text-sm text-muted-foreground mb-2">{{ 'organizations.currentStatus' | transloco }}</p>
-                          <span [appStatusBadge]="organization()!.status">
-                            {{ organization()!.status }}
-                          </span>
-                        </div>
+                      <div hlmCardContent>
+                        <div class="grid grid-cols-2 gap-4">
+                          <div>
+                            <p class="text-sm text-muted-foreground mb-1">{{ 'organizations.currentStatus' | transloco }}</p>
+                            <span [appStatusBadge]="organization()!.status">
+                              {{ 'common.statuses.' + organization()!.status | transloco }}
+                            </span>
+                          </div>
 
-                        <div>
-                          <p class="text-sm text-muted-foreground mb-1">{{ 'organizations.createdAt' | transloco }}</p>
-                          <p class="text-base">{{ organization()!.createdAt | date:'medium' }}</p>
+                          <div>
+                            <p class="text-sm text-muted-foreground mb-1">{{ 'organizations.createdAt' | transloco }}</p>
+                            <p class="text-sm">{{ organization()!.createdAt | date:'medium' }}</p>
+                          </div>
                         </div>
                       </div>
                     </section>
                   }
+
+                  <!-- Quick Actions Card -->
+                  <section hlmCard class="hidden lg:block">
+                    <div hlmCardHeader>
+                      <h3 hlmCardTitle>{{ 'common.quickActions' | transloco }}</h3>
+                    </div>
+                    <div hlmCardContent>
+                      <p class="py-4 text-center text-sm text-muted-foreground">
+                        {{ 'common.noQuickActions' | transloco }}
+                      </p>
+                    </div>
+                  </section>
                 </div>
               </div>
             </div>

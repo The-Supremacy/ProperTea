@@ -27,116 +27,122 @@
           <div class="py-6">
             <div class="container mx-auto px-4">
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <!-- Main Content - Takes 2 columns on large screens -->
-              <div class="lg:col-span-2 space-y-6">
                 <!-- Basic Information Card -->
-                <section hlmCard>
+                <section hlmCard class="lg:col-span-2 order-1">
                   <div hlmCardHeader>
                     <h3 hlmCardTitle>{{ 'companies.basicInfo' | transloco }}</h3>
                   </div>
                   <div hlmCardContent>
-                    <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
-                      <!-- Code Field -->
-                      <hlm-form-field>
-                        <label hlmLabel for="code">
-                          {{ 'companies.code' | transloco }}
-                        </label>
-                        <input
-                          id="code"
-                          type="text"
-                          formControlName="code"
-                          [placeholder]="'companies.codePlaceholder' | transloco"
-                          hlmInput
-                          class="w-full font-mono uppercase" />
+                    <form [formGroup]="form" (ngSubmit)="save()">
+                      <div class="grid grid-cols-12 gap-4">
+                        <!-- Code Field -->
+                        <div class="col-span-12 sm:col-span-6">
+                          <hlm-form-field class="w-full">
+                            <label hlmLabel for="code">{{ 'companies.code' | transloco }}</label>
+                            <input
+                              id="code"
+                              type="text"
+                              formControlName="code"
+                              [placeholder]="'companies.codePlaceholder' | transloco"
+                              hlmInput
+                              class="w-full font-mono uppercase" />
 
-                        @if (codeControl.invalid && codeControl.touched) {
-                          @if (codeControl.hasError('required')) {
-                            <hlm-error>{{ 'companies.codeRequired' | transloco }}</hlm-error>
-                          }
-                          @if (codeControl.hasError('minlength')) {
-                            <hlm-error>{{ 'companies.codeTooShort' | transloco }}</hlm-error>
-                          }
-                          @if (codeControl.hasError('maxlength')) {
-                            <hlm-error>{{ 'companies.codeTooLong' | transloco }}</hlm-error>
-                          }
-                          @if (codeControl.hasError('codeTaken')) {
-                            <hlm-error>{{ 'companies.codeTaken' | transloco }}</hlm-error>
-                          }
-                        }
+                            @if (codeControl.invalid && codeControl.touched) {
+                              @if (codeControl.hasError('required')) {
+                                <hlm-error>{{ 'companies.codeRequired' | transloco }}</hlm-error>
+                              }
+                              @if (codeControl.hasError('minlength')) {
+                                <hlm-error>{{ 'companies.codeTooShort' | transloco }}</hlm-error>
+                              }
+                              @if (codeControl.hasError('maxlength')) {
+                                <hlm-error>{{ 'companies.codeTooLong' | transloco }}</hlm-error>
+                              }
+                              @if (codeControl.hasError('codeTaken')) {
+                                <hlm-error>{{ 'companies.codeTaken' | transloco }}</hlm-error>
+                              }
+                            }
 
-                        @if (codeControl.pending) {
-                          <p class="mt-1 text-sm text-muted-foreground">
-                            {{ 'companies.checkingCode' | transloco }}
-                          </p>
-                        }
-                      </hlm-form-field>
+                            <div aria-live="polite">
+                              @if (codeControl.pending) {
+                                <p class="mt-1 text-sm text-muted-foreground">
+                                  {{ 'companies.checkingCode' | transloco }}
+                                </p>
+                              }
+                            </div>
+                          </hlm-form-field>
+                        </div>
 
-                      <!-- Name Field -->
-                      <hlm-form-field>
-                        <label hlmLabel for="name">
-                          {{ 'companies.name' | transloco }}
-                        </label>
-                        <input
-                          id="name"
-                          type="text"
-                          formControlName="name"
-                          [placeholder]="'companies.namePlaceholder' | transloco"
-                          hlmInput
-                          class="w-full" />
+                        <!-- Name Field -->
+                        <div class="col-span-12 sm:col-span-6">
+                          <hlm-form-field class="w-full">
+                            <label hlmLabel for="name">{{ 'companies.name' | transloco }}</label>
+                            <input
+                              id="name"
+                              type="text"
+                              formControlName="name"
+                              [placeholder]="'companies.namePlaceholder' | transloco"
+                              hlmInput
+                              class="w-full" />
 
-                        @if (nameControl.invalid && nameControl.touched) {
-                          @if (nameControl.hasError('required')) {
-                            <hlm-error>{{ 'companies.nameRequired' | transloco }}</hlm-error>
-                          }
-                          @if (nameControl.hasError('nameTaken')) {
-                            <hlm-error>{{ 'companies.nameTaken' | transloco }}</hlm-error>
-                          }
-                        }
+                            @if (nameControl.invalid && nameControl.touched) {
+                              @if (nameControl.hasError('required')) {
+                                <hlm-error>{{ 'companies.nameRequired' | transloco }}</hlm-error>
+                              }
+                              @if (nameControl.hasError('nameTaken')) {
+                                <hlm-error>{{ 'companies.nameTaken' | transloco }}</hlm-error>
+                              }
+                            }
 
-                        @if (nameControl.pending) {
-                          <p class="mt-1 text-sm text-muted-foreground">
-                            {{ 'companies.checkingName' | transloco }}
-                          </p>
-                        }
-                      </hlm-form-field>
+                            <div aria-live="polite">
+                              @if (nameControl.pending) {
+                                <p class="mt-1 text-sm text-muted-foreground">
+                                  {{ 'companies.checkingName' | transloco }}
+                                </p>
+                              }
+                            </div>
+                          </hlm-form-field>
+                        </div>
+                      </div>
                     </form>
                   </div>
                 </section>
-              </div>
-              <div class="space-y-6">
-                <!-- Status Card -->
-                @if (company()) {
-                  <section hlmCard>
-                    <div hlmCardHeader>
-                      <h3 hlmCardTitle>{{ 'companies.status' | transloco }}</h3>
-                    </div>
-                    <div hlmCardContent class="space-y-4">
-                      <div>
-                        <p class="text-sm text-muted-foreground mb-2">{{ 'companies.currentStatus' | transloco }}</p>
-                        <span [appStatusBadge]="company()!.status">
-                          {{ 'companies.' + company()!.status.toLowerCase() | transloco }}
-                        </span>
-                      </div>
 
-                      <div class="pt-4 border-t">
-                        <p class="text-sm text-muted-foreground mb-1">{{ 'companies.createdAt' | transloco }}</p>
-                        <p class="text-sm font-medium">{{ company()!.createdAt | date: 'medium' }}</p>
+                <!-- Sidebar -->
+                <div class="order-2 space-y-6">
+                  <!-- Status Card -->
+                  @if (company()) {
+                    <section hlmCard>
+                      <div hlmCardHeader>
+                        <h3 hlmCardTitle>{{ 'companies.status' | transloco }}</h3>
                       </div>
+                      <div hlmCardContent>
+                        <div class="grid grid-cols-2 gap-4">
+                          <div>
+                            <p class="text-sm text-muted-foreground mb-1">{{ 'companies.currentStatus' | transloco }}</p>
+                            <span [appStatusBadge]="company()!.status">
+                              {{ 'common.statuses.' + company()!.status | transloco }}
+                            </span>
+                          </div>
+                          <div>
+                            <p class="text-sm text-muted-foreground mb-1">{{ 'companies.createdAt' | transloco }}</p>
+                            <p class="text-sm">{{ company()!.createdAt | date: 'medium' }}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+                  }
+
+                  <!-- Quick Actions Card -->
+                  <section hlmCard class="hidden lg:block">
+                    <div hlmCardHeader>
+                      <h3 hlmCardTitle>{{ 'common.quickActions' | transloco }}</h3>
+                    </div>
+                    <div hlmCardContent>
+                      <p class="py-4 text-center text-sm text-muted-foreground">
+                        {{ 'common.noQuickActions' | transloco }}
+                      </p>
                     </div>
                   </section>
-                }
-
-                <!-- Quick Actions Card -->
-                <section hlmCard>
-                  <div hlmCardHeader>
-                    <h3 hlmCardTitle>{{ 'common.quickActions' | transloco }}</h3>
-                  </div>
-                  <div hlmCardContent>
-                    <div class="text-sm text-muted-foreground text-center py-4">
-                      {{ 'companies.quickActionsPlaceholder' | transloco }}
-                    </div>
-                  </div>
-                </section>
                 </div>
               </div>
             </div>

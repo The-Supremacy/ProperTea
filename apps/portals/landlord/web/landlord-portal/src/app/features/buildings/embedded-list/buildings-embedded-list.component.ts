@@ -9,6 +9,7 @@ import {
   EntityListViewComponent,
 } from '../../../../shared/components/entity-list-view';
 import { BuildingService } from '../services/building.service';
+import { statusBadgeClasses } from '../../../../utils/status-badge-classes';
 import { BuildingFilters, BuildingListItem } from '../models/building.models';
 import { DialogService } from '../../../core/services/dialog.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -103,14 +104,11 @@ export class BuildingsEmbeddedListComponent {
         accessorKey: 'status',
         cell: (info) => {
           const status = info.getValue() as string;
-          const isActive = status === 'Active';
-          const variantClass = isActive
-            ? 'inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800 dark:bg-green-900 dark:text-green-200'
-            : 'inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+          const classes = statusBadgeClasses({ status: status === 'Active' ? 'active' : 'inactive' });
           const translatedStatus = this.translocoService.translate(
             `buildings.${status.toLowerCase()}`,
           );
-          return `<span class="${variantClass}">${translatedStatus}</span>`;
+          return `<span class="${classes}">${translatedStatus}</span>`;
         },
         enableSorting: false,
       },

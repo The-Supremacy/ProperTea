@@ -18,7 +18,7 @@ import { UnitService } from '../services/unit.service';
 import { PropertyService } from '../../properties/services/property.service';
 import { BuildingService } from '../../buildings/services/building.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { UNIT_CATEGORIES } from '../models/unit.models';
+import { UNIT_CATEGORIES, UnitCategory } from '../models/unit.models';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmFormFieldImports } from '@spartan-ng/helm/form-field';
 import { HlmLabel } from '@spartan-ng/helm/label';
@@ -58,11 +58,11 @@ import { HlmSheetImports } from '@spartan-ng/helm/sheet';
         </hlm-sheet-header>
 
         <form [formGroup]="form" (ngSubmit)="submit()" class="flex min-h-0 flex-1 flex-col">
-          <div class="flex-1 space-y-4 overflow-y-auto px-4">
+          <div class="flex-1 space-y-6 overflow-y-auto px-4">
 
             <!-- Property -->
             <div class="space-y-1.5">
-              <label class="text-sm font-medium">{{ 'units.property' | transloco }} <span class="text-destructive">*</span></label>
+              <label hlmLabel>{{ 'units.property' | transloco }} <span class="text-destructive">*</span></label>
               <app-autocomplete
                 [value]="selectedPropertyId()"
                 [placeholder]="'common.search'"
@@ -94,7 +94,7 @@ import { HlmSheetImports } from '@spartan-ng/helm/sheet';
             <!-- Building (not shown for House) -->
             @if (showBuilding()) {
               <div class="space-y-1.5">
-                <label class="text-sm font-medium">
+                <label hlmLabel>
                   {{ 'units.building' | transloco }}
                   @if (buildingRequired()) { <span class="text-destructive">*</span> }
                 </label>
@@ -148,6 +148,7 @@ export class CreateUnitDrawerComponent {
   private buildingService = inject(BuildingService);
   private router = inject(Router);
   private toastService = inject(ToastService);
+  private destroyRef = inject(DestroyRef);
 
   open = input.required<boolean>();
   defaultPropertyId = input<string | null>(null);
@@ -186,8 +187,6 @@ export class CreateUnitDrawerComponent {
   });
 
   constructor() {
-    const destroyRef = inject(DestroyRef);
-
     effect(() => {
       const defaultId = this.defaultPropertyId();
       if (defaultId && this.open()) {
@@ -196,7 +195,7 @@ export class CreateUnitDrawerComponent {
       }
     });
     this.form.controls.category.valueChanges
-      .pipe(takeUntilDestroyed(destroyRef))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.form.controls.buildingId.updateValueAndValidity({ emitEvent: false }));
   }
 
@@ -233,7 +232,7 @@ export class CreateUnitDrawerComponent {
 
     // Pre-fill address from parent property
     if (value) {
-      this.propertyService.get(value).subscribe((property) => {
+      this.propertyService.get(value).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((property) => {
         if (property?.address) {
           this.form.controls.address.patchValue({
             country: property.address.country ?? '',
@@ -252,7 +251,7 @@ export class CreateUnitDrawerComponent {
 
     // Pre-fill address from parent building (overrides property address)
     if (value) {
-      this.buildingService.get(value).subscribe((building) => {
+      this.buildingService.get(value).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((building) => {
         if (building?.address) {
           this.form.controls.address.patchValue({
             country: building.address.country ?? '',
@@ -294,7 +293,7 @@ export class CreateUnitDrawerComponent {
         propertyId: v.propertyId,
         buildingId: !isHouse && v.buildingId ? v.buildingId : undefined,
         code: v.code.trim(),
-        category: v.category as never,
+        category: v.category as UnitCategory,
         floor: v.floor ?? undefined,
         address: {
           country: v.address.country || 'UA',

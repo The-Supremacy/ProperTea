@@ -14,8 +14,9 @@ import { HlmButton } from '@spartan-ng/helm/button';
       [class.ring-2]="currentLang() === 'en'"
       [class.ring-primary]="currentLang() === 'en'"
       (click)="setLanguage('en')"
-      title="English">
-      🇺🇸
+      aria-label="English"
+      [attr.aria-pressed]="currentLang() === 'en'">
+      <span aria-hidden="true">🇺🇸</span>
     </button>
     <button
       hlmBtn
@@ -24,8 +25,9 @@ import { HlmButton } from '@spartan-ng/helm/button';
       [class.ring-2]="currentLang() === 'uk'"
       [class.ring-primary]="currentLang() === 'uk'"
       (click)="setLanguage('uk')"
-      title="Українська">
-      🇺🇦
+      aria-label="Українська"
+      [attr.aria-pressed]="currentLang() === 'uk'">
+      <span aria-hidden="true">🇺🇦</span>
     </button>
   `
 })

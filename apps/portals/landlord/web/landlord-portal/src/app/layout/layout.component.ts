@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, signal, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { HeaderComponent, LanguageOption } from './header/header.component';
 import { NavigationComponent, MenuItem } from './navigation/navigation.component';
@@ -33,7 +33,7 @@ const AVAILABLE_LANGUAGES: LanguageOption[] = [
     <div class="flex h-screen flex-col overflow-hidden bg-background text-foreground">
       <app-header
         [languages]="languages"
-        [currentLanguage]="getCurrentLanguage()"
+        [currentLanguage]="currentLanguage()"
         (menuToggle)="toggleMobileDrawer()"
         (logoClick)="navigateHome()"
         (profileClick)="openProfile()"
@@ -52,7 +52,7 @@ const AVAILABLE_LANGUAGES: LanguageOption[] = [
 
         @if (responsive.isMobile()) {
           <hlm-sheet side="left" [state]="mobileDrawerOpen() ? 'open' : 'closed'" (closed)="closeMobileDrawer()">
-            <hlm-sheet-content *hlmSheetPortal [showCloseButton]="false" class="w-64 p-0">
+            <hlm-sheet-content *hlmSheetPortal [showCloseButton]="false" aria-label="Navigation" class="w-64 p-0">
               <app-navigation
                 [menuItems]="menuItems"
                 [collapsed]="false"
@@ -84,6 +84,11 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
   mobileDrawerOpen = signal(false);
 
   readonly languages: LanguageOption[] = AVAILABLE_LANGUAGES;
+
+  protected readonly currentLanguage = computed(() => {
+    const currentCode = this.preferencesService.language();
+    return this.languages.find(l => l.code === currentCode) ?? this.languages[0];
+  });
 
   menuItems: MenuItem[] = [
     {
@@ -161,10 +166,5 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
 
   protected changeLanguage(code: string): void {
     this.preferencesService.setLanguage(code);
-  }
-
-  protected getCurrentLanguage(): LanguageOption {
-    const currentCode = this.preferencesService.language();
-    return this.languages.find(l => l.code === currentCode) ?? this.languages[0];
   }
 }

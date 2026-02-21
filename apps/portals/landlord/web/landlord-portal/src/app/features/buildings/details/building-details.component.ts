@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { firstValueFrom, map, Subject, takeUntil } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
@@ -53,7 +54,7 @@ import { UppercaseInputDirective } from '../../../../shared/directives';
   ],
   templateUrl: './building-details.component.html',
 })
-export class BuildingDetailsComponent implements OnInit, OnDestroy {
+export class BuildingDetailsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -62,8 +63,7 @@ export class BuildingDetailsComponent implements OnInit, OnDestroy {
   private dialogService = inject(DialogService);
   private toastService = inject(ToastService);
   private translocoService = inject(TranslocoService);
-
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
 
   building = signal<BuildingDetailResponse | null>(null);
   saving = signal(false);
@@ -114,7 +114,7 @@ export class BuildingDetailsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+    this.route.params.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const id = params['id'];
       if (!id) {
         this.router.navigate(['/buildings']);
@@ -125,11 +125,6 @@ export class BuildingDetailsComponent implements OnInit, OnDestroy {
       this.initializeForm();
       this.loadBuilding(id);
     });
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   private initializeForm(): void {
@@ -178,7 +173,7 @@ export class BuildingDetailsComponent implements OnInit, OnDestroy {
           this.propertyService
             .get(building.propertyId)
             .pipe(
-              takeUntil(this.destroy$),
+              takeUntilDestroyed(this.destroyRef),
               map((property) => property?.name ?? building.propertyId),
             )
             .subscribe((name) => this.propertyName.set(name));

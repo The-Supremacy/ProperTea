@@ -13,7 +13,7 @@ import { HealthService } from '../../core/services/health.service';
       <div class="flex items-center gap-2">
         @if (healthService.status().isHealthy) {
           <span class="inline-flex items-center gap-1.5 rounded-full border border-green-500/20 bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
-            <span class="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></span>
+            <span class="h-1.5 w-1.5 rounded-full bg-green-500 motion-safe:animate-pulse"></span>
             {{ 'footer.healthy' | transloco }}
           </span>
         } @else {

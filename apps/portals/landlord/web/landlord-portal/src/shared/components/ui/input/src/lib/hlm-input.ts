@@ -36,6 +36,9 @@ type InputVariants = VariantProps<typeof inputVariants>;
 
 @Directive({
 	selector: '[hlmInput]',
+	host: {
+		'[attr.aria-invalid]': 'errorState() || null',
+	},
 	providers: [
 		{
 			provide: BrnFormFieldControl,

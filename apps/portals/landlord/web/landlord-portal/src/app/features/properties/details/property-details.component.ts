@@ -1,7 +1,8 @@
-import { Component, inject, signal, computed, viewChild, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, signal, computed, viewChild, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil, finalize, firstValueFrom, map } from 'rxjs';
+import { finalize, firstValueFrom, map } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { PropertyService } from '../services/property.service';
@@ -52,7 +53,7 @@ import { UppercaseInputDirective } from '../../../../shared/directives';
   ],
   templateUrl: './property-details.component.html'
 })
-export class PropertyDetailsComponent implements OnInit, OnDestroy {
+export class PropertyDetailsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -61,8 +62,7 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
   private dialogService = inject(DialogService);
   private toastService = inject(ToastService);
   private translocoService = inject(TranslocoService);
-
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
 
   // State
   property = signal<PropertyDetailResponse | null>(null);
@@ -122,7 +122,7 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.route.params.pipe(
-      takeUntil(this.destroy$)
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(params => {
       const id = params['id'];
       if (!id) {
@@ -134,11 +134,6 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
       this.initializeForm();
       this.loadProperty(id);
     });
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   private initializeForm(): void {
@@ -180,7 +175,7 @@ export class PropertyDetailsComponent implements OnInit, OnDestroy {
 
           // Resolve company name for display
           this.companyService.select().pipe(
-            takeUntil(this.destroy$),
+            takeUntilDestroyed(this.destroyRef),
             map(companies => companies.find(c => c.id === property.companyId)?.name ?? property.companyId)
           ).subscribe(name => this.companyName.set(name));
         } else {

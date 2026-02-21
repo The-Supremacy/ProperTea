@@ -24,12 +24,12 @@ export interface LanguageOption {
       <!-- Left: Logo + Burger (mobile) -->
       <div class="flex items-center gap-4">
         @if (responsive.isMobile()) {
-          <button hlmBtn variant="ghost" size="icon" (click)="menuToggle.emit()">
+          <button hlmBtn variant="ghost" size="icon" (click)="menuToggle.emit()" [attr.aria-label]="'nav.toggleMenu' | transloco">
             <app-icon name="menu" [size]="20" />
           </button>
         }
 
-        <button hlmBtn variant="ghost" (click)="logoClick.emit()">
+        <button hlmBtn variant="ghost" [attr.aria-label]="'nav.home' | transloco" (click)="logoClick.emit()">
           <app-logo [showText]="!responsive.isMobile()" />
         </button>
       </div>
@@ -40,6 +40,7 @@ export interface LanguageOption {
           <input
             type="search"
             [placeholder]="'common.search' | transloco"
+            [attr.aria-label]="'common.search' | transloco"
             hlmInput
             class="w-full"
             disabled />
@@ -52,6 +53,7 @@ export interface LanguageOption {
         variant="ghost"
         size="icon"
         [hlmDropdownMenuTrigger]="userMenu"
+        [attr.aria-label]="'user.profile' | transloco"
         class="rounded-full bg-muted hover:bg-accent">
         <app-icon name="account_circle" [size]="20" />
       </button>
@@ -113,8 +115,9 @@ export interface LanguageOption {
                 (click)="languageChange.emit(lang.code)"
                 [class]="'flex h-8 w-8 items-center justify-center rounded text-lg transition-colors hover:bg-accent ' +
                   (lang.code === currentLanguage().code ? 'ring-2 ring-primary' : '')"
-                [title]="lang.name">
-                {{ lang.flag }}
+                [attr.aria-label]="lang.name"
+                [attr.aria-pressed]="lang.code === currentLanguage().code">
+                <span aria-hidden="true">{{ lang.flag }}</span>
               </button>
             }
           </div>

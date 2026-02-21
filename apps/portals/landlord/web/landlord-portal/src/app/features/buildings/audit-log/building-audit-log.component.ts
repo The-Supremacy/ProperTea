@@ -115,6 +115,19 @@ export class BuildingAuditLogComponent implements OnInit {
           return `${data['oldName']} → ${data['newName']}`;
         }
         return `${this.t.translate('buildings.newName')}: ${data['newName'] || ''}`;
+      case 'addressupdated': {
+        const addr = data['newAddress'] as Record<string, unknown> | undefined;
+        if (addr) {
+          return `${addr['streetAddress'] || ''}, ${addr['city'] || ''} ${addr['zipCode'] || ''}`.trim();
+        }
+        return this.t.translate('buildings.events.addressupdated');
+      }
+      case 'entranceadded':
+        return `${data['code'] || ''} — ${data['name'] || ''}`;
+      case 'entranceupdated':
+        return `${data['code'] || ''} — ${data['name'] || ''}`;
+      case 'entranceremoved':
+        return this.t.translate('buildings.events.entranceremoved');
       case 'deleted':
         return this.t.translate('buildings.buildingDeleted');
       default:

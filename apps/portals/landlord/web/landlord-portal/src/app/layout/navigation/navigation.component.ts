@@ -54,6 +54,8 @@ export interface MenuItem {
         <div class="border-t p-2">
           <button
             class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-accent"
+            [attr.aria-label]="'nav.collapse' | transloco"
+            [attr.aria-expanded]="!collapsed()"
             (click)="toggleCollapse.emit()">
             @if (collapsed()) {
               <app-icon name="chevron_right" [size]="20" />

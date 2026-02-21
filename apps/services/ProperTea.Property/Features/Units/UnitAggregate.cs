@@ -131,12 +131,37 @@ public class UnitAggregate : IRevisioned, ITenanted
         CurrentStatus = Status.Active;
     }
 
-    public void Apply(CodeUpdated e)         => Code = e.NewCode;
-    public void Apply(UnitReferenceRegenerated e) => UnitReference = e.NewReference;
-    public void Apply(CategoryChanged e)     => Category = e.NewCategory;
-    public void Apply(LocationChanged e)     { PropertyId = e.NewPropertyId; BuildingId = e.NewBuildingId; EntranceId = e.NewEntranceId; }
-    public void Apply(AddressUpdated e)      => Address = e.Address;
-    public void Apply(FloorUpdated e)        => Floor = e.NewFloor;
+    public void Apply(CodeUpdated e)
+    {
+        Code = e.NewCode;
+    }
+
+    public void Apply(UnitReferenceRegenerated e)
+    {
+        UnitReference = e.NewReference;
+    }
+
+    public void Apply(CategoryChanged e)
+    {
+        Category = e.NewCategory;
+    }
+
+    public void Apply(LocationChanged e)
+    {
+        PropertyId = e.NewPropertyId;
+        BuildingId = e.NewBuildingId;
+        EntranceId = e.NewEntranceId;
+    }
+
+    public void Apply(AddressUpdated e)
+    {
+        Address = e.Address;
+    }
+
+    public void Apply(FloorUpdated e)
+    {
+        Floor = e.NewFloor;
+    }
 
     public void Apply(Deleted e)
     {

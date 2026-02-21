@@ -24,7 +24,7 @@ export interface PaginationMetadata {
   hasPreviousPage: boolean;
 }
 
-export function getPaginationMetadata(result: PagedResult<any>): PaginationMetadata {
+export function getPaginationMetadata(result: PagedResult<unknown>): PaginationMetadata {
   const totalPages = Math.ceil(result.totalCount / result.pageSize);
   return {
     totalPages,
@@ -33,7 +33,7 @@ export function getPaginationMetadata(result: PagedResult<any>): PaginationMetad
   };
 }
 
-export interface EntityListConfig<TEntity, TFilters = any> {
+export interface EntityListConfig<TEntity, TFilters = Record<string, unknown>> {
   fetchFn: (query: EntityListQuery<TFilters>) => Observable<PagedResult<TEntity>>;
   columns: ColumnDef<TEntity>[];
   idField: keyof TEntity;
@@ -47,7 +47,7 @@ export interface EntityListConfig<TEntity, TFilters = any> {
   emptyState?: EmptyStateConfig;
   navigation?: EntityListNavigation<TEntity>;
 }
-export interface EntityListQuery<TFilters = any> {
+export interface EntityListQuery<TFilters = Record<string, unknown>> {
   pagination: PaginationQuery;
   sort?: SortQuery;
   filters?: TFilters;
@@ -75,7 +75,7 @@ export interface FilterConfig<TFilters> {
 }
 
 export interface FilterField<TFilters> {
-  key: keyof TFilters;
+  key: string & keyof TFilters;
   label: string;
   type: 'text' | 'select' | 'autocomplete' | 'date' | 'dateRange' | 'number' | 'boolean';
   placeholder?: string;
@@ -105,7 +105,7 @@ export interface EmptyStateConfig {
 }
 
 export interface EntityListNavigation<TEntity> {
-  getDetailsRoute: (entity: TEntity) => any[];
+  getDetailsRoute: (entity: TEntity) => unknown[];
   target?: '_self' | '_blank';
 }
 

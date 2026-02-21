@@ -27,7 +27,7 @@ export interface OrganizationAuditLogEntry {
   timestamp: Date;
   username?: string;
   version: number;
-  data: any;
+  data: unknown;
 }
 
 export interface OrganizationAuditLogResponse {

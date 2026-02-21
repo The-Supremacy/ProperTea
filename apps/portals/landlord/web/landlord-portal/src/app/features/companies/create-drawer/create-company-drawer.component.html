@@ -43,21 +43,21 @@
           }
         </hlm-form-field>
 
-        <!-- Checking state -->
-        @if (codeControl().pending) {
-          <p class="flex items-center gap-1 text-sm text-muted-foreground">
-            <app-icon name="hourglass_empty" [size]="14" />
-            {{ 'companies.checkingCode' | transloco }}
-          </p>
-        }
-
-        <!-- Success state -->
-        @if (codeControl().valid && codeControl().touched && !codeControl().pending) {
-          <p class="flex items-center gap-1 text-sm text-green-600">
-            <app-icon name="check_circle" [size]="14" />
-            {{ 'companies.codeAvailable' | transloco }}
-          </p>
-        }
+        <!-- Async validation status -->
+        <div aria-live="polite">
+          @if (codeControl().pending) {
+            <p class="flex items-center gap-1 text-sm text-muted-foreground">
+              <app-icon name="hourglass_empty" [size]="14" />
+              {{ 'companies.checkingCode' | transloco }}
+            </p>
+          }
+          @if (codeControl().valid && codeControl().touched && !codeControl().pending) {
+            <p class="flex items-center gap-1 text-sm text-green-600">
+              <app-icon name="check_circle" [size]="14" />
+              {{ 'companies.codeAvailable' | transloco }}
+            </p>
+          }
+        </div>
 
         <!-- Name Field -->
         <hlm-form-field>
@@ -93,21 +93,21 @@
           }
         </hlm-form-field>
 
-        <!-- Checking state -->
-        @if (nameControl().pending) {
-          <p class="flex items-center gap-1 text-sm text-muted-foreground">
-            <app-icon name="hourglass_empty" [size]="14" />
-            {{ 'companies.checkingName' | transloco }}
-          </p>
-        }
-
-        <!-- Success state -->
-        @if (nameControl().valid && nameControl().touched && !nameControl().pending) {
-          <p class="flex items-center gap-1 text-sm text-green-600">
-            <app-icon name="check_circle" [size]="14" />
-            {{ 'companies.nameAvailable' | transloco }}
-          </p>
-        }
+        <!-- Async validation status -->
+        <div aria-live="polite">
+          @if (nameControl().pending) {
+            <p class="flex items-center gap-1 text-sm text-muted-foreground">
+              <app-icon name="hourglass_empty" [size]="14" />
+              {{ 'companies.checkingName' | transloco }}
+            </p>
+          }
+          @if (nameControl().valid && nameControl().touched && !nameControl().pending) {
+            <p class="flex items-center gap-1 text-sm text-green-600">
+              <app-icon name="check_circle" [size]="14" />
+              {{ 'companies.nameAvailable' | transloco }}
+            </p>
+          }
+        </div>
       </div>
 
       <hlm-sheet-footer>

@@ -1,15 +1,15 @@
 import { Routes } from '@angular/router';
-import { CompaniesListComponent } from './list-view/companies-list.component';
-import { CompanyDetailsComponent } from './details/company-details.component';
 
 export const companiesRoutes: Routes = [
   {
     path: '',
-    component: CompaniesListComponent,
+    loadComponent: () =>
+      import('./list-view/companies-list.component').then((m) => m.CompaniesListComponent),
   },
   {
     path: ':id',
-    component: CompanyDetailsComponent,
+    loadComponent: () =>
+      import('./details/company-details.component').then((m) => m.CompanyDetailsComponent),
     data: { breadcrumb: 'companies.detailsTitle' },
   },
 ];

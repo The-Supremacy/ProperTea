@@ -1,9 +1,10 @@
 import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
-import { finalize, firstValueFrom, map } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ColumnDef } from '@tanstack/angular-table';
 import { CompanyService } from '../services/company.service';
+import { statusBadgeClasses } from '../../../../utils/status-badge-classes';
 import { CompanyListItem, CompanyFilters } from '../models/company.models';
 import { EntityListViewComponent, EntityListConfig, EntityAction, FilterField, TableAction } from '../../../../shared/components/entity-list-view';
 import { DialogService } from '../../../core/services/dialog.service';
@@ -71,7 +72,7 @@ export class CompaniesListComponent {
         id: 'code',
         header: this.translocoService.translate('companies.code'),
         accessorKey: 'code',
-        cell: (info) => `<span class="font-mono text-sm">${info.getValue()}</span>`,
+        cell: (info) => info.getValue(),
         enableSorting: true,
       },
       {
@@ -87,14 +88,11 @@ export class CompaniesListComponent {
         accessorKey: 'status',
         cell: (info) => {
           const status = info.getValue() as string;
-          const isActive = status === 'Active';
-          const variantClass = isActive
-            ? 'inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800 dark:bg-green-900 dark:text-green-200'
-            : 'inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+          const classes = statusBadgeClasses({ status: status === 'Active' ? 'active' : 'inactive' });
           const translatedStatus = this.translocoService.translate(
             'companies.' + status.toLowerCase(),
           );
-          return `<span class="${variantClass}">${translatedStatus}</span>`;
+          return `<span class="${classes}">${translatedStatus}</span>`;
         },
         enableSorting: false,
       },
@@ -104,7 +102,7 @@ export class CompaniesListComponent {
         accessorKey: 'createdAt',
         cell: (info) => {
           const date = info.getValue() as Date;
-          return new Date(date).toLocaleString();
+          return new Date(date).toLocaleDateString();
         },
         enableSorting: true,
       },
@@ -177,7 +175,6 @@ export class CompaniesListComponent {
 
     this.companyService
       .delete(company.id)
-      .pipe(finalize(() => {}))
       .subscribe({
         next: () => {
           this.toastService.success('companies.success.deleted');
