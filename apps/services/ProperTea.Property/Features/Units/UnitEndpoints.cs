@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ProperTea.Property.Features.Units.Lifecycle;
+using ProperTea.Infrastructure.Common.Address;
 using ProperTea.Infrastructure.Common.Auth;
 using ProperTea.Infrastructure.Common.Pagination;
+using ProperTea.Property.Features.Units.Lifecycle;
 using Wolverine;
 using Wolverine.Http;
 
@@ -25,12 +26,11 @@ public static class UnitEndpoints
             new CreateUnit(
                 request.PropertyId,
                 request.BuildingId,
+                request.EntranceId,
                 request.Code,
-                request.UnitNumber,
                 request.Category,
-                request.Floor,
-                request.SquareFootage,
-                request.RoomCount));
+                request.Address,
+                request.Floor));
 
         return Results.Created($"/units/{unitId}", new { Id = unitId });
     }
@@ -86,15 +86,32 @@ public static class UnitEndpoints
             tenantId,
             new UpdateUnit(
                 id,
+                request.PropertyId,
                 request.BuildingId,
+                request.EntranceId,
                 request.Code,
-                request.UnitNumber,
                 request.Category,
-                request.Floor,
-                request.SquareFootage,
-                request.RoomCount));
+                request.Address,
+                request.Floor));
 
         return Results.NoContent();
+    }
+
+    [WolverineGet("/units/{id}/audit-log")]
+    [Authorize]
+    public static async Task<IResult> GetUnitAuditLog(
+        Guid id,
+        IMessageBus bus,
+        IOrganizationIdProvider orgProvider)
+    {
+        var tenantId = orgProvider.GetOrganizationId()
+            ?? throw new UnauthorizedAccessException("Organization ID required");
+
+        var result = await bus.InvokeForTenantAsync<UnitAuditLogResponse>(
+            tenantId,
+            new GetUnitAuditLog(id));
+
+        return Results.Ok(result);
     }
 
     [WolverineDelete("/units/{id}")]
@@ -138,18 +155,17 @@ public static class UnitEndpoints
 public record CreateUnitRequest(
     Guid PropertyId,
     Guid? BuildingId,
+    Guid? EntranceId,
     string Code,
-    string UnitNumber,
     UnitCategory Category,
-    int? Floor,
-    decimal? SquareFootage,
-    int? RoomCount);
+    AddressRequest Address,
+    int? Floor);
 
 public record UpdateUnitRequest(
+    Guid PropertyId,
     Guid? BuildingId,
+    Guid? EntranceId,
     string Code,
-    string UnitNumber,
     UnitCategory Category,
-    int? Floor,
-    decimal? SquareFootage,
-    int? RoomCount);
+    AddressRequest Address,
+    int? Floor);

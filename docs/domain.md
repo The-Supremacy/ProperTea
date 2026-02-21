@@ -17,9 +17,10 @@ Use these exact terms when naming classes, variables, events, and UI labels.
 
 | Term | Definition | Owned By |
 |---|---|---|
-| **Property** (Aggregate Root) | The legal entity or complex (building, estate). Has a unique Code per Company. | Property Service |
-| **Building** (Aggregate Root) | A physical structure within a Property. Has a unique Code per Property. Holds `PropertyId`. | Property Service |
-| **Unit** (Aggregate Root) | A distinct physical space within a Property, optionally assigned to a Building. Has a unique Code per Property and a UnitCategory (Apartment, Commercial, Parking, Other). Holds `PropertyId`. Private house = 1 Property + 1 Unit (ADR 0001). | Property Service |
+| **Property** (Aggregate Root) | The legal entity or complex (building, estate). Has a unique Code per Company (max 10 chars, `[A-Z0-9]`). Has a structured `Address` (Country, City, ZipCode, StreetAddress). | Property Service |
+| **Building** (Aggregate Root) | A physical structure within a Property. Has a unique Code per Property (max 5 chars, `[A-Z0-9]`). Has a structured `Address` (inherits from Property if not set). Contains `Entrance` child value objects (each with a Guid Id, Code, Name) that represent access points to the building. | Property Service |
+| **Entrance** (Value Object) | An access point to a Building (e.g., staircase, entrance door). Belongs to exactly one Building. Has a unique `Code` per Building (max 5 chars, `[A-Z0-9]`) and a `Name`. Units in an Apartment building may reference an Entrance by `EntranceId`. | Property Service |
+| **Unit** (Aggregate Root) | A distinct physical space. Has a unique `Code` per Property (max 10 chars, `[A-Z0-9]`) and a generated `UnitReference` (`{CompanyCode}-{PropertyCode}-{BuildingCode?}-{UnitCode}`). Has a structured `Address` (inherits from Building or Property). Has a `UnitCategory`: **Apartment** (requires `BuildingId`), **Commercial** (optional `BuildingId`), **Parking** (optional `BuildingId`), **House** (must not have `BuildingId` — represents a standalone house as 1 Property + 1 Unit per ADR 0001), **Other** (optional `BuildingId`). May optionally reference a Building `Entrance` via `EntranceId`. | Property Service |
 
 ### Rental Management (Commercial Reality)
 

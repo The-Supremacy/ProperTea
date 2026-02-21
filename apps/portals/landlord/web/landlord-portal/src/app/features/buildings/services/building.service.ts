@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PaginationQuery, SortQuery } from '../../../../shared/components/entity-list-view';
 import {
+  AddEntranceRequest,
   BuildingAuditLogResponse,
   BuildingDetailResponse,
   BuildingFilters,
@@ -69,5 +70,13 @@ export class BuildingService {
 
   getAuditLog(id: string): Observable<BuildingAuditLogResponse> {
     return this.http.get<BuildingAuditLogResponse>(`/api/buildings/${id}/audit-log`);
+  }
+
+  addEntrance(buildingId: string, request: AddEntranceRequest): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>(`/api/buildings/${buildingId}/entrances`, request);
+  }
+
+  removeEntrance(buildingId: string, entranceId: string): Observable<void> {
+    return this.http.delete<void>(`/api/buildings/${buildingId}/entrances/${entranceId}`);
   }
 }

@@ -1,4 +1,5 @@
 using ProperTea.Infrastructure.Common.Pagination;
+using ProperTea.Landlord.Bff.Errors;
 
 namespace ProperTea.Landlord.Bff.Companies;
 
@@ -36,7 +37,7 @@ public class CompanyClient(HttpClient httpClient)
     public async Task<CompanyResponse> CreateCompanyAsync(CreateCompanyRequest request, CancellationToken ct = default)
     {
         var response = await httpClient.PostAsJsonAsync("/companies", request, ct);
-        _ = response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessOrProxyAsync(ct);
         return await response.Content.ReadFromJsonAsync<CompanyResponse>(ct)
             ?? throw new InvalidOperationException("Failed to deserialize company response");
     }
@@ -68,14 +69,14 @@ public class CompanyClient(HttpClient httpClient)
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             return null;
 
-        _ = response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessOrProxyAsync(ct);
         return await response.Content.ReadFromJsonAsync<CompanyDetailResponse>(ct);
     }
 
     public async Task UpdateCompanyAsync(Guid id, UpdateCompanyRequest request, CancellationToken ct = default)
     {
         var response = await httpClient.PutAsJsonAsync($"/companies/{id}", request, ct);
-        _ = response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessOrProxyAsync(ct);
     }
 
     public async Task<CompanyAuditLogResponse> GetCompanyAuditLogAsync(Guid id, CancellationToken ct = default)
@@ -87,7 +88,7 @@ public class CompanyClient(HttpClient httpClient)
     public async Task DeleteCompanyAsync(Guid id, CancellationToken ct = default)
     {
         var response = await httpClient.DeleteAsync($"/companies/{id}", ct);
-        _ = response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessOrProxyAsync(ct);
     }
 
     public async Task<CheckNameResponse> CheckCompanyNameAsync(

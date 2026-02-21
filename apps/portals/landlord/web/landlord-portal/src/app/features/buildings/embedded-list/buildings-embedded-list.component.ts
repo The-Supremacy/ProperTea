@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { map } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import { TranslocoService } from '@jsverse/transloco';
 import { ColumnDef } from '@tanstack/angular-table';
 import {
@@ -149,29 +149,27 @@ export class BuildingsEmbeddedListComponent {
   }
 
   private async deleteBuilding(building: BuildingListItem): Promise<void> {
-    const confirmed = await this.dialogService.confirm({
-      title: this.translocoService.translate('buildings.deleteConfirmTitle'),
-      description: this.translocoService.translate('buildings.deleteConfirmMessage', {
-        name: building.name,
+    const confirmed = await firstValueFrom(
+      this.dialogService.confirm({
+        title: this.translocoService.translate('buildings.deleteConfirmTitle'),
+        description: this.translocoService.translate('buildings.deleteConfirmMessage', {
+          name: building.name,
+        }),
+        confirmText: this.translocoService.translate('common.delete'),
+        cancelText: this.translocoService.translate('common.cancel'),
+        variant: 'destructive',
       }),
-      confirmText: this.translocoService.translate('common.delete'),
-      cancelText: this.translocoService.translate('common.cancel'),
-      variant: 'destructive',
-    });
+    );
 
     if (!confirmed) return;
 
     this.buildingService.delete(building.id).subscribe({
       next: () => {
-        this.toastService.success(
-          this.translocoService.translate('buildings.success.deleted'),
-        );
+        this.toastService.success('buildings.success.deleted');
         // The EntityListViewComponent will auto-refresh after the action
       },
       error: () => {
-        this.toastService.error(
-          this.translocoService.translate('buildings.error.deleteFailed'),
-        );
+        this.toastService.error('buildings.error.deleteFailed');
       },
     });
   }

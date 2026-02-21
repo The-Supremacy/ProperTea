@@ -1,4 +1,4 @@
-using ProperTea.Infrastructure.Common.ErrorHandling;
+using ProperTea.Landlord.Bff.Errors;
 
 namespace ProperTea.Landlord.Bff.Organizations;
 
@@ -22,7 +22,7 @@ public class OrganizationClientAnonymous(HttpClient httpClient)
         CancellationToken ct = default)
     {
         var response = await httpClient.PostAsJsonAsync("/organizations", request, ct);
-        await response.EnsureDownstreamSuccessAsync(ct: ct);
+        await response.EnsureSuccessOrProxyAsync(ct);
         return (await response.Content.ReadFromJsonAsync<RegisterOrganizationResponse>(ct))!;
     }
 }

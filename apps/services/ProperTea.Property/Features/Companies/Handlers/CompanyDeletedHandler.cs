@@ -8,16 +8,23 @@ public class CompanyDeletedHandler : IWolverineHandler
 {
     public async Task Handle(
         ICompanyDeleted message,
-        IDocumentSession session)
+        IDocumentStore store)
     {
-        var reference = await session.LoadAsync<CompanyReference>(message.CompanyId);
+        await using var session = store.LightweightSession(message.OrganizationId);
 
-        if (reference != null)
+        var existing = await session.LoadAsync<CompanyReference>(message.CompanyId);
+        if (existing != null && existing.LastUpdatedAt >= message.DeletedAt)
+            return;
+
+        session.Store(new CompanyReference
         {
-            reference.IsDeleted = true;
-            reference.LastUpdatedAt = message.DeletedAt;
-            session.Update(reference);
-            await session.SaveChangesAsync();
-        }
+            Id = message.CompanyId,
+            Code = existing?.Code ?? string.Empty,
+            Name = existing?.Name ?? string.Empty,
+            IsDeleted = true,
+            LastUpdatedAt = message.DeletedAt,
+            TenantId = message.OrganizationId
+        });
+        await session.SaveChangesAsync();
     }
 }

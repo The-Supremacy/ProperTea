@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ProperTea.Property.Features.Properties.Lifecycle;
+using ProperTea.Infrastructure.Common.Address;
 using ProperTea.Infrastructure.Common.Auth;
 using ProperTea.Infrastructure.Common.Pagination;
+using ProperTea.Property.Features.Properties.Lifecycle;
 using Wolverine;
 using Wolverine.Http;
 
@@ -26,7 +27,7 @@ public static class PropertyEndpoints
                 request.CompanyId,
                 request.Code,
                 request.Name,
-                request.Address));
+                request.Address?.ToAddress() ?? new Address(Country.UA, string.Empty, string.Empty, string.Empty)));
 
         return Results.Created($"/properties/{propertyId}", new { Id = propertyId });
     }
@@ -101,7 +102,7 @@ public static class PropertyEndpoints
                 id,
                 request.Code,
                 request.Name,
-                request.Address));
+                request.Address?.ToAddress()));
 
         return Results.NoContent();
     }
@@ -145,9 +146,9 @@ public record CreatePropertyRequest(
     Guid CompanyId,
     string Code,
     string Name,
-    string Address);
+    AddressRequest? Address);
 
 public record UpdatePropertyRequest(
     string? Code,
     string? Name,
-    string? Address);
+    AddressRequest? Address);

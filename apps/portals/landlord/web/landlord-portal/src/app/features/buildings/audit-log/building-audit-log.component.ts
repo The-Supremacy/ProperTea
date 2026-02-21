@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal, DestroyRef } from '@angular/core';
 import { finalize } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoService } from '@jsverse/transloco';
 import { TimelineComponent, TimelineEntry } from '../../../../shared/components/timeline';
 import { UserDetails, UserService } from '../../../core/services/user.service';
@@ -22,6 +23,7 @@ import { BuildingAuditLogEntry } from '../models/building.models';
 export class BuildingAuditLogComponent implements OnInit {
   private readonly buildingService = inject(BuildingService);
   protected readonly t = inject(TranslocoService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly userService = inject(UserService);
 
   readonly buildingId = input.required<string>();
@@ -66,7 +68,7 @@ export class BuildingAuditLogComponent implements OnInit {
     const usernames = [...new Set(entries.map((entry) => entry.username).filter((u): u is string => !!u))];
 
     usernames.forEach((userId) => {
-      this.userService.getUserDetails(userId).subscribe((userDetails) => {
+      this.userService.getUserDetails(userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((userDetails) => {
         if (userDetails) {
           this.userDetailsMap.update((map) => {
             const nextMap = new Map(map);

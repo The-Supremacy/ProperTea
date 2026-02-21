@@ -3,15 +3,15 @@
   [loading]="loading()"
   (refresh)="loadCompany(companyId())">
 
-  <!-- Loading -->
-  @if (loading()) {
+  <!-- Initial load spinner (shown only when no data yet) -->
+  @if (loading() && !company()) {
     <div class="flex items-center justify-center py-12">
       <hlm-spinner size="lg" />
     </div>
   }
 
-  <!-- Tabs -->
-  @if (!loading()) {
+  <!-- Tabs (kept in DOM once data is loaded) -->
+  @if (company()) {
     <hlm-tabs [tab]="selectedTab()" (tabActivated)="selectedTab.set($event)">
       <!-- Tab List -->
       <div class="border-b px-4">

@@ -1,4 +1,4 @@
-using ProperTea.Infrastructure.Common.ErrorHandling;
+using ProperTea.Landlord.Bff.Errors;
 
 namespace ProperTea.Landlord.Bff.Users;
 
@@ -29,6 +29,6 @@ public class UserClient(HttpClient httpClient)
     public async Task UpdatePreferencesAsync(UpdateUserPreferencesRequest request, CancellationToken ct = default)
     {
         var response = await httpClient.PutAsJsonAsync("/users/preferences", request, ct);
-        _ = response.EnsureDownstreamSuccessAsync(ct: ct);
+        await response.EnsureSuccessOrProxyAsync(ct);
     }
 }

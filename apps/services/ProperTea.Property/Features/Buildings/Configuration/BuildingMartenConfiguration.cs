@@ -18,6 +18,10 @@ public static class BuildingMartenConfiguration
         opts.Events.MapEventType<BuildingEvents.Created>("building.created.v1");
         opts.Events.MapEventType<BuildingEvents.CodeUpdated>("building.code-updated.v1");
         opts.Events.MapEventType<BuildingEvents.NameUpdated>("building.name-updated.v1");
+        opts.Events.MapEventType<BuildingEvents.AddressUpdated>("building.address-updated.v1");
+        opts.Events.MapEventType<BuildingEvents.EntranceAdded>("building.entrance-added.v1");
+        opts.Events.MapEventType<BuildingEvents.EntranceUpdated>("building.entrance-updated.v1");
+        opts.Events.MapEventType<BuildingEvents.EntranceRemoved>("building.entrance-removed.v1");
         opts.Events.MapEventType<BuildingEvents.Deleted>("building.deleted.v1");
     }
 }

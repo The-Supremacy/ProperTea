@@ -3,14 +3,14 @@
   [loading]="loading()"
   (refresh)="loadBuilding(buildingId())">
 
-  <!-- Loading -->
-  @if (loading()) {
+  <!-- Initial load spinner (shown only when no data yet) -->
+  @if (loading() && !building()) {
     <div class="flex items-center justify-center py-12">
       <hlm-spinner size="lg" />
     </div>
   }
 
-  @if (!loading()) {
+  @if (building()) {
     <hlm-tabs [tab]="selectedTab()" (tabActivated)="selectedTab.set($event)">
         <div class="border-b px-4">
           <hlm-tabs-list class="justify-start gap-4 rounded-none bg-transparent">
@@ -29,14 +29,14 @@
                     </div>
                     <div hlmCardContent>
                       <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
-                        <hlm-form-field>
+                        <div class="space-y-2">
                           <label hlmLabel>
                             {{ 'buildings.property' | transloco }}
                           </label>
                           <div class="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
                             {{ propertyName() || '-' }}
                           </div>
-                        </hlm-form-field>
+                        </div>
 
                         <hlm-form-field>
                           <label hlmLabel for="code">
@@ -44,6 +44,7 @@
                           </label>
                           <input
                             id="code"
+                            appUppercase
                             type="text"
                             formControlName="code"
                             [placeholder]="'buildings.codePlaceholder' | transloco"
@@ -56,6 +57,9 @@
                             }
                             @if (codeControl.hasError('maxlength')) {
                               <hlm-error>{{ 'buildings.codeTooLong' | transloco }}</hlm-error>
+                            }
+                            @if (codeControl.hasError('pattern')) {
+                              <hlm-error>{{ 'common.codeInvalidFormat' | transloco }}</hlm-error>
                             }
                           }
                         </hlm-form-field>
@@ -83,6 +87,12 @@
                         </hlm-form-field>
                       </form>
                     </div>
+
+                    <!-- Optional Address -->
+                    <div hlmCardContent>
+                      <h4 class="mb-4 text-sm font-medium text-muted-foreground">{{ 'properties.address' | transloco }}</h4>
+                      <app-address-form [addressGroup]="$any(form.get('address'))" [required]="false" />
+                    </div>
                   </section>
                 </div>
 
@@ -106,6 +116,87 @@
                     </div>
                   </section>
                 </div>
+
+                <!-- Entrances Accordion -->
+                <div hlmAccordion class="rounded-lg border bg-card shadow-sm lg:col-span-2">
+                  <div hlmAccordionItem class="border-b-0" [isOpened]="entrancesAccordionOpen()" (openedChange)="entrancesAccordionOpen.set($event)">
+                    <h2
+                      class="flex items-center rounded-t-lg bg-muted/40"
+                      [class.rounded-b-lg]="!entrancesAccordionOpen()"
+                      [class.border-b]="entrancesAccordionOpen()">
+                      <button
+                        hlmAccordionTrigger
+                        class="flex flex-1 items-center gap-2 px-6 py-4 text-left text-lg font-semibold transition-all hover:bg-muted/60">
+                        <span>{{ 'buildings.entrances' | transloco }}</span>
+                        <app-icon
+                          name="expand_more"
+                          [size]="20"
+                          [class.rotate-180]="entrancesAccordionOpen()"
+                          class="ml-auto shrink-0 transition-transform duration-200" />
+                      </button>
+                      <button
+                        type="button"
+                        hlmBtn
+                        variant="ghost"
+                        size="icon"
+                        class="mr-2 shrink-0"
+                        [attr.aria-label]="'buildings.addEntrance' | transloco"
+                        (click)="createEntranceDrawerOpen.set(true)">
+                        <app-icon name="add" [size]="20" />
+                      </button>
+                    </h2>
+                    <hlm-accordion-content>
+                      @if ((building()?.entrances ?? []).length === 0) {
+                        <p class="px-6 py-8 text-center text-sm text-muted-foreground">
+                          {{ 'buildings.noEntrancesDescription' | transloco }}
+                        </p>
+                      } @else {
+                        <div class="divide-y">
+                          @for (entrance of building()!.entrances; track entrance.id) {
+                            <div class="flex items-center gap-4 px-6 py-3">
+                              <span class="font-mono text-sm font-medium">{{ entrance.code }}</span>
+                              <span class="text-sm text-muted-foreground">{{ entrance.name }}</span>
+                              <button
+                                type="button"
+                                hlmBtn
+                                variant="ghost"
+                                size="icon"
+                                class="ml-auto shrink-0 text-muted-foreground hover:text-destructive"
+                                [attr.aria-label]="'buildings.removeEntrance' | transloco"
+                                (click)="removeEntrance(entrance.id)">
+                                <app-icon name="delete" [size]="16" />
+                              </button>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </hlm-accordion-content>
+                  </div>
+                </div>
+
+                <!-- Units Accordion (readonly) -->
+                <div hlmAccordion class="rounded-lg border bg-card shadow-sm lg:col-span-2">
+                  <div hlmAccordionItem class="border-b-0" [isOpened]="unitsAccordionOpen()" (openedChange)="unitsAccordionOpen.set($event)">
+                    <h2
+                      class="flex items-center rounded-t-lg bg-muted/40"
+                      [class.rounded-b-lg]="!unitsAccordionOpen()"
+                      [class.border-b]="unitsAccordionOpen()">
+                      <button
+                        hlmAccordionTrigger
+                        class="flex flex-1 items-center gap-2 px-6 py-4 text-left text-lg font-semibold transition-all hover:bg-muted/60">
+                        <span>{{ 'units.title' | transloco }}</span>
+                        <app-icon
+                          name="expand_more"
+                          [size]="20"
+                          [class.rotate-180]="unitsAccordionOpen()"
+                          class="ml-auto shrink-0 transition-transform duration-200" />
+                      </button>
+                    </h2>
+                    <hlm-accordion-content>
+                      <app-units-embedded-list [buildingId]="buildingId()" />
+                    </hlm-accordion-content>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -123,3 +214,9 @@
     </hlm-tabs>
   }
 </app-entity-details-view>
+<app-create-entrance-drawer
+  [open]="createEntranceDrawerOpen()"
+  [buildingId]="buildingId()"
+  (openChange)="createEntranceDrawerOpen.set($event)"
+  (created)="loadBuilding(buildingId())"
+/>

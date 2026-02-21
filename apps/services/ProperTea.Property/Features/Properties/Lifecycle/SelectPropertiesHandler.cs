@@ -5,7 +5,7 @@ namespace ProperTea.Property.Features.Properties.Lifecycle;
 
 public record SelectProperties(Guid? CompanyId);
 
-public record SelectItem(Guid Id, string Name);
+public record SelectItem(Guid Id, string Code, string Name);
 
 public class SelectPropertiesHandler : IWolverineHandler
 {
@@ -22,10 +22,10 @@ public class SelectPropertiesHandler : IWolverineHandler
         }
 
         var properties = await query
-            .OrderBy(p => p.Name)
-            .Select(p => new { p.Id, p.Name })
+            .OrderBy(p => p.Code)
+            .Select(p => new { p.Id, p.Code, p.Name })
             .ToListAsync();
 
-        return [.. properties.Select(p => new SelectItem(p.Id, p.Name))];
+        return [.. properties.Select(p => new SelectItem(p.Id, p.Code, p.Name))];
     }
 }

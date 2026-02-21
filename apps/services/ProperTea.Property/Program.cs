@@ -1,5 +1,7 @@
 using JasperFx;
+using System.Text.Json.Serialization;
 using ProperTea.Property.Features.Buildings.Configuration;
+using ProperTea.Property.Features.Companies.Configuration;
 using ProperTea.Property.Features.Properties.Configuration;
 using ProperTea.Property.Features.Units.Configuration;
 using ProperTea.Infrastructure.Common.ErrorHandling;
@@ -17,12 +19,17 @@ builder.Host.ApplyJasperFxExtensions();
 builder.Services.AddMartenConfiguration(builder.Configuration, builder.Environment);
 builder.Host.AddWolverineConfiguration();
 
+// Enums are sent as strings from the Angular frontend; accept both string names and integers.
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
 builder.Services.AddAuthenticationConfiguration(builder.Configuration, builder.Environment);
 builder.Services.AddOpenApiConfiguration(builder.Configuration);
 
 builder.Services.AddPropertyFeature();
 builder.Services.AddBuildingFeature();
 builder.Services.AddUnitFeature();
+builder.Services.AddCompanyReferenceHttpClient();
 
 var app = builder.Build();
 

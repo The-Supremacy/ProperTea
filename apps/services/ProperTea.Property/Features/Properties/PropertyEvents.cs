@@ -1,3 +1,5 @@
+using ProperTea.Infrastructure.Common.Address;
+
 namespace ProperTea.Property.Features.Properties;
 
 public static class PropertyEvents
@@ -7,7 +9,7 @@ public static class PropertyEvents
         Guid CompanyId,
         string Code,
         string Name,
-        string Address,
+        Address Address,
         DateTimeOffset CreatedAt);
 
     public record CodeUpdated(
@@ -20,7 +22,7 @@ public static class PropertyEvents
 
     public record AddressUpdated(
         Guid PropertyId,
-        string Address);
+        Address Address);
 
     public record Deleted(
         Guid PropertyId,

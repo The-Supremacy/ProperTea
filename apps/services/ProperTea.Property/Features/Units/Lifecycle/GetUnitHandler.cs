@@ -1,4 +1,5 @@
 using Marten;
+using ProperTea.Infrastructure.Common.Address;
 using Wolverine;
 
 namespace ProperTea.Property.Features.Units.Lifecycle;
@@ -8,10 +9,13 @@ public record GetUnit(Guid UnitId);
 public record UnitResponse(
     Guid Id,
     Guid PropertyId,
-    string UnitNumber,
+    Guid? BuildingId,
+    Guid? EntranceId,
+    string Code,
+    string UnitReference,
+    string Category,
+    Address Address,
     int? Floor,
-    decimal? SquareFootage,
-    int? RoomCount,
     string Status,
     DateTimeOffset CreatedAt);
 
@@ -23,16 +27,19 @@ public class GetUnitHandler : IWolverineHandler
     {
         var unit = await session.Events.AggregateStreamAsync<UnitAggregate>(query.UnitId);
 
-        if (unit == null)
+        if (unit is null || unit.CurrentStatus == UnitAggregate.Status.Deleted)
             return null;
 
         return new UnitResponse(
             unit.Id,
             unit.PropertyId,
-            unit.UnitNumber,
+            unit.BuildingId,
+            unit.EntranceId,
+            unit.Code,
+            unit.UnitReference,
+            unit.Category.ToString(),
+            unit.Address,
             unit.Floor,
-            unit.SquareFootage,
-            unit.RoomCount,
             unit.CurrentStatus.ToString(),
             unit.CreatedAt);
     }

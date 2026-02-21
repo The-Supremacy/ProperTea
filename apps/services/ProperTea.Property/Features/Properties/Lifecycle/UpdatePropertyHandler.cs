@@ -1,4 +1,5 @@
 using Marten;
+using ProperTea.Infrastructure.Common.Address;
 using ProperTea.Infrastructure.Common.Exceptions;
 using Wolverine;
 
@@ -8,7 +9,7 @@ public record UpdateProperty(
     Guid PropertyId,
     string? Code,
     string? Name,
-    string? Address);
+    Address? Address);
 
 public class UpdatePropertyHandler : IWolverineHandler
 {
@@ -47,7 +48,7 @@ public class UpdatePropertyHandler : IWolverineHandler
             events.Add(property.UpdateName(command.Name));
         }
 
-        if (!string.IsNullOrWhiteSpace(command.Address) && property.Address != command.Address)
+        if (command.Address != null && command.Address != property.Address)
         {
             events.Add(property.UpdateAddress(command.Address));
         }
@@ -57,13 +58,19 @@ public class UpdatePropertyHandler : IWolverineHandler
             _ = session.Events.Append(command.PropertyId, [.. events]);
             await session.SaveChangesAsync();
 
+            var updatedAddress = command.Address ?? property.Address;
             await bus.PublishAsync(new PropertyIntegrationEvents.PropertyUpdated
             {
                 PropertyId = command.PropertyId,
                 OrganizationId = session.TenantId,
+                CompanyId = property.CompanyId,
                 Code = command.Code ?? property.Code,
                 Name = command.Name ?? property.Name,
-                Address = command.Address ?? property.Address,
+                Address = new Contracts.Events.AddressData(
+                    updatedAddress.Country.ToString(),
+                    updatedAddress.City,
+                    updatedAddress.ZipCode,
+                    updatedAddress.StreetAddress),
                 UpdatedAt = DateTimeOffset.UtcNow
             });
         }

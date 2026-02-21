@@ -29,4 +29,8 @@ export class ToastService {
   warning(messageKey: string): void {
     toast.warning(this.t(messageKey));
   }
+
+  errorMessage(message: string): void {
+    toast.error(message);
+  }
 }

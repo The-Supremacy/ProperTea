@@ -39,6 +39,7 @@
           <input
             hlmInput
             id="property-code"
+            appUppercase
             type="text"
             formControlName="code"
             class="w-full"
@@ -51,6 +52,9 @@
             }
             @if (form.controls.code.hasError('maxlength')) {
               <hlm-error>{{ 'properties.codeTooLong' | transloco }}</hlm-error>
+            }
+            @if (form.controls.code.hasError('pattern')) {
+              <hlm-error>{{ 'common.codeInvalidFormat' | transloco }}</hlm-error>
             }
           }
         </hlm-form-field>
@@ -81,28 +85,8 @@
           }
         </hlm-form-field>
 
-        <!-- Address Field -->
-        <hlm-form-field>
-          <label hlmLabel for="property-address">
-            {{ 'properties.address' | transloco }}
-            <span class="text-destructive">*</span>
-          </label>
-
-          <input
-            hlmInput
-            id="property-address"
-            type="text"
-            formControlName="address"
-            class="w-full"
-            [placeholder]="'properties.addressPlaceholder' | transloco"
-            required />
-
-          @if (form.controls.address.invalid && form.controls.address.touched) {
-            @if (form.controls.address.hasError('required')) {
-              <hlm-error>{{ 'properties.addressRequired' | transloco }}</hlm-error>
-            }
-          }
-        </hlm-form-field>
+        <!-- Address Field (optional) -->
+        <app-address-form [addressGroup]="$any(form.controls.address)" [required]="false" />
       </div>
 
       <hlm-sheet-footer>

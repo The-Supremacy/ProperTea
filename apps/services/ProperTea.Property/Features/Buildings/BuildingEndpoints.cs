@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProperTea.Infrastructure.Common.Address;
 using ProperTea.Infrastructure.Common.Auth;
 using ProperTea.Infrastructure.Common.Pagination;
 using ProperTea.Property.Features.Buildings.Lifecycle;
@@ -88,7 +89,7 @@ public static class BuildingEndpoints
 
         var buildingId = await bus.InvokeForTenantAsync<Guid>(
             tenantId,
-            new CreateBuilding(propertyId, request.Code, request.Name));
+            new CreateBuilding(propertyId, request.Code, request.Name, request.Address));
 
         return Results.Created($"/properties/{propertyId}/buildings/{buildingId}", new { Id = buildingId });
     }
@@ -120,7 +121,7 @@ public static class BuildingEndpoints
 
         await bus.InvokeForTenantAsync(
             tenantId,
-            new UpdateBuilding(id, request.Code, request.Name));
+            new UpdateBuilding(id, request.Code, request.Name, request.Address));
 
         return Results.NoContent();
     }
@@ -155,8 +156,65 @@ public static class BuildingEndpoints
 
         return Results.Ok(result);
     }
+
+    [WolverinePost("/buildings/{id}/entrances")]
+    [Authorize]
+    public static async Task<IResult> AddEntrance(
+        Guid id,
+        EntranceWriteRequest request,
+        IMessageBus bus,
+        IOrganizationIdProvider orgProvider)
+    {
+        var tenantId = orgProvider.GetOrganizationId()
+            ?? throw new UnauthorizedAccessException("Organization ID required");
+
+        var entranceId = await bus.InvokeForTenantAsync<Guid>(
+            tenantId,
+            new AddEntrance(id, request.Code, request.Name));
+
+        return Results.Created($"/buildings/{id}/entrances/{entranceId}", new { Id = entranceId });
+    }
+
+    [WolverinePut("/buildings/{id}/entrances/{entranceId}")]
+    [Authorize]
+    public static async Task<IResult> UpdateEntrance(
+        Guid id,
+        Guid entranceId,
+        EntranceWriteRequest request,
+        IMessageBus bus,
+        IOrganizationIdProvider orgProvider)
+    {
+        var tenantId = orgProvider.GetOrganizationId()
+            ?? throw new UnauthorizedAccessException("Organization ID required");
+
+        await bus.InvokeForTenantAsync(
+            tenantId,
+            new UpdateEntrance(id, entranceId, request.Code, request.Name));
+
+        return Results.NoContent();
+    }
+
+    [WolverineDelete("/buildings/{id}/entrances/{entranceId}")]
+    [Authorize]
+    public static async Task<IResult> RemoveEntrance(
+        Guid id,
+        Guid entranceId,
+        IMessageBus bus,
+        IOrganizationIdProvider orgProvider)
+    {
+        var tenantId = orgProvider.GetOrganizationId()
+            ?? throw new UnauthorizedAccessException("Organization ID required");
+
+        await bus.InvokeForTenantAsync(
+            tenantId,
+            new RemoveEntrance(id, entranceId));
+
+        return Results.NoContent();
+    }
 }
 
-public record BuildingCreateRequest(string Code, string Name);
+public record BuildingCreateRequest(string Code, string Name, AddressRequest? Address);
 
-public record BuildingUpdateRequest(string? Code, string? Name);
+public record BuildingUpdateRequest(string? Code, string? Name, AddressRequest? Address);
+
+public record EntranceWriteRequest(string Code, string Name);

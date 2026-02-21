@@ -2,6 +2,7 @@ using JasperFx;
 using JasperFx.Events;
 using Marten;
 using Npgsql;
+using ProperTea.Infrastructure.Common.Address;
 using ProperTea.Property.Features.Buildings.Configuration;
 using ProperTea.Property.Features.Companies.Configuration;
 using ProperTea.Property.Features.Properties.Configuration;
@@ -41,6 +42,12 @@ public static class MartenConfiguration
             opts.AutoCreateSchemaObjects = environment.IsDevelopment()
                 ? AutoCreate.All
                 : AutoCreate.CreateOrUpdate;
+
+            // Handle legacy string-format Address values persisted before the structured Address type was introduced.
+            opts.UseSystemTextJsonForSerialization(configure: serializerOptions =>
+            {
+                serializerOptions.Converters.Add(new AddressMigrationJsonConverter());
+            });
 
             opts.Projections.UseIdentityMapForAggregates = true;
 

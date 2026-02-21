@@ -6,6 +6,8 @@ import { firstValueFrom, map, Subject, takeUntil } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
+import { HlmAccordionImports } from '@spartan-ng/helm/accordion';
+import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { EntityDetailsConfig, EntityDetailsViewComponent } from '../../../../shared/components/entity-details-view';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
@@ -19,6 +21,11 @@ import { BuildingDetailResponse, UpdateBuildingRequest } from '../models/buildin
 import { DialogService } from '../../../core/services/dialog.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { BuildingAuditLogComponent } from '../audit-log/building-audit-log.component';
+import { AddressFormComponent } from '../../../../shared/components/address-form';
+import { IconComponent } from '../../../../shared/components/icon';
+import { CreateEntranceDrawerComponent } from '../create-entrance-drawer/create-entrance-drawer.component';
+import { UnitsEmbeddedListComponent } from '../../units/embedded-list/units-embedded-list.component';
+import { UppercaseInputDirective } from '../../../../shared/directives';
 
 @Component({
   selector: 'app-building-details',
@@ -29,6 +36,8 @@ import { BuildingAuditLogComponent } from '../audit-log/building-audit-log.compo
     TranslocoPipe,
     EntityDetailsViewComponent,
     HlmTabsImports,
+    HlmAccordionImports,
+    HlmButton,
     HlmInput,
     HlmSpinner,
     HlmCardImports,
@@ -36,6 +45,11 @@ import { BuildingAuditLogComponent } from '../audit-log/building-audit-log.compo
     HlmLabel,
     StatusBadgeDirective,
     BuildingAuditLogComponent,
+    AddressFormComponent,
+    IconComponent,
+    CreateEntranceDrawerComponent,
+    UnitsEmbeddedListComponent,
+    UppercaseInputDirective,
   ],
   templateUrl: './building-details.component.html',
 })
@@ -57,6 +71,9 @@ export class BuildingDetailsComponent implements OnInit, OnDestroy {
   buildingId = signal<string>('');
   propertyName = signal<string>('');
   selectedTab = signal<string>('details');
+  entrancesAccordionOpen = signal(true);
+  unitsAccordionOpen = signal(true);
+  createEntranceDrawerOpen = signal(false);
 
   detailsConfig = computed<EntityDetailsConfig>(() => {
     const building = this.building();
@@ -118,8 +135,14 @@ export class BuildingDetailsComponent implements OnInit, OnDestroy {
   private initializeForm(): void {
     this.form = this.fb.group({
       propertyId: [{ value: '', disabled: true }],
-      code: ['', [Validators.required, Validators.maxLength(50)]],
+      code: ['', [Validators.required, Validators.maxLength(5), Validators.pattern(/^[A-Z0-9]*$/)]],
       name: ['', [Validators.required, Validators.maxLength(200)]],
+      address: this.fb.group({
+        country: [''],
+        streetAddress: [''],
+        city: [''],
+        zipCode: [''],
+      }),
     });
   }
 
@@ -142,12 +165,22 @@ export class BuildingDetailsComponent implements OnInit, OnDestroy {
             propertyId: building.propertyId,
             code: building.code,
             name: building.name,
+            address: {
+              country: building.address?.country ?? '',
+              streetAddress: building.address?.streetAddress ?? '',
+              city: building.address?.city ?? '',
+              zipCode: building.address?.zipCode ?? '',
+            },
           });
           this.form.markAsPristine();
+          this.form.markAsUntouched();
 
           this.propertyService
             .get(building.propertyId)
-            .pipe(map((property) => property?.name ?? building.propertyId))
+            .pipe(
+              takeUntil(this.destroy$),
+              map((property) => property?.name ?? building.propertyId),
+            )
             .subscribe((name) => this.propertyName.set(name));
         },
         error: () => {
@@ -165,9 +198,14 @@ export class BuildingDetailsComponent implements OnInit, OnDestroy {
     this.saving.set(true);
 
     const id = this.buildingId();
+    const addressGroup = this.form.get('address');
+    const address = addressGroup?.getRawValue() as { country: string; streetAddress: string; city: string; zipCode: string };
     const request: UpdateBuildingRequest = {
       code: this.codeControl.value,
       name: this.nameControl.value,
+      address: address.streetAddress || address.city || address.zipCode
+        ? { country: address.country || 'UA', streetAddress: address.streetAddress ?? '', city: address.city ?? '', zipCode: address.zipCode ?? '' }
+        : undefined,
     };
 
     await firstValueFrom(
@@ -179,7 +217,7 @@ export class BuildingDetailsComponent implements OnInit, OnDestroy {
         this.loadBuilding(id);
       })
       .catch(() => {
-        this.toastService.error('buildings.error.updateFailed');
+        // Global error interceptor already shows the API error toast.
       });
   }
 
@@ -190,7 +228,7 @@ export class BuildingDetailsComponent implements OnInit, OnDestroy {
     const confirmed = await firstValueFrom(
       this.dialogService.confirm({
         title: this.translocoService.translate('common.delete'),
-        description: this.translocoService.translate('buildings.deleteConfirm', {
+        description: this.translocoService.translate('buildings.deleteConfirmMessage', {
           name: building.name,
         }),
         variant: 'destructive',
@@ -213,5 +251,27 @@ export class BuildingDetailsComponent implements OnInit, OnDestroy {
           this.toastService.error('buildings.error.deleteFailed');
         },
       });
+  }
+
+  async removeEntrance(entranceId: string): Promise<void> {
+    const confirmed = await firstValueFrom(
+      this.dialogService.confirm({
+        title: this.translocoService.translate('common.delete'),
+        description: this.translocoService.translate('buildings.entrance.deleteConfirm'),
+        variant: 'destructive',
+      }),
+    );
+
+    if (!confirmed) return;
+
+    this.buildingService.removeEntrance(this.buildingId(), entranceId).subscribe({
+      next: () => {
+        this.toastService.success('buildings.entrance.deleteSuccess');
+        this.loadBuilding(this.buildingId());
+      },
+      error: () => {
+        // Global error interceptor shows the toast.
+      },
+    });
   }
 }

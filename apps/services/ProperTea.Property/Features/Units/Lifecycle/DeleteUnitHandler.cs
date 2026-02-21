@@ -1,3 +1,4 @@
+using JasperFx.Events;
 using Marten;
 using ProperTea.Infrastructure.Common.Exceptions;
 using Wolverine;
@@ -20,7 +21,7 @@ public class DeleteUnitHandler : IWolverineHandler
                 command.UnitId);
 
         var deleted = unit.Delete(DateTimeOffset.UtcNow);
-        _ = session.Events.Append(command.UnitId, deleted);
+        _ = session.Events.Append(command.UnitId, deleted, new Archived("Unit deleted"));
         await session.SaveChangesAsync();
 
         var organizationId = session.TenantId;

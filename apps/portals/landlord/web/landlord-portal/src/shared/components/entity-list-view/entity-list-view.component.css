@@ -1,0 +1,9 @@
+/* Delay loading indicators so fast loads never show a blink */
+.loading-delayed {
+  animation: fadeIn 150ms ease-in 200ms both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

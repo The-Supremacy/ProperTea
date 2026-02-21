@@ -1,4 +1,5 @@
 using Marten;
+using ProperTea.Infrastructure.Common.Address;
 using ProperTea.Infrastructure.Common.Exceptions;
 using Wolverine;
 using static ProperTea.Property.Features.Properties.PropertyEvents;
@@ -17,13 +18,13 @@ public record PropertyAuditLogEntry(
 
 public static class PropertyAuditEventData
 {
-    public record PropertyCreated(Guid CompanyId, string Code, string Name, string Address, DateTimeOffset CreatedAt);
+    public record PropertyCreated(Guid CompanyId, string Code, string Name, Address Address, DateTimeOffset CreatedAt);
 
     public record CodeChanged(string OldCode, string NewCode);
 
     public record NameChanged(string OldName, string NewName);
 
-    public record AddressChanged(string OldAddress, string NewAddress);
+    public record AddressChanged(Address? OldAddress, Address NewAddress);
 
     public record PropertyDeleted(DateTimeOffset DeletedAt);
 }
@@ -60,7 +61,7 @@ public class GetPropertyAuditLogHandler(IQuerySession session) : IWolverineHandl
                     OldName: previousState?.Name ?? "",
                     NewName: e.Name),
                 AddressUpdated e => new PropertyAuditEventData.AddressChanged(
-                    OldAddress: previousState?.Address ?? "",
+                    OldAddress: previousState?.Address,
                     NewAddress: e.Address),
                 Deleted e => new PropertyAuditEventData.PropertyDeleted(e.DeletedAt),
                 _ => new { EventData = evt.Data }

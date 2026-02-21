@@ -3,15 +3,15 @@
   [loading]="loading()"
   (refresh)="loadProperty(propertyId())">
 
-  <!-- Loading -->
-  @if (loading()) {
+  <!-- Initial load spinner (shown only when no data yet) -->
+  @if (loading() && !property()) {
     <div class="flex items-center justify-center py-12">
       <hlm-spinner size="lg" />
     </div>
   }
 
-  <!-- Tabs -->
-  @if (!loading()) {
+  <!-- Tabs (kept in DOM once data is loaded) -->
+  @if (property()) {
     <hlm-tabs [tab]="selectedTab()" (tabActivated)="selectedTab.set($event)">
       <!-- Tab List -->
       <div class="border-b px-4">
@@ -35,14 +35,14 @@
                   <div hlmCardContent>
                     <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
                       <!-- Company (Read-only Display) -->
-                      <hlm-form-field>
+                      <div class="space-y-2">
                         <label hlmLabel>
                           {{ 'properties.company' | transloco }}
                         </label>
                         <div class="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
                           {{ companyName() || '-' }}
                         </div>
-                      </hlm-form-field>
+                      </div>
 
                       <!-- Code Field -->
                       <hlm-form-field>
@@ -51,6 +51,7 @@
                         </label>
                         <input
                           id="code"
+                          appUppercase
                           type="text"
                           formControlName="code"
                           [placeholder]="'properties.codePlaceholder' | transloco"
@@ -63,6 +64,9 @@
                           }
                           @if (codeControl.hasError('maxlength')) {
                             <hlm-error>{{ 'properties.codeTooLong' | transloco }}</hlm-error>
+                          }
+                          @if (codeControl.hasError('pattern')) {
+                            <hlm-error>{{ 'common.codeInvalidFormat' | transloco }}</hlm-error>
                           }
                         }
                       </hlm-form-field>
@@ -91,26 +95,7 @@
                       </hlm-form-field>
 
                       <!-- Address Field -->
-                      <hlm-form-field>
-                        <label hlmLabel for="address">
-                          {{ 'properties.address' | transloco }}
-                        </label>
-                        <textarea
-                          id="address"
-                          formControlName="address"
-                          rows="3"
-                          [placeholder]="'properties.addressPlaceholder' | transloco"
-                          hlmTextarea class="w-full"></textarea>
-
-                        @if (addressControl.invalid && addressControl.touched) {
-                          @if (addressControl.hasError('required')) {
-                            <hlm-error>{{ 'properties.addressRequired' | transloco }}</hlm-error>
-                          }
-                          @if (addressControl.hasError('maxlength')) {
-                            <hlm-error>{{ 'properties.addressTooLong' | transloco }}</hlm-error>
-                          }
-                        }
-                      </hlm-form-field>
+                      <app-address-form [addressGroup]="$any(form.get('address'))" [required]="false" />
                     </form>
                   </div>
                 </section>
@@ -155,6 +140,7 @@
                         variant="ghost"
                         size="icon"
                         class="mr-2 shrink-0"
+                        [attr.aria-label]="'properties.addBuilding' | transloco"
                         (click)="createBuildingDrawerOpen.set(true)">
                         <app-icon name="add" [size]="20" />
                       </button>

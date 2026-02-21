@@ -19,7 +19,9 @@ Features/{FeatureName}/
 │   ├── Create{Name}Handler.cs
 │   ├── Delete{Name}Handler.cs
 │   ├── Get{Name}Handler.cs
+│   ├── Get{Name}AuditLogHandler.cs
 │   ├── List{Name}sHandler.cs
+│   ├── Select{Name}sHandler.cs    # Lightweight list for dropdowns
 │   └── Update{Name}Handler.cs
 ├── Domain/                         # Optional: value objects, domain services
 ├── Projections/                    # Optional: Marten projections
@@ -40,4 +42,4 @@ Features/{FeatureName}/
 
 ## Reference Implementation
 
-See `ProperTea.Company/Features/Companies/` for a complete example of all patterns.
+See `ProperTea.Company/Features/Companies/` for a simple single-entity example, or `ProperTea.Property/Features/` for a multi-aggregate service (Properties, Buildings, Units) with integration events and cross-aggregate operations.

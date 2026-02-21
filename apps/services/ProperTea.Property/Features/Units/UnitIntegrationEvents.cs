@@ -11,13 +11,13 @@ public static class UnitIntegrationEvents
         public Guid UnitId { get; set; }
         public Guid PropertyId { get; set; }
         public Guid? BuildingId { get; set; }
+        public Guid? EntranceId { get; set; }
         public string OrganizationId { get; set; } = null!;
         public string Code { get; set; } = null!;
-        public string UnitNumber { get; set; } = null!;
+        public string UnitReference { get; set; } = null!;
         public string Category { get; set; } = null!;
+        public AddressData Address { get; set; } = null!;
         public int? Floor { get; set; }
-        public decimal? SquareFootage { get; set; }
-        public int? RoomCount { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
     }
 
@@ -27,13 +27,13 @@ public static class UnitIntegrationEvents
         public Guid UnitId { get; set; }
         public Guid PropertyId { get; set; }
         public Guid? BuildingId { get; set; }
+        public Guid? EntranceId { get; set; }
         public string OrganizationId { get; set; } = null!;
         public string Code { get; set; } = null!;
-        public string UnitNumber { get; set; } = null!;
+        public string UnitReference { get; set; } = null!;
         public string Category { get; set; } = null!;
+        public AddressData Address { get; set; } = null!;
         public int? Floor { get; set; }
-        public decimal? SquareFootage { get; set; }
-        public int? RoomCount { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }
     }
 
