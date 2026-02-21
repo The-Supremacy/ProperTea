@@ -57,7 +57,7 @@ public class CreatePropertyHandler : IWolverineHandler
             CompanyId = command.CompanyId,
             Code = command.Code,
             Name = command.Name,
-            Address = new Contracts.Events.AddressData(
+            Address = new AddressData(
                 command.Address.Country.ToString(),
                 command.Address.City,
                 command.Address.ZipCode,

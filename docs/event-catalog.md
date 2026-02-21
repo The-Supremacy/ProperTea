@@ -34,14 +34,14 @@ Publisher: Property Service
 
 | Message Identity | Contract | Trigger | Subscribers |
 |---|---|---|---|
-| `properties.created.v1` | `IPropertyCreated` | `CreatePropertyHandler` -- new property (fields: Code, Name, Address, CompanyId) | Rental Service (planned), Work Order Service (planned) |
-| `properties.updated.v1` | `IPropertyUpdated` | `UpdatePropertyHandler` -- property details changed (fields: CompanyId, Code, Name, Address) | Rental Service (planned), Work Order Service (planned) |
+| `properties.created.v2` | `IPropertyCreated` | `CreatePropertyHandler` -- new property (fields: Code, Name, Address, CompanyId) | Rental Service (planned), Work Order Service (planned) |
+| `properties.updated.v2` | `IPropertyUpdated` | `UpdatePropertyHandler` -- property details changed (fields: CompanyId, Code, Name, Address) | Rental Service (planned), Work Order Service (planned) |
 | `properties.deleted.v1` | `IPropertyDeleted` | `DeletePropertyHandler` -- soft delete (blocked if active buildings or units exist) | Rental Service (planned) |
 | `buildings.created.v1` | `IBuildingCreated` | `CreateBuildingHandler` -- new building (fields: Code, Name, Address) | (planned) |
 | `buildings.updated.v1` | `IBuildingUpdated` | `UpdateBuildingHandler` -- building details changed (fields: Code, Name, Address) | (planned) |
 | `buildings.deleted.v1` | `IBuildingDeleted` | `DeleteBuildingHandler` -- soft delete (blocked if active units exist) | (planned) |
-| `units.created.v1` | `IUnitCreated` | `CreateUnitHandler` -- new unit (fields: Code, UnitReference, Category, BuildingId, EntranceId, Address, Floor) | Rental Service (planned), Work Order Service (planned) |
-| `units.updated.v1` | `IUnitUpdated` | `UpdateUnitHandler` -- unit details changed (fields: Code, UnitReference, Category, BuildingId, EntranceId, Address, Floor) | Rental Service (planned), Work Order Service (planned) |
+| `units.created.v2` | `IUnitCreated` | `CreateUnitHandler` -- new unit (fields: Code, UnitReference, Category, BuildingId, EntranceId, Address, Floor) | Rental Service (planned), Work Order Service (planned) |
+| `units.updated.v2` | `IUnitUpdated` | `UpdateUnitHandler` -- unit details changed (fields: Code, UnitReference, Category, BuildingId, EntranceId, Address, Floor) | Rental Service (planned), Work Order Service (planned) |
 | `units.deleted.v1` | `IUnitDeleted` | `DeleteUnitHandler` -- soft delete | Rental Service (planned) |
 
 **Deletion Strategy**: Cross-aggregate children block parent deletion (returning a 422 with a hint about what data must be removed first). Only intra-aggregate children (e.g. entrances within a building) are cascade-deleted with the parent, **unless** they are referenced by other aggregates — in that case, removal is blocked. See `PROPERTY_HAS_ACTIVE_BUILDINGS`, `PROPERTY_HAS_ACTIVE_UNITS`, `BUILDING_HAS_ACTIVE_UNITS`, and `BUILDING_ENTRANCE_HAS_ACTIVE_UNITS` error codes.

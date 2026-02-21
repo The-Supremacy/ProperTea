@@ -66,7 +66,7 @@ public class UpdatePropertyHandler : IWolverineHandler
                 CompanyId = property.CompanyId,
                 Code = command.Code ?? property.Code,
                 Name = command.Name ?? property.Name,
-                Address = new Contracts.Events.AddressData(
+                Address = new AddressData(
                     updatedAddress.Country.ToString(),
                     updatedAddress.City,
                     updatedAddress.ZipCode,

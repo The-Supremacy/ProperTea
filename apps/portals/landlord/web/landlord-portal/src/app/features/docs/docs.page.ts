@@ -1,4 +1,4 @@
-import { Component, signal, inject, ChangeDetectionStrategy, HostListener } from '@angular/core';
+import { Component, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { UserPreferencesService } from '../../core/services/user-preferences.service';
@@ -22,6 +22,9 @@ interface DocItem {
   selector: 'app-docs',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [LogoComponent, HlmButton, ThemeToggleComponent, LanguageSelectorComponent, TranslocoPipe],
+  host: {
+    '(document:keydown.escape)': 'onEscapeKey()',
+  },
   template: `
     <div class="min-h-screen flex flex-col bg-background text-foreground">
       <!-- Header -->
@@ -220,7 +223,6 @@ export class DocsPage {
     },
   ]);
 
-  @HostListener('document:keydown.escape')
   protected onEscapeKey(): void {
     if (this.mobileMenuOpen()) {
       this.closeMobileSidebar();
