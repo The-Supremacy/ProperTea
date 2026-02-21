@@ -3,10 +3,10 @@ namespace ProperTea.Contracts.Events;
 /// <summary>Portable address representation for integration events. Country is the ISO 3166-1 alpha-2 code.</summary>
 public interface IAddressData
 {
-    string Country { get; }
-    string City { get; }
-    string ZipCode { get; }
-    string StreetAddress { get; }
+    public string Country { get; }
+    public string City { get; }
+    public string ZipCode { get; }
+    public string StreetAddress { get; }
 }
 
 public interface IPropertyCreated
