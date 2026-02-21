@@ -1,5 +1,6 @@
-import { Component, ChangeDetectionStrategy, input, signal, computed, OnInit, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, signal, computed, OnInit, inject, DestroyRef } from '@angular/core';
 import { finalize } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoService } from '@jsverse/transloco';
 import { CompanyService } from '../services/company.service';
 import { CompanyAuditLogEntry } from '../models/company.models';
@@ -22,6 +23,7 @@ import { UserService, UserDetails } from '../../../core/services/user.service';
 export class CompanyAuditLogComponent implements OnInit {
   private readonly companyService = inject(CompanyService);
   protected readonly t = inject(TranslocoService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly userService = inject(UserService);
 
   readonly companyId = input.required<string>();
@@ -65,7 +67,7 @@ export class CompanyAuditLogComponent implements OnInit {
     const usernames = [...new Set(entries.map(e => e.username).filter((u): u is string => !!u))];
 
     usernames.forEach(userId => {
-      this.userService.getUserDetails(userId).subscribe(userDetails => {
+      this.userService.getUserDetails(userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(userDetails => {
         if (userDetails) {
           this.userDetailsMap.update(map => {
             const newMap = new Map(map);

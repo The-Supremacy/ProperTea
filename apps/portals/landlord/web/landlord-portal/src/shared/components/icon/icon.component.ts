@@ -140,6 +140,7 @@ const ICON_MAP: Record<string, string> = {
   ],
   host: {
     class: 'inline-flex items-center justify-center',
+    'aria-hidden': 'true',
   },
   template: `<ng-icon [name]="resolvedName()" [style.font-size.px]="size()" />`,
 })

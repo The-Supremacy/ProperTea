@@ -1,5 +1,6 @@
 import { Component, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { UserPreferencesService } from '../../core/services/user-preferences.service';
 import { LogoComponent } from '../../../shared/components/logo';
 import { HlmButton } from '@spartan-ng/helm/button';
@@ -20,7 +21,10 @@ interface DocItem {
 @Component({
   selector: 'app-docs',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LogoComponent, HlmButton, ThemeToggleComponent, LanguageSelectorComponent],
+  imports: [LogoComponent, HlmButton, ThemeToggleComponent, LanguageSelectorComponent, TranslocoPipe],
+  host: {
+    '(document:keydown.escape)': 'onEscapeKey()',
+  },
   template: `
     <div class="min-h-screen flex flex-col bg-background text-foreground">
       <!-- Header -->
@@ -31,9 +35,11 @@ interface DocItem {
             variant="ghost"
             size="icon"
             class="lg:hidden mr-2"
+            aria-label="Toggle navigation"
+            [attr.aria-expanded]="mobileMenuOpen()"
             (click)="toggleMobileSidebar()"
           >
-            ☰
+            <span aria-hidden="true">☰</span>
           </button>
 
           <app-logo size="md" />
@@ -45,7 +51,7 @@ interface DocItem {
             <app-theme-toggle />
 
             <button hlmBtn variant="outline" size="sm" (click)="navigateToHome()">
-              Back to Home
+              {{ 'nav.home' | transloco }}
             </button>
           </div>
         </div>
@@ -216,6 +222,12 @@ export class DocsPage {
       ],
     },
   ]);
+
+  protected onEscapeKey(): void {
+    if (this.mobileMenuOpen()) {
+      this.closeMobileSidebar();
+    }
+  }
 
   ngOnInit(): void {
     this.preferencesService.loadPreferences();

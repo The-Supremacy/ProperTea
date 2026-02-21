@@ -29,7 +29,7 @@ export interface SelectOptionData {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [BrnSelectImports, HlmSelectImports, HlmSpinner, TranslocoPipe],
   template: `
-    <brn-select class="block w-full" [value]="value()" [placeholder]="placeholder() | transloco" (valueChange)="onValueChange($any($event))">
+    <brn-select class="block w-full" [value]="value()" [placeholder]="placeholder() | transloco" [attr.aria-label]="label() || (placeholder() | transloco)" (valueChange)="onValueChange($any($event))">
       <hlm-select-trigger class="w-full">
         <hlm-select-value />
       </hlm-select-trigger>

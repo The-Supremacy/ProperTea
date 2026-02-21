@@ -138,7 +138,7 @@ public class UpdateUnitHandler : IWolverineHandler
 
         if (events.Count > 0)
         {
-            session.Events.Append(command.UnitId, events.ToArray());
+            _ = session.Events.Append(command.UnitId, [.. events]);
             await session.SaveChangesAsync();
 
             var organizationId = session.TenantId;
@@ -152,7 +152,7 @@ public class UpdateUnitHandler : IWolverineHandler
                 Code = command.Code,
                 UnitReference = unitReference,
                 Category = command.Category.ToString(),
-                Address = new Contracts.Events.AddressData(
+                Address = new AddressData(
                     address.Country.ToString(),
                     address.City,
                     address.ZipCode,

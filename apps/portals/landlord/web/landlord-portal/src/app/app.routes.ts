@@ -1,6 +1,9 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
-import { organizationsRoutes } from './features/organizations/organizations.routes';
+import {
+  organizationPublicRoutes,
+  organizationProtectedRoutes,
+} from './features/organizations/organizations.routes';
 import { companiesRoutes } from './features/companies/companies.routes';
 import { propertiesRoutes } from './features/properties/routes';
 import { buildingsRoutes } from './features/buildings/routes';
@@ -14,7 +17,7 @@ export const routes: Routes = [
   },
   {
     path: 'organizations',
-    children: organizationsRoutes,
+    children: organizationPublicRoutes,
   },
   {
     path: 'docs',
@@ -29,6 +32,11 @@ export const routes: Routes = [
         data: { breadcrumb: 'nav.dashboard' },
         loadComponent: () =>
           import('./features/dashboard/dashboard-home.page').then((m) => m.DashboardHomePage),
+      },
+      {
+        path: 'organizations',
+        data: { breadcrumb: 'nav.organization' },
+        children: organizationProtectedRoutes,
       },
       {
         path: 'companies',

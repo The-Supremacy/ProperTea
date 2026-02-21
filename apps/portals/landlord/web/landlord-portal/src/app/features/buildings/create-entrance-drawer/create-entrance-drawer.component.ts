@@ -29,14 +29,14 @@ import { ToastService } from '../../../core/services/toast.service';
   ],
   template: `
     <hlm-sheet side="right" [state]="open() ? 'open' : 'closed'" (closed)="onSheetClosed()">
-      <hlm-sheet-content *hlmSheetPortal="let ctx" class="flex flex-col sm:max-w-md">
+      <hlm-sheet-content *hlmSheetPortal="let ctx" class="sm:max-w-md flex flex-col">
         <hlm-sheet-header>
           <h3 hlmSheetTitle>{{ 'buildings.entrance.new' | transloco }}</h3>
           <p hlmSheetDescription>{{ 'buildings.entrance.createHint' | transloco }}</p>
         </hlm-sheet-header>
 
         <form [formGroup]="form" (ngSubmit)="submit()" class="flex min-h-0 flex-1 flex-col">
-          <div class="flex-1 space-y-6 overflow-y-auto px-4 py-4">
+          <div class="flex-1 space-y-6 overflow-y-auto px-4">
 
             <hlm-form-field>
               <label hlmLabel for="entrance-code">

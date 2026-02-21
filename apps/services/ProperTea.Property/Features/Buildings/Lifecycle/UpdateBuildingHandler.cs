@@ -1,6 +1,7 @@
 using Marten;
 using ProperTea.Infrastructure.Common.Address;
 using ProperTea.Infrastructure.Common.Exceptions;
+using ProperTea.Property.Features.Properties;
 using Wolverine;
 
 namespace ProperTea.Property.Features.Buildings.Lifecycle;
@@ -65,7 +66,7 @@ public class UpdateBuildingHandler : IWolverineHandler
                 OrganizationId = organizationId,
                 Code = command.Code ?? building.Code,
                 Name = command.Name ?? building.Name,
-                Address = new Contracts.Events.AddressData(
+                Address = new AddressData(
                     effectiveAddress.Country.ToString(),
                     effectiveAddress.City,
                     effectiveAddress.ZipCode,

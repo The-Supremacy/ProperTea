@@ -1,6 +1,7 @@
 import {
   Component,
   ChangeDetectionStrategy,
+  DestroyRef,
   input,
   output,
   signal,
@@ -8,15 +9,16 @@ import {
   effect,
   inject,
   OnInit,
-  OnDestroy,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
-import { Subject, finalize, takeUntil } from 'rxjs';
+import { finalize } from 'rxjs';
 import {
   createAngularTable,
   FlexRenderDirective,
   getCoreRowModel,
   SortingState,
+  Updater,
   VisibilityState,
 } from '@tanstack/angular-table';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -80,10 +82,11 @@ import { ResponsiveService } from '../../../app/core/services/responsive.service
   templateUrl: './entity-list-view.component.html',
   styleUrl: './entity-list-view.component.css',
 })
-export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit, OnDestroy {
+export class EntityListViewComponent<TEntity, TFilters = Record<string, unknown>> implements OnInit {
   // Services
   protected responsive = inject(ResponsiveService);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   // Inputs
   config = input<EntityListConfig<TEntity, TFilters>>();
@@ -115,9 +118,6 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
 
   // Toolbar search (client-side filtering)
   protected globalFilter = signal('');
-
-  // Destroy subject
-  private destroy$ = new Subject<void>();
 
   // Computed signals
   protected hasData = computed(() => this.data().length > 0);
@@ -197,11 +197,6 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
     }
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
   private loadData(query: EntityListQuery<TFilters>): void {
     const cfg = this.config();
     if (!cfg) return;
@@ -212,22 +207,21 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
       .fetchFn(query)
       .pipe(
         finalize(() => this.loading.set(false)),
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (result: PagedResult<TEntity>) => {
           this.data.set(result.items);
           this.totalCount.set(result.totalCount);
         },
-        error: (error: any) => {
-          console.error('Failed to load entity list:', error);
+        error: () => {
           this.data.set([]);
           this.totalCount.set(0);
         },
       });
   }
 
-  private handleSortingChange(updater: any): void {
+  private handleSortingChange(updater: Updater<SortingState>): void {
     const newSorting = typeof updater === 'function' ? updater(this.sortingState()) : updater;
     this.sortingState.set(newSorting);
 
@@ -244,7 +238,7 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
     this.paginationQuery.update((p) => ({ ...p, page: 1 }));
   }
 
-  private handleColumnVisibilityChange(updater: any): void {
+  private handleColumnVisibilityChange(updater: Updater<VisibilityState>): void {
     const newVisibility =
       typeof updater === 'function' ? updater(this.columnVisibility()) : updater;
     this.columnVisibility.set(newVisibility);
@@ -260,7 +254,7 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
     this.paginationQuery.update(() => ({ page: 1, pageSize }));
   }
 
-  private handleGlobalFilterChange(updater: any): void {
+  private handleGlobalFilterChange(updater: Updater<string>): void {
     const newFilter = typeof updater === 'function' ? updater(this.globalFilter()) : updater;
     this.globalFilter.set(newFilter);
   }
@@ -273,7 +267,7 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
     this.globalFilter.set('');
   }
 
-  protected onFilterFieldChange(key: keyof TFilters, value: any): void {
+  protected onFilterFieldChange(key: string & keyof TFilters, value: unknown): void {
     this.filterValues.update((current) => ({
       ...current,
       [key]: value,
@@ -334,19 +328,17 @@ export class EntityListViewComponent<TEntity, TFilters = any> implements OnInit,
     return sort.desc ? 'arrow_downward' : 'arrow_upward';
   }
 
-  protected getEntityId(entity: TEntity): any {
+  protected getEntityId(entity: TEntity): TEntity[keyof TEntity] {
     const cfg = this.config();
     return entity[cfg?.idField || ('id' as keyof TEntity)];
   }
 
-  protected get state() {
-    return {
-      data: this.data(),
-      loading: this.loading(),
-      hasData: this.hasData(),
-      isEmpty: this.isEmpty(),
-      totalCount: this.totalCount(),
-      pagination: this.paginationQuery(),
-    };
-  }
+  protected readonly state = computed(() => ({
+    data: this.data(),
+    loading: this.loading(),
+    hasData: this.hasData(),
+    isEmpty: this.isEmpty(),
+    totalCount: this.totalCount(),
+    pagination: this.paginationQuery(),
+  }));
 }

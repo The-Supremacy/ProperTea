@@ -21,7 +21,7 @@ export interface PaginationMetadata {
   hasPreviousPage: boolean;
 }
 
-export function getPaginationMetadata(result: PagedResult<any>): PaginationMetadata {
+export function getPaginationMetadata(result: PagedResult<unknown>): PaginationMetadata {
   const totalPages = Math.ceil(result.totalCount / result.pageSize);
   return {
     totalPages,

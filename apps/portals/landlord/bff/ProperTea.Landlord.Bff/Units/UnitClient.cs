@@ -99,7 +99,9 @@ public class UnitClient(HttpClient httpClient)
         if (!string.IsNullOrWhiteSpace(sort.Sort))
             queryString["sort"] = sort.Sort;
 
-        return await httpClient.GetFromJsonAsync<PagedResult<UnitListItem>>($"/units?{queryString}", ct)
+        var response = await httpClient.GetAsync($"/units?{queryString}", ct);
+        await response.EnsureSuccessOrProxyAsync(ct);
+        return await response.Content.ReadFromJsonAsync<PagedResult<UnitListItem>>(ct)
             ?? new PagedResult<UnitListItem> { Items = [], TotalCount = 0, Page = pagination.Page, PageSize = pagination.PageSize };
     }
 

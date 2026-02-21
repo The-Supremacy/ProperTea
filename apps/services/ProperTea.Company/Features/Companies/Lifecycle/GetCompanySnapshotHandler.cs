@@ -31,6 +31,6 @@ public class GetCompanySnapshotHandler : IWolverineHandler
             c.Code,
             c.Name,
             c.CurrentStatus == CompanyAggregate.Status.Deleted,
-            c.CreatedAt))];
+            c.LastUpdatedAt))];
     }
 }

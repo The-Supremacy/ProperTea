@@ -20,7 +20,8 @@
             hlmSheetTrigger
             hlmBtn
             variant="outline"
-            [size]="responsive.isMobile() ? 'icon' : 'default'">
+            [size]="responsive.isMobile() ? 'icon' : 'default'"
+            [attr.aria-label]="'common.filters' | transloco">
             <app-icon name="filter_list" [size]="20" />
             <span class="hidden sm:inline">{{ 'common.filters' | transloco }}</span>
           </button>
@@ -86,12 +87,14 @@
                             [value]="$any(filterValues()[field.key])?.from || ''"
                             (input)="onFilterFieldChange(field.key, { ...$any(filterValues()[field.key]), from: $any($event.target).value })"
                             [placeholder]="'common.from' | transloco"
+                            [attr.aria-label]="field.label + ' — ' + ('common.from' | transloco)"
                             hlmInput class="w-full" />
                           <input
                             type="date"
                             [value]="$any(filterValues()[field.key])?.to || ''"
                             (input)="onFilterFieldChange(field.key, { ...$any(filterValues()[field.key]), to: $any($event.target).value })"
                             [placeholder]="'common.to' | transloco"
+                            [attr.aria-label]="field.label + ' — ' + ('common.to' | transloco)"
                             hlmInput class="w-full" />
                         </div>
                       }
@@ -124,7 +127,8 @@
             hlmSheetTrigger
             hlmBtn
             variant="outline"
-            [size]="responsive.isMobile() ? 'icon' : 'default'">
+            [size]="responsive.isMobile() ? 'icon' : 'default'"
+            [attr.aria-label]="'common.columns' | transloco">
             <app-icon name="view_column" [size]="20" />
             <span class="hidden sm:inline">{{ 'common.columns' | transloco }}</span>
           </button>
@@ -164,9 +168,9 @@
           variant="outline"
           size="icon"
           (click)="refresh()"
-          [disabled]="state.loading"
-          [title]="'common.refresh' | transloco">
-          <app-icon name="refresh" [size]="20" [class.animate-spin]="state.loading" />
+          [disabled]="state().loading"
+          [attr.aria-label]="'common.refresh' | transloco">
+          <app-icon name="refresh" [size]="20" [class.animate-spin]="state().loading" />
         </button>
       }
 
@@ -179,7 +183,8 @@
           size="icon"
           (click)="searchExpanded.set(!searchExpanded())"
           class="md:hidden"
-          [title]="'common.search' | transloco">
+          [attr.aria-label]="'common.search' | transloco"
+          [attr.aria-expanded]="searchExpanded()">
           <app-icon [name]="searchExpanded() ? 'close' : 'search'" [size]="20" />
         </button>
 
@@ -194,11 +199,13 @@
             [value]="globalFilter()"
             (input)="onTableSearchChange($any($event.target).value)"
             [placeholder]="'common.search' | transloco"
+            [attr.aria-label]="'common.search' | transloco"
             hlmInput class="w-full pl-10 pr-10" />
           @if (globalFilter()) {
             <button
               type="button"
               (click)="clearTableSearch()"
+              [attr.aria-label]="'common.close' | transloco"
               class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               <app-icon name="close" [size]="16" />
             </button>
@@ -215,7 +222,8 @@
           [hlmDropdownMenuTrigger]="tableActionsMenu"
           hlmBtn
           variant="outline"
-          size="icon">
+          size="icon"
+          [attr.aria-label]="'common.actions' | transloco">
           <app-icon name="more_vert" [size]="20" />
         </button>
 
@@ -274,11 +282,13 @@
             [value]="globalFilter()"
             (input)="onTableSearchChange($any($event.target).value)"
             [placeholder]="'common.search' | transloco"
+            [attr.aria-label]="'common.search' | transloco"
             hlmInput class="w-full pl-10 pr-10" />
           @if (globalFilter()) {
             <button
               type="button"
               (click)="clearTableSearch()"
+              [attr.aria-label]="'common.close' | transloco"
               class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               <app-icon name="close" [size]="16" />
             </button>
@@ -291,15 +301,17 @@
   <!-- Data Display Container with Loading Overlay -->
   <div class="relative">
     <!-- Reload Overlay (only when reloading with existing data) -->
-    @if (state.loading && state.hasData) {
+    @if (state().loading && state().hasData) {
       <div
+        role="status"
+        [attr.aria-label]="'common.loading' | transloco"
         class="loading-delayed absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/80 backdrop-blur-sm">
         <hlm-spinner size="lg" />
       </div>
     }
 
     <!-- Skeleton Loading (initial load, no data yet) -->
-    @if (state.loading && !state.hasData) {
+    @if (state().loading && !state().hasData) {
       @if (!responsive.isMobile()) {
         <div class="loading-delayed rounded-lg border">
           <div class="bg-muted/50 flex gap-4 border-b px-4 py-3">
@@ -331,7 +343,7 @@
     }
 
     <!-- Empty State -->
-    @if (state.isEmpty) {
+    @if (state().isEmpty) {
       <div hlmEmpty class="my-6 rounded-lg border">
         <div hlmEmptyHeader>
           <div hlmEmptyMedia variant="icon">
@@ -350,7 +362,7 @@
     }
 
     <!-- Desktop Table View -->
-    @if (!responsive.isMobile() && state.hasData) {
+    @if (!responsive.isMobile() && state().hasData) {
       <div hlmTableContainer class="rounded-lg border">
         <table hlmTable>
           <thead hlmTHead>
@@ -358,17 +370,26 @@
               <tr hlmTr class="bg-muted/50">
                 @for (header of headerGroup.headers; track header.id) {
                   <th hlmTh
-                    [class.cursor-pointer]="header.column.getCanSort()"
-                    (click)="header.column.getToggleSortingHandler()?.($event)">
-                    <div class="flex items-center gap-1 font-semibold">
-                      <ng-container
-                        *flexRender="header.column.columnDef.header; props: header.getContext(); let headerText">
-                        <span [innerHTML]="headerText"></span>
-                      </ng-container>
-                      @if (header.column.getCanSort()) {
+                    [attr.aria-sort]="header.column.getIsSorted() === 'asc' ? 'ascending' : header.column.getIsSorted() === 'desc' ? 'descending' : header.column.getCanSort() ? 'none' : null">
+                    @if (header.column.getCanSort()) {
+                      <button
+                        type="button"
+                        class="flex items-center gap-1 font-semibold"
+                        (click)="header.column.getToggleSortingHandler()?.($event)">
+                        <ng-container
+                          *flexRender="header.column.columnDef.header; props: header.getContext(); let headerText">
+                          <span [innerHTML]="headerText"></span>
+                        </ng-container>
                         <app-icon [name]="getSortIcon(header.column.id)" [size]="16" />
-                      }
-                    </div>
+                      </button>
+                    } @else {
+                      <span class="font-semibold">
+                        <ng-container
+                          *flexRender="header.column.columnDef.header; props: header.getContext(); let headerText">
+                          <span [innerHTML]="headerText"></span>
+                        </ng-container>
+                      </span>
+                    }
                   </th>
                 }
                 @if (config()!.actions && config()!.actions!.length > 0) {
@@ -384,7 +405,9 @@
               <tr
                 hlmTr
                 class="cursor-pointer"
-                (click)="onRowClick(row.original)">
+                tabindex="0"
+                (click)="onRowClick(row.original)"
+                (keydown.enter)="onRowClick(row.original)">
                 @for (cell of row.getVisibleCells(); track cell.id) {
                   <td hlmTd>
                     <ng-container
@@ -401,6 +424,7 @@
                         variant="ghost"
                         size="icon"
                         [hlmDropdownMenuTrigger]="rowActionsMenu"
+                        [attr.aria-label]="'common.actions' | transloco"
                         (click)="$event.stopPropagation()">
                         <app-icon name="more_vert" [size]="20" />
                       </button>
@@ -434,13 +458,16 @@
     }
 
     <!-- Mobile Card View -->
-    @if (responsive.isMobile() && state.hasData) {
+    @if (responsive.isMobile() && state().hasData) {
       <div class="space-y-4">
         @for (row of table.getRowModel().rows; track getEntityId(row.original)) {
           <section
             hlmCard
-            class="cursor-pointer transition-shadow hover:shadow-md"
-            (click)="onRowClick(row.original)">
+            tabindex="0"
+            role="link"
+            class="cursor-pointer transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring"
+            (click)="onRowClick(row.original)"
+            (keydown.enter)="onRowClick(row.original)">
             <!-- Default mobile card layout -->
             <div class="space-y-2">
               @for (cell of row.getVisibleCells(); track cell.id) {
@@ -464,6 +491,7 @@
                   variant="ghost"
                   size="icon"
                   [hlmDropdownMenuTrigger]="mobileRowActionsMenu"
+                  [attr.aria-label]="'common.actions' | transloco"
                   (click)="$event.stopPropagation()">
                   <app-icon name="more_vert" [size]="20" />
                 </button>
@@ -495,13 +523,13 @@
   </div>
 
   <!-- Pagination -->
-  @if (state.hasData) {
+  @if (state().hasData) {
     <hlm-numbered-pagination
-      [currentPage]="state.pagination.page"
+      [currentPage]="state().pagination.page"
       (currentPageChange)="onPageChange($event)"
-      [itemsPerPage]="state.pagination.pageSize"
+      [itemsPerPage]="state().pagination.pageSize"
       (itemsPerPageChange)="onPageSizeChange($event)"
-      [totalItems]="state.totalCount"
+      [totalItems]="state().totalCount"
       [pageSizes]="[10, 20, 50]" />
   }
   }

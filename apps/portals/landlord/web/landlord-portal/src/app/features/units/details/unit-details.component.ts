@@ -75,102 +75,146 @@ import { UnitAuditLogComponent } from '../audit-log/unit-audit-log.component';
           <div hlmTabsContent="details">
             <div class="py-6">
               <div class="container mx-auto px-4">
-                <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  @if (form) {
+                    <form [formGroup]="form" (ngSubmit)="save()" class="contents">
 
-                  <!-- Main Info Card -->
-                  <section hlmCard class="order-1 lg:col-span-2">
-                    <div hlmCardHeader>
-                      <h3 hlmCardTitle>{{ 'units.basicInfo' | transloco }}</h3>
-                    </div>
-                    <div hlmCardContent>
-                      @if (form) {
-                        <form [formGroup]="form" (ngSubmit)="save()" class="grid grid-cols-12 gap-4">
+                      <!-- Basic Info Card -->
+                      <section hlmCard class="lg:col-span-2 order-1">
+                        <div hlmCardHeader>
+                          <h3 hlmCardTitle>{{ 'units.basicInfo' | transloco }}</h3>
+                        </div>
+                        <div hlmCardContent>
+                          <div class="grid grid-cols-12 gap-4">
+                            <div class="col-span-12 sm:col-span-6 lg:col-span-3 space-y-1.5">
+                              <label hlmLabel>{{ 'units.unitReference' | transloco }}</label>
+                              <div class="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
+                                {{ unit()?.unitReference }}
+                              </div>
+                            </div>
 
-                          <!-- Row 1: UnitRef (3), Category (3), Code (3) -->
-                          <div class="col-span-12 sm:col-span-6 lg:col-span-3 space-y-1.5">
-                            <label hlmLabel>{{ 'units.unitReference' | transloco }}</label>
-                            <div class="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
-                              {{ unit()?.unitReference }}
+                            <div class="col-span-12 sm:col-span-6 lg:col-span-3 space-y-1.5">
+                              <label hlmLabel>{{ 'units.category' | transloco }}</label>
+                              <brn-select formControlName="category" class="block w-full">
+                                <hlm-select-trigger class="w-full">
+                                  <hlm-select-value />
+                                </hlm-select-trigger>
+                                <hlm-select-content>
+                                  @for (cat of categories; track cat) {
+                                    <hlm-option [value]="cat">{{ 'units.categories.' + cat.toLowerCase() | transloco }}</hlm-option>
+                                  }
+                                </hlm-select-content>
+                              </brn-select>
+                            </div>
+
+                            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                              <hlm-form-field class="w-full">
+                                <label hlmLabel for="unit-code">{{ 'units.code' | transloco }}</label>
+                                <input id="unit-code" hlmInput appUppercase formControlName="code"
+                                  [placeholder]="'units.codePlaceholder' | transloco" class="w-full" />
+                                @if (form.controls['code'].touched && form.controls['code'].hasError('required')) {
+                                  <hlm-error>{{ 'units.codeRequired' | transloco }}</hlm-error>
+                                }
+                                @if (form.controls['code'].touched && form.controls['code'].hasError('maxlength')) {
+                                  <hlm-error>{{ 'units.codeTooLong' | transloco }}</hlm-error>
+                                }
+                                @if (form.controls['code'].touched && form.controls['code'].hasError('pattern')) {
+                                  <hlm-error>{{ 'common.codeInvalidFormat' | transloco }}</hlm-error>
+                                }
+                              </hlm-form-field>
+                            </div>
+
+                            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                              <hlm-form-field class="w-full">
+                                <label hlmLabel for="unit-floor">{{ 'units.floor' | transloco }}</label>
+                                <input id="unit-floor" hlmInput type="number" formControlName="floor" class="w-full" />
+                              </hlm-form-field>
                             </div>
                           </div>
+                        </div>
+                      </section>
 
-                          <div class="col-span-12 sm:col-span-6 lg:col-span-3 space-y-1.5">
-                            <label hlmLabel>{{ 'units.category' | transloco }}</label>
-                            <brn-select formControlName="category" class="block w-full">
-                              <hlm-select-trigger class="w-full">
-                                <hlm-select-value />
-                              </hlm-select-trigger>
-                              <hlm-select-content>
-                                @for (cat of categories; track cat) {
-                                  <hlm-option [value]="cat">{{ 'units.categories.' + cat.toLowerCase() | transloco }}</hlm-option>
-                                }
-                              </hlm-select-content>
-                            </brn-select>
+                      <!-- Sidebar -->
+                      <div class="order-2 space-y-6">
+                        <!-- Status Card -->
+                        <section hlmCard>
+                          <div hlmCardHeader>
+                            <h3 hlmCardTitle>{{ 'common.status' | transloco }}</h3>
                           </div>
-
-                          <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                            <hlm-form-field class="w-full">
-                              <label hlmLabel for="unit-code">{{ 'units.code' | transloco }}</label>
-                              <input id="unit-code" hlmInput appUppercase formControlName="code"
-                                [placeholder]="'units.codePlaceholder' | transloco" class="w-full" />
-                              @if (form.controls['code'].touched && form.controls['code'].hasError('required')) {
-                                <hlm-error>{{ 'units.codeRequired' | transloco }}</hlm-error>
-                              }
-                              @if (form.controls['code'].touched && form.controls['code'].hasError('maxlength')) {
-                                <hlm-error>{{ 'units.codeTooLong' | transloco }}</hlm-error>
-                              }
-                              @if (form.controls['code'].touched && form.controls['code'].hasError('pattern')) {
-                                <hlm-error>{{ 'common.codeInvalidFormat' | transloco }}</hlm-error>
-                              }
-                            </hlm-form-field>
+                          <div hlmCardContent>
+                            <div class="grid grid-cols-2 gap-4">
+                              <div>
+                                <p class="text-sm text-muted-foreground mb-1">{{ 'common.currentStatus' | transloco }}</p>
+                                <span [appStatusBadge]="unit()?.status || 'Active'">
+                                  {{ 'common.statuses.' + (unit()?.status || 'Active') | transloco }}
+                                </span>
+                              </div>
+                              <div>
+                                <p class="text-sm text-muted-foreground mb-1">{{ 'common.createdAt' | transloco }}</p>
+                                <p class="text-sm">{{ unit()?.createdAt | date: 'medium' }}</p>
+                              </div>
+                            </div>
                           </div>
+                        </section>
 
-                          <!-- Row 2: Property (3), Building (3), Entrance (3) -->
-                          <div class="col-span-12 sm:col-span-4 lg:col-span-3 space-y-1.5">
-                            <label class="text-sm font-medium leading-none">{{ 'units.property' | transloco }}</label>
-                            <app-autocomplete
-                              [value]="selectedPropertyId()"
-                              [placeholder]="'common.search'"
-                              [optionsProvider]="propertyOptionsProvider"
-                              (valueChange)="onPropertyChange($event)" />
+                        <!-- Quick Actions Card -->
+                        <section hlmCard class="hidden lg:block">
+                          <div hlmCardHeader>
+                            <h3 hlmCardTitle>{{ 'common.quickActions' | transloco }}</h3>
                           </div>
-
-                          <div class="col-span-12 sm:col-span-4 lg:col-span-3 space-y-1.5">
-                            <label class="text-sm font-medium leading-none">{{ 'units.building' | transloco }}</label>
-                            <app-autocomplete
-                              [value]="selectedBuildingId()"
-                              [placeholder]="'common.search'"
-                              [optionsProvider]="buildingOptionsProvider()"
-                              (valueChange)="onBuildingChange($event)" />
+                          <div hlmCardContent>
+                            <p class="py-4 text-center text-sm text-muted-foreground">
+                              {{ 'common.noQuickActions' | transloco }}
+                            </p>
                           </div>
+                        </section>
+                      </div>
 
-                          <div class="col-span-12 sm:col-span-4 lg:col-span-3 space-y-1.5">
-                            <label class="text-sm font-medium leading-none">{{ 'units.entrance' | transloco }}</label>
-                            <app-autocomplete
-                              [value]="selectedEntranceId()"
-                              [placeholder]="'common.search'"
-                              [disabled]="!selectedBuildingId()"
-                              [optionsProvider]="entranceOptionsProvider()"
-                              (valueChange)="onEntranceChange($event)" />
+                      <!-- Location Card -->
+                      <section hlmCard class="lg:col-span-2 order-3">
+                        <div hlmCardHeader>
+                          <h3 hlmCardTitle>{{ 'units.location' | transloco }}</h3>
+                        </div>
+                        <div hlmCardContent>
+                          <div class="grid grid-cols-12 gap-4">
+                            <div class="col-span-12 sm:col-span-4 space-y-1.5">
+                              <label hlmLabel>{{ 'units.property' | transloco }}</label>
+                              <app-autocomplete
+                                [value]="selectedPropertyId()"
+                                [placeholder]="'common.search'"
+                                [optionsProvider]="propertyOptionsProvider"
+                                (valueChange)="onPropertyChange($event)" />
+                            </div>
+
+                            <div class="col-span-12 sm:col-span-4 space-y-1.5">
+                              <label hlmLabel>{{ 'units.building' | transloco }}</label>
+                              <app-autocomplete
+                                [value]="selectedBuildingId()"
+                                [placeholder]="'common.search'"
+                                [optionsProvider]="buildingOptionsProvider()"
+                                (valueChange)="onBuildingChange($event)" />
+                            </div>
+
+                            <div class="col-span-12 sm:col-span-4 space-y-1.5">
+                              <label hlmLabel>{{ 'units.entrance' | transloco }}</label>
+                              <app-autocomplete
+                                [value]="selectedEntranceId()"
+                                [placeholder]="'common.search'"
+                                [disabled]="!selectedBuildingId()"
+                                [optionsProvider]="entranceOptionsProvider()"
+                                (valueChange)="onEntranceChange($event)" />
+                            </div>
                           </div>
+                        </div>
+                      </section>
 
-                          <!-- Row 3: Floor (2) -->
-                          <div class="col-span-6 lg:col-span-2">
-                            <hlm-form-field class="w-full">
-                              <label hlmLabel for="unit-floor">{{ 'units.floor' | transloco }}</label>
-                              <input id="unit-floor" hlmInput type="number" formControlName="floor" class="w-full" />
-                            </hlm-form-field>
-                          </div>
-
-                          <!-- Address group separator -->
-                          <div class="col-span-12 border-t pt-2">
-                            <p class="text-sm font-medium text-muted-foreground">{{ 'units.address' | transloco }}</p>
-                          </div>
-
-                          <!-- Address fields in a nested 12-col sub-grid -->
-                          <div formGroupName="address" class="col-span-12 grid grid-cols-12 gap-4">
-
-                            <!-- Row 4: Street Address (6) -->
+                      <!-- Address Card -->
+                      <section hlmCard class="lg:col-span-2 order-4">
+                        <div hlmCardHeader>
+                          <h3 hlmCardTitle>{{ 'units.address' | transloco }}</h3>
+                        </div>
+                        <div hlmCardContent>
+                          <div formGroupName="address" class="grid grid-cols-12 gap-4">
                             <div class="col-span-12 lg:col-span-6">
                               <hlm-form-field class="w-full">
                                 <label hlmLabel for="unit-street">{{ 'address.streetAddress' | transloco }}</label>
@@ -181,8 +225,7 @@ import { UnitAuditLogComponent } from '../audit-log/unit-audit-log.component';
                               </hlm-form-field>
                             </div>
 
-                            <!-- Row 5: Country (3), City (3), Zip (3) -->
-                            <div class="col-span-12 sm:col-span-4 lg:col-span-3">
+                            <div class="col-span-12 sm:col-span-4 lg:col-span-2">
                               <hlm-form-field class="w-full">
                                 <label hlmLabel for="unit-country">{{ 'address.country' | transloco }}</label>
                                 <input id="unit-country" hlmInput formControlName="country" class="w-full" />
@@ -192,7 +235,7 @@ import { UnitAuditLogComponent } from '../audit-log/unit-audit-log.component';
                               </hlm-form-field>
                             </div>
 
-                            <div class="col-span-12 sm:col-span-4 lg:col-span-3">
+                            <div class="col-span-12 sm:col-span-4 lg:col-span-2">
                               <hlm-form-field class="w-full">
                                 <label hlmLabel for="unit-city">{{ 'address.city' | transloco }}</label>
                                 <input id="unit-city" hlmInput formControlName="city" class="w-full" />
@@ -202,7 +245,7 @@ import { UnitAuditLogComponent } from '../audit-log/unit-audit-log.component';
                               </hlm-form-field>
                             </div>
 
-                            <div class="col-span-12 sm:col-span-4 lg:col-span-3">
+                            <div class="col-span-12 sm:col-span-4 lg:col-span-2">
                               <hlm-form-field class="w-full">
                                 <label hlmLabel for="unit-zip">{{ 'address.zipCode' | transloco }}</label>
                                 <input id="unit-zip" hlmInput formControlName="zipCode" class="w-full" />
@@ -211,32 +254,12 @@ import { UnitAuditLogComponent } from '../audit-log/unit-audit-log.component';
                                 }
                               </hlm-form-field>
                             </div>
-
                           </div>
-                        </form>
-                      }
-                    </div>
-                  </section>
+                        </div>
+                      </section>
 
-                  <!-- Status / Meta Card -->
-                  <section hlmCard class="order-2">
-                    <div hlmCardHeader>
-                      <h3 hlmCardTitle>{{ 'common.status' | transloco }}</h3>
-                    </div>
-                    <div hlmCardContent class="space-y-4">
-                      <div>
-                        <p class="mb-1 text-sm text-muted-foreground">{{ 'common.currentStatus' | transloco }}</p>
-                        <span [appStatusBadge]="unit()?.status || 'Active'">
-                          {{ 'common.statuses.' + (unit()?.status || 'Active') | transloco }}
-                        </span>
-                      </div>
-                      <div>
-                        <p class="mb-1 text-sm text-muted-foreground">{{ 'common.createdAt' | transloco }}</p>
-                        <p class="text-sm">{{ unit()?.createdAt | date: 'medium' }}</p>
-                      </div>
-                    </div>
-                  </section>
-
+                    </form>
+                  }
                 </div>
               </div>
             </div>

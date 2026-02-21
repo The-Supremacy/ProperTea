@@ -1,7 +1,8 @@
-import { Component, inject, signal, computed, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors, AsyncValidatorFn } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, of, map, debounceTime, distinctUntilChanged, switchMap, first, Subject, takeUntil, finalize, firstValueFrom } from 'rxjs';
+import { Observable, of, map, debounceTime, distinctUntilChanged, switchMap, first, finalize, firstValueFrom } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CompanyService } from '../services/company.service';
@@ -37,7 +38,7 @@ import { StatusBadgeDirective } from '../../../../shared/directives';
   ],
   templateUrl: './company-details.component.html'
 })
-export class CompanyDetailsComponent implements OnInit, OnDestroy {
+export class CompanyDetailsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -45,8 +46,7 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
   private dialogService = inject(DialogService);
   private toastService = inject(ToastService);
   private translocoService = inject(TranslocoService);
-
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
 
   // State
   company = signal<CompanyDetailResponse | null>(null);
@@ -97,7 +97,7 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.route.params.pipe(
-      takeUntil(this.destroy$)
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(params => {
       const id = params['id'];
       if (!id) {
@@ -111,11 +111,6 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
   private initializeForm(): void {
     this.form = this.fb.group({
       code: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(20)], [this.codeUniqueValidator()]],
@@ -125,7 +120,7 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
 
   private codeUniqueValidator(): AsyncValidatorFn {
     return (control: AbstractControl): Observable<ValidationErrors | null> => {
-      if (!control.value) {
+      if (!control.value || control.pristine) {
         return of(null);
       }
 
@@ -144,7 +139,7 @@ export class CompanyDetailsComponent implements OnInit, OnDestroy {
 
   private nameUniqueValidator(): AsyncValidatorFn {
     return (control: AbstractControl): Observable<ValidationErrors | null> => {
-      if (!control.value) {
+      if (!control.value || control.pristine) {
         return of(null);
       }
 

@@ -1,11 +1,12 @@
 using ProperTea.Contracts.Events;
+using ProperTea.Property.Features.Properties;
 using Wolverine.Attributes;
 
 namespace ProperTea.Property.Features.Units;
 
 public static class UnitIntegrationEvents
 {
-    [MessageIdentity("units.created.v1")]
+    [MessageIdentity("units.created.v2")]
     public class UnitCreated : IUnitCreated
     {
         public Guid UnitId { get; set; }
@@ -17,11 +18,12 @@ public static class UnitIntegrationEvents
         public string UnitReference { get; set; } = null!;
         public string Category { get; set; } = null!;
         public AddressData Address { get; set; } = null!;
+        IAddressData IUnitCreated.Address => Address;
         public int? Floor { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
     }
 
-    [MessageIdentity("units.updated.v1")]
+    [MessageIdentity("units.updated.v2")]
     public class UnitUpdated : IUnitUpdated
     {
         public Guid UnitId { get; set; }
@@ -33,6 +35,7 @@ public static class UnitIntegrationEvents
         public string UnitReference { get; set; } = null!;
         public string Category { get; set; } = null!;
         public AddressData Address { get; set; } = null!;
+        IAddressData IUnitUpdated.Address => Address;
         public int? Floor { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }
     }

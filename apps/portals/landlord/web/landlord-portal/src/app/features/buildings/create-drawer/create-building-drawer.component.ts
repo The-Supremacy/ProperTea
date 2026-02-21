@@ -1,8 +1,8 @@
-import { Component, inject, signal, input, output, computed, effect, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, signal, input, output, computed, effect, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize, map } from 'rxjs';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { BuildingService } from '../services/building.service';
 import { PropertyService } from '../../properties/services/property.service';
@@ -41,6 +41,7 @@ export class CreateBuildingDrawerComponent {
   private propertyService = inject(PropertyService);
   private router = inject(Router);
   private toastService = inject(ToastService);
+  private destroyRef = inject(DestroyRef);
 
   // Inputs
   open = input.required<boolean>();
@@ -99,7 +100,7 @@ export class CreateBuildingDrawerComponent {
 
     // Pre-fill address from parent property
     if (value) {
-      this.propertyService.get(value).subscribe((property) => {
+      this.propertyService.get(value).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((property) => {
         if (property?.address) {
           this.form.controls.address.patchValue({
             country: property.address.country ?? '',

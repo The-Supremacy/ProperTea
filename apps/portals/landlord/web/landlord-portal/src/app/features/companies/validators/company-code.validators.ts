@@ -15,7 +15,7 @@ export function uniqueCompanyCode(excludeId?: string): AsyncValidatorFn {
   const companyService = inject(CompanyService);
 
   return (control: AbstractControl): Observable<ValidationErrors | null> => {
-    if (!control.value || control.value.trim() === '') {
+    if (!control.value || control.value.trim() === '' || control.pristine) {
       return of(null);
     }
 

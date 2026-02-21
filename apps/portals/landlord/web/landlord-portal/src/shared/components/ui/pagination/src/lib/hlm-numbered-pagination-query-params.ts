@@ -58,7 +58,7 @@ import { HlmPaginationPrevious } from './hlm-pagination-previous';
 						</li>
 					}
 
-					@for (page of _pages(); track page) {
+					@for (page of _pages(); track $index) {
 						<li hlmPaginationItem>
 							@if (page === '...') {
 								<hlm-pagination-ellipsis />

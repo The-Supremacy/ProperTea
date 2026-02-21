@@ -32,6 +32,7 @@
     "createdAt": "Created",
     "historyComingSoon": "History coming soon",
     "codeInvalidFormat": "Code may only contain uppercase letters and digits",
+    "noQuickActions": "Quick actions will appear here",
     "statuses": {
       "Active": "Active",
       "Inactive": "Inactive",
@@ -59,6 +60,7 @@
   },
   "nav": {
     "collapse": "Collapse navigation",
+    "toggleMenu": "Toggle menu",
     "dashboard": "Dashboard",
     "companies": "Companies",
     "properties": "Properties",
@@ -117,7 +119,10 @@
     "success": {
       "created": "Organization created successfully!"
     },
-    "passwordPlaceholder": "••••••••"
+    "passwordPlaceholder": "••••••••",
+    "checkingName": "Checking name availability...",
+    "nameAvailable": "Name is available",
+    "nameTaken": "Name is taken"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -340,6 +345,10 @@
       "created": "Building Created",
       "codeupdated": "Code Updated",
       "nameupdated": "Name Updated",
+      "addressupdated": "Address Updated",
+      "entranceadded": "Entrance Added",
+      "entranceupdated": "Entrance Updated",
+      "entranceremoved": "Entrance Removed",
       "deleted": "Building Deleted"
     },
     "success": {
@@ -388,6 +397,7 @@
     "floor": "Floor",
     "squareFootage": "Square Footage (m²)",
     "roomCount": "Room Count",
+    "location": "Location",
     "address": "Address",
     "status": "Status",
     "createdAt": "Created",
@@ -454,6 +464,8 @@
     }
   },
   "errors": {
+    "network": "Network error — check your connection.",
+    "unexpected": "Unexpected error ({{status}}).",
     "COMPANY_NOT_FOUND": "Company not found",
     "COMPANY_NAME_REQUIRED": "Company name is required",
     "COMPANY_NAME_ALREADY_EXISTS": "A company with this name already exists",

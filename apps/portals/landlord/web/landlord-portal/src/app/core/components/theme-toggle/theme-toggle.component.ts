@@ -1,19 +1,20 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { UserPreferencesService } from '../../services/user-preferences.service';
 import { HlmButton } from '@spartan-ng/helm/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-theme-toggle',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [HlmButton],
+  imports: [HlmButton, TranslocoPipe],
   template: `
     <button
       hlmBtn
       variant="ghost"
       size="icon"
       (click)="toggleTheme()"
-      [title]="isDarkMode() ? 'Switch to light mode' : 'Switch to dark mode'">
-      {{ isDarkMode() ? '☀️' : '🌙' }}
+      [attr.aria-label]="(isDarkMode() ? 'user.lightMode' : 'user.darkMode') | transloco">
+      <span aria-hidden="true">{{ isDarkMode() ? '☀️' : '🌙' }}</span>
     </button>
   `
 })

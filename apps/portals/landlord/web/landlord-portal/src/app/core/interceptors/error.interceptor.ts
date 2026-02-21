@@ -1,5 +1,6 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { TranslocoService } from '@jsverse/transloco';
 import { catchError, throwError } from 'rxjs';
 import { ToastService } from '../services/toast.service';
 
@@ -11,6 +12,7 @@ interface ProblemDetails {
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const toast = inject(ToastService);
+  const transloco = inject(TranslocoService);
 
   return next(req).pipe(
     catchError((err: unknown) => {
@@ -31,9 +33,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         const message =
           problem?.detail ??
           problem?.title ??
-          (status === 0 ? 'Network error — check your connection.' : `Unexpected error (${status}).`);
+          (status === 0
+            ? transloco.translate('errors.network')
+            : transloco.translate('errors.unexpected', { status }));
 
-        toast.errorMessage(message);
+        toast.errorMessage(String(message));
       }
 
       return throwError(() => err);

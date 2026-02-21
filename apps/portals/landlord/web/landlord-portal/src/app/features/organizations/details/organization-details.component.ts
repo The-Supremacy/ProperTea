@@ -11,7 +11,6 @@ import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { OrganizationAuditLogComponent } from '../audit-log/organization-audit-log.component';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { HlmCardImports } from '@spartan-ng/helm/card';
-import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { StatusBadgeDirective } from '../../../../shared/directives';
 
@@ -26,7 +25,6 @@ import { StatusBadgeDirective } from '../../../../shared/directives';
     OrganizationAuditLogComponent,
     HlmSpinner,
     HlmCardImports,
-    HlmLabel,
     HlmBadgeImports,
     StatusBadgeDirective
   ],

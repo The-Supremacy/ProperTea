@@ -1,4 +1,5 @@
-import { Component, inject, signal, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
   FormBuilder,
@@ -12,9 +13,9 @@ import {
   debounceTime,
   distinctUntilChanged,
   of,
-  Subject,
-  takeUntil,
   catchError,
+  EMPTY,
+  finalize,
 } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SessionService } from '../../../../core/services/session.service';
@@ -23,6 +24,8 @@ import { ToastService } from '../../../../core/services/toast.service';
 import { LogoComponent } from '../../../../../shared/components/logo';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmInput } from '@spartan-ng/helm/input';
+import { HlmLabel } from '@spartan-ng/helm/label';
 
 @Component({
   selector: 'app-register-organization',
@@ -32,6 +35,8 @@ import { HlmButton } from '@spartan-ng/helm/button';
     LogoComponent,
     HlmSpinner,
     HlmButton,
+    HlmInput,
+    HlmLabel,
     TranslocoPipe,
   ],
   template: `
@@ -56,8 +61,9 @@ import { HlmButton } from '@spartan-ng/helm/button';
               <!-- Organization Name -->
               <div class="mb-6">
                 <label
+                  hlmLabel
                   for="organizationName"
-                  class="block text-sm font-medium text-foreground mb-2"
+                  class="mb-2"
                 >
                   {{ 'register.organizationName' | transloco }}
                 </label>
@@ -66,37 +72,46 @@ import { HlmButton } from '@spartan-ng/helm/button';
                     id="organizationName"
                     type="text"
                     formControlName="organizationName"
-                    class="w-full px-4 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    hlmInput
+                    class="w-full"
                     [class.border-destructive]="
                       form.get('organizationName')?.invalid && form.get('organizationName')?.touched
                     "
                     [placeholder]="'register.organizationNamePlaceholder' | transloco"
+                    aria-describedby="orgName-errors"
                   />
-                  @if (checkingName()) {
-                    <div class="absolute right-3 top-1/2 -translate-y-1/2">
-                      <hlm-spinner size="sm" />
-                    </div>
-                  }
-                  @if (nameCheckResult() === 'available') {
-                    <div class="absolute right-3 top-1/2 -translate-y-1/2 text-green-600">✓</div>
+                  <div aria-live="polite">
+                    @if (checkingName()) {
+                      <div class="absolute right-3 top-1/2 -translate-y-1/2">
+                        <hlm-spinner size="sm" />
+                        <span class="sr-only">{{ 'register.checkingName' | transloco }}</span>
+                      </div>
+                    }
+                    @if (nameCheckResult() === 'available') {
+                      <div class="absolute right-3 top-1/2 -translate-y-1/2 text-green-600" aria-hidden="true">✓</div>
+                      <span class="sr-only">{{ 'register.nameAvailable' | transloco }}</span>
+                    }
+                    @if (nameCheckResult() === 'taken') {
+                      <div class="absolute right-3 top-1/2 -translate-y-1/2 text-destructive" aria-hidden="true">✗</div>
+                      <span class="sr-only">{{ 'register.nameTaken' | transloco }}</span>
+                    }
+                  </div>
+                </div>
+                <div id="orgName-errors" role="alert">
+                  @if (
+                    form.get('organizationName')?.hasError('required') &&
+                    form.get('organizationName')?.touched
+                  ) {
+                    <p class="mt-1 text-sm text-destructive">
+                      {{ 'register.organizationNameRequired' | transloco }}
+                    </p>
                   }
                   @if (nameCheckResult() === 'taken') {
-                    <div class="absolute right-3 top-1/2 -translate-y-1/2 text-destructive">✗</div>
+                    <p class="mt-1 text-sm text-destructive">
+                      {{ 'register.organizationNameTaken' | transloco }}
+                    </p>
                   }
                 </div>
-                @if (
-                  form.get('organizationName')?.hasError('required') &&
-                  form.get('organizationName')?.touched
-                ) {
-                  <p class="mt-1 text-sm text-destructive">
-                    {{ 'register.organizationNameRequired' | transloco }}
-                  </p>
-                }
-                @if (nameCheckResult() === 'taken') {
-                  <p class="mt-1 text-sm text-destructive">
-                    {{ 'register.organizationNameTaken' | transloco }}
-                  </p>
-                }
               </div>
 
               <!-- User Details Section -->
@@ -107,35 +122,40 @@ import { HlmButton } from '@spartan-ng/helm/button';
 
                 <!-- Email -->
                 <div class="mb-4">
-                  <label for="userEmail" class="block text-sm font-medium text-foreground mb-2">
+                  <label hlmLabel for="userEmail" class="mb-2">
                     {{ 'register.email' | transloco }}
                   </label>
                   <input
                     id="userEmail"
                     type="email"
                     formControlName="userEmail"
-                    class="w-full px-4 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    hlmInput
+                    class="w-full"
                     [class.border-destructive]="
                       form.get('userEmail')?.invalid && form.get('userEmail')?.touched
                     "
                     [placeholder]="'register.emailPlaceholder' | transloco"
+                    aria-describedby="email-errors"
                   />
-                  @if (
-                    form.get('userEmail')?.hasError('required') && form.get('userEmail')?.touched
-                  ) {
-                    <p class="mt-1 text-sm text-destructive">{{ 'register.emailRequired' | transloco }}</p>
-                  }
-                  @if (form.get('userEmail')?.hasError('email') && form.get('userEmail')?.touched) {
-                    <p class="mt-1 text-sm text-destructive">{{ 'register.emailInvalid' | transloco }}</p>
-                  }
+                  <div id="email-errors" role="alert">
+                    @if (
+                      form.get('userEmail')?.hasError('required') && form.get('userEmail')?.touched
+                    ) {
+                      <p class="mt-1 text-sm text-destructive">{{ 'register.emailRequired' | transloco }}</p>
+                    }
+                    @if (form.get('userEmail')?.hasError('email') && form.get('userEmail')?.touched) {
+                      <p class="mt-1 text-sm text-destructive">{{ 'register.emailInvalid' | transloco }}</p>
+                    }
+                  </div>
                 </div>
 
                 <!-- First Name & Last Name -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label
+                      hlmLabel
                       for="userFirstName"
-                      class="block text-sm font-medium text-foreground mb-2"
+                      class="mb-2"
                     >
                       {{ 'register.firstName' | transloco }}
                     </label>
@@ -143,26 +163,31 @@ import { HlmButton } from '@spartan-ng/helm/button';
                       id="userFirstName"
                       type="text"
                       formControlName="userFirstName"
-                      class="w-full px-4 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      hlmInput
+                      class="w-full"
                       [class.border-destructive]="
                         form.get('userFirstName')?.invalid && form.get('userFirstName')?.touched
                       "
                       [placeholder]="'register.firstNamePlaceholder' | transloco"
+                      aria-describedby="firstName-errors"
                     />
-                    @if (
-                      form.get('userFirstName')?.hasError('required') &&
-                      form.get('userFirstName')?.touched
-                    ) {
-                      <p class="mt-1 text-sm text-destructive">
-                        {{ 'register.firstNameRequired' | transloco }}
-                      </p>
-                    }
+                    <div id="firstName-errors" role="alert">
+                      @if (
+                        form.get('userFirstName')?.hasError('required') &&
+                        form.get('userFirstName')?.touched
+                      ) {
+                        <p class="mt-1 text-sm text-destructive">
+                          {{ 'register.firstNameRequired' | transloco }}
+                        </p>
+                      }
+                    </div>
                   </div>
 
                   <div>
                     <label
+                      hlmLabel
                       for="userLastName"
-                      class="block text-sm font-medium text-foreground mb-2"
+                      class="mb-2"
                     >
                       {{ 'register.lastName' | transloco }}
                     </label>
@@ -170,61 +195,70 @@ import { HlmButton } from '@spartan-ng/helm/button';
                       id="userLastName"
                       type="text"
                       formControlName="userLastName"
-                      class="w-full px-4 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      hlmInput
+                      class="w-full"
                       [class.border-destructive]="
                         form.get('userLastName')?.invalid && form.get('userLastName')?.touched
                       "
                       [placeholder]="'register.lastNamePlaceholder' | transloco"
+                      aria-describedby="lastName-errors"
                     />
-                    @if (
-                      form.get('userLastName')?.hasError('required') &&
-                      form.get('userLastName')?.touched
-                    ) {
-                      <p class="mt-1 text-sm text-destructive">
-                        {{ 'register.lastNameRequired' | transloco }}
-                      </p>
-                    }
+                    <div id="lastName-errors" role="alert">
+                      @if (
+                        form.get('userLastName')?.hasError('required') &&
+                        form.get('userLastName')?.touched
+                      ) {
+                        <p class="mt-1 text-sm text-destructive">
+                          {{ 'register.lastNameRequired' | transloco }}
+                        </p>
+                      }
+                    </div>
                   </div>
                 </div>
 
                 <!-- Password -->
                 <div class="mb-4">
-                  <label for="userPassword" class="block text-sm font-medium text-foreground mb-2">
+                  <label hlmLabel for="userPassword" class="mb-2">
                     {{ 'register.password' | transloco }}
                   </label>
                   <input
                     id="userPassword"
                     type="password"
                     formControlName="userPassword"
-                    class="w-full px-4 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    hlmInput
+                    class="w-full"
                     [class.border-destructive]="
                       form.get('userPassword')?.invalid && form.get('userPassword')?.touched
                     "
                     [placeholder]="'register.passwordPlaceholder' | transloco"
+                    aria-describedby="password-errors"
                   />
-                  @if (
-                    form.get('userPassword')?.hasError('required') &&
-                    form.get('userPassword')?.touched
-                  ) {
-                    <p class="mt-1 text-sm text-destructive">
-                      {{ 'register.passwordRequired' | transloco }}
-                    </p>
-                  }
-                  @if (
-                    form.get('userPassword')?.hasError('passwordRequirements') &&
-                    form.get('userPassword')?.touched
-                  ) {
-                    <p class="mt-1 text-sm text-destructive">
-                      {{ 'register.passwordRequirements' | transloco }}
-                    </p>
-                  }
+                  <div id="password-errors" role="alert">
+                    @if (
+                      form.get('userPassword')?.hasError('required') &&
+                      form.get('userPassword')?.touched
+                    ) {
+                      <p class="mt-1 text-sm text-destructive">
+                        {{ 'register.passwordRequired' | transloco }}
+                      </p>
+                    }
+                    @if (
+                      form.get('userPassword')?.hasError('passwordRequirements') &&
+                      form.get('userPassword')?.touched
+                    ) {
+                      <p class="mt-1 text-sm text-destructive">
+                        {{ 'register.passwordRequirements' | transloco }}
+                      </p>
+                    }
+                  </div>
                 </div>
 
                 <!-- Confirm Password -->
                 <div>
                   <label
+                    hlmLabel
                     for="confirmPassword"
-                    class="block text-sm font-medium text-foreground mb-2"
+                    class="mb-2"
                   >
                     {{ 'register.confirmPassword' | transloco }}
                   </label>
@@ -232,28 +266,32 @@ import { HlmButton } from '@spartan-ng/helm/button';
                     id="confirmPassword"
                     type="password"
                     formControlName="confirmPassword"
-                    class="w-full px-4 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    hlmInput
+                    class="w-full"
                     [class.border-destructive]="
                       form.get('confirmPassword')?.invalid && form.get('confirmPassword')?.touched
                     "
                     [placeholder]="'register.passwordPlaceholder' | transloco"
+                    aria-describedby="confirmPassword-errors"
                   />
-                  @if (
-                    form.get('confirmPassword')?.hasError('required') &&
-                    form.get('confirmPassword')?.touched
-                  ) {
-                    <p class="mt-1 text-sm text-destructive">
-                      {{ 'register.confirmPasswordRequired' | transloco }}
-                    </p>
-                  }
-                  @if (
-                    form.get('confirmPassword')?.hasError('passwordMismatch') &&
-                    form.get('confirmPassword')?.dirty
-                  ) {
-                    <p class="mt-1 text-sm text-destructive">
-                      {{ 'register.passwordMismatch' | transloco }}
-                    </p>
-                  }
+                  <div id="confirmPassword-errors" role="alert">
+                    @if (
+                      form.get('confirmPassword')?.hasError('required') &&
+                      form.get('confirmPassword')?.touched
+                    ) {
+                      <p class="mt-1 text-sm text-destructive">
+                        {{ 'register.confirmPasswordRequired' | transloco }}
+                      </p>
+                    }
+                    @if (
+                      form.get('confirmPassword')?.hasError('passwordMismatch') &&
+                      form.get('confirmPassword')?.dirty
+                    ) {
+                      <p class="mt-1 text-sm text-destructive">
+                        {{ 'register.passwordMismatch' | transloco }}
+                      </p>
+                    }
+                  </div>
                 </div>
               </div>
 
@@ -288,14 +326,14 @@ import { HlmButton } from '@spartan-ng/helm/button';
     </div>
   `,
 })
-export class RegisterOrganizationPage implements OnInit, OnDestroy {
+export class RegisterOrganizationPage implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private sessionService = inject(SessionService);
   private organizationService = inject(OrganizationService);
   private toastService = inject(ToastService);
   private translocoService = inject(TranslocoService);
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
 
   protected form!: FormGroup;
   protected submitting = signal(false);
@@ -323,15 +361,10 @@ export class RegisterOrganizationPage implements OnInit, OnDestroy {
     this.setupPasswordConfirmation();
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
   private setupNameCheck(): void {
     this.form
       .get('organizationName')
-      ?.valueChanges.pipe(debounceTime(500), distinctUntilChanged(), takeUntil(this.destroy$))
+      ?.valueChanges.pipe(debounceTime(500), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
       .subscribe((name) => {
         if (name && name.length >= 2) {
           this.checkingName.set(true);
@@ -344,7 +377,7 @@ export class RegisterOrganizationPage implements OnInit, OnDestroy {
                 this.checkingName.set(false);
                 return of({ nameAvailable: false });
               }),
-              takeUntil(this.destroy$),
+              takeUntilDestroyed(this.destroyRef),
             )
             .subscribe((response) => {
               this.checkingName.set(false);
@@ -359,7 +392,7 @@ export class RegisterOrganizationPage implements OnInit, OnDestroy {
   private setupPasswordConfirmation(): void {
     this.form
       .get('userPassword')
-      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         const confirmPassword = this.form.get('confirmPassword');
         if (confirmPassword?.dirty) {
@@ -369,7 +402,7 @@ export class RegisterOrganizationPage implements OnInit, OnDestroy {
 
     this.form
       .get('confirmPassword')
-      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.form.get('confirmPassword')?.updateValueAndValidity({ emitEvent: false });
       });
@@ -422,12 +455,12 @@ export class RegisterOrganizationPage implements OnInit, OnDestroy {
     this.organizationService
       .register(request)
       .pipe(
-        catchError((error) => {
-          this.submitting.set(false);
+        catchError(() => {
           this.toastService.error('register.error.createFailed');
-          throw error;
+          return EMPTY;
         }),
-        takeUntil(this.destroy$),
+        finalize(() => this.submitting.set(false)),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
         this.toastService.success('register.success.created');
