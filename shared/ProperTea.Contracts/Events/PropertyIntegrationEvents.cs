@@ -1,7 +1,13 @@
 namespace ProperTea.Contracts.Events;
 
 /// <summary>Portable address representation for integration events. Country is the ISO 3166-1 alpha-2 code.</summary>
-public record AddressData(string Country, string City, string ZipCode, string StreetAddress);
+public interface IAddressData
+{
+    string Country { get; }
+    string City { get; }
+    string ZipCode { get; }
+    string StreetAddress { get; }
+}
 
 public interface IPropertyCreated
 {
@@ -10,7 +16,7 @@ public interface IPropertyCreated
     public Guid CompanyId { get; }
     public string Code { get; }
     public string Name { get; }
-    public AddressData Address { get; }
+    public IAddressData Address { get; }
     public DateTimeOffset CreatedAt { get; }
 }
 
@@ -21,7 +27,7 @@ public interface IPropertyUpdated
     public Guid CompanyId { get; }
     public string Code { get; }
     public string Name { get; }
-    public AddressData Address { get; }
+    public IAddressData Address { get; }
     public DateTimeOffset UpdatedAt { get; }
 }
 
@@ -42,7 +48,7 @@ public interface IUnitCreated
     public string Code { get; }
     public string UnitReference { get; }
     public string Category { get; }
-    public AddressData Address { get; }
+    public IAddressData Address { get; }
     public int? Floor { get; }
     public DateTimeOffset CreatedAt { get; }
 }
@@ -57,7 +63,7 @@ public interface IUnitUpdated
     public string Code { get; }
     public string UnitReference { get; }
     public string Category { get; }
-    public AddressData Address { get; }
+    public IAddressData Address { get; }
     public int? Floor { get; }
     public DateTimeOffset UpdatedAt { get; }
 }
@@ -77,7 +83,7 @@ public interface IBuildingCreated
     public string OrganizationId { get; }
     public string Code { get; }
     public string Name { get; }
-    public AddressData Address { get; }
+    public IAddressData Address { get; }
     public DateTimeOffset CreatedAt { get; }
 }
 
@@ -88,7 +94,7 @@ public interface IBuildingUpdated
     public string OrganizationId { get; }
     public string Code { get; }
     public string Name { get; }
-    public AddressData Address { get; }
+    public IAddressData Address { get; }
     public DateTimeOffset UpdatedAt { get; }
 }
 

@@ -1,4 +1,5 @@
 using ProperTea.Contracts.Events;
+using ProperTea.Property.Features.Properties;
 using Wolverine.Attributes;
 
 namespace ProperTea.Property.Features.Buildings;
@@ -14,6 +15,7 @@ public static class BuildingIntegrationEvents
         public string Code { get; set; } = null!;
         public string Name { get; set; } = null!;
         public AddressData Address { get; set; } = null!;
+        IAddressData IBuildingCreated.Address => Address;
         public DateTimeOffset CreatedAt { get; set; }
     }
 
@@ -26,6 +28,7 @@ public static class BuildingIntegrationEvents
         public string Code { get; set; } = null!;
         public string Name { get; set; } = null!;
         public AddressData Address { get; set; } = null!;
+        IAddressData IBuildingUpdated.Address => Address;
         public DateTimeOffset UpdatedAt { get; set; }
     }
 

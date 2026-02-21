@@ -57,7 +57,7 @@ public class CreateBuildingHandler : IWolverineHandler
             OrganizationId = organizationId,
             Code = command.Code,
             Name = command.Name,
-            Address = new Contracts.Events.AddressData(
+            Address = new AddressData(
                 address.Country.ToString(),
                 address.City,
                 address.ZipCode,

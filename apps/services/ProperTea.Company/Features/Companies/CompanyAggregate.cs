@@ -11,6 +11,7 @@ public class CompanyAggregate : IRevisioned, ITenanted
     public string Name { get; set; } = null!;
     public Status CurrentStatus { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset LastUpdatedAt { get; set; }
     public int Version { get; set; }
 
     // External IdP Organization ID
@@ -34,7 +35,7 @@ public class CompanyAggregate : IRevisioned, ITenanted
     {
         EnsureNotDeleted();
         ValidateCode(code);
-        return new CodeUpdated(Id, code);
+        return new CodeUpdated(Id, code, DateTimeOffset.UtcNow);
     }
 
     public NameUpdated UpdateName(string name)
@@ -43,7 +44,7 @@ public class CompanyAggregate : IRevisioned, ITenanted
             throw new ArgumentException("Company name is required", nameof(name));
 
         EnsureNotDeleted();
-        return new NameUpdated(Id, name);
+        return new NameUpdated(Id, name, DateTimeOffset.UtcNow);
     }
 
     public Deleted Delete(DateTimeOffset deletedAt)
@@ -66,22 +67,26 @@ public class CompanyAggregate : IRevisioned, ITenanted
         Code = e.Code;
         Name = e.Name;
         CreatedAt = e.CreatedAt;
+        LastUpdatedAt = e.CreatedAt;
         CurrentStatus = Status.Active;
     }
 
     public void Apply(CodeUpdated e)
     {
         Code = e.Code;
+        LastUpdatedAt = e.UpdatedAt;
     }
 
     public void Apply(NameUpdated e)
     {
         Name = e.Name;
+        LastUpdatedAt = e.UpdatedAt;
     }
 
     public void Apply(Deleted e)
     {
         CurrentStatus = Status.Deleted;
+        LastUpdatedAt = e.DeletedAt;
     }
 
     #endregion
