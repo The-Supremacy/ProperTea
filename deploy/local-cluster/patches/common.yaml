@@ -1,0 +1,23 @@
+# Common Talos machine config patch applied to ALL nodes (CP + workers).
+# Configures: Cilium CNI (skip default), DNS, NTP, kubelet.
+
+# Skip default Flannel CNI -- we install Cilium manually after bootstrap
+cluster:
+  network:
+    cni:
+      name: none
+  proxy:
+    disabled: true  # Cilium replaces kube-proxy
+
+machine:
+  network:
+    nameservers:
+      - 1.1.1.1
+      - 8.8.8.8
+  time:
+    servers:
+      - time.cloudflare.com
+      - pool.ntp.org
+  kubelet:
+    extraArgs:
+      rotate-server-certificates: "true"

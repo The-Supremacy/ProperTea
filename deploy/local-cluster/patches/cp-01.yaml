@@ -1,0 +1,12 @@
+# Control Plane node: talos-cp-01
+# Static IP on the talos-net libvirt bridge (192.168.50.0/24).
+
+machine:
+  network:
+    interfaces:
+      - interface: eth0
+        addresses:
+          - 192.168.50.10/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 192.168.50.1

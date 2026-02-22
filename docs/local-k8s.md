@@ -2,16 +2,43 @@
 
 Local Talos Linux cluster designed to mirror a production AKS deployment as closely as possible. Primary goal is learning; secondary goal is infrastructure parity so manifests transfer to AKS with minimal changes.
 
+## Host Architecture
+
+```
+Windows PC (Hyper-V host -- stays clean, no dev tools)
+├── propertea-dev            (existing Linux dev VM, VS Code SSH)
+└── propertea-infra           (dedicated Ubuntu Server VM, nested KVM)
+    ├── talos-cp-01           (Talos control plane, KVM guest)
+    ├── talos-worker-01       (Talos worker, KVM guest)
+    └── talos-worker-02       (Talos worker, KVM guest)
+```
+
+The dev VM manages the cluster remotely via `talosctl`/`kubectl`/`helm` over the network.
+The infra VM is the sole hypervisor for Talos nodes. Windows PC is just the Hyper-V platform.
+
+### Infra VM Sizing
+
+| Component | RAM |
+|---|---|
+| Ubuntu host overhead | ~1.5 GB |
+| talos-cp-01 | 4 GB |
+| talos-worker-01 | 8 GB |
+| talos-worker-02 | 8 GB |
+| **Total infra VM** | **~22 GB** |
+
+Assign the infra VM: **8 vCPUs**, **24 GB RAM**, **200 GB disk**. Enable nested virtualization on the Hyper-V VM.
+
 ## Cluster Topology
+
+Talos nodes run as KVM guests inside the infra VM on a `virbr-talos` bridge network (`192.168.50.0/24`).
 
 | Node | Role | vCPU | RAM | Disk |
 |---|---|---|---|---|
-| `cp-01` | Control plane | 2 | 4 GB | 40 GB |
-| `worker-01` | Worker | 2 | 8 GB | 60 GB |
-| `worker-02` | Worker | 2 | 8 GB | 60 GB |
-| **Total** | | **6** | **20 GB** | **160 GB** |
+| `talos-cp-01` | Control plane | 2 | 4 GB | 40 GB |
+| `talos-worker-01` | Worker | 2 | 8 GB | 60 GB |
+| `talos-worker-02` | Worker | 2 | 8 GB | 60 GB |
 
-Control plane is tainted `NoSchedule` — only runs etcd, kube-apiserver, kube-scheduler, kube-controller-manager, and the Cilium agent. All application workloads schedule on workers.
+Control plane is tainted `NoSchedule` -- only runs etcd, kube-apiserver, kube-scheduler, kube-controller-manager, and the Cilium agent. All application workloads schedule on workers.
 
 Talos nodes are stateless and survive cold boot cleanly. VMs can be shut down and restarted at will. etcd handles clean restarts. Stateful workloads use Local Path PVs that persist across reboots.
 
@@ -91,11 +118,20 @@ Trigger on new release tags created by Release Please. Build all changed service
 
 ## Phase 2: Talos VM Bootstrapping and Local Infrastructure
 
+Detailed step-by-step instructions: [`deploy/local-cluster/README.md`](../deploy/local-cluster/README.md).
+
+### Infra VM Setup
+
+Create a `propertea-infra` Hyper-V VM (Ubuntu Server, nested virtualization enabled). Install `libvirt`, `qemu-kvm`, and `bridge-utils`. Configure a `virbr-talos` bridge network with NAT at `192.168.50.0/24`.
+
 ### Provision Talos
 
-Spin up 3 VMs (1 CP + 2 workers) via QEMU/libvirt or Proxmox. Bootstrap using `talosctl`.
+Spin up 3 KVM guests (1 CP + 2 workers) inside the infra VM using `virsh`/`virt-install`.
+Bootstrap using `talosctl` from the dev VM. Reusable config patches live in `deploy/local-cluster/patches/`.
 
-Use `talosctl stats`, `talosctl logs`, and `talosctl dmesg` from the host machine to monitor raw VM health and bootstrapping. No SSH available or needed.
+Talos image: amd64 ISO from Image Factory with extensions: iscsi-tools, util-linux-tools.
+
+Use `talosctl stats`, `talosctl logs`, `talosctl dmesg`, and `talosctl dashboard` from the dev VM to monitor raw node health and bootstrapping. No SSH to Talos nodes available or needed.
 
 ### CNI: Cilium (Single Networking Layer)
 
@@ -129,9 +165,20 @@ Chosen over Flux v2 because:
 - Built-in UI for resource graph, live diff, sync status, rollback -- valuable for learning
 - ApplicationSets manage all services from a single declarative object
 
-### Infrastructure Repository
+### Infrastructure Manifests
 
-Create a dedicated GitHub repository (e.g., `local-k8s-infra`) to hold all cluster state. ArgoCD manages itself from this repo (App of Apps pattern or ApplicationSets).
+All cluster state lives in the monorepo under `deploy/`. ArgoCD Applications use `spec.source.path` to watch only their specific subdirectory -- changes to application code do not trigger ArgoCD syncs.
+
+```
+deploy/
+  local-cluster/     # Talos patches, scripts, bootstrap guide
+  infrastructure/     # Cilium, cert-manager, ArgoCD self-management, SOPS
+  platform/           # CloudNativePG, Redis, RabbitMQ, ZITADEL, OpenFGA
+  observability/      # VictoriaMetrics, Loki, Tempo, Grafana, OTel Collector
+  services/           # K8s manifests for ProperTea microservices
+```
+
+ArgoCD manages itself from this repo (App of Apps pattern or ApplicationSets). Can be split into a separate repo later by updating `spec.source.repoURL`.
 
 ### Secret Management: SOPS + age
 

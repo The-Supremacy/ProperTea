@@ -425,3 +425,7 @@ docker-compose.generated.override.yml
 
 */certs
 .garbage/
+
+# Talos local cluster -- generated secrets and machine configs
+deploy/local-cluster/secrets.yaml
+deploy/local-cluster/_out/
