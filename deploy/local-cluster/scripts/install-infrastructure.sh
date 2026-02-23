@@ -17,12 +17,10 @@ GATEWAY_API_VERSION="v1.2.1"
 CP_IP="192.168.50.10"
 
 echo "=== Step 1: Gateway API CRDs ==="
-BASE="https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/${GATEWAY_API_VERSION}/config/crd"
-kubectl apply -f "${BASE}/standard/gateway.networking.k8s.io_gatewayclasses.yaml"
-kubectl apply -f "${BASE}/standard/gateway.networking.k8s.io_gateways.yaml"
-kubectl apply -f "${BASE}/standard/gateway.networking.k8s.io_httproutes.yaml"
-kubectl apply -f "${BASE}/experimental/gateway.networking.k8s.io_grpcroutes.yaml"
-kubectl apply -f "${BASE}/experimental/gateway.networking.k8s.io_tlsroutes.yaml"
+# Use the experimental bundle — it includes all standard CRDs plus experimental ones
+# (ReferenceGrant, GRPCRoute, TLSRoute, BackendLBPolicy, etc.) that Cilium requires.
+# Using individual standard files risks missing CRDs that Cilium's operator checks for.
+kubectl apply -f "https://github.com/kubernetes-sigs/gateway-api/releases/download/${GATEWAY_API_VERSION}/experimental-install.yaml"
 echo "Gateway API CRDs installed."
 
 echo ""
