@@ -1,0 +1,131 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: zitadel
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  project: default
+  sources:
+    - repoURL: https://charts.zitadel.com
+      chart: zitadel
+      targetRevision: 9.23.0
+      helm:
+        releaseName: zitadel
+        values: |
+          replicaCount: 1
+
+          zitadel:
+            masterkeySecretName: zitadel-masterkey
+
+            configmapConfig:
+              ExternalDomain: zitadel.local
+              ExternalPort: 443
+              ExternalSecure: true
+              TLS:
+                Enabled: false
+
+              Database:
+                Postgres:
+                  Host: zitadel-db-rw
+                  Port: 5432
+                  Database: zitadel
+                  MaxOpenConns: 20
+                  MaxIdleConns: 20
+                  ConnMaxLifetime: 30m
+                  User:
+                    SSL:
+                      Mode: disable
+                  Admin:
+                    SSL:
+                      Mode: disable
+
+              DefaultInstance:
+                Features:
+                  LoginV2:
+                    Required: true
+
+              OIDC:
+                DefaultLoginURLV2: "/ui/v2/login/login?authRequest="
+                DefaultLogoutURLV2: "/ui/v2/login/logout?post_logout_redirect="
+
+              SAML:
+                DefaultLoginURLV2: "/ui/v2/login/login?samlRequest="
+
+              FirstInstance:
+                Org:
+                  Name: ProperTea
+                  Human:
+                    Username: admin
+                    Email:
+                      Address: admin@propertea.local
+                      Verified: true
+                    Password: "Password1!"
+                    PasswordChangeRequired: false
+
+          # Pull DB credentials from CloudNativePG-created secret
+          env:
+            - name: ZITADEL_DATABASE_POSTGRES_USER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: zitadel-db-app
+                  key: username
+            - name: ZITADEL_DATABASE_POSTGRES_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: zitadel-db-app
+                  key: password
+            - name: ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: zitadel-db-app
+                  key: username
+            - name: ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: zitadel-db-app
+                  key: password
+
+          initJob:
+            env:
+              - name: ZITADEL_DATABASE_POSTGRES_USER_USERNAME
+                valueFrom:
+                  secretKeyRef:
+                    name: zitadel-db-app
+                    key: username
+              - name: ZITADEL_DATABASE_POSTGRES_USER_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: zitadel-db-app
+                    key: password
+              - name: ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME
+                valueFrom:
+                  secretKeyRef:
+                    name: zitadel-db-app
+                    key: username
+              - name: ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: zitadel-db-app
+                    key: password
+
+          login:
+            enabled: true
+            replicaCount: 1
+
+          service:
+            type: ClusterIP
+            port: 8080
+            protocol: http2
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: zitadel
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
