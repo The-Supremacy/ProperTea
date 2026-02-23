@@ -35,6 +35,7 @@ spec:
         namespaces:
           from: All
     - name: https
+      hostname: "*.local"
       port: 443
       protocol: HTTPS
       tls:
