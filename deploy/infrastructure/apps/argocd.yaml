@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+  # Cascade-delete all managed resources when this Application is deleted.
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    # Wave 0: deploy ArgoCD first. Subsequent apps depend on it being healthy.
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:The-Supremacy/ProperTea.git
+    targetRevision: HEAD
+    path: deploy/infrastructure/argocd
+    helm:
+      releaseName: argocd
+      # values.yaml is picked up automatically from the path directory.
+      # The SOPS CMP plugin is not invoked here because there are no *.enc.yaml
+      # files yet — ArgoCD uses its built-in Helm support for this app.
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: false    # Do NOT auto-prune ArgoCD itself — safety guard during self-management.
+      selfHeal: true  # Revert manual cluster edits back to Git state.
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true   # Allows taking ownership of resources not in the Helm release.
+      - RespectIgnoreDifferences=true

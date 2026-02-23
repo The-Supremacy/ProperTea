@@ -1,33 +1,35 @@
 # Local Talos Cluster Setup
 
-Step-by-step guide to bootstrap a 3-node Talos Kubernetes cluster using nested KVM inside a dedicated Hyper-V infra VM.
+Step-by-step guide to bootstrap a 3-node Talos Kubernetes cluster using nested KVM inside `propertea-k8s-local` (the dedicated KVM host VM). All tooling (`talosctl`, `kubectl`, `helm`) runs directly on this machine.
 
 ## Architecture
 
 ```
-Windows PC (Hyper-V host -- stays clean)
-├── propertea-dev            (dev VM, VS Code SSH, talosctl/kubectl/helm)
-└── propertea-infra          (infra VM, runs KVM)
-    ├── talos-cp-01          (Talos control plane)
-    ├── talos-worker-01      (Talos worker)
-    └── talos-worker-02      (Talos worker)
+propertea-k8s-local  (this VM: Ubuntu 24.04, 8 vCPU, 24GB RAM, VS Code SSH)
+  talosctl / kubectl / helm run here directly
+  ├── talos-cp-01      (KVM guest, 192.168.50.10, control plane)
+  ├── talos-worker-01  (KVM guest, 192.168.50.11, worker)
+  └── talos-worker-02  (KVM guest, 192.168.50.12, worker)
 ```
 
-Dev VM manages the cluster remotely over the Hyper-V Default Switch network. All Talos nodes live inside the infra VM, fully isolated from the host PC.
+All Talos nodes are on the `talos-net` libvirt NAT bridge (`virbr-talos`, `192.168.50.0/24`).
+This host is the NAT gateway at `192.168.50.1`. libvirt automatically sets up NAT masquerade via iptables.
+No port forwarding needed -- all `talosctl` and `kubectl` commands use `192.168.50.x` directly.
 
 ## Prerequisites
 
 - Windows PC with Hyper-V enabled
-- Existing dev VM (`propertea-dev`) with `talosctl`, `kubectl`, `helm` installed
-- Talos ISO downloaded from [Talos Image Factory](https://factory.talos.dev/)
+- `propertea-k8s-local` VM created (see Step 1) with nested virtualisation enabled
+- `talosctl`, `kubectl`, `helm` installed on `propertea-k8s-local` (not on the dev VM)
+- Talos ISO downloaded directly on `propertea-k8s-local` (see Step 3)
   - Architecture: amd64
-  - Extensions: iscsi-tools, util-linux-tools
+  - Extensions: `iscsi-tools`, `util-linux-tools`
   - Secure Boot: off
   - Format: ISO
 
 ## Step 1: Create the Infra VM
 
-In Hyper-V Manager, create `propertea-infra`:
+In Hyper-V Manager, create `propertea-k8s-local`:
 
 | Setting | Value |
 |---|---|
@@ -42,7 +44,7 @@ In Hyper-V Manager, create `propertea-infra`:
 **Enable nested virtualization** (elevated PowerShell, VM must be stopped):
 
 ```powershell
-Set-VMProcessor -VMName "propertea-infra" -ExposeVirtualizationExtensions $true
+Set-VMProcessor -VMName "propertea-k8s-local" -ExposeVirtualizationExtensions $true
 ```
 
 Install Ubuntu Server. After install, verify nested virt works:
@@ -100,26 +102,38 @@ This creates a NAT network with DHCP reservations. Talos nodes get predictable I
 | talos-worker-01 | 52:54:00:00:50:11 | 192.168.50.11 | Worker |
 | talos-worker-02 | 52:54:00:00:50:12 | 192.168.50.12 | Worker |
 
-## Step 3: Upload Talos ISO to Infra VM
+## Step 3: Download Talos ISO
 
-From your local machine, copy the ISO:
+SSH into `propertea-k8s-local` and download the ISO directly. Get the schematic ID from [Talos Image Factory](https://factory.talos.dev/) by selecting:
+- Platform: `metal`
+- Architecture: `amd64`
+- Extensions: `iscsi-tools`, `util-linux-tools`
+- Secure Boot: off
+
+The schematic ID is shown in the generated URL. Then download:
 
 ```bash
-scp talos-amd64.iso user@propertea-infra:/var/lib/libvirt/images/
+SCHEMATIC="613e1592b2da41ae5e265e8789429f22e121aab91cb4deb6bc3c0b6262961245"
+VERSION="v1.12.4"
+
+wget -O /var/lib/libvirt/images/talos-amd64.iso \
+  "https://factory.talos.dev/image/${SCHEMATIC}/${VERSION}/metal-amd64.iso"
 ```
+
+The schematic above includes `iscsi-tools` and `util-linux-tools`. If you change extensions, regenerate a new schematic ID at Image Factory.
 
 ## Step 4: Create Talos VMs
 
-SSH into `propertea-infra` and run the script (or do it manually):
+From the repo root on `propertea-k8s-local`, run the script (or do it manually):
 
 **Option A -- Script:**
 
-Copy `deploy/local-cluster/scripts/create-talos-vms.sh` to the infra VM and run:
-
 ```bash
-chmod +x create-talos-vms.sh
-./create-talos-vms.sh
+cd ~/repos/ProperTea/deploy/local-cluster
+sudo bash scripts/create-talos-vms.sh
 ```
+
+> Note: `sudo` is required unless you have logged out and back in after being added to the `libvirt` group in Step 2.
 
 **Option B -- Manual:**
 
@@ -163,39 +177,30 @@ Verify VMs are running:
 virsh list --all
 ```
 
-## Step 5: Expose Talos API to Dev VM
+## Step 5: Verify NAT Connectivity
 
-The Talos nodes are on a NAT network inside the infra VM. The dev VM can't reach `192.168.50.x` directly. Set up port forwarding on the infra VM using `socat` or `iptables`:
+**This VM is the KVM host itself** -- `talosctl` and `kubectl` run directly here. The Talos nodes are on `192.168.50.x`, which is reachable from this host via the `virbr-talos` bridge. No port forwarding is needed.
 
-**Using socat (simpler):**
+Verify the libvirt NAT masquerade is working (libvirt sets this up automatically via `LIBVIRT_PRT` iptables chain):
 
 ```bash
-sudo apt install -y socat
-
-# Forward talosctl API (port 50000) and K8s API (port 6443) to CP node
-sudo socat TCP-LISTEN:50000,fork,reuseaddr TCP:192.168.50.10:50000 &
-sudo socat TCP-LISTEN:6443,fork,reuseaddr TCP:192.168.50.10:6443 &
+sudo iptables -t nat -L LIBVIRT_PRT -n -v | grep 192.168.50
+# Should show MASQUERADE rules for 192.168.50.0/24
 ```
 
-To make these persistent, create a systemd service (covered in `scripts/setup-port-forwards.sh`).
-
-From the dev VM, use the **infra VM's Default Switch IP** as the endpoint:
+If you see `network is unreachable` errors in Talos logs (via `talosctl logs machined`), add the rules manually:
 
 ```bash
-# Find infra VM's IP (check on the infra VM)
-hostname -I
-# e.g., 172.x.x.x
-
-# From dev VM
-talosctl --nodes 172.x.x.x --endpoints 172.x.x.x version
+EXT_IF=$(ip route show default | awk '/default/ {print $5}' | head -1)
+sudo iptables -t nat -A POSTROUTING -s 192.168.50.0/24 -o "$EXT_IF" -j MASQUERADE
+sudo iptables -A FORWARD -i virbr-talos -o "$EXT_IF" -j ACCEPT
+sudo iptables -A FORWARD -i "$EXT_IF" -o virbr-talos -m state --state RELATED,ESTABLISHED -j ACCEPT
 ```
 
 ## Step 6: Generate Talos Configs
 
-On the **dev VM** (where the source code lives):
-
 ```bash
-cd ~/src/ProperTea/deploy/local-cluster
+cd ~/repos/ProperTea/deploy/local-cluster
 ./scripts/generate-configs.sh
 ```
 
@@ -212,106 +217,60 @@ To regenerate configs without new secrets (e.g., after changing patches):
 ./scripts/generate-configs.sh existing
 ```
 
-## Step 7: Apply Configs
+## Step 7: Apply Configs and Bootstrap
 
-From the **dev VM**, apply configs via the infra VM's forwarded ports:
-
-```bash
-INFRA_IP=<propertea-infra IP on Default Switch>
-
-# Apply to control plane (port-forwarded through infra VM)
-talosctl apply-config --insecure --nodes $INFRA_IP --file _out/controlplane.yaml
-```
-
-For workers, you need additional port forwards on the infra VM (or apply from the infra VM directly):
+Run the bootstrap script. It will wait for maintenance mode, apply all configs, wait for reboot, bootstrap etcd, and fetch kubeconfig:
 
 ```bash
-# On infra VM: apply worker configs directly (192.168.50.x is reachable locally)
-talosctl apply-config --insecure --nodes 192.168.50.11 --file _out/worker-01.yaml
-talosctl apply-config --insecure --nodes 192.168.50.12 --file _out/worker-02.yaml
+cd ~/repos/ProperTea/deploy/local-cluster
+bash scripts/bootstrap-cluster.sh
 ```
+
+Nodes will be `NotReady` at the end -- expected until Cilium is installed.
 
 ## Step 8: Bootstrap the Cluster
 
-From the **dev VM**:
+Covered by `bootstrap-cluster.sh` above.
+
+## Step 9: Install Cilium and Storage
+
+Run the infrastructure script:
 
 ```bash
-INFRA_IP=<propertea-infra IP>
-
-# Bootstrap etcd (once, on control plane only)
-talosctl bootstrap \
-  --nodes $INFRA_IP \
-  --endpoints $INFRA_IP \
-  --talosconfig _out/talosconfig
-
-# Get kubeconfig
-talosctl kubeconfig \
-  --nodes $INFRA_IP \
-  --endpoints $INFRA_IP \
-  --talosconfig _out/talosconfig
+bash scripts/install-infrastructure.sh
 ```
 
-**Important:** Edit the generated kubeconfig to point at `$INFRA_IP:6443` (the port-forwarded address), not `192.168.50.10:6443`.
+This installs Gateway API CRDs, Cilium 1.17.2 (with Talos-specific settings), and Local Path Provisioner. All nodes will be `Ready` when it completes.
 
-Verify:
-
-```bash
-kubectl get nodes
-# Should show 3 nodes (NotReady until Cilium is installed)
-```
-
-## Step 9: Install Cilium
-
-```bash
-helm repo add cilium https://helm.cilium.io/
-helm repo update
-
-helm install cilium cilium/cilium \
-  --namespace kube-system \
-  --set ipam.mode=kubernetes \
-  --set kubeProxyReplacement=true \
-  --set k8sServiceHost=192.168.50.10 \
-  --set k8sServicePort=6443 \
-  --set hubble.enabled=true \
-  --set hubble.relay.enabled=true \
-  --set hubble.ui.enabled=true \
-  --set gatewayAPI.enabled=true \
-  --set l2announcements.enabled=true
-```
-
-Wait for Cilium to be ready:
-
-```bash
-kubectl -n kube-system wait --for=condition=Ready pod -l app.kubernetes.io/name=cilium-agent --timeout=120s
-kubectl get nodes
-# All nodes should now be Ready
-```
+> **Talos note:** Cilium requires `cgroup.autoMount.enabled=false` and explicit capability sets. Without these the `clean-cilium-state` init container fails with a capabilities error. The script includes these settings.
 
 ## Step 10: Install Local Path Provisioner
 
-```bash
-kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
+Covered by `install-infrastructure.sh` above.
 
-kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+## Updating Machine Config on Running Nodes
+
+To push patch changes to a running cluster (not during initial bootstrap):
+
+```bash
+cd ~/repos/ProperTea/deploy/local-cluster
+./scripts/generate-configs.sh existing  # regenerate without new secrets
+
+talosctl apply-config --nodes 192.168.50.10 --endpoints 192.168.50.10 --talosconfig _out/talosconfig --file _out/controlplane.yaml
+talosctl apply-config --nodes 192.168.50.11 --endpoints 192.168.50.11 --talosconfig _out/talosconfig --file _out/worker-01.yaml
+talosctl apply-config --nodes 192.168.50.12 --endpoints 192.168.50.12 --talosconfig _out/talosconfig --file _out/worker-02.yaml
 ```
 
 ## Monitoring Talos Nodes
 
-From the dev VM (via port-forwarded endpoints):
+Nodes are reachable directly at their internal IPs:
 
 ```bash
-INFRA_IP=<propertea-infra IP>
-
-talosctl dashboard --nodes $INFRA_IP --talosconfig _out/talosconfig
-talosctl logs  --nodes $INFRA_IP --talosconfig _out/talosconfig
-talosctl stats --nodes $INFRA_IP --talosconfig _out/talosconfig
-talosctl dmesg --nodes $INFRA_IP --talosconfig _out/talosconfig
-```
-
-Or SSH into the infra VM and use the internal IPs directly:
-
-```bash
-talosctl dashboard --nodes 192.168.50.10 --talosconfig /path/to/talosconfig
+talosctl dashboard --nodes 192.168.50.10 --talosconfig _out/talosconfig
+talosctl logs     --nodes 192.168.50.10 --talosconfig _out/talosconfig
+talosctl stats    --nodes 192.168.50.10 --talosconfig _out/talosconfig
+talosctl dmesg    --nodes 192.168.50.10 --talosconfig _out/talosconfig
+talosctl service  --nodes 192.168.50.10 --talosconfig _out/talosconfig
 ```
 
 ## Shutting Down / Restarting
@@ -320,17 +279,19 @@ SSH into the infra VM:
 
 ```bash
 # Graceful shutdown (workers first, then CP)
-virsh shutdown talos-worker-02
-virsh shutdown talos-worker-01
-virsh shutdown talos-cp-01
+sudo virsh shutdown talos-worker-02
+sudo virsh shutdown talos-worker-01
+sudo virsh shutdown talos-cp-01
 
 # Restart (CP first, then workers)
-virsh start talos-cp-01
-virsh start talos-worker-01
-virsh start talos-worker-02
+sudo virsh start talos-cp-01
+sudo virsh start talos-worker-01
+sudo virsh start talos-worker-02
 ```
 
-Or stop the entire infra VM from Hyper-V -- all nested VMs hibernate with it.
+> Or stop/start `propertea-k8s-local` from Hyper-V -- all nested VMs go down with it and resume on next boot. etcd will recover automatically once all nodes are back.
+
+
 
 ## File Structure
 
@@ -345,9 +306,11 @@ deploy/local-cluster/
     worker-01.yaml            # Worker 1: static IP
     worker-02.yaml            # Worker 2: static IP
   scripts/
-    generate-configs.sh       # Combines secrets + patches into machine configs
-    create-talos-vms.sh       # Creates all 3 KVM guests on the infra VM
-    setup-port-forwards.sh    # Persistent socat forwards for dev VM access
+    generate-configs.sh       # Generates machine configs from secrets + patches
+    create-talos-vms.sh       # Creates all 3 KVM guests
+    bootstrap-cluster.sh      # Applies configs, bootstraps etcd, fetches kubeconfig
+    install-infrastructure.sh # Gateway API CRDs, Cilium, Local Path Provisioner, kubelet-csr-approver
+    install-argocd.sh         # age key, ArgoCD Helm install, SOPS CMP sidecar
 ```
 
 ## Next Steps

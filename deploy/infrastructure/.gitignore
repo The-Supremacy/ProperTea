@@ -1,0 +1,7 @@
+# Never commit plaintext secrets.
+# Encrypted counterparts (*.enc.yaml) ARE committed.
+*-secrets.yaml
+*-secret.yaml
+secrets.yaml
+# Decrypted temp files
+*.dec.yaml

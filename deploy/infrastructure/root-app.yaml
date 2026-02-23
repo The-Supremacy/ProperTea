@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infrastructure
+  namespace: argocd
+  # Cascade-delete all child Applications when this root app is deleted.
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:The-Supremacy/ProperTea.git
+    targetRevision: HEAD
+    # Points at the directory of Application manifests (App of Apps pattern).
+    # ArgoCD applies every *.yaml file found here as a raw K8s manifest.
+    path: deploy/infrastructure/apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true      # Remove Applications no longer present in Git.
+      selfHeal: true   # Re-apply if someone manually edits Applications in the cluster.
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

@@ -4,7 +4,7 @@
 machine:
   network:
     interfaces:
-      - interface: eth0
+      - interface: ens3
         addresses:
           - 192.168.50.12/24
         routes:

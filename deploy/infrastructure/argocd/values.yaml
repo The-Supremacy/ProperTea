@@ -1,0 +1,147 @@
+# ArgoCD Helm values for ProperTea local cluster.
+#
+# Key additions over defaults:
+#   - SOPS CMP sidecar on repo-server: decrypts *.enc.yaml files before
+#     running helm template. Only activates for apps that have *.enc.yaml files.
+#   - Plugin config in extraObjects below (no separate pre-apply step needed).
+#   - age private key mounted from argocd-age-key K8s secret (bootstrapped manually
+#     by install-argocd.sh and not managed by this Helm release).
+
+global:
+  domain: argocd.local
+
+configs:
+  params:
+    # Use insecure mode -- TLS is terminated by the Gateway (Cilium HTTPRoute)
+    server.insecure: "true"
+
+repoServer:
+  volumes:
+    # Shared volume for sops + age binaries installed by the initContainer
+    - name: custom-tools
+      emptyDir: {}
+    # Plugin definition — ConfigMap rendered by this Helm release via extraObjects
+    - name: cmp-helm-sops-config
+      configMap:
+        name: cmp-helm-sops-config
+    # age private key from manually bootstrapped K8s secret
+    - name: age-key
+      secret:
+        secretName: argocd-age-key
+        optional: true
+
+  initContainers:
+    - name: download-tools
+      image: alpine:3.21
+      command:
+        - sh
+        - -c
+        - |
+          set -e
+          SOPS_VERSION="v3.9.4"
+          AGE_VERSION="v1.2.1"
+
+          echo "Downloading sops ${SOPS_VERSION}..."
+          wget -qO /custom-tools/sops \
+            "https://github.com/getsops/sops/releases/download/${SOPS_VERSION}/sops-${SOPS_VERSION}.linux.amd64"
+          chmod +x /custom-tools/sops
+
+          echo "Downloading age ${AGE_VERSION}..."
+          wget -qO /tmp/age.tar.gz \
+            "https://github.com/FiloSottile/age/releases/download/${AGE_VERSION}/age-${AGE_VERSION}-linux-amd64.tar.gz"
+          tar -xzf /tmp/age.tar.gz -C /tmp
+          cp /tmp/age/age /custom-tools/age
+          chmod +x /custom-tools/age
+
+          echo "Done."
+          /custom-tools/sops --version
+          /custom-tools/age --version
+      volumeMounts:
+        - mountPath: /custom-tools
+          name: custom-tools
+
+  # CMP sidecar: runs argocd-cmp-server, has helm + sops + age available
+  extraContainers:
+    - name: cmp-helm-sops
+      command: [/var/run/argocd/argocd-cmp-server]
+      image: alpine/helm:3.17.0
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+      env:
+        - name: SOPS_AGE_KEY_FILE
+          value: /age/key.txt
+      volumeMounts:
+        - mountPath: /var/run/argocd
+          name: var-files
+        - mountPath: /home/argocd/cmp-server/plugins
+          name: plugins
+        - mountPath: /home/argocd/cmp-server/config
+          name: cmp-helm-sops-config
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /usr/local/bin/sops
+          name: custom-tools
+          subPath: sops
+        - mountPath: /usr/local/bin/age
+          name: custom-tools
+          subPath: age
+        - mountPath: /age
+          name: age-key
+
+# The CMP plugin ConfigMap is part of this Helm release — no separate kubectl apply needed.
+extraObjects:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: cmp-helm-sops-config
+      namespace: argocd
+    data:
+      plugin.yaml: |
+        apiVersion: argoproj.io/v1alpha1
+        kind: ConfigManagementPlugin
+        metadata:
+          name: helm-sops
+        spec:
+          allowConcurrency: true
+          # Only activates for apps that have *.enc.yaml encrypted secret files.
+          # Apps without encrypted files use ArgoCD's built-in Helm support.
+          discover:
+            find:
+              command:
+                - find
+                - "."
+                - -name
+                - "*.enc.yaml"
+                - -maxdepth
+                - "2"
+          generate:
+            command:
+              - sh
+              - -c
+              - |
+                set -e
+                TMPDIR=$(mktemp -d)
+                trap 'rm -rf $TMPDIR' EXIT
+
+                # Collect values files: decrypt *.enc.yaml, pass *.yaml through as-is.
+                VALUES=""
+                for f in $(find . -maxdepth 1 \( -name 'values*.yaml' -o -name 'values*.enc.yaml' \) | sort); do
+                  case "$f" in
+                    *.enc.yaml)
+                      OUT="$TMPDIR/$(basename ${f%%.enc.yaml}).yaml"
+                      sops -d "$f" > "$OUT"
+                      VALUES="$VALUES -f $OUT"
+                      ;;
+                    *)
+                      VALUES="$VALUES -f $f"
+                      ;;
+                  esac
+                done
+
+                eval helm template "$ARGOCD_APP_NAME" \
+                  --namespace "$ARGOCD_APP_NAMESPACE" \
+                  --include-crds \
+                  $VALUES \
+                  .
+          lockRepo: false
