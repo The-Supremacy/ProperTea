@@ -228,11 +228,7 @@ bash scripts/bootstrap-cluster.sh
 
 Nodes will be `NotReady` at the end -- expected until Cilium is installed.
 
-## Step 8: Bootstrap the Cluster
-
-Covered by `bootstrap-cluster.sh` above.
-
-## Step 9: Install Cilium and Storage
+## Step 8: Install Cilium and Storage
 
 Run the infrastructure script:
 
@@ -240,13 +236,42 @@ Run the infrastructure script:
 bash scripts/install-infrastructure.sh
 ```
 
-This installs Gateway API CRDs, Cilium 1.17.2 (with Talos-specific settings), and Local Path Provisioner. All nodes will be `Ready` when it completes.
+This installs Gateway API CRDs, Cilium 1.17.2 (with Talos-specific settings), Local Path Provisioner, and kubelet-csr-approver. All nodes will be `Ready` when it completes.
 
 > **Talos note:** Cilium requires `cgroup.autoMount.enabled=false` and explicit capability sets. Without these the `clean-cilium-state` init container fails with a capabilities error. The script includes these settings.
 
-## Step 10: Install Local Path Provisioner
+## Step 9: Install ArgoCD
 
-Covered by `install-infrastructure.sh` above.
+Installs ArgoCD with the SOPS/age CMP sidecar for encrypted secret support:
+
+```bash
+bash scripts/install-argocd.sh
+```
+
+Access the UI temporarily via port-forward (this is a stopgap until the Cilium Gateway is configured in Phase 4):
+
+```bash
+kubectl port-forward svc/argocd-server -n argocd 8080:80 &
+# open http://localhost:8080
+```
+
+> **Note:** `kubectl port-forward` tunnels directly to a pod and has no resilience -- it exits if the pod restarts. Run the command again to reconnect. The Gateway setup in Phase 4 eliminates this permanently.
+
+## Step 10: Bootstrap GitOps
+
+This is the last manual `kubectl apply`. After it, all cluster changes are driven from Git.
+
+```bash
+bash scripts/bootstrap-gitops.sh
+```
+
+The script will:
+1. Generate an SSH deploy key and print the public key
+2. Wait for you to add the key to `github.com/The-Supremacy/ProperTea/settings/keys` (read-only)
+3. Register the repo credential in ArgoCD
+4. Apply `deploy/infrastructure/root-app.yaml` -- the root Application that watches `deploy/infrastructure/apps/`
+
+After this, ArgoCD syncs `apps/argocd.yaml`, which makes ArgoCD manage its own Helm release from Git. To update ArgoCD config from this point: edit `deploy/infrastructure/argocd/values.yaml` and push.
 
 ## Updating Machine Config on Running Nodes
 
@@ -310,14 +335,14 @@ deploy/local-cluster/
     create-talos-vms.sh       # Creates all 3 KVM guests
     bootstrap-cluster.sh      # Applies configs, bootstraps etcd, fetches kubeconfig
     install-infrastructure.sh # Gateway API CRDs, Cilium, Local Path Provisioner, kubelet-csr-approver
-    install-argocd.sh         # age key, ArgoCD Helm install, SOPS CMP sidecar
+    install-argocd.sh         # age key, ArgoCD Helm install with SOPS CMP sidecar
+    bootstrap-gitops.sh       # SSH deploy key, repo credential, apply root-app.yaml (run once)
 ```
 
 ## Next Steps
 
-After the cluster is running with Cilium + Local Path Provisioner, proceed with the phases in [local-k8s.md](../../docs/local-k8s.md):
-- Phase 3: ArgoCD + SOPS
-- Phase 4: Networking + cert-manager
-- Phase 5: Stateful dependencies (CloudNativePG, Redis, RabbitMQ, ZITADEL)
+After GitOps is bootstrapped, all further changes go through Git. Proceed with the phases in [local-k8s.md](../../docs/local-k8s.md):
+- Phase 4: cert-manager (self-signed for local, DNS-01 for prod) + Cilium Gateway
+- Phase 5: Infisical + ESO, CloudNativePG, Redis, RabbitMQ, ZITADEL, OpenFGA
 - Phase 6: Observability (VictoriaMetrics, Loki, Tempo, Grafana)
 - Phase 7: Application deployment

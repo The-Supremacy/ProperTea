@@ -59,7 +59,7 @@ echo "  argocd-age-key secret applied."
 
 # ---- Step 4: ArgoCD Helm install ----
 echo ""
-echo "=== Step 4: ArgoCD ${ARGOCD_VERSION} =="
+echo "=== Step 4: ArgoCD ${ARGOCD_VERSION} ==="
 helm repo add argo https://argoproj.github.io/argo-helm 2>/dev/null || true
 helm repo update argo 2>/dev/null
 
@@ -70,20 +70,21 @@ helm upgrade --install argocd argo/argo-cd \
   --wait \
   --timeout 10m
 
-# ---- Step 6: Initial password ----
+# ---- Step 5: Initial password ----
 echo ""
 echo "=== Done ==="
 echo ""
-echo "ArgoCD is running. Access the UI:"
-echo ""
-echo "  kubectl port-forward svc/argocd-server -n argocd 8080:80 &"
-echo "  open http://localhost:8080"
-echo ""
-echo "Initial credentials:"
+echo "ArgoCD is running. Initial credentials:"
 echo "  Username: admin"
 PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret \
   -o jsonpath="{.data.password}" 2>/dev/null | base64 -d)
 echo "  Password: ${PASS:-<secret rotated -- check argocd-initial-admin-secret>}"
 echo ""
-echo "Change the password via the UI or CLI, then delete the initial secret:"
-echo "  kubectl delete secret argocd-initial-admin-secret -n argocd"
+echo "Access the UI (temporary port-forward until Gateway is configured in Phase 4):"
+echo "  kubectl port-forward svc/argocd-server -n argocd 8080:80 &"
+echo "  open http://localhost:8080"
+echo ""
+echo "Next: register the GitHub deploy key, then bootstrap GitOps:"
+echo "  1. Add the following public key to https://github.com/The-Supremacy/ProperTea/settings/keys"
+echo "     (read-only, title: 'ArgoCD local cluster')"
+echo "  2. Run: bash scripts/bootstrap-gitops.sh"
