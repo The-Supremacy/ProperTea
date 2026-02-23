@@ -20,7 +20,7 @@ spec:
             leaderElection:
               namespace: cert-manager
           extraArgs:
-            - --feature-gates=ExperimentalGatewayAPISupport=true
+            - --enable-gateway-api
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
