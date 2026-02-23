@@ -298,6 +298,65 @@ talosctl dmesg    --nodes 192.168.50.10 --talosconfig _out/talosconfig
 talosctl service  --nodes 192.168.50.10 --talosconfig _out/talosconfig
 ```
 
+## Accessing Cluster Services from Windows
+
+Services are exposed via Cilium's L2 LoadBalancer on the `192.168.50.200-210` IP pool. The `virbr-talos` bridge is internal to `propertea-k8s-local` — Windows cannot reach it by default. This one-time setup routes traffic through the infra VM.
+
+### One-time setup (per dev machine)
+
+**1. Allow forwarding through the libvirt firewall** (on `propertea-k8s-local`):
+
+libvirt adds REJECT rules to the FORWARD chain that block external-to-bridge traffic. Insert ACCEPT rules before them:
+
+```bash
+sudo iptables -I FORWARD 1 -i eth0 -o virbr-talos -j ACCEPT
+sudo iptables -I FORWARD 2 -i virbr-talos -o eth0 -j ACCEPT
+sudo iptables -t nat -A POSTROUTING -o virbr-talos -j MASQUERADE
+```
+
+Make persistent across reboots:
+
+```bash
+sudo apt install -y iptables-persistent
+sudo netfilter-persistent save
+```
+
+**2. Add a static route on Windows** (PowerShell as Administrator):
+
+```powershell
+# Replace 172.28.26.190 with the actual IP of propertea-k8s-local on the Windows-facing network
+# Find it with: ip addr show eth0
+route add 192.168.50.0 mask 255.255.255.0 172.28.26.190 -p
+```
+
+The `-p` flag makes the route persistent across Windows reboots.
+
+### Per service (each new service exposed via HTTPRoute)
+
+Add an entry to `C:\Windows\System32\drivers\etc\hosts` (Notepad as Administrator):
+
+```
+192.168.50.200 argocd.local
+192.168.50.200 zitadel.local
+192.168.50.200 app.local
+# Add one line per service hostname
+```
+
+All services share the same gateway IP (`192.168.50.200`). Envoy routes to the correct service based on the `Host` header, which the browser sends automatically when you type the hostname.
+
+### Verify
+
+```bash
+# From propertea-k8s-local — gateway should respond
+curl -s -o /dev/null -w "%{http_code}" -H "Host: argocd.local" http://192.168.50.200
+# Expect 200
+
+# From Windows PowerShell — node should be reachable
+ping 192.168.50.10
+```
+
+Then open `http://argocd.local` in a browser on Windows.
+
 ## Shutting Down / Restarting
 
 SSH into the infra VM:

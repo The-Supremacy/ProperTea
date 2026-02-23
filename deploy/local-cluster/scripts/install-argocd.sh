@@ -63,10 +63,15 @@ echo "=== Step 4: ArgoCD ${ARGOCD_VERSION} ==="
 helm repo add argo https://argoproj.github.io/argo-helm 2>/dev/null || true
 helm repo update argo 2>/dev/null
 
+# --server-side tells Helm to use server-side apply instead of client-side apply.
+# Without this, Helm stores the full manifest in the last-applied-configuration
+# annotation, which exceeds the 262144-byte K8s limit for ArgoCD's large CRDs
+# and causes ArgoCD self-sync to fail with "Too long" errors.
 helm upgrade --install argocd argo/argo-cd \
   --version "$ARGOCD_VERSION" \
   --namespace argocd \
   --values "$ARGOCD_MANIFESTS/values.yaml" \
+  --server-side \
   --wait \
   --timeout 10m
 
