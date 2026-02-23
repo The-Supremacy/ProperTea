@@ -3,37 +3,31 @@ kind: Application
 metadata:
   name: argocd
   namespace: argocd
-  # Cascade-delete all managed resources when this Application is deleted.
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   annotations:
-    # Wave 0: deploy ArgoCD first. Subsequent apps depend on it being healthy.
     argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
-  # Multi-source: Helm chart from Argo registry, values from this Git repo.
-  # ArgoCD cannot render itself from a local chart directory — it needs the
-  # chart from the registry and values injected from a separate Git source.
   sources:
     - repoURL: https://argoproj.github.io/argo-helm
       chart: argo-cd
       targetRevision: 9.4.4
       helm:
         releaseName: argocd
-        # $values refers to the second source (ref: values below).
         valueFiles:
           - $values/deploy/infrastructure/argocd/values.yaml
     - repoURL: git@github.com:The-Supremacy/ProperTea.git
       targetRevision: HEAD
-      ref: values   # makes this source available as $values in the Helm source above
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
   syncPolicy:
     automated:
-      prune: false    # Do NOT auto-prune ArgoCD itself — safety guard during self-management.
-      selfHeal: true  # Revert manual cluster edits back to Git state.
+      prune: false
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - ServerSideApply=true   # Allows taking ownership of resources not in the Helm release.
+      - ServerSideApply=true
       - RespectIgnoreDifferences=true
