@@ -11,15 +11,21 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
-  source:
-    repoURL: git@github.com:The-Supremacy/ProperTea.git
-    targetRevision: HEAD
-    path: deploy/infrastructure/argocd
-    helm:
-      releaseName: argocd
-      # values.yaml is picked up automatically from the path directory.
-      # The SOPS CMP plugin is not invoked here because there are no *.enc.yaml
-      # files yet — ArgoCD uses its built-in Helm support for this app.
+  # Multi-source: Helm chart from Argo registry, values from this Git repo.
+  # ArgoCD cannot render itself from a local chart directory — it needs the
+  # chart from the registry and values injected from a separate Git source.
+  sources:
+    - repoURL: https://argoproj.github.io/argo-helm
+      chart: argo-cd
+      targetRevision: 9.4.4
+      helm:
+        releaseName: argocd
+        # $values refers to the second source (ref: values below).
+        valueFiles:
+          - $values/deploy/infrastructure/argocd/values.yaml
+    - repoURL: git@github.com:The-Supremacy/ProperTea.git
+      targetRevision: HEAD
+      ref: values   # makes this source available as $values in the Helm source above
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
