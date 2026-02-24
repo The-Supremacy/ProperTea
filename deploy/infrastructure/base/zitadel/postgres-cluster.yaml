@@ -26,6 +26,7 @@ spec:
   enableSuperuserAccess: true
   storage:
     size: 5Gi
+    storageClass: longhorn
   bootstrap:
     initdb:
       database: zitadel
