@@ -42,8 +42,9 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-          - name: propertea-gateway-tls
+          - group: ""
             kind: Secret
+            name: propertea-gateway-tls
       allowedRoutes:
         namespaces:
           from: All
