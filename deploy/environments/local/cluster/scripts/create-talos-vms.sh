@@ -22,7 +22,7 @@ if [[ "${1:-}" == "--destroy" ]]; then
   for NAME in talos-cp-01 talos-worker-01 talos-worker-02; do
     if virsh dominfo "$NAME" &>/dev/null; then
       virsh destroy "$NAME" 2>/dev/null || true   # force-off (no-op if already stopped)
-      virsh undefine "$NAME" --remove-all-storage
+      virsh undefine "$NAME" --remove-all-storage --nvram
       echo "  Destroyed: $NAME"
     else
       echo "  Not found, skipping: $NAME"

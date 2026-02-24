@@ -20,7 +20,7 @@ metadata:
   name: zitadel-db
   namespace: zitadel
 spec:
-  instances: 1
+  instances: 2
   # ZITADEL's init job requires the postgres superuser to CREATE DATABASE.
   # CNPG only creates the zitadel-db-superuser secret when this is enabled.
   enableSuperuserAccess: true
@@ -30,3 +30,8 @@ spec:
     initdb:
       database: zitadel
       owner: zitadel
+  # Spread primary and standby across worker nodes.
+  # Control plane is tainted NoSchedule so both instances always land on workers.
+  affinity:
+    podAntiAffinityType: preferred
+    topologyKey: kubernetes.io/hostname

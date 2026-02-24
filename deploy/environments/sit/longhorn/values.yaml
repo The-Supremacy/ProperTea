@@ -1,4 +1,4 @@
-# Longhorn local overrides for the 2-worker Talos dev cluster.
+# Longhorn SIT overrides for the 3-node Talos cluster.
 #
 # Talos prerequisites baked into the ISO (via Talos Image Factory schematic):
 #   - iscsi-tools:      provides iscsid + multipathd (Longhorn data path)

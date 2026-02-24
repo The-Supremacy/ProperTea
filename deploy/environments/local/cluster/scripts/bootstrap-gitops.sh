@@ -16,9 +16,8 @@
 #   - kubectl pointing at the cluster
 #   - ssh-keyscan available (openssh-client)
 #
-# Usage:
-#   cd ~/repos/ProperTea
-#   ./deploy/environments/local/cluster/scripts/bootstrap-gitops.sh [local|sit]
+# Usage (from the cluster directory -- consistent with the other bootstrap scripts):
+#   bash scripts/bootstrap-gitops.sh [local|sit]
 #
 # Defaults to 'local' if no argument is supplied.
 

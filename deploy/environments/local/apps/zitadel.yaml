@@ -26,8 +26,11 @@ spec:
     server: https://kubernetes.default.svc
     namespace: zitadel
   syncPolicy:
-    automated:
-      prune: false
-      selfHeal: true
+    # Automated sync intentionally disabled.
+    # ZITADEL requires zitadel-masterkey to exist before its init job runs.
+    # Sync manually in ArgoCD after:
+    #   1. Wave 5 (zitadel-config) is healthy -- CNPG Cluster creates the zitadel namespace
+    #   2. zitadel-masterkey Secret is created in the zitadel namespace
+    #      (manually now; via InfisicalSecret CR once Infisical is wired up)
     syncOptions:
       - ServerSideApply=true

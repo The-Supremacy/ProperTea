@@ -10,12 +10,12 @@
 # Prerequisites:
 #   - kubectl pointing at the cluster
 #   - helm installed
-#   - sops and age installed (see README)
+#   - age installed on this machine (the infra VM) -- for age-keygen
+#     sops belongs on the dev machine (for encrypting secrets before committing to Git)
 #   - deploy/infrastructure/helm/argocd/values.yaml exists
 #
-# Usage:
-#   cd ~/repos/ProperTea
-#   ./deploy/environments/local/cluster/scripts/install-argocd.sh [local|sit]
+# Usage (from the cluster directory -- consistent with the other bootstrap scripts):
+#   bash scripts/install-argocd.sh [local|sit]
 #
 # Defaults to 'local' if no argument is supplied.
 
@@ -83,6 +83,7 @@ helm repo update argo 2>/dev/null
 # Without this, Helm stores the full manifest in the last-applied-configuration
 # annotation, which exceeds the 262144-byte K8s limit for ArgoCD's large CRDs
 # and causes ArgoCD self-sync to fail with "Too long" errors.
+# Requires Helm 4+.
 helm upgrade --install argocd argo/argo-cd \
   --version "$ARGOCD_VERSION" \
   --namespace argocd \
@@ -102,9 +103,10 @@ PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret \
   -o jsonpath="{.data.password}" 2>/dev/null | base64 -d)
 echo "  Password: ${PASS:-<secret rotated -- check argocd-initial-admin-secret>}"
 echo ""
-echo "Access the UI (temporary port-forward until Gateway is configured in Phase 4):"
-echo "  kubectl port-forward svc/argocd-server -n argocd 8080:80 &"
-echo "  open http://localhost:8080"
+echo "Access the UI (temporary port-forward until Gateway is configured):"
+echo "  POD=\$(kubectl get pod -n argocd -l app.kubernetes.io/name=argocd-server -o jsonpath='{.items[0].metadata.name}')"
+echo "  kubectl port-forward pod/\$POD -n argocd 8080:8080 --address 0.0.0.0 &"
+echo "  open http://<infra-vm-ip>:8080"
 echo ""
 echo "Next: register the GitHub deploy key, then bootstrap GitOps:"
 echo "  1. Add the following public key to https://github.com/The-Supremacy/ProperTea/settings/keys"

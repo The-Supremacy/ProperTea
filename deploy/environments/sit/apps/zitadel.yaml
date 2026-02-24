@@ -26,8 +26,6 @@ spec:
     server: https://kubernetes.default.svc
     namespace: zitadel
   syncPolicy:
-    automated:
-      prune: false
-      selfHeal: true
+    # Automated sync intentionally disabled -- see local/apps/zitadel.yaml for rationale.
     syncOptions:
       - ServerSideApply=true

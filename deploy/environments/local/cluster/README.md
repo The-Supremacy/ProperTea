@@ -1,27 +1,78 @@
 # Local Talos Cluster Setup
 
-Step-by-step guide to bootstrap a 3-node Talos Kubernetes cluster for the local development environment, using nested KVM inside `propertea-k8s-local` (the dedicated KVM host VM). All tooling (`talosctl`, `kubectl`, `helm`) runs directly on this machine.
+Reference and step-by-step bootstrap guide for the 3-node Talos Kubernetes cluster used as the local development environment.
 
-## Architecture
+## Host Architecture
 
 ```
-propertea-k8s-local  (this VM: Ubuntu 24.04, 8 vCPU, 24GB RAM, VS Code SSH)
-  talosctl / kubectl / helm run here directly
-  ├── talos-cp-01      (KVM guest, 192.168.50.10, control plane)
-  ├── talos-worker-01  (KVM guest, 192.168.50.11, worker)
-  └── talos-worker-02  (KVM guest, 192.168.50.12, worker)
+Windows PC (Hyper-V host -- stays clean, no dev tools)
+└── propertea-k8s-local  (Ubuntu 24.04, 8 vCPU, 24 GB RAM -- this machine)
+    talosctl / kubectl / helm all run here
+    ├── talos-cp-01      (KVM guest, 192.168.50.10, 2 vCPU, 4 GB, control plane)
+    ├── talos-worker-01  (KVM guest, 192.168.50.11, 2 vCPU, 8 GB, worker)
+    └── talos-worker-02  (KVM guest, 192.168.50.12, 2 vCPU, 8 GB, worker)
 ```
 
-All Talos nodes are on the `talos-net` libvirt NAT bridge (`virbr-talos`, `192.168.50.0/24`).
-This host is the NAT gateway at `192.168.50.1`. libvirt automatically sets up NAT masquerade via iptables.
-No port forwarding needed -- all `talosctl` and `kubectl` commands use `192.168.50.x` directly.
+`propertea-k8s-local` is the KVM hypervisor, VS Code SSH target, and cluster management node. All tooling (`talosctl`, `kubectl`, `helm`) runs here. The Windows PC is the Hyper-V platform only.
+
+All Talos nodes are on the `talos-net` libvirt NAT bridge (`virbr-talos`, `192.168.50.0/24`). This host is the NAT gateway at `192.168.50.1`. libvirt sets up NAT masquerade automatically. No port forwarding needed.
+
+### Infra VM Sizing
+
+| Component | RAM |
+|---|---|
+| Ubuntu host overhead | ~1.5 GB |
+| talos-cp-01 | 4 GB |
+| talos-worker-01 | 8 GB |
+| talos-worker-02 | 8 GB |
+| **Total** | **~22 GB** |
+
+Assign the infra VM: 8 vCPUs, 24 GB RAM, 200 GB disk. Enable nested virtualisation in Hyper-V.
+
+### Cluster Topology
+
+| Node | Role | vCPU | RAM | Disk |
+|---|---|---|---|---|
+| `talos-cp-01` | Control plane | 2 | 4 GB | 40 GB |
+| `talos-worker-01` | Worker | 2 | 8 GB | 60 GB |
+| `talos-worker-02` | Worker | 2 | 8 GB | 60 GB |
+
+Control plane is tainted `NoSchedule` -- only runs etcd, kube-apiserver, kube-scheduler, kube-controller-manager, and the Cilium agent. All application workloads schedule on workers.
+
+Talos nodes are stateless -- VMs can be shut down and restarted freely. etcd handles clean restarts. Stateful data lives on Longhorn PVs backed by worker node disks and persists across reboots.
+
+### Networking and Services
+
+Cilium is the sole networking layer: CNI, kube-proxy replacement, L2 load balancer, and Gateway API. Services are exposed via LoadBalancer IPs on `192.168.50.200-210` with Cilium L2 announcements (ARP).
+
+TLS is terminated at the Cilium Gateway. cert-manager issues a wildcard `*.local` certificate from a self-signed local CA (`propertea-ca-issuer`).
 
 ## Prerequisites
 
-- Windows PC with Hyper-V enabled
+On `propertea-k8s-local` (the infra VM):
+- `talosctl`, `kubectl` installed
+- `helm` **v4+** installed -- `install-argocd.sh` uses `--server-side` (Helm 4 feature)
+  ```bash
+  curl -fsSL https://get.helm.sh/helm-v4.1.1-linux-amd64.tar.gz | sudo tar xz -C /usr/local/bin --strip-components=1 linux-amd64/helm
+  ```
+- `age` installed -- used by `install-argocd.sh` to generate the SOPS age keypair (`age-keygen`)
+  ```bash
+  sudo apt install -y age
+  ```
+
+On the **dev machine** (where you edit and commit code):
+- `sops` -- for encrypting secret files locally before committing them to Git
+  ```bash
+  # Download from https://github.com/getsops/sops/releases
+  SOPS_VERSION="v3.9.4"
+  wget -qO /usr/local/bin/sops \
+    "https://github.com/getsops/sops/releases/download/${SOPS_VERSION}/sops-${SOPS_VERSION}.linux.amd64"
+  chmod +x /usr/local/bin/sops
+  ```
+
+On the Windows PC:
 - `propertea-k8s-local` VM created (see Step 1) with nested virtualisation enabled
-- `talosctl`, `kubectl`, `helm` installed on `propertea-k8s-local` (not on the dev VM)
-- Talos ISO downloaded directly on `propertea-k8s-local` (see Step 3)
+- Talos ISO downloaded on `propertea-k8s-local` (see Step 3):
   - Architecture: amd64
   - Extensions: `iscsi-tools`, `util-linux-tools`
   - Secure Boot: off
@@ -267,7 +318,33 @@ kubectl port-forward svc/argocd-server -n argocd 8080:80 &
 
 > **Note:** `kubectl port-forward` tunnels directly to a pod and has no resilience -- it exits if the pod restarts. Run the command again to reconnect. The Gateway setup eliminates this permanently.
 
-## Step 10: Bootstrap GitOps
+## Step 10: Pre-GitOps Secrets
+
+Do this **after wave 5 (`zitadel-config`) is healthy** in ArgoCD. Wave 5 applies the CNPG `Cluster` manifest which creates the `zitadel` namespace. The masterkey secret goes into that namespace.
+
+ZITADEL (`zitadel.yaml`, wave 6) has automated sync disabled — ArgoCD will not touch it until you trigger it manually. This gives you the window to create the masterkey first.
+
+```bash
+kubectl create secret generic zitadel-masterkey \
+  --namespace zitadel \
+  --from-literal=masterkey="$(openssl rand -base64 32)"
+```
+
+Note the value before running (retrieve it with `kubectl get secret zitadel-masterkey -n zitadel -o jsonpath='{.data.masterkey}' | base64 -d`).
+
+Once the secret exists, trigger wave 6 manually in the ArgoCD UI: open the `zitadel` Application and click **Sync**. ZITADEL's init job will find the masterkey and the CNPG-created DB credentials (`zitadel-db-app`, `zitadel-db-superuser`) and complete successfully.
+
+### Future: Infisical replaces this manual step
+
+Once Infisical is running in-cluster (wave 4), an `InfisicalSecret` CR at wave 5 will pull the masterkey from Infisical and create the K8s Secret automatically. At that point, re-enable automated sync on `zitadel.yaml` and remove this manual step. The wave structure and everything else stays the same.
+
+On AKS, External Secrets Operator + Azure Key Vault replaces Infisical in the same position.
+
+### What Infisical does NOT manage
+
+CloudNativePG creates `zitadel-db-app` and `zitadel-db-superuser` automatically when the CNPG `Cluster` CR is applied. These are internal cluster credentials — randomly generated, cluster-scoped, referenced directly by ZITADEL's `secretKeyRef`. No vault involvement needed. If you rebuild the cluster, CNPG recreates them and ZITADEL uses the new credentials on first init.
+
+## Step 11: Bootstrap GitOps
 
 This is the last manual `kubectl apply`. After it, all cluster changes are driven from Git.
 
@@ -283,25 +360,27 @@ The script will:
 3. Register the repo credential in ArgoCD
 4. Apply `deploy/environments/local/root-app.yaml` — the root Application
 
-ArgoCD then syncs `deploy/environments/local/apps/` directly:
+ArgoCD then syncs `deploy/environments/local/apps/` directly, in sync-wave order:
 
 ```
 local-apps  (watches deploy/environments/local/apps/)
-  ├── argocd.yaml              ← ArgoCD self-manages its Helm release
-  ├── argocd-config.yaml       ← HTTPRoute for argocd.local
-  ├── cert-manager.yaml
-  ├── cert-manager-config.yaml
-  ├── gateway-config.yaml
-  ├── cloudnativepg.yaml
-  ├── zitadel-config.yaml
-  └── zitadel.yaml
+  ├── argocd.yaml              ← wave 0: ArgoCD self-manages its Helm release
+  ├── argocd-config.yaml       ← wave 1: HTTPRoute for argocd.local
+  ├── cert-manager.yaml        ← wave 1: cert-manager Helm install
+  ├── cert-manager-config.yaml ← wave 2: ClusterIssuers (self-signed local CA)
+  ├── gateway-config.yaml      ← wave 3: Cilium L2 pool, Gateway, HTTPRoute
+  ├── longhorn.yaml            ← wave 3: Longhorn Helm install (becomes default StorageClass)
+  ├── longhorn-config.yaml     ← wave 4: Longhorn UI HTTPRoute
+  ├── cloudnativepg.yaml       ← wave 4: CloudNativePG operator
+  ├── zitadel-config.yaml      ← wave 5: ZITADEL Postgres Cluster + HTTPRoute
+  └── zitadel.yaml             ← wave 6: ZITADEL Helm install
 ```
 
 Each cluster environment runs its own independent ArgoCD instance, with its own root app pointing only at its environment's apps. `deploy/infrastructure/` is a shared values library referenced by Applications via the `$values` pattern — it contains no Applications itself.
 
 To update ArgoCD config after bootstrap:
-- Base settings (SOPS CMP, insecure mode): `deploy/infrastructure/helm/argocd/values.yaml`
-- Local overrides (domain, replicas): `deploy/environments/local/argocd/values.yaml`
+- Base settings (SOPS CMP sidecar, insecure mode): `deploy/infrastructure/helm/argocd/values.yaml`
+- Local overrides (domain): `deploy/environments/local/argocd/values.yaml`
 
 ## Updating Machine Config on Running Nodes
 
@@ -480,6 +559,23 @@ deploy/
     aks/                        # Future AKS infrastructure stubs
 ```
 
+## AKS Migration Path
+
+The local-to-AKS delta is intentionally small. Application manifests, `HTTPRoute` definitions, Helm values, and ArgoCD `Application` objects are the same across environments -- only the infrastructure-layer backends change:
+
+| Concern | Local | AKS |
+|---|---|---|
+| Node provisioning | Manual KVM VMs | AKS managed node pools + Karpenter |
+| Load balancer | Cilium L2 | Azure Load Balancer (Cilium cloud LB) |
+| Gateway | Cilium Gateway API | Cilium Gateway API (same manifests) |
+| Storage | Local Path Provisioner + Longhorn | Azure Managed Disks |
+| Secrets (runtime) | Manual / Infisical Operator | ESO + Azure Key Vault |
+| Secrets (Git) | SOPS + age | SOPS + age (identical) |
+| Metrics | VictoriaMetrics (local PV) | VictoriaMetrics + Azure Blob |
+| Logs | Loki (local PV) | Loki + Azure Blob |
+| DNS / Certs | cert-manager + self-signed CA | cert-manager + Cloudflare DNS-01 / ACME |
+| GitOps | ArgoCD | ArgoCD (identical) |
+
 ## Next Steps
 
-After GitOps is bootstrapped, all further changes go through Git. ArgoCD manages the full SIT stack from `deploy/environments/sit/`. See [local-k8s.md](../../docs/local-k8s.md) for the broader architecture and phase plan.
+After GitOps is bootstrapped, all further changes go through Git. ArgoCD manages the SIT stack from `deploy/environments/sit/`.
