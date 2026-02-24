@@ -63,6 +63,15 @@ echo "=== Step 3: Local Path Provisioner ==="
 kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
 kubectl patch storageclass local-path \
   -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
+# Talos enforces baseline PSA cluster-wide by default. The local-path provisioner
+# creates helper pods with hostPath volumes in its own namespace, which baseline blocks.
+# Label the namespace privileged so PVC provisioning works.
+kubectl label namespace local-path-storage \
+  pod-security.kubernetes.io/enforce=privileged \
+  pod-security.kubernetes.io/warn=privileged \
+  pod-security.kubernetes.io/audit=privileged \
+  --overwrite
 echo "local-path set as default StorageClass."
 
 echo ""

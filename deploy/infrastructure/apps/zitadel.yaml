@@ -64,7 +64,10 @@ spec:
                     Password: "Password1!"
                     PasswordChangeRequired: false
 
-          # Pull DB credentials from CloudNativePG-created secret
+          # Pull DB credentials from CloudNativePG-created secrets.
+          # User credentials: zitadel-db-app (the 'zitadel' app user, owns the DB).
+          # Admin credentials: zitadel-db-superuser (the 'postgres' superuser — required
+          # by ZITADEL's init job to CREATE DATABASE and grant privileges).
           env:
             - name: ZITADEL_DATABASE_POSTGRES_USER_USERNAME
               valueFrom:
@@ -79,12 +82,12 @@ spec:
             - name: ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: zitadel-db-app
+                  name: zitadel-db-superuser
                   key: username
             - name: ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: zitadel-db-app
+                  name: zitadel-db-superuser
                   key: password
 
           initJob:
@@ -102,12 +105,12 @@ spec:
               - name: ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME
                 valueFrom:
                   secretKeyRef:
-                    name: zitadel-db-app
+                    name: zitadel-db-superuser
                     key: username
               - name: ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD
                 valueFrom:
                   secretKeyRef:
-                    name: zitadel-db-app
+                    name: zitadel-db-superuser
                     key: password
 
           login:
