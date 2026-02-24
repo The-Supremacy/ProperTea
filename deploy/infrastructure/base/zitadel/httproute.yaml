@@ -8,7 +8,9 @@ metadata:
   namespace: zitadel
 spec:
   parentRefs:
-    - name: propertea-gateway
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: propertea-gateway
       namespace: kube-system
   hostnames:
     - zitadel.placeholder
@@ -24,8 +26,11 @@ spec:
               - name: X-Forwarded-Proto
                 value: https
       backendRefs:
-        - name: zitadel-login
+        - group: ""
+          kind: Service
+          name: zitadel-login
           port: 3000
+          weight: 1
     - matches:
         - path:
             type: PathPrefix
@@ -37,5 +42,8 @@ spec:
               - name: X-Forwarded-Proto
                 value: https
       backendRefs:
-        - name: zitadel
+        - group: ""
+          kind: Service
+          name: zitadel
           port: 8080
+          weight: 1
