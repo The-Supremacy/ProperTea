@@ -14,6 +14,12 @@ spec:
         - path:
             type: PathPrefix
             value: /ui/v2/login
+      filters:
+        - type: RequestHeaderModifier
+          requestHeaderModifier:
+            set:
+              - name: Host
+                value: zitadel.local
       backendRefs:
         - name: zitadel-login
           port: 3000
@@ -21,6 +27,12 @@ spec:
         - path:
             type: PathPrefix
             value: /
+      filters:
+        - type: RequestHeaderModifier
+          requestHeaderModifier:
+            set:
+              - name: Host
+                value: zitadel.local
       backendRefs:
         - name: zitadel
           port: 8080
