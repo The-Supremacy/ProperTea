@@ -24,6 +24,14 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: longhorn-system
+  ignoreDifferences:
+    # Longhorn CRDs have preserveUnknownFields defaulted by the API server.
+    # This field is immutable and cannot be set in the chart — ignore the drift.
+    # See: https://longhorn.io/docs/1.8.1/deploy/install/install-with-argocd/
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      jsonPointers:
+        - /spec/preserveUnknownFields
   syncPolicy:
     automated:
       enabled: true
@@ -37,4 +45,3 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-      - SkipHooks=true  # remove after first successful install; pre-upgrade hook requires SA to exist
