@@ -1,0 +1,50 @@
+# Base ZITADEL Helm values — environment-agnostic.
+# Env-specific values (ExternalDomain, replicaCount, FirstInstance credentials)
+# live in deploy/environments/<env>/zitadel-values.yaml and are layered on top.
+
+zitadel:
+  masterkeySecretName: zitadel-masterkey
+
+  configmapConfig:
+    # ExternalDomain and replicaCount are set per environment.
+    ExternalPort: 443
+    ExternalSecure: true
+
+    # TLS is terminated at the Gateway (Cilium). ZITADEL itself runs plain HTTP/2.
+    TLS:
+      Enabled: false
+
+    Database:
+      Postgres:
+        # Host and SSL mode are environment-specific — set in environments/<env>/zitadel-values.yaml.
+        # Local: Host=zitadel-db-rw (CloudNativePG service), SSL disabled.
+        # Prod: Host=managed PG endpoint, SSL enabled.
+        Port: 5432
+        Database: zitadel
+        MaxOpenConns: 20
+        MaxIdleConns: 20
+        ConnMaxLifetime: 30m
+
+    DefaultInstance:
+      Features:
+        LoginV2:
+          Required: true
+
+    OIDC:
+      DefaultLoginURLV2: "/ui/v2/login/login?authRequest="
+      DefaultLogoutURLV2: "/ui/v2/login/logout?post_logout_redirect="
+
+    SAML:
+      DefaultLoginURLV2: "/ui/v2/login/login?samlRequest="
+
+# DB credentials are injected via env vars — set in environments/<env>/zitadel-values.yaml.
+# Local: sourced from CloudNativePG-created secrets (zitadel-db-app, zitadel-db-superuser).
+# Prod: sourced from managed secret store (e.g. External Secrets Operator + Azure Key Vault).
+
+login:
+  enabled: true
+
+service:
+  type: ClusterIP
+  port: 8080
+  protocol: http2

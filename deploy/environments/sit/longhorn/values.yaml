@@ -1,0 +1,22 @@
+# Longhorn local overrides for the 2-worker Talos dev cluster.
+#
+# Talos prerequisites baked into the ISO (via Talos Image Factory schematic):
+#   - iscsi-tools:      provides iscsid + multipathd (Longhorn data path)
+#   - util-linux-tools: provides nsenter (required by Longhorn engine)
+# These are already documented in the Talos ISO download step (Step 3).
+#
+# Replica count note:
+#   2 replicas = full redundancy across both worker nodes.
+#   If a 3rd worker is added, bump defaultReplicaCount to 3 and update
+#   defaultClassReplicaCount below to match. Replica auto-balance (set in base
+#   values) will redistribute existing replicas across the new node — it does
+#   NOT increase the count automatically.
+
+defaultSettings:
+  defaultReplicaCount: 2
+
+persistence:
+  # Longhorn becomes the default StorageClass for new PVCs.
+  # local-path-provisioner (installed during bootstrap) remains but is not default.
+  defaultClass: true
+  defaultClassReplicaCount: 2

@@ -1,0 +1,6 @@
+# local environment overrides for the ArgoCD Helm chart.
+# Layered on top of deploy/infrastructure/argocd/values.yaml.
+# Uses *.local DNS — no real domain or static IP required.
+
+global:
+  domain: argocd.local

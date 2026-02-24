@@ -1,0 +1,16 @@
+# Longhorn base Helm values — env-agnostic settings.
+# These are the structural defaults shared across all environments.
+# Environment-specific overrides (replica count, default class) live in
+# deploy/environments/<env>/longhorn-values.yaml
+
+defaultSettings:
+  # Replica auto-balance redistributes replicas to use newly added nodes.
+  # Does not increase replica count — only rebalances existing replicas.
+  replicaAutoBalance: least-effort
+
+  # Minimum available storage % before Longhorn refuses to schedule new replicas.
+  storageMinimalAvailablePercentage: 20
+
+persistence:
+  # Do not set defaultClass here — controlled per environment.
+  defaultClass: false

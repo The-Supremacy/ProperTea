@@ -1,0 +1,32 @@
+# CloudNativePG cluster for ZITADEL — self-hosted environments only.
+# On AKS (UAT/prod) this is replaced by Azure Database for PostgreSQL and
+# the cloudnativepg Application is simply omitted from that env's apps/.
+#
+# Namespace is defined here rather than relying on ArgoCD's CreateNamespace
+# syncOption, because we need PSA privileged labels on create (before any pods
+# are scheduled). local-path-provisioner creates hostPath helper pods here.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zitadel
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/warn: privileged
+    pod-security.kubernetes.io/audit: privileged
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: zitadel-db
+  namespace: zitadel
+spec:
+  instances: 1
+  # ZITADEL's init job requires the postgres superuser to CREATE DATABASE.
+  # CNPG only creates the zitadel-db-superuser secret when this is enabled.
+  enableSuperuserAccess: true
+  storage:
+    size: 5Gi
+  bootstrap:
+    initdb:
+      database: zitadel
+      owner: zitadel

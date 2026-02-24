@@ -1,0 +1,91 @@
+# SIT environment overrides for the ZITADEL Helm chart.
+# Layered on top of deploy/infrastructure/zitadel/values.yaml.
+#
+# UPDATE before applying:
+#   - ExternalDomain: replace propertea.io with your actual domain
+#   - FirstInstance.Human.Email.Address: replace with a real admin email
+#   - Encrypt this file with SOPS (FirstInstance password must not stay plaintext)
+#   - Database credentials: replace CloudNativePG refs with Azure Postgres / ESO refs
+
+replicaCount: 1
+
+zitadel:
+  configmapConfig:
+    ExternalDomain: zitadel.sit.propertea.io
+
+    Database:
+      Postgres:
+        # CloudNativePG read-write service for the zitadel-db cluster.
+        Host: zitadel-db-rw
+        User:
+          SSL:
+            Mode: disable
+        Admin:
+          SSL:
+            Mode: disable
+
+    # Seed the first instance with a local admin user.
+    # Password is weak and plaintext here intentionally — local dev only.
+    # In UAT/prod: encrypt this file with SOPS and use a strong password.
+    FirstInstance:
+      Org:
+        Name: ProperTea
+        Human:
+          Username: admin
+          Email:
+            Address: admin@sit.propertea.io
+            Verified: true
+          Password: "REPLACE_ME"  # Encrypt this file with SOPS before committing
+          PasswordChangeRequired: true
+
+# Pull DB credentials from CloudNativePG-created secrets.
+# User credentials: zitadel-db-app (the 'zitadel' app user, owns the DB).
+# Admin credentials: zitadel-db-superuser (the 'postgres' superuser — required
+# by ZITADEL's init job to CREATE DATABASE and grant privileges).
+env:
+  - name: ZITADEL_DATABASE_POSTGRES_USER_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: zitadel-db-app
+        key: username
+  - name: ZITADEL_DATABASE_POSTGRES_USER_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: zitadel-db-app
+        key: password
+  - name: ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: zitadel-db-superuser
+        key: username
+  - name: ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: zitadel-db-superuser
+        key: password
+
+initJob:
+  env:
+    - name: ZITADEL_DATABASE_POSTGRES_USER_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: zitadel-db-app
+          key: username
+    - name: ZITADEL_DATABASE_POSTGRES_USER_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: zitadel-db-app
+          key: password
+    - name: ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: zitadel-db-superuser
+          key: username
+    - name: ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: zitadel-db-superuser
+          key: password
+
+login:
+  replicaCount: 1

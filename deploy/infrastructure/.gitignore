@@ -1,3 +1,6 @@
+# Rules in this file apply only to deploy/infrastructure/.
+# For deploy/environments/ secrets, see deploy/environments/.gitignore.
+#
 # Never commit plaintext secrets.
 # Encrypted counterparts (*.enc.yaml) ARE committed.
 *-secrets.yaml

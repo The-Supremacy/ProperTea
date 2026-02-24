@@ -1,0 +1,7 @@
+# SIT environment overrides for the ArgoCD Helm chart.
+# Layered on top of deploy/infrastructure/argocd/values.yaml.
+#
+# UPDATE: replace propertea.io with your actual domain before applying.
+
+global:
+  domain: argocd.sit.propertea.io

@@ -1,0 +1,41 @@
+# ZITADEL requires X-Forwarded-Proto: https on every request.
+# Cilium terminates TLS at the Gateway but does not inject this header automatically.
+# Both rules (login and main) inject it so ZITADEL's ExternalSecure check passes.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: zitadel
+  namespace: zitadel
+spec:
+  parentRefs:
+    - name: propertea-gateway
+      namespace: kube-system
+  hostnames:
+    - zitadel.placeholder
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /ui/v2/login
+      filters:
+        - type: RequestHeaderModifier
+          requestHeaderModifier:
+            set:
+              - name: X-Forwarded-Proto
+                value: https
+      backendRefs:
+        - name: zitadel-login
+          port: 3000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        - type: RequestHeaderModifier
+          requestHeaderModifier:
+            set:
+              - name: X-Forwarded-Proto
+                value: https
+      backendRefs:
+        - name: zitadel
+          port: 8080

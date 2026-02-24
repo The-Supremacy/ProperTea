@@ -1,0 +1,55 @@
+# Local-cluster specific: Cilium L2 IP pool and announcement policy.
+# In AKS these are replaced by the Azure Load Balancer + Cilium's cloud LB integration.
+apiVersion: cilium.io/v2alpha1
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: local-pool
+spec:
+  blocks:
+    - start: 192.168.50.200
+      stop: 192.168.50.210
+
+---
+# Announces LoadBalancer IPs over L2 (ARP) on the KVM bridge interface.
+# Interface name (ens3) matches the NIC inside Talos VM guests on virbr-talos.
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: local-l2
+spec:
+  loadBalancerIPs: true
+  interfaces:
+    - ens3
+
+---
+# TLS terminated here; backend services receive plain HTTP/2.
+# cert-manager issues wildcard certs from Let's Encrypt via Cloudflare DNS-01.
+# Issuer: letsencrypt-cloudflare (see cert-manager/cluster-issuer.yaml).
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: propertea-gateway
+  namespace: kube-system
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+spec:
+  gatewayClassName: cilium
+  listeners:
+    - name: https
+      hostname: "*.sit.propertea.io"
+      port: 443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: propertea-gateway-tls
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: http
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All
