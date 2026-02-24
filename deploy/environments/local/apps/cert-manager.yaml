@@ -28,6 +28,7 @@ spec:
     namespace: cert-manager
   syncPolicy:
     automated:
+      enabled: true
       prune: false
       selfHeal: true
     syncOptions:
