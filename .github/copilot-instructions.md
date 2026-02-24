@@ -47,6 +47,8 @@ This repo has a structured AI instruction system:
 
 When asked to create features, **read the relevant skill file** from `.github/skills/{skill-name}/SKILL.md` for step-by-step patterns.
 
+NEVER EXECUTE GIT COMMANDS OR MAKE CHANGES WITHOUT EXPLICIT INSTRUCTION TO DO SO. Always ask for confirmation before making any changes to the repository.
+
 ## Code Quality
 
 - `Directory.Build.props` enforces `TreatWarningsAsErrors=true` project-wide
