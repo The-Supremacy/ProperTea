@@ -16,6 +16,9 @@ metadata:
   namespace: zitadel
 spec:
   instances: 1
+  # Required: ZITADEL's init job needs the postgres superuser to CREATE DATABASE.
+  # CNPG only creates the zitadel-db-superuser secret when this is enabled.
+  enableSuperuserAccess: true
   storage:
     size: 5Gi
   bootstrap:
