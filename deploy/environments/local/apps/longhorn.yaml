@@ -37,3 +37,4 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - SkipHooks=true  # remove after first successful install; pre-upgrade hook requires SA to exist
