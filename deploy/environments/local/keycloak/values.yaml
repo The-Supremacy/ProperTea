@@ -1,14 +1,27 @@
 replicas: 1
 
-# Admin user created on first boot only.
-# In UAT/prod: use a Secret reference instead of plaintext.
+# Override the full command to add the public hostname.
+# --hostname tells Keycloak its public base URL so it generates correct HTTPS
+# redirects and OIDC iframe URLs. Without this, Keycloak generates http:// links
+# based on what it sees internally (port 8080), causing redirect failures and
+# OIDC iframe timeout errors in the browser.
+# UAT/prod: set this to the real public URL (e.g. https://auth.propertea.com).
+command:
+  - "/opt/keycloak/bin/kc.sh"
+  - "start"
+  - "--http-port=8080"
+  - "--hostname=https://keycloak.local"
+  - "--hostname-strict=false"
+
 extraEnv: |
   - name: KEYCLOAK_ADMIN
     value: admin
   - name: KEYCLOAK_ADMIN_PASSWORD
     value: "Password1!"
-  - name: KC_HOSTNAME_STRICT
-    value: "false"
+  # KC_PROXY is deprecated in Keycloak 26. Use KC_PROXY_HEADERS instead.
+  # xforwarded = trust X-Forwarded-Proto/Host/For headers from the Gateway.
+  - name: KC_PROXY_HEADERS
+    value: xforwarded
 
 # Pull DB credentials from CloudNativePG-created secret.
 # CNPG creates keycloak-db-app automatically when the Cluster CR is applied.

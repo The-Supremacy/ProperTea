@@ -772,23 +772,38 @@ helm get values <release> -n <namespace> -o yaml > /tmp/current-values.yaml
 # Services in a namespace
 kubectl get svc -n <namespace>
 
-# All resources in a namespace
+# All resources in a namespace (pods, deployments, statefulsets, services)
 kubectl get all -n <namespace>
 
-# Describe a resource (events + conditions)
+# Describe a resource (events + conditions -- first place to look on failures)
 kubectl describe pod <name> -n <namespace>
+kubectl describe statefulset <name> -n <namespace>
 
-# Follow logs for a deployment
-kubectl logs -n <namespace> -l app=<label> -f --tail=100
+# Follow logs for all pods matching a label
+kubectl logs -n <namespace> -l app.kubernetes.io/name=<name> -f --tail=100
 
-# Follow logs for a specific pod (previous crash)
+# Logs from a specific pod
+kubectl logs <pod> -n <namespace> --tail=100
+
+# Logs from previous (crashed) container -- essential for CrashLoopBackOff
 kubectl logs <pod> -n <namespace> --previous
+
+# What command/image/env is the pod ACTUALLY running (vs what chart says)
+kubectl get pod <pod> -n <namespace> -o jsonpath='{.spec.containers[0].command}'
+kubectl get pod <pod> -n <namespace> -o jsonpath='{.spec.containers[0].image}'
+kubectl get pod <pod> -n <namespace> -o jsonpath='{.spec.containers[0].env}'
 
 # Exec into a running container
 kubectl exec -it <pod> -n <namespace> -- /bin/sh
 
 # Watch pod status
 kubectl get pods -n <namespace> -w
+
+# Restart all pods in a StatefulSet/Deployment without deleting manually
+# Use this when config is updated but pods are stuck in crash-backoff
+kubectl rollout restart statefulset/<name> -n <namespace>
+kubectl rollout restart deployment/<name> -n <namespace>
+kubectl rollout status statefulset/<name> -n <namespace> --timeout=120s
 
 # Force-delete a stuck terminating pod
 kubectl delete pod <pod> -n <namespace> --grace-period=0 --force
@@ -821,4 +836,132 @@ sops deploy/environments/local/infisical/infisical-secrets.enc.yaml
 
 # Encrypt a new file using the rules in .sops.yaml
 sops -e -i path/to/new-file.enc.yaml
+```
+
+## Troubleshooting
+
+### Pod stuck in CrashLoopBackOff
+
+The pod is starting and crashing repeatedly. Kubernetes applies exponential backoff — eventually it waits 5+ minutes between attempts even if you fix the config.
+
+```bash
+# 1. Read the crash logs from the previous (dead) container
+kubectl logs <pod> -n <namespace> --previous
+
+# 2. Check events — often tells you why it crashed or failed to schedule
+kubectl describe pod <pod> -n <namespace>
+
+# 3. Verify the pod is actually running your NEW config, not a stale version
+#    If ArgoCD synced but the pod is old, it may still have the broken command.
+kubectl get pod <pod> -n <namespace> -o jsonpath='{.spec.containers[0].command}'
+kubectl get pod <pod> -n <namespace> -o jsonpath='{.spec.containers[0].image}'
+
+# 4. Short-circuit the backoff — restart with current (fixed) spec
+kubectl rollout restart statefulset/<name> -n <namespace>
+# or for a single pod in a StatefulSet:
+kubectl delete pod <pod> -n <namespace>  # recreated immediately from updated spec
+```
+
+### Pod stuck in Pending
+
+Pod is scheduled but not starting — usually a resource or storage problem.
+
+```bash
+kubectl describe pod <pod> -n <namespace>
+# Look at Events section at the bottom:
+#   "Insufficient memory/cpu"  → node doesn't have capacity
+#   "no nodes available"       → taints/tolerations mismatch
+#   "pod has unbound PVC"      → storage provisioner problem
+
+# Check PVC status if storage-related
+kubectl get pvc -n <namespace>
+kubectl describe pvc <name> -n <namespace>
+
+# Check Longhorn is healthy if PVCs are stuck Pending
+kubectl get pods -n longhorn-system | grep -v Running
+```
+
+### HTTPRoute not routing / "service not found"
+
+The Gateway accepts the route but can't reach the backend service.
+
+```bash
+# 1. Find the actual service name the chart created (often not what you expect)
+kubectl get svc -n <namespace>
+# Chart naming convention: {releaseName}-{chartName}-{suffix}
+# e.g. releaseName=keycloak + chart=keycloakx → "keycloak-keycloakx-http"
+
+# 2. Check HTTPRoute status — shows the Gateway's view of whether backend is resolved
+kubectl describe httproute <name> -n <namespace>
+# Look for: "ResolvedRefs" condition — False means service name mismatch
+
+# 3. Check the Gateway itself for route acceptance
+kubectl describe gateway propertea-gateway -n kube-system | grep -A 5 "Listeners"
+
+# 4. Verify the service actually has endpoints (pods backing it)
+kubectl get endpoints <svc-name> -n <namespace>
+```
+
+### ArgoCD synced but cluster is running old config
+
+ArgoCD shows Synced but the running pod has old image/command. Happens when chart source changes (repo URL or chart name) — ArgoCD caches rendered manifests.
+
+```bash
+# Check what revision ArgoCD thinks is deployed vs what pod is running
+kubectl describe application <name> -n argocd | grep -E "Revision|Target"
+kubectl get pod <pod> -n <namespace> -o jsonpath='{.spec.containers[0].image}'
+
+# Force ArgoCD to discard its cache and re-render from scratch
+kubectl patch application <name> -n argocd --type merge \
+  -p '{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"hard"}}}'
+
+# Then watch it re-sync
+kubectl get application <name> -n argocd -w
+```
+
+### Keycloak redirecting to wrong URL / OIDC iframe timeout
+
+Symptoms: Keycloak is reachable but redirects to `http://` URLs, login flows fail, or browser shows "Timeout when waiting for 3rd party check iframe message".
+
+Root cause: `--hostname` not set, so Keycloak generates redirect URIs based on its internal view (HTTP on port 8080) rather than the public HTTPS URL.
+
+```bash
+# Verify what hostname Keycloak started with
+kubectl logs keycloak-keycloakx-0 -n keycloak | grep -iE "hostname|started|proxy"
+# Should show --hostname=https://keycloak.local in the command line
+# and "Listening on: http://0.0.0.0:8080" (internal; external is HTTPS via Gateway)
+
+# Also verify KC_PROXY_HEADERS env is set (KC_PROXY is deprecated in KC 26)
+kubectl get pod keycloak-keycloakx-0 -n keycloak \
+  -o jsonpath='{.spec.containers[0].env}' | python3 -m json.tool
+```
+
+Fix: ensure `deploy/environments/local/keycloak/values.yaml` has `--hostname=https://keycloak.local` in `command` and `KC_PROXY_HEADERS: xforwarded` in `extraEnv`. After committing, restart the pod:
+
+```bash
+kubectl rollout restart statefulset/keycloak-keycloakx -n keycloak
+```
+
+### Inspecting what ArgoCD actually renders
+
+When ArgoCD applies something unexpected, render the chart locally using the exact same values:
+
+```bash
+# Add the helm repo first if needed
+helm repo add codecentric https://codecentric.github.io/helm-charts
+helm repo update
+
+# Dry-run render with both values files layered (same order as ArgoCD)
+helm template keycloak codecentric/keycloakx --version 7.1.8 \
+  --namespace keycloak \
+  --values deploy/infrastructure/base/keycloak/values.yaml \
+  --values deploy/environments/local/keycloak/values.yaml \
+  | grep -E "^(kind|  name:|    - |  image:)"
+
+# Full render to file for detailed inspection
+helm template keycloak codecentric/keycloakx --version 7.1.8 \
+  --namespace keycloak \
+  --values deploy/infrastructure/base/keycloak/values.yaml \
+  --values deploy/environments/local/keycloak/values.yaml \
+  > /tmp/keycloak-rendered.yaml
 ```
