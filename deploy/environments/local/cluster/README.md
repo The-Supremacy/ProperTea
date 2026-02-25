@@ -640,7 +640,130 @@ The local-to-AKS delta is intentionally small. Application manifests, `HTTPRoute
 
 After GitOps is bootstrapped, all further changes go through Git.
 
-## Extra
-- Forward: 
-POD=$(kubectl get pod -n argocd -l app.kubernetes.io/name=argocd-server -o jsonpath='{.items[0].metadata.name}')
-kubectl port-forward pod/$POD -n argocd 8080:8080 --address 0.0.0.0 &
+## Daily Operations Cheatsheet
+
+### ArgoCD UI Access
+
+Port-forward to the **Service** (survives pod restarts):
+
+```bash
+kubectl port-forward svc/argocd-server -n argocd 8080:80 --address 0.0.0.0 &
+# open http://localhost:8080
+```
+
+> Once HTTPRoutes are wired to real hostnames this is no longer needed.
+
+Get the initial admin password:
+
+```bash
+kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d && echo
+```
+
+### ArgoCD Application Status
+
+```bash
+# Overview of all apps
+kubectl get applications -n argocd
+
+# Health + sync status for one app
+kubectl get application infisical -n argocd -o jsonpath='{.status.sync.status} {.status.health.status}' && echo
+
+# Which resources are OutOfSync
+kubectl get application infisical -n argocd -o json \
+  | python3 -c "import sys,json; d=json.load(sys.stdin); [print(r['kind'], r.get('name',''), r['status']) for r in d['status'].get('resources',[])]"
+
+# Full event/error log for an app
+kubectl describe application infisical -n argocd | tail -40
+```
+
+### ArgoCD Manual Sync
+
+```bash
+# Trigger sync (with prune) via patch -- no argocd CLI needed
+kubectl patch application infisical -n argocd --type merge \
+  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
+
+# Force a hard refresh (clears cache, re-fetches Git)
+kubectl patch application infisical -n argocd --type merge \
+  -p '{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"hard"}}}'
+```
+
+### Helm Diagnostics
+
+```bash
+# Render chart locally with values (dry-run what ArgoCD would apply)
+helm template <release> <repo>/<chart> --version <ver> --values path/to/values.yaml
+
+# Example: render Infisical with base values
+helm template infisical infisical-helm-charts/infisical-standalone --version 1.7.2 \
+  --values deploy/infrastructure/base/infisical/values.yaml \
+  | grep -E "^(kind|  name:)"
+
+# List what values a chart exposes
+helm show values <repo>/<chart> --version <ver>
+
+# Diff a live release against new values before upgrading
+helm diff upgrade <release> <repo>/<chart> --values path/to/values.yaml
+# (requires: helm plugin install https://github.com/databus23/helm-diff)
+
+# Show values currently applied to a live release
+helm get values <release> -n <namespace>
+helm get values <release> -n <namespace> -o yaml > /tmp/current-values.yaml
+```
+
+### Kubernetes General
+
+```bash
+# Services in a namespace
+kubectl get svc -n <namespace>
+
+# All resources in a namespace
+kubectl get all -n <namespace>
+
+# Describe a resource (events + conditions)
+kubectl describe pod <name> -n <namespace>
+
+# Follow logs for a deployment
+kubectl logs -n <namespace> -l app=<label> -f --tail=100
+
+# Follow logs for a specific pod (previous crash)
+kubectl logs <pod> -n <namespace> --previous
+
+# Exec into a running container
+kubectl exec -it <pod> -n <namespace> -- /bin/sh
+
+# Watch pod status
+kubectl get pods -n <namespace> -w
+
+# Force-delete a stuck terminating pod
+kubectl delete pod <pod> -n <namespace> --grace-period=0 --force
+```
+
+### CNPG (CloudNativePG)
+
+```bash
+# Cluster health
+kubectl get cluster -n zitadel
+kubectl describe cluster zitadel-db -n zitadel
+
+# Primary pod
+kubectl get pods -n zitadel -l cnpg.io/instanceRole=primary
+
+# Connect to the database
+kubectl exec -it -n zitadel \
+  $(kubectl get pod -n zitadel -l cnpg.io/instanceRole=primary -o jsonpath='{.items[0].metadata.name}') \
+  -- psql -U postgres zitadel
+```
+
+### SOPS / Secrets
+
+```bash
+# Decrypt a SOPS-encrypted file to stdout
+sops -d deploy/environments/local/infisical/infisical-secrets.enc.yaml
+
+# Edit in-place (opens $EDITOR with decrypted content, re-encrypts on save)
+sops deploy/environments/local/zitadel/infisical-machine-identity.enc.yaml
+
+# Encrypt a new file using the rules in .sops.yaml
+sops -e -i path/to/new-file.enc.yaml
+```
