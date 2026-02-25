@@ -18,10 +18,6 @@ extraEnv: |
     value: admin
   - name: KEYCLOAK_ADMIN_PASSWORD
     value: "Password1!"
-  # KC_PROXY is deprecated in Keycloak 26. Use KC_PROXY_HEADERS instead.
-  # xforwarded = trust X-Forwarded-Proto/Host/For headers from the Gateway.
-  - name: KC_PROXY_HEADERS
-    value: xforwarded
 
 # Pull DB credentials from CloudNativePG-created secret.
 # CNPG creates keycloak-db-app automatically when the Cluster CR is applied.
