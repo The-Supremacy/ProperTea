@@ -64,7 +64,7 @@ On the **dev machine** (where you edit and commit code):
 - `sops` -- for encrypting secret files locally before committing them to Git
   ```bash
   # Download from https://github.com/getsops/sops/releases
-  SOPS_VERSION="v3.9.4"
+  SOPS_VERSION="v3.12.1"
   wget -qO /usr/local/bin/sops \
     "https://github.com/getsops/sops/releases/download/${SOPS_VERSION}/sops-${SOPS_VERSION}.linux.amd64"
   chmod +x /usr/local/bin/sops
@@ -287,7 +287,7 @@ Run the infrastructure script:
 bash scripts/install-infrastructure.sh
 ```
 
-This installs Gateway API CRDs, Cilium 1.17.2 (with Talos-specific settings), Local Path Provisioner (as a bootstrap stop-gap default StorageClass), and kubelet-csr-approver. All nodes will be `Ready` when it completes.
+This installs Gateway API CRDs, Cilium 1.19.1 (with Talos-specific settings), Local Path Provisioner (as a bootstrap stop-gap default StorageClass), and kubelet-csr-approver. All nodes will be `Ready` when it completes.
 
 > **Storage note:** Local Path Provisioner covers the window between ArgoCD install and Longhorn becoming available (e.g. ArgoCD's own Redis PVC). Once GitOps is bootstrapped, ArgoCD installs Longhorn 1.7.2 via the `longhorn` Application — Longhorn then becomes the default StorageClass. Local Path Provisioner remains available for non-replicated workloads (no configuration needed; keep it as-is).
 
@@ -425,6 +425,35 @@ talosctl apply-config --nodes 192.168.50.11 --endpoints 192.168.50.11 --taloscon
 talosctl apply-config --nodes 192.168.50.12 --endpoints 192.168.50.12 --talosconfig _out/talosconfig --file _out/worker-02.yaml
 ```
 
+## Upgrading
+
+### Cilium
+
+Cilium is installed by `install-infrastructure.sh` before GitOps is bootstrapped, so it is not managed by ArgoCD. Upgrade it manually:
+
+```bash
+bash scripts/upgrade-cilium.sh 1.19.1
+```
+
+The script exports the current installed values and re-applies them against the new chart version (avoids `--reuse-values` nil pointer errors from new required keys). After upgrading, update `CILIUM_VERSION` in `install-infrastructure.sh` and commit.
+
+### Talos OS + Kubernetes
+
+Never skip minor versions — upgrade one at a time:
+
+```bash
+# Show current versions
+talosctl version --nodes 192.168.50.10 --talosconfig _out/talosconfig
+kubectl version
+
+# Upgrade (control plane first, then workers, then Kubernetes)
+bash scripts/upgrade-k8s.sh v1.12.5 1.32.2
+```
+
+The script reads the schematic ID from `patches/common.yaml` automatically — only the version tag changes. After upgrading, update `machine.install.image` in `patches/common.yaml` to the new version and commit.
+
+Compatibility matrix: https://www.talos.dev/latest/introduction/support-matrix/
+
 ## Monitoring Talos Nodes
 
 Nodes are reachable directly at their internal IPs:
@@ -537,6 +566,8 @@ deploy/
         install-infrastructure.sh # Gateway API CRDs, Cilium, Local Path Provisioner, kubelet-csr-approver
         install-argocd.sh         # age key, ArgoCD Helm install with SOPS CMP sidecar
         bootstrap-gitops.sh       # SSH deploy key, repo credential, apply root-app.yaml (run once)
+        upgrade-cilium.sh         # Upgrades Cilium in-place (not ArgoCD-managed)
+        upgrade-k8s.sh            # Upgrades Talos OS + Kubernetes (sequential minor versions)
 
     root-app.yaml               # Bootstrap: manually applied once. Watches environments/local/apps/
     apps/                       # All ArgoCD Applications for this cluster

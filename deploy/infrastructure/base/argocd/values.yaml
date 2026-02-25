@@ -38,8 +38,9 @@ repoServer:
         - -c
         - |
           set -e
-          SOPS_VERSION="v3.9.4"
-          AGE_VERSION="v1.2.1"
+          SOPS_VERSION="v3.12.1"
+          AGE_VERSION="v1.3.1"
+          KUSTOMIZE_VERSION="v5.8.1"
 
           echo "Downloading sops ${SOPS_VERSION}..."
           wget -qO /custom-tools/sops \
@@ -53,9 +54,16 @@ repoServer:
           cp /tmp/age/age /custom-tools/age
           chmod +x /custom-tools/age
 
+          echo "Downloading kustomize ${KUSTOMIZE_VERSION}..."
+          wget -qO /tmp/kustomize.tar.gz \
+            "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
+          tar -xzf /tmp/kustomize.tar.gz -C /custom-tools
+          chmod +x /custom-tools/kustomize
+
           echo "Done."
           /custom-tools/sops --version
           /custom-tools/age --version
+          /custom-tools/kustomize version
       volumeMounts:
         - mountPath: /custom-tools
           name: custom-tools
@@ -86,6 +94,9 @@ repoServer:
         - mountPath: /usr/local/bin/age
           name: custom-tools
           subPath: age
+        - mountPath: /usr/local/bin/kustomize
+          name: custom-tools
+          subPath: kustomize
         - mountPath: /age
           name: age-key
 
@@ -109,12 +120,13 @@ extraObjects:
           discover:
             find:
               command:
-                - find
-                - "."
-                - -name
-                - "*.enc.yaml"
-                - -maxdepth
-                - "2"
+                - sh
+                - -c
+                - |
+                  # Activate for any source (Helm or Kustomize) that contains *.enc.yaml.
+                  # The generate step below detects Chart.yaml vs kustomization.yaml
+                  # and handles each case separately.
+                  find . -name "*.enc.yaml" -maxdepth 2
           generate:
             command:
               - sh
@@ -124,24 +136,45 @@ extraObjects:
                 TMPDIR=$(mktemp -d)
                 trap 'rm -rf $TMPDIR' EXIT
 
-                # Collect values files: decrypt *.enc.yaml, pass *.yaml through as-is.
-                VALUES=""
-                for f in $(find . -maxdepth 1 \( -name 'values*.yaml' -o -name 'values*.enc.yaml' \) | sort); do
-                  case "$f" in
-                    *.enc.yaml)
-                      OUT="$TMPDIR/$(basename ${f%%.enc.yaml}).yaml"
-                      sops -d "$f" > "$OUT"
-                      VALUES="$VALUES -f $OUT"
-                      ;;
-                    *)
-                      VALUES="$VALUES -f $f"
-                      ;;
-                  esac
-                done
+                if [ -f "Chart.yaml" ]; then
+                  # Helm mode: decrypt values files and run helm template.
+                  VALUES=""
+                  for f in $(find . -maxdepth 1 \( -name 'values*.yaml' -o -name 'values*.enc.yaml' \) | sort); do
+                    case "$f" in
+                      *.enc.yaml)
+                        OUT="$TMPDIR/$(basename ${f%%.enc.yaml}).yaml"
+                        sops -d "$f" > "$OUT"
+                        VALUES="$VALUES -f $OUT"
+                        ;;
+                      *)
+                        VALUES="$VALUES -f $f"
+                        ;;
+                    esac
+                  done
+                  eval helm template "$ARGOCD_APP_NAME" \
+                    --namespace "$ARGOCD_APP_NAMESPACE" \
+                    --include-crds \
+                    $VALUES \
+                    .
 
-                eval helm template "$ARGOCD_APP_NAME" \
-                  --namespace "$ARGOCD_APP_NAMESPACE" \
-                  --include-crds \
-                  $VALUES \
-                  .
+                elif [ -f "kustomization.yaml" ]; then
+                  # Kustomize mode: decrypt any *.enc.yaml resources in-place, then build.
+                  # ArgoCD CMP clones are writable; relative paths (e.g. ../../../base) resolve
+                  # correctly because the full repo is checked out.
+                  for f in $(find . -maxdepth 1 -name '*.enc.yaml' | sort); do
+                    dec="${f%.enc.yaml}.yaml"
+                    sops -d "$f" > "$dec"
+                    base_enc=$(basename "$f")
+                    base_dec=$(basename "$dec")
+                    sed -i "s|${base_enc}|${base_dec}|g" kustomization.yaml
+                  done
+                  kustomize build .
+
+                else
+                  # Raw manifest mode: decrypt all *.enc.yaml files and output them directly.
+                  for f in $(find . -maxdepth 1 -name '*.enc.yaml' | sort); do
+                    sops -d "$f"
+                    printf '\n---\n'
+                  done
+                fi
           lockRepo: false

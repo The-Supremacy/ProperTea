@@ -16,8 +16,8 @@
 
 set -euo pipefail
 
-CILIUM_VERSION="1.17.2"
-GATEWAY_API_VERSION="v1.2.1"
+CILIUM_VERSION="1.19.1"
+GATEWAY_API_VERSION="v1.4.1"
 CP_IP="192.168.50.10"
 
 echo "=== Step 1: Gateway API CRDs ==="
