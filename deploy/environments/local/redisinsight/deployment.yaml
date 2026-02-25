@@ -18,6 +18,8 @@ spec:
       labels:
         app: redisinsight
     spec:
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: redisinsight
           image: redis/redisinsight:3.0
