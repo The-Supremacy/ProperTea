@@ -12,19 +12,15 @@
 
 configs:
   params:
-    # Use insecure mode -- TLS is terminated by the Gateway (Cilium HTTPRoute)
     server.insecure: "true"
 
 repoServer:
   volumes:
-    # Shared volume for sops + age binaries installed by the initContainer
     - name: custom-tools
       emptyDir: {}
-    # Plugin definition — ConfigMap rendered by this Helm release via extraObjects
     - name: cmp-helm-sops-config
       configMap:
         name: cmp-helm-sops-config
-    # age private key from manually bootstrapped K8s secret
     - name: age-key
       secret:
         secretName: argocd-age-key

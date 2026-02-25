@@ -1,8 +1,3 @@
-# local environment overrides for the ZITADEL Helm chart.
-# Layered on top of deploy/infrastructure/zitadel/values.yaml.
-# Uses *.local DNS and a self-signed CA. Plain-text seed password is intentional
-# for local iteration — do not replicate this pattern in SIT or production.
-
 replicaCount: 1
 
 zitadel:

@@ -1,6 +1,3 @@
-# HTTPRoute for the Longhorn UI.
-# The longhorn-system namespace PSA labels are managed by ArgoCD's
-# managedNamespaceMetadata on the longhorn Application.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
