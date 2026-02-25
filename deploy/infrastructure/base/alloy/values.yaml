@@ -19,11 +19,16 @@ service:
 
 alloy:
   extraPorts:
+    # The alloy chart service.yaml template reads .port (Service port) and
+    # .targetPort (container port). The standard k8s 'containerPort' field name
+    # is NOT used here and renders as 0 if specified.
     - name: otlp-grpc
-      containerPort: 4317
+      port: 4317
+      targetPort: 4317
       protocol: TCP
     - name: otlp-http
-      containerPort: 4318
+      port: 4318
+      targetPort: 4318
       protocol: TCP
 
   resources:
