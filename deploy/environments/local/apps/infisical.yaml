@@ -16,7 +16,7 @@ spec:
       helm:
         releaseName: infisical
         valueFiles:
-          - $values/deploy/infrastructure/base/infisical/values.yaml
+          - $values/deploy/infrastructure/self-hosted/infisical/values.yaml
           - $values/deploy/environments/local/infisical/values.yaml
     - repoURL: git@github.com:The-Supremacy/ProperTea.git
       targetRevision: HEAD

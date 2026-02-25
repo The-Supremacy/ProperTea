@@ -751,7 +751,7 @@ helm template <release> <repo>/<chart> --version <ver> --values path/to/values.y
 
 # Example: render Infisical with base values
 helm template infisical infisical-helm-charts/infisical-standalone --version 1.7.2 \
-  --values deploy/infrastructure/base/infisical/values.yaml \
+  --values deploy/infrastructure/self-hosted/infisical/values.yaml \
   | grep -E "^(kind|  name:)"
 
 # List what values a chart exposes

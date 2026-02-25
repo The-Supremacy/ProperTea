@@ -24,7 +24,7 @@ echo "=== Step 1: Gateway API CRDs ==="
 # Use the experimental bundle — it includes all standard CRDs plus experimental ones
 # (ReferenceGrant, GRPCRoute, TLSRoute, BackendLBPolicy, etc.) that Cilium requires.
 # Using individual standard files risks missing CRDs that Cilium's operator checks for.
-kubectl apply -f "https://github.com/kubernetes-sigs/gateway-api/releases/download/${GATEWAY_API_VERSION}/experimental-install.yaml"
+kubectl apply -f "https://github.com/kubernetes-sigs/gateway-api/releases/download/${GATEWAY_API_VERSION}/experimental-install.yaml" --server-side
 echo "Gateway API CRDs installed."
 
 echo ""
@@ -52,6 +52,7 @@ helm install cilium cilium/cilium \
   --set hubble.ui.enabled=true \
   --set gatewayAPI.enabled=true \
   --set l2announcements.enabled=true \
+  --server-side \
   --set devices=ens3
 
 echo "Waiting for Cilium agents to become ready..."
@@ -65,7 +66,7 @@ kubectl get nodes -o wide
 
 echo ""
 echo "=== Step 3: Local Path Provisioner ==="
-kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
+kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml --server-side
 kubectl patch storageclass local-path \
   -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
@@ -90,6 +91,7 @@ helm repo update kubelet-csr-approver 2>/dev/null
 helm install kubelet-csr-approver kubelet-csr-approver/kubelet-csr-approver \
   --namespace kube-system \
   --set providerRegex='^talos-.+$' \
+  --server-side \
   --set bypassDnsResolution=true
 echo "kubelet-csr-approver installed."
 

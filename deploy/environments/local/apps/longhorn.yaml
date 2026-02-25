@@ -16,7 +16,7 @@ spec:
       helm:
         releaseName: longhorn
         valueFiles:
-          - $values/deploy/infrastructure/base/longhorn/values.yaml
+          - $values/deploy/infrastructure/self-hosted/longhorn/values.yaml
           - $values/deploy/environments/local/longhorn/values.yaml
     - repoURL: git@github.com:The-Supremacy/ProperTea.git
       targetRevision: HEAD
