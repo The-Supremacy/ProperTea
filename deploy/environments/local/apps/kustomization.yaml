@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - argocd.yaml
   - argocd-config.yaml
+  - argocd-credentials.yaml
   - cert-manager.yaml
   - cert-manager-config.yaml
   - cloudnativepg.yaml
