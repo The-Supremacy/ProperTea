@@ -51,7 +51,8 @@ helm install cilium cilium/cilium \
   --set hubble.relay.enabled=true \
   --set hubble.ui.enabled=true \
   --set gatewayAPI.enabled=true \
-  --set l2announcements.enabled=true
+  --set l2announcements.enabled=true \
+  --set devices=ens3
 
 echo "Waiting for Cilium agents to become ready..."
 kubectl -n kube-system wait \
