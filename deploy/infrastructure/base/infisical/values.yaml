@@ -8,9 +8,10 @@
 # infisical-secrets K8s Secret must be created manually before the first sync.
 # See the cluster README (Step 10: Infisical bootstrap) for the exact command.
 
-fullnameOverride: infisical
-
 infisical:
+  # Overrides resource names (service, deployment, etc.) to a clean "infisical"
+  # instead of the default "<release>-<chart>-<component>" pattern.
+  fullnameOverride: infisical
   replicaCount: 1
 
   # kubeSecretRef points at the K8s Secret that injects runtime env vars into
