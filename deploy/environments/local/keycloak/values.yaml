@@ -1,18 +1,23 @@
-replicaCount: 1
+replicas: 1
 
-auth:
-  adminUser: admin
-  # Plaintext intentionally — local dev only.
-  # In UAT/prod: use auth.existingSecret pointing at a sealed/Infisical-managed secret.
-  adminPassword: "Password1!"
+# Admin user created on first boot only.
+# In UAT/prod: use a Secret reference instead of plaintext.
+extraEnv: |
+  - name: KEYCLOAK_ADMIN
+    value: admin
+  - name: KEYCLOAK_ADMIN_PASSWORD
+    value: "Password1!"
+  - name: KC_HOSTNAME_STRICT
+    value: "false"
 
-# Pull DB credentials from CloudNativePG-created secrets.
+# Pull DB credentials from CloudNativePG-created secret.
 # CNPG creates keycloak-db-app automatically when the Cluster CR is applied.
-# It contains 'username' (= keycloak) and 'password' keys.
-externalDatabase:
-  host: keycloak-db-rw
+# The secret contains 'username' and 'password' keys.
+database:
+  vendor: postgres
+  hostname: keycloak-db-rw
   port: 5432
-  user: keycloak
   database: keycloak
+  username: keycloak
   existingSecret: keycloak-db-app
-  existingSecretPasswordKey: password
+  existingSecretKey: password

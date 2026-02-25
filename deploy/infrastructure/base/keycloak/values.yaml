@@ -1,29 +1,20 @@
-# Base Keycloak Helm values (Bitnami chart) — environment-agnostic.
+# Base Keycloak Helm values (codecentric/keycloakx chart) — environment-agnostic.
+# Chart wraps quay.io/keycloak/keycloak — the official Red Hat published image.
 # Environment-specific values (hostname, DB credentials, replica count)
 # live in deploy/environments/<env>/keycloak/values.yaml.
 
-# Disable bundled PostgreSQL — use the CloudNativePG cluster instead.
-postgresql:
-  enabled: false
-
-# Local dev: production mode off. UAT/prod: set production: true with TLS.
-production: false
-
-# Trust X-Forwarded-Proto injected by the Cilium Gateway (TLS terminated there).
-# Without this, Keycloak rejects HTTPS redirects because it sees plain HTTP internally.
-proxyHeaders: xforwarded
-
-# Serve Keycloak at the root path.
-httpRelativePath: /
-
-# JDBC ping for cluster discovery — works with any replica count, no multicast.
-cache:
+http:
+  relativePath: /
+proxy:
   enabled: true
-  stack: jdbc-ping
-
+  mode: forwarded
+cache:
+  stack: default
+health:
+  enabled: true
+metrics:
+  enabled: true
+dbchecker:
+  enabled: true
 logging:
-  output: default
   level: INFO
-
-# Reasonable baseline for local. Override per-env for production sizing.
-resourcesPreset: small
