@@ -8,6 +8,8 @@
 # infisical-secrets K8s Secret must be created manually before the first sync.
 # See the cluster README (Step 10: Infisical bootstrap) for the exact command.
 
+fullnameOverride: infisical
+
 infisical:
   replicaCount: 1
 
