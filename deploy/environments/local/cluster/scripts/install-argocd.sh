@@ -12,19 +12,19 @@
 #   - helm installed
 #   - age installed on this machine (the infra VM) -- for age-keygen
 #     sops belongs on the dev machine (for encrypting secrets before committing to Git)
-#   - deploy/infrastructure/helm/argocd/values.yaml exists
+#   - deploy/infrastructure/base/argocd/values.yaml exists
 #
 # Usage (from the cluster directory -- consistent with the other bootstrap scripts):
-#   bash scripts/install-argocd.sh [local|sit]
+#   bash scripts/install-argocd.sh [local]
 #
 # Defaults to 'local' if no argument is supplied.
 
 set -euo pipefail
 
 ENV="${1:-local}"
-if [[ "$ENV" != "local" && "$ENV" != "sit" ]]; then
-  echo "Error: ENV must be 'local' or 'sit' (got: '$ENV')" >&2
-  echo "Usage: $0 [local|sit]" >&2
+if [[ "$ENV" != "local" ]]; then
+  echo "Error: ENV must be 'local' (got: '$ENV')" >&2
+  echo "Usage: $0 [local]" >&2
   exit 1
 fi
 
@@ -34,7 +34,7 @@ ENV_DIR="$(dirname "$CLUSTER_DIR")"               # cluster/ -> environments/<en
 ENVIRONMENTS_DIR="$(dirname "$ENV_DIR")"          # environments/<env>/ -> environments/
 DEPLOY_DIR="$(dirname "$ENVIRONMENTS_DIR")"       # environments/ -> deploy/
 REPO_ROOT="$(dirname "$DEPLOY_DIR")"              # deploy/ -> repo root
-ARGOCD_MANIFESTS="$REPO_ROOT/deploy/infrastructure/helm/argocd"
+ARGOCD_MANIFESTS="$REPO_ROOT/deploy/infrastructure/base/argocd"
 
 ARGOCD_VERSION="9.4.4"
 AGE_KEY_FILE="${HOME}/.config/sops/age/keys.txt"
@@ -57,6 +57,18 @@ else
   echo ""
   echo "  IMPORTANT: Back up $AGE_KEY_FILE -- losing it means losing access to all"
   echo "  encrypted secrets. The public key in .sops.yaml can be freely committed."
+fi
+
+# Sync .sops.yaml with the actual public key. This is a no-op if the key
+# already matches, but prevents stale-key mismatches if the keypair is
+# regenerated or if install-argocd.sh is run on a different machine.
+SOPS_YAML="$REPO_ROOT/.sops.yaml"
+CURRENT=$(grep "^    age:" "$SOPS_YAML" | awk '{print $2}')
+if [[ "$CURRENT" != "$PUBLIC_KEY" ]]; then
+  echo "  Updating .sops.yaml public key ($CURRENT → $PUBLIC_KEY)"
+  sed -i "s|^    age: .*|    age: $PUBLIC_KEY|" "$SOPS_YAML"
+else
+  echo "  .sops.yaml already has the correct public key."
 fi
 
 # ---- Step 2: argocd namespace ----

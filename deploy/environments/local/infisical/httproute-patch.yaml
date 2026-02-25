@@ -1,8 +1,8 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: argocd
-  namespace: argocd
+  name: infisical
+  namespace: infisical
 spec:
   hostnames:
-    - argocd.sit.propertea.io
+    - infisical.local

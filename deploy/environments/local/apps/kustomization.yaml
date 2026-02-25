@@ -10,5 +10,7 @@ resources:
   - gateway-config.yaml
   - longhorn.yaml
   - longhorn-config.yaml
+  - infisical.yaml
+  - secrets-operator.yaml
   - zitadel-config.yaml
   - zitadel.yaml

@@ -1,0 +1,56 @@
+# Base Helm values for Infisical standalone (self-hosted, bundled Postgres + Redis).
+# Ingress is disabled -- TLS termination and routing is handled by the Cilium Gateway
+# via HTTPRoute, consistent with every other service in this cluster.
+#
+# On AKS/prod: set postgresql.enabled=false and redis.enabled=false, supply
+# DB_CONNECTION_URI and REDIS_URL in infisical-secrets pointing at managed services.
+#
+# infisical-secrets K8s Secret must be created manually before the first sync.
+# See the cluster README (Step 10: Infisical bootstrap) for the exact command.
+
+infisical:
+  replicaCount: 1
+
+  # kubeSecretRef points at the K8s Secret that injects runtime env vars into
+  # Infisical pods. Must contain: ENCRYPTION_KEY, AUTH_SECRET, SITE_URL,
+  # DB_CONNECTION_URI, REDIS_URL. Created as part of the bootstrap procedure.
+  kubeSecretRef: infisical-secrets
+
+  # autoBootstrap disabled -- log in via the UI after first boot to create
+  # the organisation, machine identities, and projects manually.
+  # Phase 2: enable this + the Infisical Operator to automate InfisicalSecret CRs.
+  autoBootstrap:
+    enabled: false
+
+# Ingress disabled -- Cilium Gateway + HTTPRoute handles this.
+ingress:
+  enabled: false
+  nginx:
+    enabled: false
+
+# Bundled Postgres. Using Longhorn PVs so data survives pod restarts.
+# Password must match DB_CONNECTION_URI in infisical-secrets.
+postgresql:
+  enabled: true
+  fullnameOverride: postgresql
+  auth:
+    username: infisical
+    password: infisical
+    database: infisicalDB
+  primary:
+    persistence:
+      storageClass: longhorn
+      size: 5Gi
+
+# Bundled Redis. Using Longhorn PVs.
+# Password must match REDIS_URL in infisical-secrets.
+redis:
+  enabled: true
+  fullnameOverride: redis
+  auth:
+    password: infisical
+  architecture: standalone
+  master:
+    persistence:
+      storageClass: longhorn
+      size: 1Gi

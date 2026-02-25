@@ -1,15 +1,15 @@
 # SOPS configuration for ProperTea.
 #
 # All *.enc.yaml files are encrypted with the age key below.
-# Encrypt:  sops -e --input-type yaml --output-type yaml secrets.yaml > secrets.enc.yaml
+# Encrypt:  sops -e -i secrets.enc.yaml  (in-place, input must be named *.enc.yaml)
 # Decrypt:  sops -d secrets.enc.yaml
 # Edit:     sops secrets.enc.yaml
 #
 # The corresponding private key lives at ~/.config/sops/age/keys.txt on
 # propertea-k8s-local (never committed). The same key is mounted into the
-# ArgoCD repo-server as the argocd-age-key K8s secret so ArgoCD can decrypt
-# at apply time.
+# ArgoCD repo-server as the argocd-age-key K8s secret (key.txt field) so
+# ArgoCD can decrypt at apply time.
 
 creation_rules:
   - path_regex: \.enc\.yaml$
-    age: age1chpyf4jshaddsdtq7xlfzsdsr4qy98jv2ph3sm65vas2ax944uxsq7ts0u
+    age: age18wk5cvj6z2lu239q9z748xmqmn660dqdermety58a7e2zrte8yqq3rw7k6

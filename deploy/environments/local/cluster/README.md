@@ -291,7 +291,7 @@ This installs Gateway API CRDs, Cilium 1.17.2 (with Talos-specific settings), Lo
 
 > **Storage note:** Local Path Provisioner covers the window between ArgoCD install and Longhorn becoming available (e.g. ArgoCD's own Redis PVC). Once GitOps is bootstrapped, ArgoCD installs Longhorn 1.7.2 via the `longhorn` Application — Longhorn then becomes the default StorageClass. Local Path Provisioner remains available for non-replicated workloads (no configuration needed; keep it as-is).
 
-> **Longhorn + Talos:** Longhorn requires `iscsi-tools` and `util-linux-tools` system extensions — these are baked into the Talos ISO schematic from Step 3. No additional machine config patches are needed.
+> **Longhorn + Talos:** Longhorn requires `iscsi-tools` and `util-linux-tools` system extensions and a kubelet `extraMounts` entry for `/var/lib/longhorn`. Both are handled in `patches/common.yaml`. The patch also pins `machine.install.image` to the schematic-keyed installer — without this, Talos installs the generic image to disk during bootstrap and loses extensions on the first reboot even though the ISO had them. If you bump the Talos version or schematic, update the `install.image` in `common.yaml` to match.
 
 > **Cilium + Talos:** Cilium requires `cgroup.autoMount.enabled=false` and explicit capability sets. Without these the `clean-cilium-state` init container fails with a capabilities error. The script includes these settings.
 
@@ -303,10 +303,8 @@ Installs ArgoCD with the SOPS/age CMP sidecar for encrypted secret support:
 bash scripts/install-argocd.sh local
 ```
 
-The `local` argument selects the environment — use `sit` when bootstrapping the SIT env instead.
-
 The script installs ArgoCD using two values files layered together:
-- `deploy/infrastructure/helm/argocd/values.yaml` — base config (SOPS CMP sidecar, insecure mode)
+- `deploy/infrastructure/base/argocd/values.yaml` — base config (SOPS CMP sidecar, insecure mode)
 - `deploy/environments/local/argocd/values.yaml` — env-specific overrides (domain: `argocd.local`)
 
 Access the UI temporarily via port-forward (stopgap until the Cilium Gateway is live):
@@ -318,31 +316,63 @@ kubectl port-forward svc/argocd-server -n argocd 8080:80 &
 
 > **Note:** `kubectl port-forward` tunnels directly to a pod and has no resilience -- it exits if the pod restarts. Run the command again to reconnect. The Gateway setup eliminates this permanently.
 
-## Step 10: Pre-GitOps Secrets
+## Step 10: Bootstrap Infisical and ZITADEL Secrets
 
-Do this **after wave 5 (`zitadel-config`) is healthy** in ArgoCD. Wave 5 applies the CNPG `Cluster` manifest which creates the `zitadel` namespace. The masterkey secret goes into that namespace.
+All secrets in this setup flow through Infisical. The Infisical Helm release (`infisical.yaml`, wave 5) and the Infisical Kubernetes Operator (`secrets-operator.yaml`, wave 5) both sync automatically — no manual steps needed for those.
 
-ZITADEL (`zitadel.yaml`, wave 6) has automated sync disabled — ArgoCD will not touch it until you trigger it manually. This gives you the window to create the masterkey first.
+### 10a: Wait for Infisical to be ready (wave 5)
+
+`infisical-secrets` is committed as a SOPS-encrypted manifest (`infisical-secrets.enc.yaml`). ArgoCD's CMP sidecar decrypts it at apply time using the age private key in `argocd-age-key`. Wave 5 syncs automatically once wave 4 is Healthy.
 
 ```bash
-kubectl create secret generic zitadel-masterkey \
-  --namespace zitadel \
-  --from-literal=masterkey="$(openssl rand -base64 32)"
+kubectl get pods -n infisical -w
+kubectl get pods -n infisical-operator-system -w
 ```
 
-Note the value before running (retrieve it with `kubectl get secret zitadel-masterkey -n zitadel -o jsonpath='{.data.masterkey}' | base64 -d`).
+### 10b: Configure Infisical and create the Machine Identity
 
-Once the secret exists, trigger wave 6 manually in the ArgoCD UI: open the `zitadel` Application and click **Sync**. ZITADEL's init job will find the masterkey and the CNPG-created DB credentials (`zitadel-db-app`, `zitadel-db-superuser`) and complete successfully.
+Open `https://infisical.local` and complete the one-time UI setup:
 
-### Future: Infisical replaces this manual step
+1. Create a user account and organisation (e.g. `ProperTea Local`)
+2. Create a project (note its **slug**, e.g. `propertea`)
+3. Add a secret: **key** = `masterkey`, **value** = `$(openssl rand -base64 32)`, **env** = `local`, **path** = `/`
+4. Go to **Organisation Settings → Machine Identities → Create Identity**
+   - Auth method: **Universal Auth**
+   - Scope: the project above, role `Member` (or a custom read-only role)
+5. After creation, select the identity and **Generate Credentials** — copy the **Client ID** and **Client Secret** before closing (they are shown once)
 
-Once Infisical is running in-cluster (wave 4), an `InfisicalSecret` CR at wave 5 will pull the masterkey from Infisical and create the K8s Secret automatically. At that point, re-enable automated sync on `zitadel.yaml` and remove this manual step. The wave structure and everything else stays the same.
+### 10c: Update the machine identity credential secret
 
-On AKS, External Secrets Operator + Azure Key Vault replaces Infisical in the same position.
+The placeholder at `deploy/environments/local/zitadel/infisical-machine-identity.enc.yaml` is SOPS-encrypted. Replace the placeholder values in-place:
+
+```bash
+# Opens the decrypted YAML in $EDITOR, saves re-encrypted on exit
+sops deploy/environments/local/zitadel/infisical-machine-identity.enc.yaml
+```
+
+Update `clientId` and `clientSecret` to the real values from step 10b.
+
+### 10d: Update the projectSlug in the InfisicalSecret CR
+
+Edit `deploy/environments/local/zitadel/infisical-secret.yaml` and replace `PLACEHOLDER_PROJECT_SLUG` with the Infisical project slug from step 10b.
+
+### 10e: Commit and push
+
+```bash
+git add deploy/environments/local/zitadel/
+git commit -m "chore(local): configure Infisical machine identity and project slug"
+git push
+```
+
+ArgoCD detects the push. Wave 6 (`zitadel-config`) re-syncs:
+- CNPG `Cluster` CR provisions the `zitadel-db` Postgres cluster (creates `zitadel-db-app`, `zitadel-db-superuser` Secrets automatically)
+- `InfisicalSecret` CR prompts the operator to pull `masterkey` from Infisical → creates the `zitadel-masterkey` K8s Secret
+
+Wave 7 (`zitadel`) then auto-syncs and finds the masterkey ready.
 
 ### What Infisical does NOT manage
 
-CloudNativePG creates `zitadel-db-app` and `zitadel-db-superuser` automatically when the CNPG `Cluster` CR is applied. These are internal cluster credentials — randomly generated, cluster-scoped, referenced directly by ZITADEL's `secretKeyRef`. No vault involvement needed. If you rebuild the cluster, CNPG recreates them and ZITADEL uses the new credentials on first init.
+CloudNativePG creates `zitadel-db-app` and `zitadel-db-superuser` automatically when the CNPG `Cluster` CR is applied. These are internal cluster credentials managed entirely by CNPG — no vault involvement needed. If you rebuild the cluster, CNPG recreates them and ZITADEL picks up the new credentials on first init.
 
 ## Step 11: Bootstrap GitOps
 
@@ -351,8 +381,6 @@ This is the last manual `kubectl apply`. After it, all cluster changes are drive
 ```bash
 bash scripts/bootstrap-gitops.sh local
 ```
-
-Pass `sit` instead when bootstrapping the SIT environment.
 
 The script will:
 1. Generate an SSH deploy key and print the public key
@@ -372,14 +400,16 @@ local-apps  (watches deploy/environments/local/apps/)
   ├── longhorn.yaml            ← wave 3: Longhorn Helm install (becomes default StorageClass)
   ├── longhorn-config.yaml     ← wave 4: Longhorn UI HTTPRoute
   ├── cloudnativepg.yaml       ← wave 4: CloudNativePG operator
-  ├── zitadel-config.yaml      ← wave 5: ZITADEL Postgres Cluster + HTTPRoute
-  └── zitadel.yaml             ← wave 6: ZITADEL Helm install
+  ├── infisical.yaml           ← wave 5: Infisical Helm install + HTTPRoute (auto-sync, SOPS-decrypted secret)
+  ├── secrets-operator.yaml    ← wave 5: Infisical Kubernetes Operator (watches InfisicalSecret CRs)
+  ├── zitadel-config.yaml      ← wave 6: CNPG Cluster + InfisicalSecret CR (creates zitadel-masterkey)
+  └── zitadel.yaml             ← wave 7: ZITADEL Helm install + HTTPRoute (auto-sync, masterkey from operator)
 ```
 
 Each cluster environment runs its own independent ArgoCD instance, with its own root app pointing only at its environment's apps. `deploy/infrastructure/` is a shared values library referenced by Applications via the `$values` pattern — it contains no Applications itself.
 
 To update ArgoCD config after bootstrap:
-- Base settings (SOPS CMP sidecar, insecure mode): `deploy/infrastructure/helm/argocd/values.yaml`
+- Base settings (SOPS CMP sidecar, insecure mode): `deploy/infrastructure/base/argocd/values.yaml`
 - Local overrides (domain): `deploy/environments/local/argocd/values.yaml`
 
 ## Updating Machine Config on Running Nodes
@@ -542,20 +572,19 @@ deploy/
       argocd/
         kustomization.yaml
         httproute.yaml          # HTTPRoute with hostname: argocd.placeholder
-      longhorn/
-        kustomization.yaml
-        httproute.yaml
-      zitadel/
-        kustomization.yaml
-        httproute.yaml
-        postgres-cluster.yaml   # CloudNativePG Cluster (canonical)
-    helm/                       # Shared Helm values — no Applications, no root app
-      argocd/
         values.yaml             # ArgoCD base Helm values (SOPS CMP, insecure mode)
       longhorn/
+        kustomization.yaml
+        httproute.yaml
         values.yaml             # Longhorn base Helm values (replica balance, storage threshold)
       zitadel/
+        kustomization.yaml
+        postgres-cluster.yaml   # CloudNativePG Cluster (canonical)
         values.yaml             # ZITADEL base Helm values (DB structure, OIDC, SAML)
+      infisical/
+        kustomization.yaml
+        httproute.yaml
+        values.yaml             # Infisical base Helm values (bundled postgres/redis, Longhorn PVCs)
     aks/                        # Future AKS infrastructure stubs
 ```
 
@@ -578,4 +607,9 @@ The local-to-AKS delta is intentionally small. Application manifests, `HTTPRoute
 
 ## Next Steps
 
-After GitOps is bootstrapped, all further changes go through Git. ArgoCD manages the SIT stack from `deploy/environments/sit/`.
+After GitOps is bootstrapped, all further changes go through Git.
+
+## Extra
+- Forward: 
+POD=$(kubectl get pod -n argocd -l app.kubernetes.io/name=argocd-server -o jsonpath='{.items[0].metadata.name}')
+kubectl port-forward pod/$POD -n argocd 8080:8080 --address 0.0.0.0 &

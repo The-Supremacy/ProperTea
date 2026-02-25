@@ -1,0 +1,4 @@
+# Local environment overrides for Infisical.
+# Single replica and *.local hostname -- see httproute-patch.yaml for the hostname.
+# Passwords are intentionally weak/plaintext for local dev only.
+# Do not replicate in SIT or production.

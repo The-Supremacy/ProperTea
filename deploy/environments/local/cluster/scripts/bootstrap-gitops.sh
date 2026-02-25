@@ -17,16 +17,16 @@
 #   - ssh-keyscan available (openssh-client)
 #
 # Usage (from the cluster directory -- consistent with the other bootstrap scripts):
-#   bash scripts/bootstrap-gitops.sh [local|sit]
+#   bash scripts/bootstrap-gitops.sh [local]
 #
 # Defaults to 'local' if no argument is supplied.
 
 set -euo pipefail
 
 ENV="${1:-local}"
-if [[ "$ENV" != "local" && "$ENV" != "sit" ]]; then
-  echo "Error: ENV must be 'local' or 'sit' (got: '$ENV')" >&2
-  echo "Usage: $0 [local|sit]" >&2
+if [[ "$ENV" != "local" ]]; then
+  echo "Error: ENV must be 'local' (got: '$ENV')" >&2
+  echo "Usage: $0 [local]" >&2
   exit 1
 fi
 
@@ -114,5 +114,5 @@ echo "    kubectl port-forward svc/argocd-server -n argocd 8080:80 &"
 echo "    open http://localhost:8080"
 echo ""
 echo "  To update ArgoCD config after bootstrap:"
-echo "    - Base values (SOPS CMP, insecure mode): deploy/infrastructure/helm/argocd/values.yaml"
+echo "    - Base values (SOPS CMP, insecure mode): deploy/infrastructure/base/argocd/values.yaml"
 echo "    - Env-specific overrides (domain, replicas):  deploy/environments/$ENV/argocd/values.yaml"

@@ -16,7 +16,7 @@ spec:
       helm:
         releaseName: argocd
         valueFiles:
-          - $values/deploy/infrastructure/helm/argocd/values.yaml
+          - $values/deploy/infrastructure/base/argocd/values.yaml
           - $values/deploy/environments/local/argocd/values.yaml
     - repoURL: git@github.com:The-Supremacy/ProperTea.git
       targetRevision: HEAD
