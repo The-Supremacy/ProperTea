@@ -42,3 +42,21 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+  # Bitnami postgresql subchart uses helm lookup() to preserve the installed password.
+  # ArgoCD's dry-run helm template cannot perform lookups, so it renders the values.yaml
+  # password and sees a diff against the in-cluster Secret on every sync.
+  # The updatedAt annotation on the old service (before fullnameOverride rename) also
+  # drifts continuously. Both are safe to ignore.
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: postgresql
+      namespace: infisical
+      jsonPointers:
+        - /data/password
+        - /data/postgres-password
+    - group: ""
+      kind: Service
+      namespace: infisical
+      jsonPointers:
+        - /metadata/annotations/updatedAt
