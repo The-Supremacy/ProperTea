@@ -29,14 +29,6 @@ spec:
     server: https://kubernetes.default.svc
     namespace: keycloak
   syncPolicy:
-    # Prerequisites before syncing this wave:
-    #   1. Wave 6 (keycloak-config) is synced AND:
-    #      kubectl get cluster keycloak-db -n keycloak
-    #      → All instances Running, primary elected (not just CR accepted)
-    #   2. keycloak-db-app Secret exists in the keycloak namespace
-    #
-    # Keycloak generates its own cryptographic material on first boot and stores
-    # it in the database. No external master key or secret bootstrap is required.
     automated:
       enabled: true
       prune: true

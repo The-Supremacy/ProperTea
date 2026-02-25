@@ -1,10 +1,13 @@
-# Base Keycloak Helm values (codecentric/keycloakx chart) — environment-agnostic.
-# Chart wraps quay.io/keycloak/keycloak — the official Red Hat published image.
-# Environment-specific values (hostname, DB credentials, replica count)
-# live in deploy/environments/<env>/keycloak/values.yaml.
-
 http:
   relativePath: /
+
+# keycloakx requires an explicit command to start. Without this, kc.sh is
+# invoked with no arguments, prints help, and exits immediately.
+command:
+  - "/opt/keycloak/bin/kc.sh"
+  - "start"
+  - "--http-port=8080"
+
 proxy:
   enabled: true
   mode: forwarded
