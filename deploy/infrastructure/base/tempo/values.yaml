@@ -1,0 +1,44 @@
+fullnameOverride: tempo
+
+tempo:
+  reportingEnabled: false
+
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:4317"
+        http:
+          endpoint: "0.0.0.0:4318"
+
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+      wal:
+        path: /var/tempo/wal
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+persistence:
+  enabled: true
+  storageClass: longhorn
+  size: 10Gi
+  accessModes:
+    - ReadWriteOnce
+
+service:
+  type: ClusterIP
+  port: 3200
+
+# Expose the Tempo query API on the default port (3200) and OTLP receive ports.
+# Grafana datasource uses port 3200 for trace queries.
+serviceMonitor:
+  enabled: false

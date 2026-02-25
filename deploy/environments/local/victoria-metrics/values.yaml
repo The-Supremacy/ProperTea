@@ -1,0 +1,2 @@
+# Local overrides for victoria-metrics.
+# Extends deploy/infrastructure/base/victoria-metrics/values.yaml.

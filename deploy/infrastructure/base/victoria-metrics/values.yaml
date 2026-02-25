@@ -1,0 +1,25 @@
+fullnameOverride: victoria-metrics
+
+server:
+  retentionPeriod: 12  # months
+
+  persistentVolume:
+    enabled: true
+    storageClass: longhorn
+    size: 20Gi
+    accessModes:
+      - ReadWriteOnce
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 1Gi
+      cpu: 1000m
+
+  extraArgs:
+    dedup.minScrapeInterval: 15s
+
+serviceMonitor:
+  enabled: false

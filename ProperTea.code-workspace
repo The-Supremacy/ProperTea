@@ -12,6 +12,9 @@
 			"mkdir": true,
 			"mv": true,
 			"npm install": true
+		},
+		"yaml.schemas": {
+			"https://www.schemastore.org/loki.json": "file:///home/oxface/repos/ProperTea/deploy/environments/local/apps/loki.yaml"
 		}
 	}
 }

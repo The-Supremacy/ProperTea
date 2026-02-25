@@ -1,0 +1,340 @@
+fullnameOverride: alloy
+
+controller:
+  # Single Deployment (not DaemonSet). Uses loki.source.kubernetes (K8s API log streaming)
+  # rather than host-path log file tailing, so no node-local placement is required.
+  # Scrape deduplication is not needed at this scale.
+  type: deployment
+  replicas: 1
+
+serviceAccount:
+  create: true
+  name: alloy
+
+rbac:
+  create: true
+
+# Expose OTLP receive ports and Alloy's own metrics.
+service:
+  type: ClusterIP
+  extraPorts:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+      protocol: TCP
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+      protocol: TCP
+
+alloy:
+  extraPorts:
+    - name: otlp-grpc
+      containerPort: 4317
+      protocol: TCP
+    - name: otlp-http
+      containerPort: 4318
+      protocol: TCP
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+  configMap:
+    content: |
+      // ================================================================
+      // OTLP Receive
+      // Services send to alloy.o11y.svc.cluster.local:4317 or :4318.
+      // Set env: OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy.o11y.svc.cluster.local:4317
+      // ================================================================
+      otelcol.receiver.otlp "default" {
+        grpc { endpoint = "0.0.0.0:4317" }
+        http { endpoint = "0.0.0.0:4318" }
+        output {
+          metrics = [otelcol.exporter.prometheusremotewrite.victoriametrics.input]
+          logs    = [otelcol.exporter.loki.default.input]
+          traces  = [otelcol.exporter.otlp.tempo.input]
+        }
+      }
+
+      // ================================================================
+      // Traces → Tempo
+      // ================================================================
+      otelcol.exporter.otlp "tempo" {
+        client {
+          endpoint = "tempo.o11y.svc.cluster.local:4317"
+          tls { insecure = true }
+        }
+      }
+
+      // ================================================================
+      // OTLP Logs → Loki
+      // ================================================================
+      otelcol.exporter.loki "default" {
+        forward_to = [loki.write.default.receiver]
+      }
+
+      // ================================================================
+      // OTLP Metrics → VictoriaMetrics
+      // ================================================================
+      otelcol.exporter.prometheusremotewrite "victoriametrics" {
+        endpoint {
+          url = "http://victoria-metrics.o11y.svc.cluster.local:8428/api/v1/write"
+        }
+      }
+
+      // ================================================================
+      // Loki write endpoint (shared by OTLP logs and k8s log discovery)
+      // ================================================================
+      loki.write "default" {
+        endpoint {
+          url = "http://loki.o11y.svc.cluster.local:3100/loki/api/v1/push"
+        }
+      }
+
+      // ================================================================
+      // Prometheus scrape → VictoriaMetrics
+      // ================================================================
+      prometheus.remote_write "victoriametrics" {
+        endpoint {
+          url = "http://victoria-metrics.o11y.svc.cluster.local:8428/api/v1/write"
+        }
+      }
+
+      // ================================================================
+      // Kubernetes pod log collection (K8s API streaming — no host mount)
+      // ================================================================
+      discovery.kubernetes "pods" {
+        role = "pod"
+      }
+
+      discovery.relabel "pod_logs" {
+        targets = discovery.kubernetes.pods.targets
+
+        // Drop pods that haven't been scheduled yet
+        rule {
+          source_labels = ["__meta_kubernetes_pod_phase"]
+          regex         = "Pending|Succeeded|Failed|Unknown"
+          action        = "drop"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+          target_label  = "app"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_node_name"]
+          target_label  = "node"
+        }
+      }
+
+      loki.source.kubernetes "pods" {
+        targets    = discovery.relabel.pod_logs.output
+        forward_to = [loki.write.default.receiver]
+      }
+
+      // Kubernetes cluster events as structured log entries
+      loki.source.kubernetes_events "events" {
+        job_name   = "integrations/kubernetes/eventhandler"
+        log_format = "logfmt"
+        forward_to = [loki.write.default.receiver]
+      }
+
+      // ================================================================
+      // kubelet cadvisor — container CPU, memory, network, filesystem
+      // ================================================================
+      discovery.kubernetes "nodes" {
+        role = "node"
+      }
+
+      discovery.relabel "kubelet_cadvisor" {
+        targets = discovery.kubernetes.nodes.targets
+        rule {
+          source_labels = ["__address__"]
+          regex         = "(.+):.+"
+          replacement   = "$1:10250"
+          target_label  = "__address__"
+        }
+        rule {
+          target_label = "__metrics_path__"
+          replacement  = "/metrics/cadvisor"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_node_name"]
+          target_label  = "node"
+        }
+      }
+
+      prometheus.scrape "kubelet_cadvisor" {
+        targets           = discovery.relabel.kubelet_cadvisor.output
+        forward_to        = [prometheus.remote_write.victoriametrics.receiver]
+        scheme            = "https"
+        bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        tls_config        { insecure_skip_verify = true }
+        job_name          = "kubelet-cadvisor"
+        scrape_interval   = "15s"
+      }
+
+      // ================================================================
+      // kube-state-metrics — Kubernetes object health + replica drift
+      // ================================================================
+      prometheus.scrape "kube_state_metrics" {
+        targets         = [{ __address__ = "kube-state-metrics.o11y.svc.cluster.local:8080" }]
+        forward_to      = [prometheus.remote_write.victoriametrics.receiver]
+        job_name        = "kube-state-metrics"
+        scrape_interval = "30s"
+      }
+
+      // ================================================================
+      // ArgoCD
+      // App controller :8082, server :8083, repo-server :8084
+      // ================================================================
+      prometheus.scrape "argocd" {
+        targets = [
+          { __address__ = "argocd-application-controller-metrics.argocd.svc.cluster.local:8082" },
+          { __address__ = "argocd-server-metrics.argocd.svc.cluster.local:8083" },
+          { __address__ = "argocd-repo-server.argocd.svc.cluster.local:8084" },
+        ]
+        forward_to      = [prometheus.remote_write.victoriametrics.receiver]
+        job_name        = "argocd"
+        scrape_interval = "30s"
+      }
+
+      // ================================================================
+      // Cert-manager
+      // ================================================================
+      prometheus.scrape "cert_manager" {
+        targets         = [{ __address__ = "cert-manager.cert-manager.svc.cluster.local:9402" }]
+        forward_to      = [prometheus.remote_write.victoriametrics.receiver]
+        job_name        = "cert-manager"
+        scrape_interval = "60s"
+      }
+
+      // ================================================================
+      // RabbitMQ — Prometheus plugin exposed on :15692/metrics
+      // ================================================================
+      prometheus.scrape "rabbitmq" {
+        targets         = [{ __address__ = "rabbitmq.rabbitmq.svc.cluster.local:15692" }]
+        forward_to      = [prometheus.remote_write.victoriametrics.receiver]
+        job_name        = "rabbitmq"
+        scrape_interval = "30s"
+      }
+
+      // ================================================================
+      // Keycloak — management interface :9000/metrics
+      // Requires metrics.enabled: true in keycloakx chart values (already set).
+      // ================================================================
+      prometheus.scrape "keycloak" {
+        targets         = [{ __address__ = "keycloak-keycloakx-http.keycloak.svc.cluster.local:9000" }]
+        metrics_path    = "/metrics"
+        forward_to      = [prometheus.remote_write.victoriametrics.receiver]
+        job_name        = "keycloak"
+        scrape_interval = "30s"
+      }
+
+      // ================================================================
+      // CNPG operator — :8080/metrics in cnpg-system
+      // Service name: verify with `kubectl get svc -n cnpg-system`
+      // ================================================================
+      prometheus.scrape "cnpg_operator" {
+        targets         = [{ __address__ = "cloudnativepg.cnpg-system.svc.cluster.local:8080" }]
+        forward_to      = [prometheus.remote_write.victoriametrics.receiver]
+        job_name        = "cnpg-operator"
+        scrape_interval = "60s"
+      }
+
+      // ================================================================
+      // CNPG instances — built-in postgresql exporter at :9187/metrics
+      // Each instance pod in the keycloak namespace exposes this port.
+      // monitoring.enablePodMonitor: false in the Cluster CR skips PodMonitor
+      // creation (no Prometheus Operator), but the port is always exposed.
+      // ================================================================
+      discovery.kubernetes "cnpg_instances" {
+        role = "pod"
+        namespaces { names = ["keycloak"] }
+        selectors {
+          role  = "pod"
+          label = "cnpg.io/cluster=keycloak-db"
+        }
+      }
+
+      discovery.relabel "cnpg_instances" {
+        targets = discovery.kubernetes.cnpg_instances.targets
+        rule {
+          source_labels = ["__meta_kubernetes_pod_ip"]
+          replacement   = "$1:9187"
+          target_label  = "__address__"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+      }
+
+      prometheus.scrape "cnpg_instances" {
+        targets         = discovery.relabel.cnpg_instances.output
+        forward_to      = [prometheus.remote_write.victoriametrics.receiver]
+        job_name        = "cnpg-instances"
+        scrape_interval = "30s"
+      }
+
+      // ================================================================
+      // Longhorn — manager pods :9500/metrics
+      // ================================================================
+      prometheus.scrape "longhorn" {
+        targets         = [{ __address__ = "longhorn-backend.longhorn-system.svc.cluster.local:9500" }]
+        forward_to      = [prometheus.remote_write.victoriametrics.receiver]
+        job_name        = "longhorn"
+        scrape_interval = "60s"
+      }
+
+      // ================================================================
+      // Cilium — agent pods :9962/metrics (enabled via cilium Helm values)
+      // ================================================================
+      discovery.kubernetes "cilium_agents" {
+        role = "pod"
+        namespaces { names = ["kube-system"] }
+        selectors {
+          role  = "pod"
+          label = "k8s-app=cilium"
+        }
+      }
+
+      discovery.relabel "cilium_agents" {
+        targets = discovery.kubernetes.cilium_agents.targets
+        rule {
+          source_labels = ["__meta_kubernetes_pod_ip"]
+          replacement   = "$1:9962"
+          target_label  = "__address__"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_node_name"]
+          target_label  = "node"
+        }
+      }
+
+      prometheus.scrape "cilium" {
+        targets         = discovery.relabel.cilium_agents.output
+        forward_to      = [prometheus.remote_write.victoriametrics.receiver]
+        job_name        = "cilium"
+        scrape_interval = "30s"
+      }

@@ -362,7 +362,14 @@ local-apps  (watches deploy/environments/local/apps/)
   ├── rabbitmq.yaml            ← wave 8: RabbitMQ (CloudPirates chart, direct StatefulSet, official rabbitmq image)
   ├── mailpit.yaml             ← wave 8: Mailpit SMTP sink + web UI
   ├── pgadmin.yaml             ← wave 8: PgAdmin (runix/pgadmin4 chart) + HTTPRoute (local dev only)
-  └── redisinsight.yaml        ← wave 8: RedisInsight web UI for Redis (local dev only)
+  ├── redisinsight.yaml        ← wave 8: RedisInsight web UI for Redis (local dev only)
+  ├── metrics-server.yaml      ← wave 9: Kubernetes Metrics API (kubectl top + HPA)
+  ├── kube-state-metrics.yaml  ← wave 9: Kubernetes object state as Prometheus metrics
+  ├── victoria-metrics.yaml   ← wave 10: VictoriaMetrics Single (metrics storage, PromQL/MetricsQL)
+  ├── loki.yaml                ← wave 10: Loki single-binary (log storage)
+  ├── tempo.yaml               ← wave 10: Tempo single-binary (trace storage)
+  ├── alloy.yaml               ← wave 11: Grafana Alloy (OTLP receive, Prometheus scraping, log collection)
+  └── grafana.yaml             ← wave 11: Grafana (dashboards, pre-wired to VM/Loki/Tempo) + HTTPRoute
 ```
 
 Each cluster environment runs its own independent ArgoCD instance, with its own root app pointing only at its environment's apps. `deploy/infrastructure/` is a shared values library referenced by Applications via the `$values` pattern — it contains no Applications itself.
@@ -410,6 +417,9 @@ Expected healthy state after full bootstrap:
 | 6 | keycloak-config | `kubectl wait --for=condition=Ready cluster/keycloak-db -n keycloak --timeout=300s` |
 | 7 | keycloak | `kubectl rollout status statefulset/keycloak-keycloakx -n keycloak` |
 | 8 | redis, rabbitmq, mailpit, pgadmin, redisinsight | `kubectl get pods -n redis -n rabbitmq -n mailpit -n pgadmin -n redisinsight` |
+| 9 | metrics-server, kube-state-metrics | `kubectl get apiservice v1beta1.metrics.k8s.io` — Available: True |
+| 10 | victoria-metrics, loki, tempo | `kubectl get pods -n o11y` — all Running |
+| 11 | alloy, grafana | `kubectl rollout status deployment/grafana -n o11y` |
 
 > **RabbitMQ credentials:** Set in `deploy/infrastructure/base/rabbitmq/values.yaml` (`auth.username: admin`, `auth.password: Password1!` for local dev).
 > Management UI: `https://rabbitmq.local` — admin / Password1!
@@ -421,6 +431,10 @@ Expected healthy state after full bootstrap:
 > **RedisInsight:** `https://redisinsight.local` — add database `redis.redis.svc.cluster.local:6379`, no auth. Local dev only; not deployed to cloud environments.
 >
 > **Keycloak SMTP:** Point Keycloak's email configuration (in the realm settings) to `mailpit.mailpit.svc.cluster.local:1025`, no auth, no TLS. Mailpit captures all outbound email and displays it at `https://mailpit.local`.
+>
+> **Grafana:** `https://grafana.local` — username `admin`, password `Password1!`. Datasources (VictoriaMetrics, Loki, Tempo) are pre-wired via Helm values. Traces link to logs and metrics automatically.
+>
+> **Wiring .NET services to the o11y stack:** Set `OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy.o11y.svc.cluster.local:4317` in each service Deployment. Alloy fans out OTLP signals: traces → Tempo, metrics → VictoriaMetrics, logs → Loki. Services already emit all three signals via `AddOpenTelemetry()` in `ProperTea.ServiceDefaults`.
 
 ## Updating Machine Config on Running Nodes
 
@@ -522,6 +536,7 @@ Add an entry to `C:\Windows\System32\drivers\etc\hosts` (Notepad as Administrato
 192.168.50.200 mailpit.local
 192.168.50.200 pgadmin.local
 192.168.50.200 redisinsight.local
+192.168.50.200 grafana.local
 # Add one line per service hostname
 ```
 
@@ -696,6 +711,20 @@ The base `argocd/values.yaml` already registers the repository via `configs.repo
 
 This Secret is not tracked in git (credentials). It survives cluster restarts but will need to be recreated if the `argocd` namespace is wiped.
 
+### Enabling Cilium metrics on an existing cluster
+
+The `install-infrastructure.sh` script now includes `prometheus.enabled=true` and `operator.prometheus.enabled=true` for new installs. If Cilium is already running without these flags, enable them in-place:
+
+```bash
+helm upgrade cilium cilium/cilium \
+  --namespace kube-system \
+  --reuse-values \
+  --set prometheus.enabled=true \
+  --set operator.prometheus.enabled=true
+```
+
+After the rollout, Alloy will begin scraping Cilium agent pods at `:9962/metrics`. No Alloy restart is needed — it uses dynamic Kubernetes pod discovery.
+
 ---
 
 ## AKS Migration Path
@@ -710,8 +739,11 @@ The local-to-AKS delta is intentionally small. Application manifests, `HTTPRoute
 | Storage | Local Path Provisioner + Longhorn | Azure Managed Disks |
 | Secrets (runtime) | Manual / Infisical Operator | ESO + Azure Key Vault |
 | Secrets (Git) | SOPS + age | SOPS + age (identical) |
-| Metrics | VictoriaMetrics (local PV) | VictoriaMetrics + Azure Blob |
-| Logs | Loki (local PV) | Loki + Azure Blob |
+| Metrics | VictoriaMetrics Single (Longhorn PV) | VictoriaMetrics Single (Azure Disk) |
+| Logs | Loki single-binary (Longhorn PV) | Loki single-binary (Azure Blob backend) |
+| Traces | Tempo single-binary (Longhorn PV) | Tempo single-binary (Azure Blob backend) |
+| Collector | Grafana Alloy (OTLP receive + scraping) | Grafana Alloy (identical) |
+| Dashboards | Grafana (Longhorn PV) | Grafana (Azure Disk) |
 | DNS / Certs | cert-manager + self-signed CA | cert-manager + Cloudflare DNS-01 / ACME |
 | GitOps | ArgoCD | ArgoCD (identical) |
 

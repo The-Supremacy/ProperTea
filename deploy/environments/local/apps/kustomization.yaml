@@ -19,3 +19,10 @@ resources:
   - mailpit.yaml
   - pgadmin.yaml
   - redisinsight.yaml
+  - metrics-server.yaml
+  - kube-state-metrics.yaml
+  - victoria-metrics.yaml
+  - loki.yaml
+  - tempo.yaml
+  - alloy.yaml
+  - grafana.yaml

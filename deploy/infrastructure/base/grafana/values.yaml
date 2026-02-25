@@ -1,0 +1,77 @@
+fullnameOverride: grafana
+
+adminUser: admin
+adminPassword: "Password1!"
+
+persistence:
+  enabled: true
+  storageClass: longhorn
+  size: 2Gi
+  accessModes:
+    - ReadWriteOnce
+
+resources:
+  requests:
+    memory: 128Mi
+    cpu: 100m
+  limits:
+    memory: 512Mi
+    cpu: 500m
+
+# Pre-wire datasources so they are available immediately after deployment.
+# UIDs are pinned so that cross-datasource links (trace→logs, trace→metrics) work.
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: VictoriaMetrics
+        uid: victoriametrics
+        type: prometheus
+        url: http://victoria-metrics.o11y.svc.cluster.local:8428
+        isDefault: true
+        jsonData:
+          httpMethod: POST
+          timeInterval: 15s
+
+      - name: Loki
+        uid: loki
+        type: loki
+        url: http://loki.o11y.svc.cluster.local:3100
+        jsonData:
+          derivedFields:
+            - name: TraceID
+              matcherRegex: '"traceId":"(\w+)"'
+              url: "$${__value.raw}"
+              datasourceUid: tempo
+
+      - name: Tempo
+        uid: tempo
+        type: tempo
+        url: http://tempo.o11y.svc.cluster.local:3200
+        jsonData:
+          httpMethod: GET
+          serviceMap:
+            datasourceUid: victoriametrics
+          tracesToMetrics:
+            datasourceUid: victoriametrics
+          tracesToLogs:
+            datasourceUid: loki
+            filterByTraceID: true
+
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    labelValue: "1"
+    searchNamespace: ALL
+  datasources:
+    enabled: false  # datasources above are static, no sidecar needed
+
+grafana.ini:
+  server:
+    root_url: https://grafana.local
+  analytics:
+    reporting_enabled: false
+    check_for_updates: false
+  users:
+    allow_sign_up: false

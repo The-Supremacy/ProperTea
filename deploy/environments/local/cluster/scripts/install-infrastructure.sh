@@ -52,6 +52,8 @@ helm install cilium cilium/cilium \
   --set hubble.ui.enabled=true \
   --set gatewayAPI.enabled=true \
   --set l2announcements.enabled=true \
+  --set prometheus.enabled=true \
+  --set operator.prometheus.enabled=true \
   --server-side \
   --set devices=ens3
 

@@ -1,0 +1,32 @@
+fullnameOverride: kube-state-metrics
+
+# Expose all default resource types. Restrict to what Grafana dashboards actually need.
+collectors:
+  - deployments
+  - daemonsets
+  - statefulsets
+  - replicasets
+  - pods
+  - nodes
+  - namespaces
+  - persistentvolumes
+  - persistentvolumeclaims
+  - storageclasses
+  - jobs
+  - cronjobs
+  - horizontalpodautoscalers
+  - configmaps
+  - services
+  - endpoints
+
+resources:
+  requests:
+    memory: 64Mi
+    cpu: 50m
+  limits:
+    memory: 128Mi
+    cpu: 200m
+
+service:
+  type: ClusterIP
+  port: 8080
