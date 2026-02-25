@@ -11,7 +11,7 @@ spec:
   project: default
   sources:
     - repoURL: https://dl.cloudsmith.io/public/infisical/helm-charts/helm/charts/
-      chart: infisical-standalone-postgres
+      chart: infisical-standalone
       targetRevision: 1.7.2
       helm:
         releaseName: infisical
