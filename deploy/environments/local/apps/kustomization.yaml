@@ -14,3 +14,8 @@ resources:
   - secrets-operator.yaml
   - keycloak-config.yaml
   - keycloak.yaml
+  - redis.yaml
+  - rabbitmq.yaml
+  - mailpit.yaml
+  - pgadmin.yaml
+  - redisinsight.yaml

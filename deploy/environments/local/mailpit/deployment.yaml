@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mailpit
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mailpit
+  namespace: mailpit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mailpit
+  template:
+    metadata:
+      labels:
+        app: mailpit
+    spec:
+      containers:
+        - name: mailpit
+          # Check https://hub.docker.com/r/axllent/mailpit/tags for latest
+          image: axllent/mailpit:v1.29.2
+          ports:
+            - containerPort: 8025
+              name: http
+            - containerPort: 1025
+              name: smtp
+          env:
+            - name: MP_MAX_MESSAGES
+              value: "500"
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 50m
+            limits:
+              memory: 128Mi
+              cpu: 100m
+          readinessProbe:
+            httpGet:
+              path: /livez
+              port: 8025
+            initialDelaySeconds: 3
+            periodSeconds: 10

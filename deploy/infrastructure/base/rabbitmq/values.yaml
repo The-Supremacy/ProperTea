@@ -1,0 +1,25 @@
+replicaCount: 1
+
+fullnameOverride: rabbitmq
+
+managementPlugin:
+  enabled: true
+
+auth:
+  enabled: true
+  username: admin
+  # Password for local dev only — not a secret. Override via Infisical-sourced secret for real envs.
+  password: Password1!
+
+persistence:
+  enabled: true
+  storageClass: longhorn
+  size: 5Gi
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 200m
+  limits:
+    memory: 1Gi
+    cpu: 1000m

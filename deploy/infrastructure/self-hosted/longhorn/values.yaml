@@ -1,8 +1,3 @@
-# Longhorn base Helm values — env-agnostic settings.
-# These are the structural defaults shared across all environments.
-# Environment-specific overrides (replica count, default class) live in
-# deploy/environments/<env>/longhorn-values.yaml
-
 # Required for ArgoCD deployments: disables the pre-upgrade Helm hook job.
 # The hook fires before the ServiceAccount exists on first install, causing
 # a forbidden error. Longhorn's own ArgoCD docs mandate this setting.

@@ -1,15 +1,3 @@
-# ArgoCD Helm values for ProperTea — environment-agnostic base.
-#
-# Key additions over defaults:
-#   - SOPS CMP sidecar on repo-server: decrypts *.enc.yaml files before
-#     running helm template. Only activates for apps that have *.enc.yaml files.
-#   - Plugin config in extraObjects below (no separate pre-apply step needed).
-#   - age private key mounted from argocd-age-key K8s secret (bootstrapped manually
-#     by install-argocd.sh and not managed by this Helm release).
-#
-# Environment-specific values (e.g. domain) live in:
-#   deploy/environments/<env>/argocd-values.yaml
-
 configs:
   params:
     server.insecure: "true"

@@ -1,0 +1,31 @@
+ingress:
+  enabled: false
+
+fullnameOverride: pgadmin
+env:
+  contextPath: ""
+  email: admin@propertea.local
+  password: admin
+
+extraConfigmapMounts: []
+extraSecretMounts: []
+
+persistentVolume:
+  enabled: true
+  storageClass: longhorn
+  size: 1Gi
+  accessModes:
+    - ReadWriteOnce
+
+resources:
+  requests:
+    memory: 128Mi
+    cpu: 50m
+  limits:
+    memory: 256Mi
+    cpu: 200m
+
+securityContext:
+  runAsUser: 5050
+  runAsGroup: 5050
+  fsGroup: 5050

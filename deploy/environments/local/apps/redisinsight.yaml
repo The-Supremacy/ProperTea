@@ -1,23 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cloudnativepg
+  name: redisinsight
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "8"
 spec:
   project: default
-  sources:
-    - repoURL: https://cloudnative-pg.github.io/charts
-      chart: cloudnative-pg
-      targetRevision: 0.27.1
-      helm:
-        releaseName: cloudnative-pg
+  source:
+    repoURL: git@github.com:The-Supremacy/ProperTea.git
+    targetRevision: HEAD
+    path: deploy/environments/local/redisinsight
   destination:
     server: https://kubernetes.default.svc
-    namespace: cnpg-system
+    namespace: redisinsight
   syncPolicy:
     automated:
       enabled: true
@@ -25,4 +23,3 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - ServerSideApply=true

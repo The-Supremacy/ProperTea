@@ -357,7 +357,12 @@ local-apps  (watches deploy/environments/local/apps/)
   ├── infisical.yaml           ← wave 5: Infisical Helm install + HTTPRoute (auto-sync, SOPS-decrypted secret)
   ├── secrets-operator.yaml    ← wave 5: Infisical Kubernetes Operator (watches InfisicalSecret CRs)
   ├── keycloak-config.yaml     ← wave 6: keycloak namespace + CNPG Cluster CR
-  └── keycloak.yaml            ← wave 7: Keycloak Bitnami Helm install + HTTPRoute
+  ├── keycloak.yaml            ← wave 7: Keycloak (codecentric/keycloakx) + HTTPRoute
+  ├── redis.yaml               ← wave 8: Redis (CloudPirates chart, standalone, no auth, official redis image)
+  ├── rabbitmq.yaml            ← wave 8: RabbitMQ (CloudPirates chart, direct StatefulSet, official rabbitmq image)
+  ├── mailpit.yaml             ← wave 8: Mailpit SMTP sink + web UI
+  ├── pgadmin.yaml             ← wave 8: PgAdmin (runix/pgadmin4 chart) + HTTPRoute (local dev only)
+  └── redisinsight.yaml        ← wave 8: RedisInsight web UI for Redis (local dev only)
 ```
 
 Each cluster environment runs its own independent ArgoCD instance, with its own root app pointing only at its environment's apps. `deploy/infrastructure/` is a shared values library referenced by Applications via the `$values` pattern — it contains no Applications itself.
@@ -366,104 +371,56 @@ To update ArgoCD config after bootstrap:
 - Base settings (SOPS CMP sidecar, insecure mode): `deploy/infrastructure/base/argocd/values.yaml`
 - Local overrides (domain): `deploy/environments/local/argocd/values.yaml`
 
-## Step 12: Sync Wave-by-Wave
+## Step 12: Monitor GitOps Bootstrap
 
-All ArgoCD Applications have `automated.enabled: false`. This is intentional: ArgoCD wave ordering only gates when a sync *starts*, not when the upstream resources are *actually ready*. With auto-sync on, a later wave can begin before the previous wave's resources are truly healthy (e.g. CNPG reports the Cluster CR as Healthy the moment it is accepted by the API server, before any PostgreSQL pod is Running).
+All Applications have `automated.enabled: true` with Lua health checks gating wave transitions for critical resources (CNPG Cluster, cert-manager Certificate, cert-manager ClusterIssuer). ArgoCD self-manages the sync order — no manual wave-by-wave intervention is needed under normal conditions.
 
-Sync each wave manually, verify real health before proceeding to the next.
+Watch overall Application health:
 
 ```bash
-# Helper: trigger a sync for one app
+kubectl get applications -n argocd
+# Or for continuous output:
+watch kubectl get applications -n argocd
+```
+
+To manually trigger a sync for a specific app (e.g. if stuck in an error loop):
+
+```bash
 kubectl patch application <name> -n argocd --type merge \
   -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
 ```
 
-### Wave 0 — ArgoCD self-manages
+To force a hard refresh (re-render manifests from chart source, useful after chart URL changes):
 
 ```bash
-kubectl patch application argocd -n argocd --type merge \
-  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":false}}}'
-# Wait for ArgoCD pods to settle
-kubectl rollout status deployment argocd-server -n argocd
+kubectl patch application <name> -n argocd --type merge \
+  -p '{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"hard"}}}'
 ```
 
-### Wave 1 — cert-manager + ArgoCD HTTPRoute
+Expected healthy state after full bootstrap:
 
-```bash
-kubectl patch application cert-manager -n argocd --type merge \
-  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":false}}}'
-kubectl patch application argocd-config -n argocd --type merge \
-  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":false}}}'
-# Verify cert-manager webhook is ready before continuing
-kubectl wait --for=condition=Available deployment/cert-manager-webhook -n cert-manager --timeout=120s
-```
+| Wave | Applications | Key readiness check |
+|---|---|---|
+| 0 | argocd | `kubectl rollout status deployment argocd-server -n argocd` |
+| 1 | cert-manager, argocd-config | `kubectl wait --for=condition=Available deployment/cert-manager-webhook -n cert-manager --timeout=120s` |
+| 2 | cert-manager-config | `kubectl get clusterissuer` — both Ready |
+| 3 | gateway-config, longhorn | `kubectl wait --for=condition=Available deployment/longhorn-manager -n longhorn-system --timeout=300s` |
+| 4 | longhorn-config, cloudnativepg | `kubectl wait --for=condition=Available deployment/cnpg-controller-manager -n cnpg-system --timeout=180s` |
+| 5 | infisical, secrets-operator | `kubectl get pods -n infisical` |
+| 6 | keycloak-config | `kubectl wait --for=condition=Ready cluster/keycloak-db -n keycloak --timeout=300s` |
+| 7 | keycloak | `kubectl rollout status statefulset/keycloak-keycloakx -n keycloak` |
+| 8 | redis, rabbitmq, mailpit, pgadmin, redisinsight | `kubectl get pods -n redis -n rabbitmq -n mailpit -n pgadmin -n redisinsight` |
 
-### Wave 2 — ClusterIssuers
-
-```bash
-kubectl patch application cert-manager-config -n argocd --type merge \
-  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
-kubectl get clusterissuer -o wide  # both should be Ready
-```
-
-### Wave 3 — Gateway + Longhorn
-
-```bash
-kubectl patch application gateway -n argocd --type merge \
-  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
-kubectl patch application longhorn -n argocd --type merge \
-  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
-# Wait for Longhorn to finish initialisation (can take 2-3 min)
-kubectl wait --for=condition=Available deployment/longhorn-manager -n longhorn-system --timeout=300s
-```
-
-### Wave 4 — Longhorn HTTPRoute + CloudNativePG operator
-
-```bash
-kubectl patch application longhorn-config -n argocd --type merge \
-  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
-kubectl patch application cloudnativepg -n argocd --type merge \
-  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":false}}}'
-# Wait for the CNPG controller to be ready — its CRDs must be established before wave 6
-kubectl wait --for=condition=Available deployment/cnpg-controller-manager -n cnpg-system --timeout=180s
-```
-
-### Wave 5 — Infisical + Secrets Operator
-
-```bash
-kubectl patch application infisical -n argocd --type merge \
-  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
-kubectl patch application secrets-operator -n argocd --type merge \
-  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
-kubectl get pods -n infisical -w  # wait until Running
-```
-
-### Wave 6 — Keycloak DB (CNPG Cluster)
-
-```bash
-kubectl patch application keycloak-config -n argocd --type merge \
-  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
-# Do NOT proceed to wave 7 until the CNPG Cluster is fully Ready.
-# The ArgoCD Application will show Healthy before the DB pods are even scheduling.
-# Wait for real readiness:
-kubectl wait --for=condition=Ready cluster/keycloak-db -n keycloak --timeout=300s
-# Verify the app secret was created:
-kubectl get secret keycloak-db-app -n keycloak
-```
-
-### Wave 7 — Keycloak
-
-```bash
-kubectl patch application keycloak -n argocd --type merge \
-  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
-# Keycloak takes ~2 minutes on first boot (DB schema init + crypto key generation)
-kubectl rollout status statefulset/keycloak -n keycloak --timeout=300s
-# Access at https://keycloak.local — admin / Password1!
-```
-
-### Re-enabling auto-sync after successful first boot
-
-Once everything is running, you can opt back in to automation per-app. Edit any Application and set `automated.enabled: true`. Keep `prune: true` on apps that own namespaced resources; keep it `false` on `argocd` itself to avoid self-disruption.
+> **RabbitMQ credentials:** Set in `deploy/infrastructure/base/rabbitmq/values.yaml` (`auth.username: admin`, `auth.password: Password1!` for local dev).
+> Management UI: `https://rabbitmq.local` — admin / Password1!
+> AMQP connection string: `amqp://admin:Password1!@rabbitmq.rabbitmq.svc.cluster.local:5672/`
+>
+> **PgAdmin:** `https://pgadmin.local` — email `admin@propertea.local`, password `admin`. Local dev only; not deployed to cloud environments.
+> Add a server: host `keycloak-db-rw.keycloak.svc.cluster.local`, port `5432`, user `keycloak`, password from `kubectl get secret keycloak-db-app -n keycloak -o jsonpath='{.data.password}' | base64 -d`
+>
+> **RedisInsight:** `https://redisinsight.local` — add database `redis.redis.svc.cluster.local:6379`, no auth. Local dev only; not deployed to cloud environments.
+>
+> **Keycloak SMTP:** Point Keycloak's email configuration (in the realm settings) to `mailpit.mailpit.svc.cluster.local:1025`, no auth, no TLS. Mailpit captures all outbound email and displays it at `https://mailpit.local`.
 
 ## Updating Machine Config on Running Nodes
 
@@ -559,7 +516,12 @@ Add an entry to `C:\Windows\System32\drivers\etc\hosts` (Notepad as Administrato
 ```
 192.168.50.200 argocd.local
 192.168.50.200 keycloak.local
-192.168.50.200 app.local
+192.168.50.200 longhorn.local
+192.168.50.200 infisical.local
+192.168.50.200 rabbitmq.local
+192.168.50.200 mailpit.local
+192.168.50.200 pgadmin.local
+192.168.50.200 redisinsight.local
 # Add one line per service hostname
 ```
 
@@ -634,6 +596,9 @@ deploy/
       longhorn.yaml
       keycloak-config.yaml
       keycloak.yaml
+      redis.yaml
+      rabbitmq.yaml
+      mailpit.yaml
     argocd/
       values.yaml               # ArgoCD env-specific overrides (domain: argocd.local)
       kustomization.yaml        # Patches base HTTPRoute hostname
@@ -651,13 +616,34 @@ deploy/
       cluster-issuer.yaml       # Self-signed CA (prod uses ACME + Cloudflare DNS01)
     gateway/
       gateway.yaml              # Cilium L2 IP pool + Gateway (*.local, self-signed TLS)
+    redis/
+      values.yaml               # Env-specific Redis overrides (placeholder, extends base)
+    rabbitmq/
+      values.yaml               # Env-specific RabbitMQ overrides (placeholder, extends base)
+      httproute.yaml            # HTTPRoute: rabbitmq.local → management UI port 15672
+      kustomization.yaml
+    mailpit/
+      deployment.yaml           # axllent/mailpit — SMTP sink + web UI
+      service.yaml              # Ports: 8025 (http), 1025 (smtp)
+      httproute.yaml            # HTTPRoute: mailpit.local → port 8025
+      kustomization.yaml
+    pgadmin/
+      values.yaml               # Env-specific PgAdmin overrides (placeholder, extends base)
+    pgadmin-route/
+      httproute.yaml            # HTTPRoute: pgadmin.local → service pgadmin port 80
+      kustomization.yaml
+    redisinsight/
+      deployment.yaml           # redis/redisinsight — Redis web UI, Longhorn PVC for connection persistence
+      service.yaml              # Port 5540
+      httproute.yaml            # HTTPRoute: redisinsight.local → port 5540
+      kustomization.yaml
 
   infrastructure/
     base/                       # Kustomize base manifests (env-agnostic)
       argocd/
         kustomization.yaml
         httproute.yaml          # HTTPRoute with hostname: argocd.placeholder
-        values.yaml             # ArgoCD base Helm values (SOPS CMP, insecure mode)
+        values.yaml             # ArgoCD base Helm values (SOPS CMP, insecure mode, Lua health checks)
       longhorn/
         kustomization.yaml
         httproute.yaml
@@ -671,6 +657,10 @@ deploy/
         kustomization.yaml
         httproute.yaml
         values.yaml             # Infisical base Helm values (bundled postgres/redis, Longhorn PVCs)
+      redis/
+        values.yaml             # Redis base Helm values (standalone, Longhorn PV, LRU eviction, AOF)
+      pgadmin/
+        values.yaml             # PgAdmin base Helm values (desktop mode, Longhorn PVC, no Ingress)
     aks/                        # Future AKS infrastructure stubs
 ```
 
