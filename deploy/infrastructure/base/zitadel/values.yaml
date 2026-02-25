@@ -2,6 +2,12 @@
 # Env-specific values (ExternalDomain, replicaCount, FirstInstance credentials)
 # live in deploy/environments/<env>/zitadel-values.yaml and are layered on top.
 
+# Pin to v4.11.0+ which includes the PostgreSQL 18 compatibility fix
+# (migration 34_add_cache_schema UNLOGGED partitioned table issue).
+# See: https://github.com/zitadel/zitadel/issues/10712
+image:
+  tag: v4.11.1
+
 zitadel:
   masterkeySecretName: zitadel-masterkey
 

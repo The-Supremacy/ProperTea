@@ -21,10 +21,10 @@ metadata:
   namespace: zitadel
 spec:
   instances: 2
-  # Pin to PostgreSQL 16 -- ZITADEL's migrations are tested against PG16.
-  # PG18 (CNPG default) fails on migration 34_add_cache_schema due to
-  # UNLOGGED + PARTITION semantics differences.
-  imageName: ghcr.io/cloudnative-pg/postgresql:16.8
+  # PostgreSQL 18 is supported from ZITADEL v4.11.0+. The migration
+  # 34_add_cache_schema UNLOGGED+PARTITION issue was fixed in:
+  # https://github.com/zitadel/zitadel/issues/10712
+  # No imageName pin needed — CNPG defaults to a supported PostgreSQL version.
   # ZITADEL's init job requires the postgres superuser to CREATE DATABASE.
   # CNPG only creates the zitadel-db-superuser secret when this is enabled.
   enableSuperuserAccess: true
