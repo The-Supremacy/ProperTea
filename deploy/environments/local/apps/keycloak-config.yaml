@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keycloak-config
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:The-Supremacy/ProperTea.git
+    targetRevision: HEAD
+    path: deploy/environments/local/keycloak
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keycloak
+  syncPolicy:
+    # Provisions the keycloak namespace (with PSA labels) and the CNPG Cluster CR.
+    # CNPG automatically creates keycloak-db-app and keycloak-db-superuser secrets
+    # when the Cluster reaches Ready — no vault involvement needed.
+    #
+    # IMPORTANT: Do not sync wave 7 (keycloak) until the CNPG Cluster CR is fully
+    # Ready (all instances Running, primary elected). ArgoCD reports this Application
+    # as Healthy as soon as the CR is accepted by the API server, which is too early.
+    # Wait for: kubectl get cluster keycloak-db -n keycloak
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

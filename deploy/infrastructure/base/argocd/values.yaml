@@ -14,6 +14,78 @@ configs:
   params:
     server.insecure: "true"
 
+  # Custom health checks for CRDs that ArgoCD cannot assess natively.
+  #
+  # CNPG Cluster: ArgoCD considers the CR "Healthy" the moment the API server accepts it,
+  # which is before any DB pod has started. This Lua check gates on readyInstances == instances,
+  # preventing downstream waves (e.g. keycloak) from starting before the DB is truly ready.
+  cm:
+    resource.customizations: |
+      cert-manager.io/Certificate:
+        health.lua: |
+          hs = {}
+          if obj.status == nil or obj.status.conditions == nil then
+            hs.status = "Progressing"
+            hs.message = "Waiting for certificate status"
+            return hs
+          end
+          for _, c in ipairs(obj.status.conditions) do
+            if c.type == "Ready" then
+              if c.status == "True" then
+                hs.status = "Healthy"
+                hs.message = "Certificate is ready"
+              else
+                hs.status = "Progressing"
+                hs.message = c.message or "Certificate not yet ready"
+              end
+              return hs
+            end
+          end
+          hs.status = "Progressing"
+          hs.message = "Waiting for Ready condition"
+          return hs
+      cert-manager.io/ClusterIssuer:
+        health.lua: |
+          hs = {}
+          if obj.status == nil or obj.status.conditions == nil then
+            hs.status = "Progressing"
+            hs.message = "Waiting for issuer status"
+            return hs
+          end
+          for _, c in ipairs(obj.status.conditions) do
+            if c.type == "Ready" then
+              if c.status == "True" then
+                hs.status = "Healthy"
+                hs.message = "Issuer is ready"
+              else
+                hs.status = "Progressing"
+                hs.message = c.message or "Issuer not yet ready"
+              end
+              return hs
+            end
+          end
+          hs.status = "Progressing"
+          hs.message = "Waiting for Ready condition"
+          return hs
+      postgresql.cnpg.io/Cluster:
+        health.lua: |
+          hs = {}
+          if obj.status == nil then
+            hs.status = "Progressing"
+            hs.message = "Waiting for CNPG cluster status"
+            return hs
+          end
+          local ready = obj.status.readyInstances or 0
+          local total = obj.status.instances or 0
+          if total > 0 and ready == total then
+            hs.status = "Healthy"
+            hs.message = ready .. "/" .. total .. " instances ready"
+          else
+            hs.status = "Progressing"
+            hs.message = (ready or 0) .. "/" .. (total or "?") .. " instances ready"
+          end
+          return hs
+
 repoServer:
   volumes:
     - name: custom-tools

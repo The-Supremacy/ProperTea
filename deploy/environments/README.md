@@ -33,8 +33,8 @@ environments/
     cert-manager/              # Self-signed CA ClusterIssuers
     gateway/                   # Cilium L2 pool + Gateway resource
     longhorn/                  # Longhorn HTTPRoute + env Helm values
-    zitadel/                   # ZITADEL env Helm values + InfisicalSecret CR
-    zitadel-route/             # ZITADEL HTTPRoute (separate so wave 7 can apply it)
+    keycloak/                  # Keycloak env Helm values
+    keycloak-route/            # Keycloak HTTPRoute
     infisical/                 # Infisical env Helm values + SOPS-encrypted secrets
   uat/                         # Stub — AKS, not yet provisioned
   prod/                        # Stub — AKS, not yet provisioned
@@ -46,7 +46,7 @@ environments/
 
 - `argocd/values.yaml` — SOPS CMP sidecar, Dex disabled, insecure mode
 - `longhorn/values.yaml` — replica balance, storage threshold
-- `zitadel/values.yaml` — base OIDC/SAML config, DB connection structure
+- `keycloak/values.yaml` — proxy headers, cache, DB connection structure
 - `infisical/values.yaml` — bundled postgres/redis, Longhorn PVCs, no ingress-nginx
 
 Environment-specific values files are merged on top via ArgoCD's `helm.valueFiles` list.

@@ -1,0 +1,15 @@
+# Registers the public Bitnami OCI Helm registry with ArgoCD.
+# No credentials needed -- Bitnami charts are publicly accessible.
+# ArgoCD requires explicit registration even for unauthenticated OCI registries.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bitnami-oci-registry
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  type: helm
+  name: bitnamicharts
+  url: oci://registry-1.docker.io/bitnamicharts
+  enableOCI: "true"

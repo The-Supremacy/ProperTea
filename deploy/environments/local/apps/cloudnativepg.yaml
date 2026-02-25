@@ -1,6 +1,6 @@
-# SELF-HOSTED ONLY: CloudNativePG manages the in-cluster Postgres instance used by ZITADEL.
+# SELF-HOSTED ONLY: CloudNativePG manages the in-cluster Postgres instance used by Keycloak.
 # On AKS (UAT/prod), replace this with Azure Database for PostgreSQL Flexible Server
-# and supply the connection endpoint + credentials via the env-specific zitadel-values.yaml.
+# and supply the connection endpoint + credentials via the env-specific keycloak/values.yaml.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -24,7 +24,7 @@ spec:
   syncPolicy:
     automated:
       enabled: true
-      prune: false
+      prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true

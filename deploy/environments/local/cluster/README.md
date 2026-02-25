@@ -316,63 +316,17 @@ kubectl port-forward svc/argocd-server -n argocd 8080:80 &
 
 > **Note:** `kubectl port-forward` tunnels directly to a pod and has no resilience -- it exits if the pod restarts. Run the command again to reconnect. The Gateway setup eliminates this permanently.
 
-## Step 10: Bootstrap Infisical and ZITADEL Secrets
+## Step 10: Bootstrap Infisical
 
-All secrets in this setup flow through Infisical. The Infisical Helm release (`infisical.yaml`, wave 5) and the Infisical Kubernetes Operator (`secrets-operator.yaml`, wave 5) both sync automatically — no manual steps needed for those.
+Infisical is used for application secrets. The Infisical Helm release (`infisical.yaml`, wave 5) and the Infisical Kubernetes Operator (`secrets-operator.yaml`, wave 5) are applied manually as part of the wave-by-wave bootstrap in Step 12.
 
-### 10a: Wait for Infisical to be ready (wave 5)
+Keycloak does **not** require Infisical for bootstrap. It generates all cryptographic material itself on first startup and stores it in the database. Admin credentials for local dev are committed in plaintext in `deploy/environments/local/keycloak/values.yaml`.
 
-`infisical-secrets` is committed as a SOPS-encrypted manifest (`infisical-secrets.enc.yaml`). ArgoCD's CMP sidecar decrypts it at apply time using the age private key in `argocd-age-key`. Wave 5 syncs automatically once wave 4 is Healthy.
-
-```bash
-kubectl get pods -n infisical -w
-kubectl get pods -n infisical-operator-system -w
-```
-
-### 10b: Configure Infisical and create the Machine Identity
-
-Open `https://infisical.local` and complete the one-time UI setup:
+Once wave 5 is synced and Infisical is reachable at `https://infisical.local`:
 
 1. Create a user account and organisation (e.g. `ProperTea Local`)
-2. Create a project (note its **slug**, e.g. `propertea`)
-3. Add a secret: **key** = `masterkey`, **value** = `$(openssl rand -base64 32)`, **env** = `local`, **path** = `/`
-4. Go to **Organisation Settings → Machine Identities → Create Identity**
-   - Auth method: **Universal Auth**
-   - Scope: the project above, role `Member` (or a custom read-only role)
-5. After creation, select the identity and **Generate Credentials** — copy the **Client ID** and **Client Secret** before closing (they are shown once)
-
-### 10c: Update the machine identity credential secret
-
-The placeholder at `deploy/environments/local/zitadel/infisical-machine-identity.enc.yaml` is SOPS-encrypted. Replace the placeholder values in-place:
-
-```bash
-# Opens the decrypted YAML in $EDITOR, saves re-encrypted on exit
-sops deploy/environments/local/zitadel/infisical-machine-identity.enc.yaml
-```
-
-Update `clientId` and `clientSecret` to the real values from step 10b.
-
-### 10d: Update the projectSlug in the InfisicalSecret CR
-
-Edit `deploy/environments/local/zitadel/infisical-secret.yaml` and replace `PLACEHOLDER_PROJECT_SLUG` with the Infisical project slug from step 10b.
-
-### 10e: Commit and push
-
-```bash
-git add deploy/environments/local/zitadel/
-git commit -m "chore(local): configure Infisical machine identity and project slug"
-git push
-```
-
-ArgoCD detects the push. Wave 6 (`zitadel-config`) re-syncs:
-- CNPG `Cluster` CR provisions the `zitadel-db` Postgres cluster (creates `zitadel-db-app`, `zitadel-db-superuser` Secrets automatically)
-- `InfisicalSecret` CR prompts the operator to pull `masterkey` from Infisical → creates the `zitadel-masterkey` K8s Secret
-
-Wave 7 (`zitadel`) then auto-syncs and finds the masterkey ready.
-
-### What Infisical does NOT manage
-
-CloudNativePG creates `zitadel-db-app` and `zitadel-db-superuser` automatically when the CNPG `Cluster` CR is applied. These are internal cluster credentials managed entirely by CNPG — no vault involvement needed. If you rebuild the cluster, CNPG recreates them and ZITADEL picks up the new credentials on first init.
+2. Create a project to hold future application secrets
+3. Set up Machine Identities as needed when adding services that require Infisical-managed secrets
 
 ## Step 11: Bootstrap GitOps
 
@@ -402,8 +356,8 @@ local-apps  (watches deploy/environments/local/apps/)
   ├── cloudnativepg.yaml       ← wave 4: CloudNativePG operator
   ├── infisical.yaml           ← wave 5: Infisical Helm install + HTTPRoute (auto-sync, SOPS-decrypted secret)
   ├── secrets-operator.yaml    ← wave 5: Infisical Kubernetes Operator (watches InfisicalSecret CRs)
-  ├── zitadel-config.yaml      ← wave 6: CNPG Cluster + InfisicalSecret CR (creates zitadel-masterkey)
-  └── zitadel.yaml             ← wave 7: ZITADEL Helm install + HTTPRoute (auto-sync, masterkey from operator)
+  ├── keycloak-config.yaml     ← wave 6: keycloak namespace + CNPG Cluster CR
+  └── keycloak.yaml            ← wave 7: Keycloak Bitnami Helm install + HTTPRoute
 ```
 
 Each cluster environment runs its own independent ArgoCD instance, with its own root app pointing only at its environment's apps. `deploy/infrastructure/` is a shared values library referenced by Applications via the `$values` pattern — it contains no Applications itself.
@@ -411,6 +365,105 @@ Each cluster environment runs its own independent ArgoCD instance, with its own 
 To update ArgoCD config after bootstrap:
 - Base settings (SOPS CMP sidecar, insecure mode): `deploy/infrastructure/base/argocd/values.yaml`
 - Local overrides (domain): `deploy/environments/local/argocd/values.yaml`
+
+## Step 12: Sync Wave-by-Wave
+
+All ArgoCD Applications have `automated.enabled: false`. This is intentional: ArgoCD wave ordering only gates when a sync *starts*, not when the upstream resources are *actually ready*. With auto-sync on, a later wave can begin before the previous wave's resources are truly healthy (e.g. CNPG reports the Cluster CR as Healthy the moment it is accepted by the API server, before any PostgreSQL pod is Running).
+
+Sync each wave manually, verify real health before proceeding to the next.
+
+```bash
+# Helper: trigger a sync for one app
+kubectl patch application <name> -n argocd --type merge \
+  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
+```
+
+### Wave 0 — ArgoCD self-manages
+
+```bash
+kubectl patch application argocd -n argocd --type merge \
+  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":false}}}'
+# Wait for ArgoCD pods to settle
+kubectl rollout status deployment argocd-server -n argocd
+```
+
+### Wave 1 — cert-manager + ArgoCD HTTPRoute
+
+```bash
+kubectl patch application cert-manager -n argocd --type merge \
+  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":false}}}'
+kubectl patch application argocd-config -n argocd --type merge \
+  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":false}}}'
+# Verify cert-manager webhook is ready before continuing
+kubectl wait --for=condition=Available deployment/cert-manager-webhook -n cert-manager --timeout=120s
+```
+
+### Wave 2 — ClusterIssuers
+
+```bash
+kubectl patch application cert-manager-config -n argocd --type merge \
+  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
+kubectl get clusterissuer -o wide  # both should be Ready
+```
+
+### Wave 3 — Gateway + Longhorn
+
+```bash
+kubectl patch application gateway -n argocd --type merge \
+  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
+kubectl patch application longhorn -n argocd --type merge \
+  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
+# Wait for Longhorn to finish initialisation (can take 2-3 min)
+kubectl wait --for=condition=Available deployment/longhorn-manager -n longhorn-system --timeout=300s
+```
+
+### Wave 4 — Longhorn HTTPRoute + CloudNativePG operator
+
+```bash
+kubectl patch application longhorn-config -n argocd --type merge \
+  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
+kubectl patch application cloudnativepg -n argocd --type merge \
+  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":false}}}'
+# Wait for the CNPG controller to be ready — its CRDs must be established before wave 6
+kubectl wait --for=condition=Available deployment/cnpg-controller-manager -n cnpg-system --timeout=180s
+```
+
+### Wave 5 — Infisical + Secrets Operator
+
+```bash
+kubectl patch application infisical -n argocd --type merge \
+  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
+kubectl patch application secrets-operator -n argocd --type merge \
+  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
+kubectl get pods -n infisical -w  # wait until Running
+```
+
+### Wave 6 — Keycloak DB (CNPG Cluster)
+
+```bash
+kubectl patch application keycloak-config -n argocd --type merge \
+  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
+# Do NOT proceed to wave 7 until the CNPG Cluster is fully Ready.
+# The ArgoCD Application will show Healthy before the DB pods are even scheduling.
+# Wait for real readiness:
+kubectl wait --for=condition=Ready cluster/keycloak-db -n keycloak --timeout=300s
+# Verify the app secret was created:
+kubectl get secret keycloak-db-app -n keycloak
+```
+
+### Wave 7 — Keycloak
+
+```bash
+kubectl patch application keycloak -n argocd --type merge \
+  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD","prune":true}}}'
+# Keycloak takes ~2 minutes on first boot (DB schema init + crypto key generation)
+kubectl rollout status statefulset/keycloak -n keycloak --timeout=300s
+# Access at https://keycloak.local — admin / Password1!
+```
+
+### Re-enabling auto-sync after successful first boot
+
+Once everything is running, you can opt back in to automation per-app. Edit any Application and set `automated.enabled: true`. Keep `prune: true` on apps that own namespaced resources; keep it `false` on `argocd` itself to avoid self-disruption.
 
 ## Updating Machine Config on Running Nodes
 
@@ -505,7 +558,7 @@ Add an entry to `C:\Windows\System32\drivers\etc\hosts` (Notepad as Administrato
 
 ```
 192.168.50.200 argocd.local
-192.168.50.200 zitadel.local
+192.168.50.200 keycloak.local
 192.168.50.200 app.local
 # Add one line per service hostname
 ```
@@ -579,8 +632,8 @@ deploy/
       gateway-config.yaml
       longhorn-config.yaml
       longhorn.yaml
-      zitadel-config.yaml
-      zitadel.yaml
+      keycloak-config.yaml
+      keycloak.yaml
     argocd/
       values.yaml               # ArgoCD env-specific overrides (domain: argocd.local)
       kustomization.yaml        # Patches base HTTPRoute hostname
@@ -589,10 +642,11 @@ deploy/
       values.yaml               # Longhorn env-specific overrides (replicas: 2, default StorageClass: true)
       kustomization.yaml
       httproute-patch.yaml
-    zitadel/
-      values.yaml               # ZITADEL env-specific overrides (ExternalDomain, DB host, seed user)
+    keycloak/
+      values.yaml               # Keycloak env-specific overrides (hostname, DB connection, admin seed)
       kustomization.yaml
-      httproute-patch.yaml
+    keycloak-route/
+      httproute.yaml            # HTTPRoute for keycloak.local
     cert-manager/
       cluster-issuer.yaml       # Self-signed CA (prod uses ACME + Cloudflare DNS01)
     gateway/
@@ -608,10 +662,11 @@ deploy/
         kustomization.yaml
         httproute.yaml
         values.yaml             # Longhorn base Helm values (replica balance, storage threshold)
-      zitadel/
+      keycloak/
         kustomization.yaml
         postgres-cluster.yaml   # CloudNativePG Cluster (canonical)
-        values.yaml             # ZITADEL base Helm values (DB structure, OIDC, SAML)
+        httproute.yaml          # HTTPRoute base (hostname: keycloak.placeholder)
+        values.yaml             # Keycloak base Helm values (proxy headers, cache, DB structure)
       infisical/
         kustomization.yaml
         httproute.yaml
@@ -743,16 +798,16 @@ kubectl delete pod <pod> -n <namespace> --grace-period=0 --force
 
 ```bash
 # Cluster health
-kubectl get cluster -n zitadel
-kubectl describe cluster zitadel-db -n zitadel
+kubectl get cluster -n keycloak
+kubectl describe cluster keycloak-db -n keycloak
 
 # Primary pod
-kubectl get pods -n zitadel -l cnpg.io/instanceRole=primary
+kubectl get pods -n keycloak -l cnpg.io/instanceRole=primary
 
 # Connect to the database
-kubectl exec -it -n zitadel \
-  $(kubectl get pod -n zitadel -l cnpg.io/instanceRole=primary -o jsonpath='{.items[0].metadata.name}') \
-  -- psql -U postgres zitadel
+kubectl exec -it -n keycloak \
+  $(kubectl get pod -n keycloak -l cnpg.io/instanceRole=primary -o jsonpath='{.items[0].metadata.name}') \
+  -- psql -U keycloak keycloak
 ```
 
 ### SOPS / Secrets
@@ -762,7 +817,7 @@ kubectl exec -it -n zitadel \
 sops -d deploy/environments/local/infisical/infisical-secrets.enc.yaml
 
 # Edit in-place (opens $EDITOR with decrypted content, re-encrypts on save)
-sops deploy/environments/local/zitadel/infisical-machine-identity.enc.yaml
+sops deploy/environments/local/infisical/infisical-secrets.enc.yaml
 
 # Encrypt a new file using the rules in .sops.yaml
 sops -e -i path/to/new-file.enc.yaml

@@ -12,5 +12,5 @@ resources:
   - longhorn-config.yaml
   - infisical.yaml
   - secrets-operator.yaml
-  - zitadel-config.yaml
-  - zitadel.yaml
+  - keycloak-config.yaml
+  - keycloak.yaml
