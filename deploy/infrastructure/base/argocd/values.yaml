@@ -14,6 +14,16 @@ configs:
       type: helm
       name: cloudpirates
       enableOCI: "true"
+    grafana-community:
+      url: oci://ghcr.io/grafana-community/helm-charts
+      type: helm
+      name: grafana-community
+      enableOCI: "true"
+    prometheus-community:
+      url: oci://ghcr.io/prometheus-community/charts
+      type: helm
+      name: prometheus-community
+      enableOCI: "true"
 
   # Custom health checks for CRDs that ArgoCD cannot assess natively.
   #
