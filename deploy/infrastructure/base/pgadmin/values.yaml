@@ -4,7 +4,7 @@ ingress:
 fullnameOverride: pgadmin
 env:
   contextPath: ""
-  email: admin@propertea.local
+  email: admin@example.com
   password: admin
 
 extraConfigmapMounts: []

@@ -415,7 +415,7 @@ Expected healthy state after full bootstrap:
 > Management UI: `https://rabbitmq.local` — admin / Password1!
 > AMQP connection string: `amqp://admin:Password1!@rabbitmq.rabbitmq.svc.cluster.local:5672/`
 >
-> **PgAdmin:** `https://pgadmin.local` — email `admin@propertea.local`, password `admin`. Local dev only; not deployed to cloud environments.
+> **PgAdmin:** `https://pgadmin.local` — email `admin@example.com`, password `admin`. Local dev only; not deployed to cloud environments.
 > Add a server: host `keycloak-db-rw.keycloak.svc.cluster.local`, port `5432`, user `keycloak`, password from `kubectl get secret keycloak-db-app -n keycloak -o jsonpath='{.data.password}' | base64 -d`
 >
 > **RedisInsight:** `https://redisinsight.local` — add database `redis.redis.svc.cluster.local:6379`, no auth. Local dev only; not deployed to cloud environments.
@@ -663,6 +663,40 @@ deploy/
         values.yaml             # PgAdmin base Helm values (desktop mode, Longhorn PVC, no Ingress)
     aks/                        # Future AKS infrastructure stubs
 ```
+
+## Troubleshooting
+
+### ArgoCD: 401 Unauthorized pulling CloudPirates OCI charts
+
+CloudPirates charts are hosted as OCI artifacts on Docker Hub (`oci://registry-1.docker.io/cloudpirates`). Docker Hub requires an OAuth2 bearer token for all OCI registry API requests, even for public repositories. ArgoCD must have the repository registered as an OCI Helm source to trigger the correct auth flow.
+
+The base `argocd/values.yaml` already registers the repository via `configs.repositories`. After ArgoCD syncs its own app, retry the failing apps. If the 401 persists (typically because ArgoCD's anonymous bearer flow is blocked by Docker Hub rate limits), add a credential Secret:
+
+1. Generate a Docker Hub Personal Access Token at https://hub.docker.com/settings/security (read-only scope is sufficient).
+
+2. Create the ArgoCD repository Secret:
+   ```bash
+   kubectl create secret generic cloudpirates-oci-creds \
+     -n argocd \
+     --from-literal=type=helm \
+     --from-literal=url=oci://registry-1.docker.io/cloudpirates \
+     --from-literal=enableOCI=true \
+     --from-literal=name=cloudpirates \
+     --from-literal=username=<your-dockerhub-username> \
+     --from-literal=password=<your-dockerhub-pat>
+   kubectl label secret cloudpirates-oci-creds -n argocd \
+     argocd.argoproj.io/secret-type=repository
+   ```
+
+3. Hard-refresh the failing apps in ArgoCD UI, or:
+   ```bash
+   argocd app get redis --hard-refresh
+   argocd app get rabbitmq --hard-refresh
+   ```
+
+This Secret is not tracked in git (credentials). It survives cluster restarts but will need to be recreated if the `argocd` namespace is wiped.
+
+---
 
 ## AKS Migration Path
 
