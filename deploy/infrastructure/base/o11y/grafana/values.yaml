@@ -50,6 +50,10 @@ datasources:
         url: http://tempo.o11y.svc.cluster.local:3200
         jsonData:
           httpMethod: GET
+          # Grafana's internal apiserver probes Tempo over gRPC (HTTP/2).
+          # Without this flag it gets "frame too large" errors because Tempo's
+          # port 3200 speaks HTTP/1.1, not gRPC.
+          grpcAllowInsecure: true
           serviceMap:
             datasourceUid: victoriametrics
           tracesToMetrics:
@@ -77,6 +81,11 @@ sidecar:
 grafana.ini:
   server:
     root_url: https://grafana.local
+  security:
+    # Fixed key so sessions survive pod restarts. Without this, every restart
+    # generates a new random key, invalidating all browser cookies and causing
+    # a POST /api/user/auth-tokens/rotate → 499 spam loop.
+    secret_key: "ProperTeaGrafanaLocalDev-ChangeThisOnProd-32chrMin"
   analytics:
     reporting_enabled: false
     check_for_updates: false

@@ -2,6 +2,13 @@
 
 Settings that are intentionally simplified for local development and **must be changed** before prod is provisioned.
 
+## Grafana
+
+| Setting | Local | Prod |
+|---|---|---|
+| `grafana.ini.security.secret_key` | Hardcoded string in values.yaml | Must come from an ExternalSecret — key must be ≥32 chars, stable across restarts |
+| `adminPassword` | `Password1!` hardcoded | ExternalSecret |
+
 ## Loki
 
 | Setting | Local | Prod |
