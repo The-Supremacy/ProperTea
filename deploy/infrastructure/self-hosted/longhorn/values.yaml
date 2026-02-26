@@ -8,6 +8,11 @@ preUpgradeChecker:
 defaultSettings:
   replicaAutoBalance: least-effort
   storageMinimalAvailablePercentage: 20
+  # Allow provisioning up to 2x the real disk space. Safe in dev because PVCs
+  # are routinely sized larger than their actual usage (e.g. a 5 GB PVC for a
+  # Postgres instance holding 200 MB). 100% means 57 GB real → 114 GB ceiling.
+  # Default is 200%, which caused provisioning failures when the math broke down.
+  storageOverProvisioningPercentage: 100
 
 persistence:
   defaultClass: false
