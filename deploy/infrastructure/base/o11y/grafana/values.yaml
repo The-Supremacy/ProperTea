@@ -3,12 +3,8 @@ fullnameOverride: grafana
 adminUser: admin
 adminPassword: "Password1!"
 
-# Grafana plugins installed at container startup.
-# victoriametrics-datasource adds MetricsQL support and a richer metric browser.
-# Dashboards built against the VictoriaMetrics plugin use type=victoriametrics-datasource.
-# Our datasource is still type=prometheus (compatible); the plugin extends the UI only.
 plugins:
-  - victoriametrics-datasource
+  - victoriametrics-metrics-datasource
 
 persistence:
   enabled: true
@@ -98,11 +94,8 @@ grafana.ini:
     check_for_updates: false
   users:
     allow_sign_up: false
-  plugins:
-    # Required for victoriametrics-datasource: Grafana 11 disables community
-    # plugins that fail signature verification at startup. This bypasses the
-    # check for this plugin only; all other plugins remain signature-enforced.
-    allow_loading_unsigned_plugins: victoriametrics-datasource
+    plugins:
+    allow_loading_unsigned_plugins: victoriametrics-metrics-datasource
 
 # The chart validates that secret_key is not set in plain grafana.ini values.
 # This flag disables that client-side assertion (acceptable for local dev;
