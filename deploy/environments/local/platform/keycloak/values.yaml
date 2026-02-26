@@ -8,7 +8,7 @@ keycloak:
 database:
   type: postgres
   host: keycloak-db-rw
-  port: 5432
+  port: "5432"
   name: keycloak
   existingSecret: keycloak-db-app
   secretKeys:
