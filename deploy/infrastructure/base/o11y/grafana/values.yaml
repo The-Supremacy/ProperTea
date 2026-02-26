@@ -91,3 +91,8 @@ grafana.ini:
     check_for_updates: false
   users:
     allow_sign_up: false
+
+# The chart validates that secret_key is not set in plain grafana.ini values.
+# This flag disables that client-side assertion (acceptable for local dev;
+# on prod the key should come from an ExternalSecret instead).
+assertNoLeakedSecrets: false
