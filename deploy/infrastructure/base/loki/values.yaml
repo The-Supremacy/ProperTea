@@ -52,4 +52,7 @@ resultsCache:
 gateway:
   enabled: false
 
+lokiCanary:
+  enabled: false
+
 fullnameOverride: loki
