@@ -1,7 +1,8 @@
 # EnvoyProxy configures the proxy behaviour for GatewayClass.
-# externalTrafficPolicy: Cluster is required because the L2 announcement lease
-# may land on the CP node (tainted NoSchedule) while the proxy pod runs on a
-# worker. With Local the CP node drops external traffic (no local backend).
+# DaemonSet mode ensures a proxy pod exists on every worker node, so the
+# Cilium L2 announcement lease (which picks any worker) always finds a local
+# backend. This makes externalTrafficPolicy: Local safe and preserves real
+# client IPs (no SNAT). The L2 policy excludes the CP node to match.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
 metadata:
@@ -11,8 +12,7 @@ spec:
   provider:
     type: Kubernetes
     kubernetes:
-      envoyService:
-        externalTrafficPolicy: Cluster
+      envoyDaemonSet: {}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass

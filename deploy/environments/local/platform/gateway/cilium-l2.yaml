@@ -23,6 +23,13 @@ kind: CiliumL2AnnouncementPolicy
 metadata:
   name: local-l2
 spec:
+  # Restrict lease election to workers only. The CP is tainted NoSchedule so
+  # the DaemonSet proxy pod never runs there — advertising from CP would mean
+  # a node with no local backend wins, breaking externalTrafficPolicy: Local.
+  nodeSelector:
+    matchExpressions:
+      - key: node-role.kubernetes.io/control-plane
+        operator: DoesNotExist
   loadBalancerIPs: true
   interfaces:
     - ens3
