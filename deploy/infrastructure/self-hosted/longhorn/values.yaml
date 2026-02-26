@@ -12,7 +12,7 @@ defaultSettings:
   # are routinely sized larger than their actual usage (e.g. a 5 GB PVC for a
   # Postgres instance holding 200 MB). 100% means 57 GB real → 114 GB ceiling.
   # Default is 200%, which caused provisioning failures when the math broke down.
-  storageOverProvisioningPercentage: 100
+  storageOverProvisioningPercentage: 150
 
 persistence:
   defaultClass: false

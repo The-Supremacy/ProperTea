@@ -8,7 +8,7 @@
 # (192.168.50.200) on ens3 so the KVM host can route traffic into the cluster.
 # Envoy Gateway requests a LoadBalancer Service; Cilium satisfies it from this pool.
 
-apiVersion: cilium.io/v2alpha1
+apiVersion: cilium.io/v2
 kind: CiliumLoadBalancerIPPool
 metadata:
   name: local-pool
