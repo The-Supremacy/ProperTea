@@ -27,7 +27,7 @@ datasources:
       - name: VictoriaMetrics
         uid: victoriametrics
         type: prometheus
-        url: http://victoria-metrics.o11y.svc.cluster.local:8428
+        url: http://victoria-metrics-server.o11y.svc.cluster.local:8428
         isDefault: true
         jsonData:
           httpMethod: POST
@@ -54,9 +54,16 @@ datasources:
             datasourceUid: victoriametrics
           tracesToMetrics:
             datasourceUid: victoriametrics
+            tags:
+              - key: service.name
+                alias: service
           tracesToLogs:
             datasourceUid: loki
             filterByTraceID: true
+          search:
+            hide: false
+          lokiSearch:
+            datasourceUid: loki
 
 sidecar:
   dashboards:
