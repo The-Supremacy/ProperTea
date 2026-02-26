@@ -1,0 +1,23 @@
+tolerations:
+  - operator: Exists
+
+hostRootFsMount:
+  enabled: true
+  mountPropagation: HostToContainer
+
+extraArgs:
+  - --path.rootfs=/host
+  - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($|/)
+  - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$
+
+resources:
+  requests:
+    memory: 32Mi
+    cpu: 50m
+  limits:
+    memory: 128Mi
+    cpu: 200m
+
+service:
+  port: 9100
+  targetPort: 9100

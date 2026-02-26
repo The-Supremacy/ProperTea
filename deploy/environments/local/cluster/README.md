@@ -351,6 +351,7 @@ local-apps  (watches deploy/environments/local/apps/)
   ├── cert-manager.yaml        ← wave 1: cert-manager Helm install
   ├── cert-manager-config.yaml ← wave 2: ClusterIssuers (self-signed local CA)
   ├── gateway-config.yaml      ← wave 3: Cilium L2 pool, Gateway, HTTPRoute
+  ├── hubble.yaml              ← wave 3: Hubble UI HTTPRoute (hubble.local)
   ├── longhorn.yaml            ← wave 3: Longhorn Helm install (becomes default StorageClass)
   ├── longhorn-config.yaml     ← wave 4: Longhorn UI HTTPRoute
   ├── cloudnativepg.yaml       ← wave 4: CloudNativePG operator
@@ -365,6 +366,7 @@ local-apps  (watches deploy/environments/local/apps/)
   ├── redisinsight.yaml        ← wave 8: RedisInsight web UI for Redis (local dev only)
   ├── metrics-server.yaml      ← wave 9: Kubernetes Metrics API (kubectl top + HPA)
   ├── kube-state-metrics.yaml  ← wave 9: Kubernetes object state as Prometheus metrics
+  ├── node-exporter.yaml       ← wave 9: Host-level metrics DaemonSet (CPU, memory, disk, network)
   ├── victoria-metrics.yaml   ← wave 10: VictoriaMetrics Single (metrics storage, PromQL/MetricsQL)
   ├── loki.yaml                ← wave 10: Loki single-binary (log storage)
   ├── tempo.yaml               ← wave 10: Tempo single-binary (trace storage)
@@ -411,13 +413,13 @@ Expected healthy state after full bootstrap:
 | 0 | argocd | `kubectl rollout status deployment argocd-server -n argocd` |
 | 1 | cert-manager, argocd-config | `kubectl wait --for=condition=Available deployment/cert-manager-webhook -n cert-manager --timeout=120s` |
 | 2 | cert-manager-config | `kubectl get clusterissuer` — both Ready |
-| 3 | gateway-config, longhorn | `kubectl wait --for=condition=Available deployment/longhorn-manager -n longhorn-system --timeout=300s` |
+| 3 | gateway-config, hubble, longhorn | `kubectl wait --for=condition=Available deployment/longhorn-manager -n longhorn-system --timeout=300s` |
 | 4 | longhorn-config, cloudnativepg | `kubectl wait --for=condition=Available deployment/cnpg-controller-manager -n cnpg-system --timeout=180s` |
 | 5 | infisical, secrets-operator | `kubectl get pods -n infisical` |
 | 6 | keycloak-config | `kubectl wait --for=condition=Ready cluster/keycloak-db -n keycloak --timeout=300s` |
 | 7 | keycloak | `kubectl rollout status statefulset/keycloak-keycloakx -n keycloak` |
 | 8 | redis, rabbitmq, mailpit, pgadmin, redisinsight | `kubectl get pods -n redis -n rabbitmq -n mailpit -n pgadmin -n redisinsight` |
-| 9 | metrics-server, kube-state-metrics | `kubectl get apiservice v1beta1.metrics.k8s.io` — Available: True |
+| 9 | metrics-server, kube-state-metrics, node-exporter | `kubectl get apiservice v1beta1.metrics.k8s.io` — Available: True |
 | 10 | victoria-metrics, loki, tempo | `kubectl get pods -n o11y` — all Running |
 | 11 | alloy, grafana | `kubectl rollout status deployment/grafana -n o11y` |
 
@@ -528,19 +530,22 @@ The `-p` flag makes the route persistent across Windows reboots.
 Add an entry to `C:\Windows\System32\drivers\etc\hosts` (Notepad as Administrator):
 
 ```
-192.168.50.200 argocd.local
-192.168.50.200 keycloak.local
-192.168.50.200 longhorn.local
-192.168.50.200 infisical.local
-192.168.50.200 rabbitmq.local
-192.168.50.200 mailpit.local
-192.168.50.200 pgadmin.local
-192.168.50.200 redisinsight.local
-192.168.50.200 grafana.local
+192.168.50.201 argocd.local
+192.168.50.201 keycloak.local
+192.168.50.201 longhorn.local
+192.168.50.201 infisical.local
+192.168.50.201 rabbitmq.local
+192.168.50.201 mailpit.local
+192.168.50.201 pgadmin.local
+192.168.50.201 redisinsight.local
+192.168.50.201 grafana.local
+192.168.50.201 hubble.local
 # Add one line per service hostname
+# IP is the LoadBalancer IP assigned to the Envoy Gateway service by Cilium.
+# Verify current IP: kubectl get svc -n envoy-gateway-system -l gateway.envoyproxy.io/owning-gateway-name=propertea-gateway -o jsonpath='{.items[0].status.loadBalancer.ingress[0].ip}'
 ```
 
-All services share the same gateway IP (`192.168.50.200`). Cilium routes to the correct backend service based on the `Host` header.
+All services share the same gateway IP (`192.168.50.201`). Envoy Gateway routes to the correct backend service based on the `Host` header.
 
 ### Verify
 
@@ -896,6 +901,27 @@ sops -e -i path/to/new-file.enc.yaml
 
 ## Troubleshooting
 
+### First steps: where to start
+
+For any unknown problem, run these three commands before touching anything else:
+
+```bash
+# 1. Events — timestamped stream of exactly what Kubernetes observed
+#    This alone resolves ~60% of failures (image pull errors, OOM kills, probe failures, PVC binding)
+kubectl get events -n <namespace> --sort-by='.lastTimestamp' | tail -20
+
+# 2. Pod status with node placement — reveals scheduling / taint problems
+kubectl get pods -n <namespace> -o wide
+
+# 3. Resource pressure — reveals OOM / CPU throttling causing unexplained restarts
+kubectl top nodes
+kubectl top pods -n <namespace>
+```
+
+For **network / connectivity** problems between services (connection refused, timeouts, DNS failures), use Hubble at `https://hubble.local` before resorting to exec. It shows live pod-to-pod flows, dropped packets, policy verdicts, and DNS queries without needing to get into containers.
+
+For **log tailing across multiple pods** without knowing which pod is logging what, use Grafana Explore → Loki with `{namespace="<namespace>"}` — faster than `kubectl logs -f` when there are multiple replicas.
+
 ### Pod stuck in CrashLoopBackOff
 
 The pod is starting and crashing repeatedly. Kubernetes applies exponential backoff — eventually it waits 5+ minutes between attempts even if you fix the config.
@@ -1020,4 +1046,61 @@ helm template keycloak codecentric/keycloakx --version 7.1.8 \
   --values deploy/infrastructure/base/keycloak/values.yaml \
   --values deploy/environments/local/keycloak/values.yaml \
   > /tmp/keycloak-rendered.yaml
+```
+
+### Grafana: dashboard shows no data / ${VAR_DATASOURCE} not found
+
+Community dashboards often use template variables that need manual mapping after import.
+
+**`${VAR_DATASOURCE}` not found** — the variable needs to be linked to your datasource:
+1. Open the dashboard → top-right gear icon → Variables
+2. Find the `datasource` (or `VAR_DATASOURCE`) variable
+3. Set type to `Data source`, query type to `Prometheus`
+4. It auto-lists available datasources — select `VictoriaMetrics`
+5. Save and reload
+
+**Dashboard shows no data, no errors** — the scrape job is missing or the job label doesn't match. Check what metric names actually exist:
+```bash
+# Query VictoriaMetrics directly for a metric the dashboard depends on
+curl -sg 'http://localhost:8428/api/v1/label/__name__/values' | python3 -m json.tool | grep argocd | head -10
+# (port-forward first: kubectl port-forward svc/victoria-metrics-server 8428:8428 -n o11y)
+```
+
+### Grafana: 422 "duplicate time series" error in dashboard panel
+
+Symptom: a panel shows error `duplicate time series on the left side of * on(pod) group_right()`.
+
+Cause: VictoriaMetrics has stale metrics for a pod that appears in two different namespaces — typically a leftover entry from a pod that was briefly in the wrong namespace or restarted with a new UID.
+
+Identify the duplicate:
+```bash
+kubectl port-forward svc/victoria-metrics-server 8428:8428 -n o11y &
+curl -sg 'http://localhost:8428/api/v1/series?match[]=kube_pod_created{pod="tempo-0"}' | python3 -m json.tool
+```
+
+Delete the stale series (replace label values to match what the query above returned for the wrong entry):
+```bash
+curl -sg -XPOST 'http://localhost:8428/api/v1/admin/tsdb/delete_series?match[]=kube_pod_created{namespace="default",pod="tempo-0"}'
+curl -sg -XPOST 'http://localhost:8428/api/v1/admin/tsdb/delete_series?match[]=kube_pod_container_info{namespace="default",pod="tempo-0"}'
+```
+
+Stale series also expire naturally after VictoriaMetrics's `retentionPeriod`. A pod restart of kube-state-metrics can also flush stale state:
+```bash
+kubectl rollout restart deployment/kube-state-metrics -n o11y
+```
+
+### Grafana: ArgoCD dashboard shows no data
+
+ArgoCD exposes metrics on separate ClusterIP services (`argocd-application-controller-metrics`, `argocd-server-metrics`, `argocd-repo-server-metrics`) that must be explicitly enabled in the ArgoCD Helm values (`controller.metrics.enabled: true` etc.). These are now enabled in `deploy/infrastructure/base/platform/argocd/values.yaml`.
+
+Verify the services exist after ArgoCD re-syncs its own app:
+```bash
+kubectl get svc -n argocd | grep metrics
+# Expect three services: *-application-controller-metrics, *-server-metrics, *-repo-server-metrics
+```
+
+Then confirm Alloy is reaching them (no connection errors):
+```bash
+kubectl port-forward svc/alloy 12345:12345 -n o11y &
+curl -s http://localhost:12345/metrics | grep argocd | head -5
 ```

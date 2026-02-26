@@ -1,0 +1,2 @@
+# Local overrides for prometheus-node-exporter.
+# Extends deploy/infrastructure/base/o11y/node-exporter/values.yaml.

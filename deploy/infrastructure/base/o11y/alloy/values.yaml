@@ -203,7 +203,7 @@ alloy:
         targets = [
           { __address__ = "argocd-application-controller-metrics.argocd.svc.cluster.local:8082" },
           { __address__ = "argocd-server-metrics.argocd.svc.cluster.local:8083" },
-          { __address__ = "argocd-repo-server.argocd.svc.cluster.local:8084" },
+          { __address__ = "argocd-repo-server-metrics.argocd.svc.cluster.local:8084" },
         ]
         forward_to      = [prometheus.remote_write.victoriametrics.receiver]
         job_name        = "argocd"
@@ -333,4 +333,37 @@ alloy:
         forward_to      = [prometheus.remote_write.victoriametrics.receiver]
         job_name        = "cilium"
         scrape_interval = "30s"
+      }
+
+      // ================================================================
+      // Node Exporter — host-level CPU, memory, disk, network per node
+      // Requires prometheus-node-exporter DaemonSet (wave 9).
+      // ================================================================
+      discovery.kubernetes "node_exporter" {
+        role = "pod"
+        namespaces { names = ["o11y"] }
+        selectors {
+          role  = "pod"
+          label = "app.kubernetes.io/name=prometheus-node-exporter"
+        }
+      }
+
+      discovery.relabel "node_exporter" {
+        targets = discovery.kubernetes.node_exporter.targets
+        rule {
+          source_labels = ["__meta_kubernetes_pod_ip"]
+          replacement   = "$1:9100"
+          target_label  = "__address__"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_node_name"]
+          target_label  = "node"
+        }
+      }
+
+      prometheus.scrape "node_exporter" {
+        targets         = discovery.relabel.node_exporter.output
+        forward_to      = [prometheus.remote_write.victoriametrics.receiver]
+        job_name        = "node-exporter"
+        scrape_interval = "15s"
       }

@@ -75,6 +75,9 @@ configs:
           return hs
 
 repoServer:
+  metrics:
+    enabled: true
+
   volumes:
     - name: custom-tools
       emptyDir: {}
@@ -234,3 +237,17 @@ extraObjects:
                   done
                 fi
           lockRepo: false
+
+# Enable dedicated ClusterIP services for each component's Prometheus metrics port.
+# Without these, the services don't exist and Alloy's scrape targets get
+# connection refused. Service names created:
+#   argocd-application-controller-metrics :8082
+#   argocd-server-metrics                 :8083
+#   argocd-repo-server-metrics            :8084
+controller:
+  metrics:
+    enabled: true
+
+server:
+  metrics:
+    enabled: true

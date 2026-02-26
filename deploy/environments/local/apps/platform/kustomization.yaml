@@ -9,6 +9,7 @@ resources:
   - cloudnativepg.yaml
   - envoy-gateway.yaml
   - gateway-config.yaml
+  - hubble.yaml
   - infisical.yaml
   - keycloak.yaml
   - keycloak-config.yaml

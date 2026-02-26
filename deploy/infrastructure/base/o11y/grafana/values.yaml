@@ -3,6 +3,13 @@ fullnameOverride: grafana
 adminUser: admin
 adminPassword: "Password1!"
 
+# Grafana plugins installed at container startup.
+# victoriametrics-datasource adds MetricsQL support and a richer metric browser.
+# Dashboards built against the VictoriaMetrics plugin use type=victoriametrics-datasource.
+# Our datasource is still type=prometheus (compatible); the plugin extends the UI only.
+plugins:
+  - victoriametrics-datasource
+
 persistence:
   enabled: true
   storageClass: longhorn
