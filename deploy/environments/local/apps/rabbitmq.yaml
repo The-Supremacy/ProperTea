@@ -27,6 +27,14 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: rabbitmq
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: rabbitmq
+      namespace: rabbitmq
+      jsonPointers:
+        - /data/erlang-cookie
+        - /data/password
   syncPolicy:
     automated:
       enabled: true
