@@ -21,6 +21,9 @@ spec:
     - repoURL: git@github.com:The-Supremacy/ProperTea.git
       targetRevision: HEAD
       ref: values
+    - repoURL: git@github.com:The-Supremacy/ProperTea.git
+      targetRevision: HEAD
+      path: deploy/environments/local/o11y/node-exporter
   destination:
     server: https://kubernetes.default.svc
     namespace: o11y
