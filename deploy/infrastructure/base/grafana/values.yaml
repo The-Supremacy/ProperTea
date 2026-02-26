@@ -1,9 +1,5 @@
 fullnameOverride: grafana
 
-# VictoriaMetrics datasource plugin — enables MetricsQL support beyond standard PromQL.
-plugins:
-  - victoriametrics-datasource
-
 adminUser: admin
 adminPassword: "Password1!"
 
@@ -30,7 +26,7 @@ datasources:
     datasources:
       - name: VictoriaMetrics
         uid: victoriametrics
-        type: victoriametrics-datasource
+        type: prometheus
         url: http://victoria-metrics.o11y.svc.cluster.local:8428
         isDefault: true
         jsonData:
