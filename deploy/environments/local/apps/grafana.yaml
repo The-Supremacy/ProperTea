@@ -10,9 +10,9 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: oci://ghcr.io/grafana-community/helm-charts
-      chart: grafana
+    - repoURL: oci://ghcr.io/grafana-community/helm-charts/grafana
       targetRevision: 11.2.0
+      path: .
       helm:
         releaseName: grafana
         valueFiles:

@@ -50,7 +50,7 @@ alloy:
         grpc { endpoint = "0.0.0.0:4317" }
         http { endpoint = "0.0.0.0:4318" }
         output {
-          metrics = [otelcol.exporter.prometheusremotewrite.victoriametrics.input]
+          metrics = [otelcol.exporter.prometheus.victoriametrics.input]
           logs    = [otelcol.exporter.loki.default.input]
           traces  = [otelcol.exporter.otlp.tempo.input]
         }
@@ -75,11 +75,11 @@ alloy:
 
       // ================================================================
       // OTLP Metrics → VictoriaMetrics
+      // Converts OTLP metrics to Prometheus format and forwards to the
+      // prometheus.remote_write component defined below.
       // ================================================================
-      otelcol.exporter.prometheusremotewrite "victoriametrics" {
-        endpoint {
-          url = "http://victoria-metrics.o11y.svc.cluster.local:8428/api/v1/write"
-        }
+      otelcol.exporter.prometheus "victoriametrics" {
+        forward_to = [prometheus.remote_write.victoriametrics.receiver]
       }
 
       // ================================================================

@@ -2,29 +2,6 @@ configs:
   params:
     server.insecure: "true"
 
-  # Register CloudPirates OCI repositories explicitly so ArgoCD handles
-  # Docker Hub's OAuth2 bearer token challenge when resolving chart revisions.
-  # Docker Hub requires a bearer token even for anonymous reads of public OCI
-  # artifacts — registering the repo here triggers the correct auth flow.
-  # If anonymous bearer fails (still 401), create a Secret in the argocd
-  # namespace with Docker Hub credentials; see cluster README for instructions.
-  repositories:
-    cloudpirates:
-      url: oci://registry-1.docker.io/cloudpirates
-      type: helm
-      name: cloudpirates
-      enableOCI: "true"
-    grafana-community:
-      url: oci://ghcr.io/grafana-community/helm-charts
-      type: helm
-      name: grafana-community
-      enableOCI: "true"
-    prometheus-community:
-      url: oci://ghcr.io/prometheus-community/charts
-      type: helm
-      name: prometheus-community
-      enableOCI: "true"
-
   # Custom health checks for CRDs that ArgoCD cannot assess natively.
   #
   # CNPG Cluster: ArgoCD considers the CR "Healthy" the moment the API server accepts it,
