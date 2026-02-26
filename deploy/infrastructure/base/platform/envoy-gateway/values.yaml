@@ -1,0 +1,13 @@
+# Envoy Gateway Helm values — base (all environments).
+#
+# Envoy Gateway ships with sensible defaults:
+#   - Creates a GatewayClass named 'envoy'
+#   - Deploys the controller into the 'envoy-gateway-system' namespace
+#   - Spawns Envoy proxy pods in the same namespace as each Gateway resource
+#
+# HTTPRoutes reference the Gateway by name/namespace only (no gatewayClassName
+# coupling), so they need no changes when switching from Cilium Gateway.
+#
+# On AKS: the CiliumLoadBalancerIPPool and CiliumL2AnnouncementPolicy are
+# local-only (see deploy/environments/local/platform/gateway/cilium-l2.yaml).
+# Azure Load Balancer fulfils the LoadBalancer Service IP automatically.

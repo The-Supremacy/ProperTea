@@ -29,6 +29,9 @@ echo "  Current values exported to /tmp/cilium-upgrade-values.yaml"
 
 helm repo update cilium 2>/dev/null
 
+# If migrating from a cluster that had gatewayAPI.enabled=true (pre-Envoy Gateway),
+# add --set gatewayAPI.enabled=false to this command for the one-time migration run.
+# After that, the saved values will no longer include the flag.
 helm upgrade cilium cilium/cilium \
   --version "$TARGET_VERSION" \
   --namespace kube-system \

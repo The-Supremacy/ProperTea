@@ -36,6 +36,9 @@ helm repo update cilium
 #   cgroup.autoMount.enabled=false  -- Talos manages cgroups; remounting is not permitted
 #   cgroup.hostRoot                 -- tell Cilium where Talos mounts the cgroup fs
 #   securityContext.capabilities.*  -- Talos restricts capability application; must be explicit
+# L7 gateway is handled by Envoy Gateway (installed via ArgoCD at sync-wave 2).
+# Cilium is CNI + kube-proxy replacement + L2 load balancer only.
+# gatewayAPI.enabled is intentionally absent -- we do not want the cilium GatewayClass.
 helm install cilium cilium/cilium \
   --version "$CILIUM_VERSION" \
   --namespace kube-system \
@@ -50,7 +53,6 @@ helm install cilium cilium/cilium \
   --set hubble.enabled=true \
   --set hubble.relay.enabled=true \
   --set hubble.ui.enabled=true \
-  --set gatewayAPI.enabled=true \
   --set l2announcements.enabled=true \
   --set prometheus.enabled=true \
   --set operator.prometheus.enabled=true \

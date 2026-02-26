@@ -7,6 +7,7 @@ resources:
   - cert-manager.yaml
   - cert-manager-config.yaml
   - cloudnativepg.yaml
+  - envoy-gateway.yaml
   - gateway-config.yaml
   - infisical.yaml
   - keycloak.yaml
