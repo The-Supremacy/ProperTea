@@ -1,23 +1,17 @@
-replicas: 1
+replicaCount: 1
 
-command:
-  - "/opt/keycloak/bin/kc.sh"
-  - "start"
-  - "--http-port=8080"
-  - "--hostname=https://keycloak.local"
-  - "--hostname-strict=false"
-
-extraEnv: |
-  - name: KEYCLOAK_ADMIN
-    value: admin
-  - name: KEYCLOAK_ADMIN_PASSWORD
-    value: "Password1!"
+keycloak:
+  adminUser: admin
+  adminPassword: "Password1!"
+  hostname: "keycloak.local"
 
 database:
-  vendor: postgres
-  hostname: keycloak-db-rw
+  type: postgres
+  host: keycloak-db-rw
   port: 5432
-  database: keycloak
-  username: keycloak
+  name: keycloak
   existingSecret: keycloak-db-app
-  existingSecretKey: password
+  secretKeys:
+    # Keys present in the CNPG-generated keycloak-db-app secret.
+    passwordKey: password
+    usernameKey: username

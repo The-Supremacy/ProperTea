@@ -10,9 +10,9 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: https://codecentric.github.io/helm-charts
-      chart: keycloakx
-      targetRevision: 7.1.8
+    - repoURL: oci://registry-1.docker.io/cloudpirates/keycloak
+      targetRevision: 0.16.5
+      path: .
       helm:
         releaseName: keycloak
         valueFiles:

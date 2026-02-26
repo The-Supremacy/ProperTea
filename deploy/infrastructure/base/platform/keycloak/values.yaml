@@ -1,24 +1,26 @@
-http:
-  relativePath: /
+fullnameOverride: keycloak
 
-# keycloakx requires an explicit command to start. Without this, kc.sh is
-# invoked with no arguments, prints help, and exits immediately.
-command:
-  - "/opt/keycloak/bin/kc.sh"
-  - "start"
-  - "--http-port=8080"
-  - "--hostname-strict=false"
+keycloak:
+  hostnameStrict: false
+  httpEnabled: true
+  # Accept forwarded headers from the Cilium gateway (X-Forwarded-Proto/Host).
+  proxyHeaders: "forwarded"
 
-proxy:
-  enabled: true
-  mode: forwarded
+# Use local cache for single-replica local dev. On prod use ispn for clustering.
 cache:
-  stack: default
-health:
-  enabled: true
+  stack: local
+
 metrics:
   enabled: true
-dbchecker:
-  enabled: true
-logging:
-  level: INFO
+
+# Disable the bundled postgres — we use a CNPG-managed cluster instead.
+postgres:
+  enabled: false
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 200m
+  limits:
+    memory: 1Gi
+    cpu: 1000m

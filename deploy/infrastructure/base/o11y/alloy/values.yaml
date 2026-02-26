@@ -232,10 +232,11 @@ alloy:
 
       // ================================================================
       // Keycloak — management interface :9000/metrics
-      // Requires metrics.enabled: true in keycloakx chart values (already set).
+      // Requires metrics.enabled: true in CloudPirates chart values (already set).
+      // CloudPirates creates a dedicated keycloak-metrics service at port 9000.
       // ================================================================
       prometheus.scrape "keycloak" {
-        targets         = [{ __address__ = "keycloak-keycloakx-http.keycloak.svc.cluster.local:9000" }]
+        targets         = [{ __address__ = "keycloak-metrics.keycloak.svc.cluster.local:9000" }]
         metrics_path    = "/metrics"
         forward_to      = [prometheus.remote_write.victoriametrics.receiver]
         job_name        = "keycloak"
