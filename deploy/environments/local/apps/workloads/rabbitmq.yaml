@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rabbitmq
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+spec:
+  project: default
+  sources:
+    - repoURL: oci://registry-1.docker.io/cloudpirates/rabbitmq
+      targetRevision: 0.17.0
+      path: .
+      helm:
+        releaseName: rabbitmq
+        valueFiles:
+          - $values/deploy/infrastructure/base/workloads/rabbitmq/values.yaml
+          - $values/deploy/environments/local/workloads/rabbitmq/values.yaml
+    - repoURL: git@github.com:The-Supremacy/ProperTea.git
+      targetRevision: HEAD
+      ref: values
+    - repoURL: git@github.com:The-Supremacy/ProperTea.git
+      targetRevision: HEAD
+      path: deploy/environments/local/workloads/rabbitmq
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rabbitmq
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: rabbitmq
+      namespace: rabbitmq
+      jsonPointers:
+        - /data/erlang-cookie
+        - /data/password
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

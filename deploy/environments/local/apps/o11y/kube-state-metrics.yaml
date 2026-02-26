@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-state-metrics
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+spec:
+  project: default
+  sources:
+    - repoURL: oci://ghcr.io/prometheus-community/charts/kube-state-metrics
+      targetRevision: 7.1.0
+      path: .
+      helm:
+        releaseName: kube-state-metrics
+        valueFiles:
+          - $values/deploy/infrastructure/base/o11y/kube-state-metrics/values.yaml
+          - $values/deploy/environments/local/o11y/kube-state-metrics/values.yaml
+    - repoURL: git@github.com:The-Supremacy/ProperTea.git
+      targetRevision: HEAD
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: o11y
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

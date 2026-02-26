@@ -1,0 +1,2 @@
+# Local overrides for alloy.
+# Extends deploy/infrastructure/base/o11y/alloy/values.yaml.

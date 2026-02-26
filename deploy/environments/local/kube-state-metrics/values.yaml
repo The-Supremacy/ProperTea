@@ -1,2 +1,0 @@
-# Local overrides for kube-state-metrics.
-# Extends deploy/infrastructure/base/kube-state-metrics/values.yaml.

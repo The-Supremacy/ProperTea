@@ -1,0 +1,2 @@
+# Local overrides for grafana.
+# Extends deploy/infrastructure/base/o11y/grafana/values.yaml.
