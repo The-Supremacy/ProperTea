@@ -1,6 +1,7 @@
 # ProperTea - AI Instructions
 
 This is a .NET Aspire monorepo for a multi-tenant Real Estate ERP.
+NEVER EXECUTE GIT COMMANDS OR MAKE CHANGES WITHOUT EXPLICIT INSTRUCTION TO DO SO. Always ask for confirmation before making any changes to the repository.
 
 ## Project Layout
 - `/apps/services/` - Backend microservices (C#, Wolverine + Marten)
@@ -46,8 +47,6 @@ This repo has a structured AI instruction system:
    - `new-integration-event` - Wire cross-service events end-to-end
 
 When asked to create features, **read the relevant skill file** from `.github/skills/{skill-name}/SKILL.md` for step-by-step patterns.
-
-NEVER EXECUTE GIT COMMANDS OR MAKE CHANGES WITHOUT EXPLICIT INSTRUCTION TO DO SO. Always ask for confirmation before making any changes to the repository.
 
 ## Code Quality
 
