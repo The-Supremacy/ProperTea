@@ -1,9 +1,30 @@
+# EnvoyProxy configures the proxy behaviour for GatewayClass.
+# externalTrafficPolicy: Cluster is required because the L2 announcement lease
+# may land on the CP node (tainted NoSchedule) while the proxy pod runs on a
+# worker. With Local the CP node drops external traffic (no local backend).
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: propertea-proxy
+  namespace: envoy-gateway-system
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyService:
+        externalTrafficPolicy: Cluster
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
   name: envoy
 spec:
   controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  parametersRef:
+    group: gateway.envoyproxy.io
+    kind: EnvoyProxy
+    name: propertea-proxy
+    namespace: envoy-gateway-system
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
