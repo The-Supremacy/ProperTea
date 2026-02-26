@@ -55,4 +55,7 @@ gateway:
 lokiCanary:
   enabled: false
 
+test:
+  enabled: false
+
 fullnameOverride: loki
