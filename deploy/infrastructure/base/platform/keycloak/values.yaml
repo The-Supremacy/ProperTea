@@ -3,8 +3,10 @@ fullnameOverride: keycloak
 keycloak:
   hostnameStrict: false
   httpEnabled: true
-  # Accept forwarded headers from the Cilium gateway (X-Forwarded-Proto/Host).
-  proxyHeaders: "forwarded"
+  # Gateway sets X-Forwarded-Proto/X-Forwarded-Host (xforwarded, not RFC 7239).
+  # Using "forwarded" here would cause Keycloak to ignore those headers entirely
+  # and generate HTTP redirect URLs even though TLS is terminated at the gateway.
+  proxyHeaders: "xforwarded"
 
 # Use local cache for single-replica local dev. On prod use ispn for clustering.
 cache:
