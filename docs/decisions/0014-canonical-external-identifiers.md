@@ -1,6 +1,6 @@
 # Canonical External Identifiers for Users and Organizations
 
-**Status**: Accepted
+**Status**: Superseded by [0018-keycloak-adoption.md](0018-keycloak-adoption.md)
 **Date**: 2026-02-14
 **Deciders**: oxface, GitHub Copilot
 **Supersedes**: [0009-user-identity-strategy.md](0009-user-identity-strategy.md)

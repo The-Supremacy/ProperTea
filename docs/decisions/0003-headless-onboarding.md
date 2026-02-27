@@ -1,6 +1,6 @@
 # 0003: Headless Tenant Onboarding
 
-**Status**: Accepted
+**Status**: Superseded by [0018-keycloak-adoption.md](0018-keycloak-adoption.md)
 **Date**: 2026-01-22
 **Deciders**: Development Team
 
