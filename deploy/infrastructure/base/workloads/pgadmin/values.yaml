@@ -19,11 +19,29 @@ persistentVolume:
 
 resources:
   requests:
-    memory: 128Mi
+    memory: 256Mi
     cpu: 50m
   limits:
-    memory: 256Mi
+    memory: 512Mi
     cpu: 200m
+
+startupProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  failureThreshold: 30
+  timeoutSeconds: 5
+
+livenessProbe:
+  initialDelaySeconds: 0
+  periodSeconds: 30
+  failureThreshold: 5
+  timeoutSeconds: 15
+
+readinessProbe:
+  initialDelaySeconds: 0
+  periodSeconds: 15
+  failureThreshold: 5
+  timeoutSeconds: 10
 
 securityContext:
   runAsUser: 5050

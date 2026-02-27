@@ -4,6 +4,15 @@
 # Interface is ens3, NOT eth0. UEFI KVM guests on libvirt get predictable
 # PCI names (ens3), not the old kernel eth0 naming.
 
+cluster:
+  apiServer:
+    extraArgs:
+      # How long to wait before evicting pods from a NotReady node.
+      # Default is 300s. 120s catches genuine node failures faster without
+      # causing churn from brief network blips.
+      default-not-ready-toleration-seconds: "120"
+      default-unreachable-toleration-seconds: "120"
+
 machine:
   network:
     interfaces:

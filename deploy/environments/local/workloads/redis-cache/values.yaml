@@ -1,0 +1,2 @@
+# Local environment overrides for redis-cache.
+# No overrides needed — base values are sufficient for local dev.

@@ -1,0 +1,26 @@
+architecture: standalone
+fullnameOverride: redis-cache
+
+auth:
+  enabled: false
+
+config:
+  content: |
+    maxmemory 200mb
+    # allkeys-lru: evict least recently used keys freely.
+    # Cache data is ephemeral by design — losing it causes a cache miss, not data loss.
+    maxmemory-policy allkeys-lru
+
+# No persistence: cache data has no durability requirement.
+# On pod restart it warms up organically. Removing the PVC also eliminates
+# the RWO volume attachment delay on node failure.
+persistence:
+  enabled: false
+
+resources:
+  requests:
+    memory: 64Mi
+    cpu: 50m
+  limits:
+    memory: 256Mi
+    cpu: 500m

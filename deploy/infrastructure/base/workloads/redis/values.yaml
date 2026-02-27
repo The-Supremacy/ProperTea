@@ -7,7 +7,9 @@ auth:
 config:
   content: |
     maxmemory 200mb
-    maxmemory-policy allkeys-lru
+    # noeviction: never silently drop session data or Data Protection keys.
+    # If memory fills up, writes fail loudly rather than evicting data we depend on.
+    maxmemory-policy noeviction
     appendonly yes
     appendfsync everysec
     save 900 1

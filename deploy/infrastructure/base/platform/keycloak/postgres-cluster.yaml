@@ -13,7 +13,7 @@ metadata:
   name: keycloak-db
   namespace: keycloak
 spec:
-  instances: 2
+  instances: 3
   enableSuperuserAccess: true
   storage:
     size: 5Gi
@@ -23,7 +23,7 @@ spec:
       database: keycloak
       owner: keycloak
   affinity:
-    podAntiAffinityType: preferred
+    podAntiAffinityType: required
     topologyKey: kubernetes.io/hostname
   monitoring:
     enablePodMonitor: false

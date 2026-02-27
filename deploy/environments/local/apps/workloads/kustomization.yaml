@@ -6,4 +6,5 @@ resources:
   - pgadmin.yaml
   - rabbitmq.yaml
   - redis.yaml
+  - redis-cache.yaml
   - redisinsight.yaml
