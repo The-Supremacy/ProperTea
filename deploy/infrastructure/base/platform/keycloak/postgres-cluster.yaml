@@ -13,7 +13,10 @@ metadata:
   name: keycloak-db
   namespace: keycloak
 spec:
-  instances: 3
+  # 2 instances for local (1 primary + 1 standby), exactly fitting 2 worker nodes.
+  # Required anti-affinity guarantees 1 pod per node — enforced, not best-effort.
+  # Prod: bump to 3 with 3+ schedulable nodes (see prod README).
+  instances: 2
   enableSuperuserAccess: true
   storage:
     size: 5Gi
@@ -23,6 +26,8 @@ spec:
       database: keycloak
       owner: keycloak
   affinity:
+    # required: enforces 1 pod per node. Safe with instances: 2 on 2 worker nodes.
+    # Do not increase instances beyond schedulable node count or scheduling will deadlock.
     podAntiAffinityType: required
     topologyKey: kubernetes.io/hostname
   monitoring:

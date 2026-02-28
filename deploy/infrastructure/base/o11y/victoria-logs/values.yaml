@@ -1,0 +1,22 @@
+fullnameOverride: victoria-logs
+
+server:
+  # 4 weeks retention. VictoriaLogs uses significantly less disk than Loki
+  # for equivalent log volume due to columnar compression — the 10Gi PVC that
+  # Loki needed can be reduced substantially here.
+  retentionPeriod: 4w
+
+  persistentVolume:
+    enabled: true
+    storageClass: longhorn
+    size: 3Gi
+    accessModes:
+      - ReadWriteOnce
+
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 50m
+    limits:
+      memory: 256Mi
+      cpu: 500m

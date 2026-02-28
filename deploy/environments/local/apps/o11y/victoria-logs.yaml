@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: loki
+  name: victoria-logs
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -10,14 +10,14 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: https://grafana.github.io/helm-charts
-      chart: loki
-      targetRevision: 6.53.0
+    - repoURL: https://victoriametrics.github.io/helm-charts/
+      chart: victoria-logs-single
+      targetRevision: 0.11.28
       helm:
-        releaseName: loki
+        releaseName: victoria-logs
         valueFiles:
-          - $values/deploy/infrastructure/base/o11y/loki/values.yaml
-          - $values/deploy/environments/local/o11y/loki/values.yaml
+          - $values/deploy/infrastructure/base/o11y/victoria-logs/values.yaml
+          - $values/deploy/environments/local/o11y/victoria-logs/values.yaml
     - repoURL: git@github.com:The-Supremacy/ProperTea.git
       targetRevision: HEAD
       ref: values

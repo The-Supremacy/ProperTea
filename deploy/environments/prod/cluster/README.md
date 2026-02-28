@@ -9,18 +9,17 @@ Settings that are intentionally simplified for local development and **must be c
 | `grafana.ini.security.secret_key` | Hardcoded string in values.yaml | Must come from an ExternalSecret — key must be ≥32 chars, stable across restarts |
 | `adminPassword` | `Password1!` hardcoded | ExternalSecret |
 
-## Loki
+## VictoriaLogs
+
+ProperTea uses VictoriaLogs instead of Loki. Same vendor as VictoriaMetrics, single-binary deployment, Loki-compatible push and query API (Alloy and Grafana require no structural changes — only endpoint URLs). Uses 5-10x less disk than Loki for equivalent log volume due to columnar compression.
 
 | Setting | Local | Prod |
 |---|---|---|
-| `deploymentMode` | `SingleBinary` | `SimpleScalable` — separate write, read, backend components each with their own replica count |
-| `loki.auth_enabled` | `false` | `true` — enforces per-tenant log isolation via `X-Scope-OrgID` header |
-| `loki.replication_factor` | `1` | `3` — single replica means an in-flight write pod failure = log loss |
-| `loki.storage.type` | `filesystem` (local PVC) | Object store (S3/GCS/Azure Blob) — local FS is not HA, not scalable, and not recoverable if the PVC node fails |
-| `chunksCache.enabled` | `false` | `true` — memcached caches are significant at query volume |
-| `resultsCache.enabled` | `false` | `true` |
-| `lokiCanary.enabled` | `false` | `true` — DaemonSet that actively probes the full write→query path and exposes `loki_canary_dropped_entries_total`; this is how you get alerted before users notice logs are missing |
-| `test.enabled` | `false` | Can remain `false` post-deploy; only useful during `helm test` CI validation |
+| `server.retentionPeriod` | `4w` | Set to match compliance/operational requirements — VictoriaLogs retention is time-based, not storage-based |
+| `server.persistentVolume.size` | `3Gi` | Size against actual log volume — VictoriaLogs compresses far better than Loki, so a 20-50Gi PVC covers most prod workloads |
+| `server.resources.limits.memory` | `256Mi` | Increase based on log ingestion rate; VictoriaLogs is very memory-efficient |
+
+No object store required at any scale — VictoriaLogs stores everything in the PVC. This eliminates the main Loki prod complexity (S3/GCS/Azure Blob setup, IAM roles, lifecycle policies). The cost saving compared to Loki + object store is significant: no blob storage egress costs, no storage account, no per-operation charges.
 
 ## RabbitMQ
 
@@ -42,8 +41,8 @@ Settings that are intentionally simplified for local development and **must be c
 
 | Setting | Local | Prod |
 |---|---|---|
-| `instances` | `1` (no HA) | `3` — single instance has no standby; primary failure = downtime until manual recovery |
-| `affinity.podAntiAffinityType` | `preferred` | `required` — `preferred` allows two CNPG pods on the same node under pressure; `required` enforces node-per-instance, making single-node-loss survivable |
+| `instances` | `2` (1 primary + 1 standby, fits 2 worker nodes) | `3` — adds a second standby; survives primary loss and retains one standby. Requires 3 schedulable nodes to satisfy `required` anti-affinity |
+| `affinity.podAntiAffinityType` | `required` — local has exactly 2 workers for 2 instances, so enforcement works | `required` — unchanged; just ensure schedulable node count ≥ instance count before increasing instances |
 | Backup | Not configured | WAL archiving to object store + scheduled base backups |
 
 ## metrics-server

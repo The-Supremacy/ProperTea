@@ -83,11 +83,12 @@ alloy:
       }
 
       // ================================================================
-      // Loki write endpoint (shared by OTLP logs and k8s log discovery)
+      // VictoriaLogs write endpoint (shared by OTLP logs and k8s log discovery)
+      // Exposes Loki-compatible push API — no structural Alloy changes needed.
       // ================================================================
       loki.write "default" {
         endpoint {
-          url = "http://loki.o11y.svc.cluster.local:3100/loki/api/v1/push"
+          url = "http://victoria-logs.o11y.svc.cluster.local:9428/insert/loki/2/api/v1/push"
         }
       }
 

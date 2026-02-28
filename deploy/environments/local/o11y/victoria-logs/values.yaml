@@ -1,0 +1,2 @@
+# Local overrides for victoria-logs.
+# Extends deploy/infrastructure/base/o11y/victoria-logs/values.yaml.

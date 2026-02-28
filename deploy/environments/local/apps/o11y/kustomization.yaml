@@ -5,7 +5,7 @@ resources:
   - alloy.yaml
   - grafana.yaml
   - kube-state-metrics.yaml
-  - loki.yaml
+  - victoria-logs.yaml
   - metrics-server.yaml
   - node-exporter.yaml
   - tempo.yaml

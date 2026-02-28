@@ -39,7 +39,9 @@ datasources:
       - name: Loki
         uid: loki
         type: loki
-        url: http://loki.o11y.svc.cluster.local:3100
+        # VictoriaLogs exposes a Loki-compatible query API on port 9428.
+        # The Grafana Loki datasource type works unchanged — only the URL differs.
+        url: http://victoria-logs.o11y.svc.cluster.local:9428
         jsonData:
           derivedFields:
             - name: TraceID
