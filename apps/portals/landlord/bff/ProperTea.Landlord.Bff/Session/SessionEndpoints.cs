@@ -1,3 +1,5 @@
+using ProperTea.Infrastructure.Common.Auth;
+
 namespace ProperTea.Landlord.Bff.Session;
 
 public static class SessionEndpoints
@@ -36,8 +38,9 @@ public static class SessionEndpoints
         var email = context.User.FindFirst("email")?.Value ?? string.Empty;
         var firstName = context.User.FindFirst("given_name")?.Value ?? string.Empty;
         var lastName = context.User.FindFirst("family_name")?.Value ?? string.Empty;
-        var organizationId = context.User.FindFirst("urn:zitadel:iam:user:resourceowner:id")?.Value ?? string.Empty;
-        var orgName = context.User.FindFirst("urn:zitadel:iam:user:resourceowner:name")?.Value ?? string.Empty;
+        var (parsedOrgId, parsedOrgName) = OrganizationIdProvider.ParseOrganizationClaim(context.User);
+        var organizationId = parsedOrgId ?? string.Empty;
+        var orgName = parsedOrgName ?? string.Empty;
 
         return Results.Ok(new SessionDto(
             UserId: userId,

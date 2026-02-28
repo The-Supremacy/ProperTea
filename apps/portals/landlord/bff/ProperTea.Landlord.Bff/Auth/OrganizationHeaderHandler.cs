@@ -11,7 +11,7 @@ public class OrganizationHeaderHandler(IHttpContextAccessor httpContextAccessor)
         var user = httpContextAccessor.HttpContext?.User;
         if (user?.Identity?.IsAuthenticated == true)
         {
-            var orgId = user.FindFirst(OrganizationIdProvider.ZitadelOrgIdClaim)?.Value;
+            var orgId = OrganizationIdProvider.ParseOrganizationClaim(user).OrgId;
 
             if (!string.IsNullOrWhiteSpace(orgId))
             {

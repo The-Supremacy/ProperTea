@@ -18,7 +18,9 @@
     <PackageReference Include="WolverineFx.Http" Version="5.16.2" />
     <PackageReference Include="WolverineFx.Marten" Version="5.16.2" />
     <PackageReference Include="WolverineFx.RabbitMQ" Version="5.16.2" />
-    <PackageReference Include="Zitadel" Version="7.0.41" />
+    <PackageReference Include="Keycloak.AuthServices.Authentication" Version="2.8.0" />
+    <PackageReference Include="Keycloak.AuthServices.Sdk" Version="2.8.0" />
+    <PackageReference Include="IdentityModel.AspNetCore.OAuth2Introspection" Version="6.1.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,7 +2,6 @@ using Duende.AccessTokenManagement.OpenIdConnect;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using ProperTea.Landlord.Bff.Auth;
-using Zitadel.Extensions;
 
 namespace ProperTea.Landlord.Bff.Config
 {
@@ -28,7 +27,7 @@ namespace ProperTea.Landlord.Bff.Config
                 var ticketStore = services.BuildServiceProvider().GetRequiredService<ITicketStore>();
                 options.SessionStore = ticketStore;
             })
-            .AddZitadel(OpenIdConnectDefaults.AuthenticationScheme, options =>
+            .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
             {
                 var oidcSection = configuration.GetSection("OIDC");
 
@@ -46,9 +45,7 @@ namespace ProperTea.Landlord.Bff.Config
                 options.Scope.Add("email");
                 options.Scope.Add("offline_access");
 
-                options.Scope.Add("urn:zitadel:iam:user:resourceowner");
-                options.Scope.Add("urn:zitadel:iam:org:project:roles");
-                options.Scope.Add("urn:zitadel:iam:org:project:id:zitadel:aud");
+                options.Scope.Add("organization");
 
                 options.TokenValidationParameters.NameClaimType = "name";
                 options.TokenValidationParameters.RoleClaimType = "role";

@@ -1,7 +1,7 @@
+using Keycloak.AuthServices.Sdk;
 using Marten;
 using Marten.Events.Projections;
 using ProperTea.User.Features.UserProfiles.Infrastructure;
-using Zitadel.Credentials;
 
 namespace ProperTea.User.Features.UserProfiles.Configuration;
 
@@ -12,28 +12,13 @@ public static class UserProfileConfiguration
         IConfiguration configuration,
         IHostEnvironment environment)
     {
-        _ = services.AddSingleton(sp =>
-        {
-            var config = sp.GetRequiredService<IConfiguration>();
-            var serviceAccountJwtPath = config["Zitadel:ServiceAccountJwtPath"]
-                ?? throw new InvalidOperationException("Zitadel:ServiceAccountJwtPath not configured");
+        services.AddDistributedMemoryCache();
 
-            return ServiceAccount.LoadFromJsonFile(serviceAccountJwtPath);
-        });
+        _ = services.AddKeycloakAdminHttpClient(configuration.GetSection("Keycloak"))
+            .AddTypedClient<KeycloakUserClient>();
 
-        _ = services.AddSingleton<IExternalUserClient>(sp =>
-        {
-            var config = sp.GetRequiredService<IConfiguration>();
-            var logger = sp.GetRequiredService<ILogger<ZitadelUserClient>>();
-            var serviceAccount = sp.GetRequiredService<ServiceAccount>();
-
-            var apiUrl = config["OIDC:Authority"]
-                ?? throw new InvalidOperationException("OIDC:Authority not configured");
-
-            var allowInsecure = environment.IsDevelopment();
-
-            return new ZitadelUserClient(apiUrl, serviceAccount, logger, allowInsecure);
-        });
+        _ = services.AddTransient<IExternalUserClient>(
+            sp => sp.GetRequiredService<KeycloakUserClient>());
 
         return services;
     }

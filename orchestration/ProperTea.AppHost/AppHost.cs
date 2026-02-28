@@ -1,5 +1,3 @@
-using System.Globalization;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
 var username = builder.AddParameter("username", builder.Configuration["Configs:Username"]!, secret: true);
@@ -33,65 +31,36 @@ var mailpit = builder.AddMailPit("mailpit", httpPort: 8025, smtpPort: 1025)
                 .WithEnvironment("MP_SMTP_AUTH_ACCEPT_ANY", "true")
                 .WithLifetime(ContainerLifetime.Persistent);
 
-// ZITADEL.
-var zitadelDatabaseName = "zitadelDb";
-var zitadelPort = 9080;
-var zitadelLoginUiPort = 9081;
-var zitadelUrl = $"http://localhost:{zitadelPort}";
-var zitadelLoginUiUrl = $"http://localhost:{zitadelLoginUiPort}";
-var zitadelConfigPath = Path.GetFullPath("Config/zitadel");
-var zitadelTokenPath = "/opt/zitadel/config/login-ui-client.pat";
-var zitadel = builder.AddContainer("zitadel", "ghcr.io/zitadel/zitadel", "v4.10.0")
-    .WithHttpEndpoint(port: zitadelPort, targetPort: 8080, name: "http")
-    .WithEnvironment("ZITADEL_DATABASE_POSTGRES_HOST", "postgres")
-    .WithEnvironment("ZITADEL_DATABASE_POSTGRES_PORT", postgresPort.ToString(CultureInfo.InvariantCulture))
-    .WithEnvironment("ZITADEL_DATABASE_POSTGRES_DATABASE", zitadelDatabaseName)
-    .WithEnvironment("ZITADEL_DATABASE_POSTGRES_USER_USERNAME", username)
-    .WithEnvironment("ZITADEL_DATABASE_POSTGRES_USER_PASSWORD", password)
-    .WithEnvironment("ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE", "disable")
-    .WithEnvironment("ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME", username)
-    .WithEnvironment("ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD", password)
-    .WithEnvironment("ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE", "disable")
-    .WithEnvironment("ZITADEL_EXTERNALSECURE", "false")
-    .WithEnvironment("ZITADEL_EXTERNALDOMAIN", "localhost")
-    .WithEnvironment("ZITADEL_EXTERNALPORT", "9080")
-    .WithEnvironment("ZITADEL_TLS_ENABLED", "false")
-    .WithEnvironment("ZITADEL_MASTERKEY", "MasterkeyNeedsToHave32Characters")
-    .WithEnvironment("ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH", zitadelTokenPath)
-    .WithEnvironment("ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME", "login-client")
-    .WithEnvironment("ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME", "Automatically Initialized IAM_LOGIN_CLIENT")
-    .WithEnvironment("ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE", "2029-01-01T00:00:00Z")
-    .WithEnvironment("ZITADEL_FIRSTINSTANCE_ORG_NAME", "ProperTea")
-    .WithEnvironment("ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME", "admin")
-    .WithEnvironment("ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_ADDRESS", "admin@propertea.localhost")
-    .WithEnvironment("ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_VERIFIED", "true")
-    .WithEnvironment("ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD", "Password1!")
-    .WithEnvironment("ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED", "false")
-    .WithEnvironment("ZITADEL_NOTIFICATIONS_PROVIDERS_SMTP_HOST", "mailpit")
-    .WithEnvironment("ZITADEL_NOTIFICATIONS_PROVIDERS_SMTP_PORT", "1025")
-    .WithEnvironment("ZITADEL_NOTIFICATIONS_PROVIDERS_SMTP_TLS", "false")
-    .WithEnvironment("ZITADEL_NOTIFICATIONS_PROVIDERS_SMTP_FROM", "noreply@propertea.localhost")
-    .WithEnvironment("ZITADEL_NOTIFICATIONS_PROVIDERS_SMTP_FROMNAME", "ProperTea")
-    .WithEnvironment("ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED", "true")
-    .WithEnvironment("ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI", $"{zitadelLoginUiUrl}/ui/v2/login")
-    .WithEnvironment("ZITADEL_OIDC_DEFAULTLOGINURLV2", $"{zitadelLoginUiUrl}/ui/v2/login/login?authRequest=")
-    .WithEnvironment("ZITADEL_OIDC_DEFAULTLOGOUTURLV2", $"{zitadelLoginUiUrl}/ui/v2/login/logout?post_logout_redirect=")
-    .WithEnvironment("ZITADEL_SAML_DEFAULTLOGINURLV2", $"{zitadelLoginUiUrl}/ui/v2/login/login?samlRequest=")
-    .WithArgs("start-from-init", "--masterkeyFromEnv", "--tlsMode", "disabled")
-    .WithBindMount(zitadelConfigPath, "/opt/zitadel/config")
-    .WaitFor(postgres)
-    .WaitFor(mailpit);
-_ = builder.AddContainer("zitadel-login", "ghcr.io/zitadel/zitadel-login", "v4.10.0")
-    .WithHttpEndpoint(port: zitadelLoginUiPort, targetPort: 3000)
-    .WithEnvironment("ZITADEL_API_URL", "http://zitadel:8080")
-    .WithEnvironment("ZITADEL_SERVICE_USER_TOKEN_FILE", zitadelTokenPath)
-    .WithEnvironment("CUSTOM_REQUEST_HEADERS", "Host:localhost")
-    .WithEnvironment("NEXT_PUBLIC_BASE_PATH", "/ui/v2/login")
-    .WithBindMount(zitadelConfigPath, "/opt/zitadel/config")
-    .WaitFor(zitadel);
+// Keycloak.
+var keycloakPort = 9080;
+var keycloakUrl = $"http://localhost:{keycloakPort}";
+var keycloakRealm = "propertea";
+var keycloakAuthority = $"{keycloakUrl}/realms/{keycloakRealm}";
+var keycloakDbUrl = $"jdbc:postgresql://postgres:{postgresPort}/keycloak";
+var keycloakConfigPath = Path.GetFullPath("Config/keycloak");
+var keycloak = builder.AddContainer("keycloak", "quay.io/keycloak/keycloak", "26.2")
+    .WithHttpEndpoint(port: keycloakPort, targetPort: 8080, name: "http")
+    .WithEnvironment("KC_BOOTSTRAP_ADMIN_USERNAME", username)
+    .WithEnvironment("KC_BOOTSTRAP_ADMIN_PASSWORD", password)
+    .WithEnvironment("KC_DB", "postgres")
+    .WithEnvironment("KC_DB_URL", keycloakDbUrl)
+    .WithEnvironment("KC_DB_USERNAME", username)
+    .WithEnvironment("KC_DB_PASSWORD", password)
+    .WithEnvironment("KC_HTTP_ENABLED", "true")
+    .WithEnvironment("KC_HTTP_PORT", "8080")
+    .WithEnvironment("KC_HOSTNAME_STRICT", "false")
+    .WithEnvironment("KC_LOG_LEVEL", "info")
+    .WithEnvironment("PROXY_ADDRESS_FORWARDING", "true")
+    .WithArgs("start-dev", "--import-realm")
+    .WithBindMount(keycloakConfigPath, "/opt/keycloak/data/import")
+    .WaitFor(postgres);
 
 var scalarClientId = builder.Configuration["Configs:ScalarClientId"];
-var audience = builder.Configuration["Configs:ProjectId"];
+var apiAudience = builder.Configuration["Configs:ApiAudience"];
+var orgServiceClientId = builder.Configuration["Configs:OrgServiceClientId"];
+var orgServiceClientSecret = builder.Configuration["Configs:OrgServiceClientSecret"];
+var userServiceClientId = builder.Configuration["Configs:UserServiceClientId"];
+var userServiceClientSecret = builder.Configuration["Configs:UserServiceClientSecret"];
 
 // Applications.
 var rabbitmq = builder.AddRabbitMQ("rabbitmq", username, password, 5672)
@@ -100,71 +69,67 @@ var rabbitmq = builder.AddRabbitMQ("rabbitmq", username, password, 5672)
                 .WithLifetime(ContainerLifetime.Persistent);
 
 // Organization.
-var organizationServiceAccountJwtPath = Path.GetFullPath("Config/zitadel/organization-service.json");
-var organizationServiceAppJwtPath = Path.GetFullPath("Config/zitadel/organization-app.json");
 var organizationDb = postgres.AddDatabase("organization-db");
 var organizationService = builder.AddProject<Projects.ProperTea_Organization>("organization")
-    .WithEnvironment("OIDC__Authority", zitadelUrl)
-    .WithEnvironment("OIDC__Issuer", zitadelUrl)
-    .WithEnvironment("OIDC__Audience", audience)
-    .WithEnvironment("Zitadel__ServiceAccountJwtPath", organizationServiceAccountJwtPath)
-    .WithEnvironment("Zitadel__AppJwtPath", organizationServiceAppJwtPath)
+    .WithEnvironment("OIDC__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__AuthServerUrl", $"{keycloakUrl}/")
+    .WithEnvironment("Keycloak__Realm", keycloakRealm)
+    .WithEnvironment("Keycloak__Resource", orgServiceClientId)
+    .WithEnvironment("Keycloak__Credentials__Secret", orgServiceClientSecret)
     .WithEnvironment("Scalar__ClientId", scalarClientId)
     .WithReference(organizationDb)
     .WithReference(rabbitmq)
     .WaitFor(postgres)
     .WaitFor(rabbitmq)
-    .WaitFor(zitadel)
+    .WaitFor(keycloak)
     .WithExternalHttpEndpoints()
     .WithDeveloperCertificateTrust(true);
 
 // User.
-var userServiceAccountJwtPath = Path.GetFullPath("Config/zitadel/user-service.json");
-var userServiceAppJwtPath = Path.GetFullPath("Config/zitadel/user-app.json");
 var userDb = postgres.AddDatabase("user-db");
 var userService = builder.AddProject<Projects.ProperTea_User>("user")
-    .WithEnvironment("OIDC__Authority", zitadelUrl)
-    .WithEnvironment("OIDC__Issuer", zitadelUrl)
-    .WithEnvironment("OIDC__Audience", audience)
-    .WithEnvironment("Zitadel__ServiceAccountJwtPath", userServiceAccountJwtPath)
-    .WithEnvironment("Zitadel__AppJwtPath", userServiceAppJwtPath)
+    .WithEnvironment("OIDC__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__AuthServerUrl", $"{keycloakUrl}/")
+    .WithEnvironment("Keycloak__Realm", keycloakRealm)
+    .WithEnvironment("Keycloak__Resource", userServiceClientId)
+    .WithEnvironment("Keycloak__Credentials__Secret", userServiceClientSecret)
     .WithEnvironment("Scalar__ClientId", scalarClientId)
     .WithReference(userDb)
     .WithReference(rabbitmq)
     .WaitFor(postgres)
     .WaitFor(rabbitmq)
-    .WaitFor(zitadel)
+    .WaitFor(keycloak)
     .WithExternalHttpEndpoints()
     .WithDeveloperCertificateTrust(true);
 
 // Company.
 var companyDb = postgres.AddDatabase("company-db");
 var companyService = builder.AddProject<Projects.ProperTea_Company>("company")
-    .WithEnvironment("OIDC__Authority", zitadelUrl)
-    .WithEnvironment("OIDC__Issuer", zitadelUrl)
-    .WithEnvironment("OIDC__Audience", audience)
+    .WithEnvironment("OIDC__Authority", keycloakAuthority)
+    .WithEnvironment("OIDC__Issuer", keycloakAuthority)
+    .WithEnvironment("OIDC__Audience", apiAudience)
     .WithEnvironment("Scalar__ClientId", scalarClientId)
     .WithReference(companyDb)
     .WithReference(rabbitmq)
     .WaitFor(postgres)
     .WaitFor(rabbitmq)
-    .WaitFor(zitadel)
+    .WaitFor(keycloak)
     .WithExternalHttpEndpoints()
     .WithDeveloperCertificateTrust(true);
 
 // Property.
 var propertyDb = postgres.AddDatabase("property-db");
 var propertyService = builder.AddProject<Projects.ProperTea_Property>("property")
-    .WithEnvironment("OIDC__Authority", zitadelUrl)
-    .WithEnvironment("OIDC__Issuer", zitadelUrl)
-    .WithEnvironment("OIDC__Audience", audience)
+    .WithEnvironment("OIDC__Authority", keycloakAuthority)
+    .WithEnvironment("OIDC__Issuer", keycloakAuthority)
+    .WithEnvironment("OIDC__Audience", apiAudience)
     .WithEnvironment("Scalar__ClientId", scalarClientId)
     .WithReference(propertyDb)
     .WithReference(rabbitmq)
     .WithReference(companyService)
     .WaitFor(postgres)
     .WaitFor(rabbitmq)
-    .WaitFor(zitadel)
+    .WaitFor(keycloak)
     .WithExternalHttpEndpoints()
     .WithDeveloperCertificateTrust(true);
 
@@ -176,11 +141,11 @@ _ = builder.AddProject<Projects.ProperTea_Landlord_Bff>("landlord-bff")
     .WithReference(userService)
     .WithReference(companyService)
     .WithReference(propertyService)
-    .WithEnvironment("OIDC__Authority", zitadelUrl)
+    .WithEnvironment("OIDC__Authority", keycloakAuthority)
     .WithEnvironment("OIDC__ClientId", landlordClientId)
     .WithEnvironment("Scalar__ClientId", scalarClientId)
     .WaitFor(redis)
-    .WaitFor(zitadel)
+    .WaitFor(keycloak)
     .WithExternalHttpEndpoints()
     .WithDeveloperCertificateTrust(true);
 

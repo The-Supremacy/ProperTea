@@ -1,7 +1,5 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using IdentityModel.AspNetCore.OAuth2Introspection;
 using ProperTea.Infrastructure.Common.Auth;
-using Zitadel.Credentials;
-using Zitadel.Extensions;
 
 namespace ProperTea.User.Config;
 
@@ -15,14 +13,14 @@ public static class AuthenticationConfig
         var authority = configuration["OIDC:Authority"]
             ?? throw new InvalidOperationException("OIDC:Authority not configured");
 
-        var appJwtPath = configuration["Zitadel:AppJwtPath"]
-            ?? throw new InvalidOperationException("Zitadel:AppJwtPath not configured");
-
-        _ = services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddZitadelIntrospection(JwtBearerDefaults.AuthenticationScheme, options =>
+        _ = services.AddAuthentication(OAuth2IntrospectionDefaults.AuthenticationScheme)
+            .AddOAuth2Introspection(options =>
             {
                 options.Authority = authority;
-                options.JwtProfile = Application.LoadFromJsonFile(appJwtPath);
+                options.ClientId = configuration["Keycloak:Resource"]
+                    ?? throw new InvalidOperationException("Keycloak:Resource not configured");
+                options.ClientSecret = configuration["Keycloak:Credentials:Secret"]
+                    ?? throw new InvalidOperationException("Keycloak:Credentials:Secret not configured");
             });
 
         _ = services.AddAuthorization();

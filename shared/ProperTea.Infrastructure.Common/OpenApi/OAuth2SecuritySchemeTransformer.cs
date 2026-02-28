@@ -25,17 +25,15 @@ public sealed class OAuth2SecuritySchemeTransformer(IConfiguration configuration
             {
                 AuthorizationCode = new OpenApiOAuthFlow
                 {
-                    AuthorizationUrl = new Uri($"{url}/oauth/v2/authorize"),
-                    TokenUrl = new Uri($"{url}/oauth/v2/token"),
+                    AuthorizationUrl = new Uri($"{url}/protocol/openid-connect/auth"),
+                    TokenUrl = new Uri($"{url}/protocol/openid-connect/token"),
                     Scopes = new Dictionary<string, string>
                     {
                         { "openid", "OpenID Connect" },
                         { "profile", "User profile" },
                         { "email", "Email address" },
-                        { "aud", "Audience" },
                         { "offline_access", "Offline access" },
-                        { "urn:zitadel:iam:user:resourceowner", "ZITADEL resource owner" },
-                        { "urn:zitadel:iam:org:project:id:zitadel:aud", "ZITADEL audience" }
+                        { "organization", "Organization membership" }
                     }
                 }
             }
@@ -46,7 +44,7 @@ public sealed class OAuth2SecuritySchemeTransformer(IConfiguration configuration
             {
                 {
                     new OpenApiSecuritySchemeReference("oauth2"),
-                    ["api", "profile", "email", "openid"]
+                    ["openid", "profile", "email", "organization"]
                 }
             }
         ];
