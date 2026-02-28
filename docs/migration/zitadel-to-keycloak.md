@@ -8,7 +8,7 @@
 
 See ADR 0018 for the full rationale. In short:
 
-- We no longer require a headless/custom registration UI. Keycloak's recently updated hosted UI meets our needs without the maintenance burden of running a custom OIDC login layer.
+- We no longer need a custom login UI. Keycloak's updated hosted UI replaces the `zitadel-login` Next.js container. The registration page remains our own Angular form (Organization domain data such as Tier cannot live in Keycloak's UI).
 - Keycloak's Organizations feature (available since KC 26) provides first-class multi-tenancy support that maps directly to our model.
 - Simpler service account model: Keycloak uses standard OAuth2 client credentials; ZITADEL required proprietary signed JWT files.
 - The product is not live. No data migration is needed — databases will be dropped and re-seeded.
@@ -24,9 +24,9 @@ See ADR 0018 for the full rationale. In short:
 | BFF authentication | `AddZitadel()` → `AddKeycloakWebAppAuthentication()` |
 | Backend token validation | `AddZitadelIntrospection()` → `AddKeycloakWebApiAuthentication()` with introspection (Organization, User services); Company and Property already use standard JWT Bearer — authority URL change only |
 | Organization client | Rewrite `ZitadelOrganizationClient` against Keycloak Admin REST API; rename to `KeycloakOrganizationClient` |
-| Tenant ID claim | `urn:zitadel:iam:user:resourceowner:id` → `tenant_id` (custom Protocol Mapper) |
+| Tenant ID claim | `urn:zitadel:iam:user:resourceowner:id` → `organization` (built-in KC 26+ claim, JSON object keyed by org ID; no Protocol Mapper required) |
 | External ID types | `string OrganizationId`, `string UserId`, `string ExternalUserId` → `Guid` |
-| Angular SPA | No changes required |
+| Endpoint design | Separate handlers for org-scoped (`/api/*`) and user-scoped (`/api/my/*`) paths; no if-else inside handlers (registration page retained; login UI delegated to Keycloak) |
 | Config files | Remove `Config/zitadel/`; add `Config/keycloak/realm-export.json` |
 | Documentation | Update architecture.md, multi-tenancy-flow.md, affected ADRs |
 
@@ -40,36 +40,36 @@ See ADR 0018 for the full rationale. In short:
 Keycloak Instance (local: http://localhost:9080)
 └─ Realm: propertea
    ├─ Clients
-   │  ├─ landlord-bff        (confidential, Authorization Code + PKCE)
+   │  ├─ landlord-bff        (confidential, Authorization Code + PKCE, scopes: openid profile email organization)
    │  ├─ organization-svc    (confidential, client credentials — introspection)
    │  └─ user-svc            (confidential, client credentials — introspection)
-   ├─ Organizations (KC 26+ feature)
-   │  ├─ "Acme Holdings"  → id: <uuid>
-   │  └─ "Widgets Realty" → id: <uuid>
-   └─ Protocol Mappers (on landlord-bff client)
-      ├─ tenant_id    — Organization ID → token claim
-      └─ org_name     — Organization name → token claim
+   └─ Organizations (KC 26+ feature)
+      ├─ "Acme Holdings"  → id: <uuid>
+      └─ "Widgets Realty" → id: <uuid>
 ```
+
+No custom Protocol Mappers are required. Adding the `organization` scope to `landlord-bff` causes Keycloak to automatically include the `organization` claim in every access token.
 
 ### Multi-Tenancy: How TenantId Flows
 
-Keycloak's Organizations feature assigns each user to one organization. When a user authenticates through `landlord-bff`, the token contains:
+Keycloak 26+ automatically includes an `organization` claim in the access token when the client has the `organization` scope. The claim is a JSON object keyed by organization ID:
 
 ```json
 {
   "sub": "550e8400-e29b-41d4-a716-446655440000",
-  "tenant_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-  "org_name": "Acme Holdings",
+  "organization": {
+    "6ba7b810-9dad-11d1-80b4-00c04fd430c8": { "name": "Acme Holdings" }
+  },
   "email": "john@acme.com"
 }
 ```
 
-`tenant_id` is added by a custom **Organization Attribute Protocol Mapper** that reads the user's active organization ID. The claim name `tenant_id` is IdP-agnostic — `OrganizationIdProvider` becomes unaware of Keycloak specifics.
+`OrganizationIdProvider` extracts the tenant ID by reading the first key of the `organization` claim's JSON object, and the org name from its `name` value. No custom Protocol Mapper is needed.
 
 The full flow is unchanged from the existing architecture:
-1. BFF validates the session cookie; `OrganizationHeaderHandler` reads `tenant_id` → writes `X-Organization-Id` header.
-2. Backend services read `X-Organization-Id`; `OrganizationIdProvider.GetOrganizationId()` resolves it.
-3. Marten tenant scope is set: `bus.InvokeForTenantAsync(tenantId, command)`.
+1. BFF validates the session cookie; `OrganizationHeaderHandler` reads the `organization` claim → extracts the org ID → writes `X-Organization-Id` header. If the claim is absent (B2C user), the Landlord BFF returns 401 — org membership is required there.
+2. Backend services read `X-Organization-Id`; `OrganizationIdProvider.GetOrganizationId()` returns `Guid?` — `null` when absent. Org-scoped handlers enforce non-null; user-scoped handlers (`/my/*`) ignore it entirely and query cross-tenant by `userId`.
+3. Marten tenant scope is set for org-scoped paths: `bus.InvokeForTenantAsync(tenantId, command)`.
 
 ### Token Validation Split
 
@@ -108,8 +108,10 @@ The full flow is unchanged from the existing architecture:
 ### Shared — ProperTea.Infrastructure.Common
 
 **`shared/ProperTea.Infrastructure.Common/Auth/OrganizationIdProvider.cs`**
-- Rename constant: `ZitadelOrgIdClaim` → `TenantIdClaim`
-- Update value: `"urn:zitadel:iam:user:resourceowner:id"` → `"tenant_id"`
+- Rename constant: `ZitadelOrgIdClaim` → `OrgIdClaim`
+- Update value: `"urn:zitadel:iam:user:resourceowner:id"` → `"organization"`
+- `GetOrganizationId()` returns `Guid?` (not `Guid`) — returns `null` when the `organization` claim is absent rather than throwing. B2C users (tenants/renters) have no Keycloak Organization membership; this is expected. Callers that require an org enforce it themselves.
+- Add a private helper to parse the org ID (the single key in the JSON object) and org name (`name` field) from the claim value. For the current phase, users belong to exactly one org; the claim object contains exactly one entry.
 
 **`shared/ProperTea.Infrastructure.Common/OpenApi/OAuth2SecuritySchemeTransformer.cs`**
 - Replace `urn:zitadel:iam:*` scope names with `openid profile email organization`
@@ -130,11 +132,11 @@ The full flow is unchanged from the existing architecture:
 - Replace `urn:zitadel:iam:*` selected scope strings
 
 **`apps/portals/landlord/bff/ProperTea.Landlord.Bff/Auth/OrganizationHeaderHandler.cs`**
-- Update reference: `OrganizationIdProvider.ZitadelOrgIdClaim` → `OrganizationIdProvider.TenantIdClaim`
+- Update reference: `OrganizationIdProvider.ZitadelOrgIdClaim` → `OrganizationIdProvider.OrgIdClaim`
 
 **`apps/portals/landlord/bff/ProperTea.Landlord.Bff/Session/SessionEndpoints.cs`**
-- Replace hardcoded `"urn:zitadel:iam:user:resourceowner:id"` → use `OrganizationIdProvider.TenantIdClaim`
-- Replace hardcoded `"urn:zitadel:iam:user:resourceowner:name"` → use `"org_name"` (custom mapped claim)
+- Replace hardcoded `"urn:zitadel:iam:user:resourceowner:id"` — use `OrganizationIdProvider` helper to extract org ID from the `organization` claim object
+- Replace hardcoded `"urn:zitadel:iam:user:resourceowner:name"` — extract org name from the `name` field of the `organization` claim object via the same helper
 
 ---
 
@@ -212,7 +214,28 @@ The full flow is unchanged from the existing architecture:
 
 ### Angular SPA
 
-No changes required. The SPA uses the BFF session pattern exclusively — it has no OIDC library and no ZITADEL references. The login redirect goes to `/auth/login` on the BFF, which triggers the OIDC challenge to Keycloak instead of ZITADEL.
+The registration page remains — it still calls the Organization Service to create a new tenant (the Organization Service then calls Keycloak Admin API to provision the Keycloak Organization and initial user). The login redirect changes: `/auth/login` on the BFF now triggers an OIDC challenge to Keycloak's hosted login UI instead of the custom `zitadel-login` container. No OIDC library or ZITADEL reference exists in the SPA code.
+
+---
+
+## Org-scoped vs User-scoped Endpoint Split
+
+ProperTea serves two user types with fundamentally different data access perspectives:
+
+| User type | Example | Marten session | Endpoint prefix |
+|---|---|---|---|
+| Landlord (B2B) | List contracts for my property management company | `InvokeForTenantAsync(orgId, ...)` — single tenant partition | `/api/*` |
+| Tenant/renter (B2C) | List all contracts I am personally party to | Plain `IQuerySession` filtered by `userId` — cross-tenant | `/api/my/*` |
+
+These require different Marten session types, so they must be separate Wolverine handlers — not a single handler with an if-else. A user-scoped handler that accidentally receives a tenanted session (or vice versa) is a data isolation bug.
+
+**Implementation pattern:**
+- Org-scoped handlers: registered in route groups that require `X-Organization-Id` to be present. The BFF's `OrganizationHeaderHandler` sets it; if absent, the Landlord BFF returns 401 before the request reaches a service.
+- User-scoped handlers: registered under `/api/my/` route groups. They inject a plain `IQuerySession` (no tenant scope) and always include a `userId` filter. They do not read `X-Organization-Id`.
+
+**Landlord BFF exposes only `/api/*`** routes. A future Tenant Portal BFF exposes `/api/my/*` routes. Downstream services implement both groups; the BFF layer controls which are reachable for each portal.
+
+**`OrganizationIdProvider.GetOrganizationId()` returns `Guid?`** \u2014 callers decide whether to enforce presence. This keeps the shared provider clean rather than having portal-specific variants.
 
 ---
 
@@ -291,7 +314,7 @@ Guid organizationId = Guid.Parse(keycloakOrganizationResponse.Id);
 |---|---|
 | [docs/architecture.md](../architecture.md) | Replace ZITADEL with Keycloak in tech stack table and service diagram |
 | [docs/dev/multi-tenancy-flow.md](../dev/multi-tenancy-flow.md) | Update claim names (`urn:zitadel:*` → `tenant_id`), update IdP references |
-| [docs/decisions/0003-headless-onboarding.md](../decisions/0003-headless-onboarding.md) | Status: Superseded by 0018 |
+| [docs/decisions/0003-headless-onboarding.md](../decisions/0003-headless-onboarding.md) | Status: Partially superseded by 0018. Registration page retained; ZITADEL gRPC provisioning and `zitadel-login` container removed |
 | [docs/decisions/0007-organization-multi-tenancy.md](../decisions/0007-organization-multi-tenancy.md) | Status: Superseded by 0018; rewrite IdP structure section |
 | [docs/decisions/0008-authorization-hybrid-strategy.md](../decisions/0008-authorization-hybrid-strategy.md) | Status: Superseded by 0018; rewrite "ZITADEL Handles" section |
 | [docs/decisions/0010-direct-tenant-id-mapping.md](../decisions/0010-direct-tenant-id-mapping.md) | Status: Superseded by 0018; core decision unchanged, IdP wording updated |
@@ -304,11 +327,14 @@ Guid organizationId = Guid.Parse(keycloakOrganizationResponse.Id);
 
 - [ ] `dotnet build ProperTea.slnx` — zero warnings/errors (`TreatWarningsAsErrors=true`)
 - [ ] `dotnet run --project orchestration/ProperTea.AppHost` — Aspire dashboard shows Keycloak healthy, all services up
-- [ ] Navigate to `http://localhost:4200` — redirect lands on Keycloak's hosted login UI
-- [ ] Log in; verify `/api/session` returns correct `organizationName` and `tenantId` from Keycloak-issued token
+- [ ] Navigate to `http://localhost:4200` — login redirect lands on Keycloak's hosted login UI (not a custom container)
+- [ ] Log in; verify `/api/session` returns correct `organizationName` and `tenantId` extracted from the `organization` claim object
 - [ ] Perform an action that invokes Organization service — confirm Keycloak org ID propagates as `X-Organization-Id` and Marten tenant scope resolves correctly
-- [ ] Register a new organization — confirm `KeycloakOrganizationClient.AddOrganizationAsync` calls Keycloak Admin REST API and returns a valid UUID
+- [ ] Submit registration form — confirm `KeycloakOrganizationClient.AddOrganizationAsync` calls Keycloak Admin REST API, stores domain data (Tier etc.) in `OrganizationAggregate`, and publishes the integration event
 - [ ] Confirm `OrganizationId`, `UserId`, `ExternalUserId` fields store as `Guid` in Marten
+- [ ] Call an org-scoped endpoint (`/api/contracts`) as a landlord — confirm tenanted Marten query executes
+- [ ] Call a user-scoped endpoint (`/api/my/contracts`) as a B2C user with no `organization` claim — confirm cross-tenant query executes and returns only that user's records
+- [ ] Call an org-scoped endpoint with no `X-Organization-Id` header — confirm 401 response
 - [ ] Run all existing integration tests
 
 ---

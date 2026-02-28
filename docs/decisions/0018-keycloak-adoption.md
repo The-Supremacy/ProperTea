@@ -11,7 +11,7 @@ ProperTea was built on ZITADEL as the identity provider, leveraging its headless
 
 Several factors have changed since those decisions were made:
 
-1. **We no longer require a headless/custom registration flow.** ADR 0003 chose headless onboarding specifically to avoid ZITADEL's default UI. Keycloak recently released a significantly improved hosted login and account UI that meets our branding requirements without maintaining a custom Next.js login container.
+1. **We no longer require a custom login UI.** ADR 0003 chose headless onboarding to avoid ZITADEL's default login screen and to run a custom Next.js Login V2 container. Keycloak's recently updated hosted login UI meets our requirements without that maintenance burden. Registration still uses our own Angular page (domain data such as Tier cannot be expressed in Keycloak's UI), but the login flow is fully delegated to Keycloak.
 
 2. **Keycloak provides first-class Organizations support** (since KC 26). This maps directly to our multi-tenancy model — one organization per tenant, with the organization ID surfaced in the token via standard Protocol Mappers. ZITADEL's organization model required three layers of configuration (Instance, Organizations, Projects, Project Grants) to achieve the same result.
 
@@ -29,9 +29,21 @@ Replace ZITADEL with Keycloak as the identity provider across all ProperTea serv
 
 #### Multi-Tenancy: Keycloak Organizations Feature
 
-Use Keycloak's native Organizations feature (KC 26+) rather than groups or separate realms. One Keycloak Organization per ProperTea tenant (property management company). The organization ID is surfaced in the access token via a custom Organization Attribute Protocol Mapper as a `tenant_id` claim.
+Use Keycloak's native Organizations feature (KC 26+) rather than groups or separate realms. One Keycloak Organization per ProperTea tenant (property management company).
 
-This replaces ZITADEL's `urn:zitadel:iam:user:resourceowner:id` claim. The claim has been renamed to the IdP-agnostic `tenant_id` in `OrganizationIdProvider`, removing the last identifier coupling to ZITADEL from shared infrastructure.
+Keycloak 26+ includes an `organization` claim in the access token automatically when the `organization` scope is added to the client — no custom Protocol Mapper is required. The claim is a JSON object keyed by organization ID:
+
+```json
+{
+  "organization": {
+    "6ba7b810-9dad-11d1-80b4-00c04fd430c8": { "name": "Acme Holdings" }
+  }
+}
+```
+
+`OrganizationIdProvider` parses this claim and returns `Guid?` — `null` when the claim is absent (B2C users such as tenants/renters are not members of any Keycloak Organization and will not have this claim; this is expected). Callers enforce presence where required. The constant is renamed from `ZitadelOrgIdClaim` to `OrgIdClaim` with value `"organization"`. The org name is available from the nested object's `name` field — no separate claim mapper needed.
+
+For the current product phase, each landlord user belongs to exactly one organization, so the claim object contains a single entry. Multi-organization membership is a Keycloak-native capability and can be enabled without protocol changes when needed.
 
 The core principle of ADR 0010 — use the IdP's organization identifier directly as `TenantId` with no mapping layer — is preserved.
 
@@ -45,6 +57,24 @@ The core principle of ADR 0010 — use the IdP's organization identifier directl
 Organization and User services perform auth-sensitive operations (provisioning, profile management) and benefit from introspection's instant revocation guarantees. Company and Property are read-heavy and latency-sensitive; local validation is sufficient.
 
 Keycloak's introspection endpoint is authenticated with standard OAuth2 client credentials (`client_id` + `secret`) rather than ZITADEL's signed JWT credential files.
+
+#### Org-scoped vs User-scoped Endpoint Split
+
+The system serves two distinct user types whose data access perspectives differ fundamentally:
+
+- **Landlords** (B2B): access is scoped to their organization. All queries run against a single Marten tenant partition via `InvokeForTenantAsync(orgId, ...)`.
+- **Tenants/renters** (B2C): access is scoped to the individual user, across any organization that may own relevant records. Queries run against a cross-tenant `IQuerySession` filtered by `userId`.
+
+These are not variations of the same request — they use different Marten session types and different security boundaries. They are implemented as **separate Wolverine handlers and separate endpoints**:
+
+```
+GET /api/contracts        → landlord handler → InvokeForTenantAsync(orgId, GetContractsQuery)
+GET /api/my/contracts     → tenant handler  → IQuerySession filtered by userId (cross-tenant)
+```
+
+The `/my/` prefix is the conventional REST idiom for "resources belonging to the authenticated user" and is well-established in SaaS APIs. No if-else inside handlers. Route groups carry different auth policies: the landlord group requires a non-null `X-Organization-Id`; the `/my/` group does not.
+
+The Landlord BFF only exposes `/api/*` (org-scoped) routes. A future Tenant Portal BFF exposes `/api/my/*` routes. Downstream services expose both route groups; the BFF layer determines which are reachable.
 
 #### Programmatic Organization Provisioning Retained
 
@@ -62,20 +92,26 @@ All other rules from ADR 0014 remain in effect: the `Guid Id` event stream key s
 
 Integration event contracts in `ProperTea.Contracts` are updated accordingly (`Guid` instead of `string` for these fields).
 
-#### Headless Onboarding: Removed
+#### Registration Page: Retained; Login UI: Replaced
 
-ADR 0003's headless onboarding flow is superseded in full. Registration now goes through Keycloak's hosted UI. The custom ZITADEL Login V2 container (`zitadel-login`) is removed with no replacement — Keycloak provides its own.
+ADR 0003's custom registration page is partially retained. ProperTea's Organization domain carries data that Keycloak has no concept of (e.g. Tier, subscription settings). Registration must therefore remain a custom Angular page that calls the Organization Service, which in turn calls the Keycloak Admin API to create the user and organization atomically.
 
-The `Organization Service` retains its local aggregate provisioning logic (Marten, integration events). The difference is that the initial user+org creation happens in Keycloak's UI rather than via a custom Angular registration page calling the Organization Service.
+What changes: the custom ZITADEL Login V2 Next.js container (`zitadel-login`) is removed. Login is fully delegated to Keycloak's hosted UI. The flow becomes:
 
-> If a custom registration flow is needed in future, it can be built as a Keycloak extension (Action Token or User Registration SPI) rather than a custom auth UI.
+1. User visits our registration page → enters org name, email, password, plan/tier.
+2. Angular calls Organization Service.
+3. `KeycloakOrganizationClient` calls Keycloak Admin REST API to create the Keycloak Organization and an initial admin user.
+4. Organization Service persists the `OrganizationAggregate` (with Tier and domain data) and publishes the integration event.
+5. All subsequent **logins** use Keycloak's hosted login UI — no custom login page.
+
+ADR 0003's supersession is therefore partial: the ZITADEL gRPC provisioning implementation and the custom login container are replaced; the principle of owning the registration UX is retained.
 
 ## Consequences
 
 ### Positive
 - Single Keycloak container replaces two containers (`zitadel` + `zitadel-login`) and eliminates the PAT/JWT credential file management overhead.
 - `Guid` type for external identifiers is semantically correct, removes `Guid.Parse()` calls from services that receive these IDs, and eliminates runtime parse errors.
-- `tenant_id` claim name is readable and IdP-agnostic; future IdP migrations only require a Protocol Mapper change, not shared library updates.
+- The `organization` claim is built into KC 26+ at no configuration cost — no Protocol Mapper to maintain. Org name is co-located in the same claim object.
 - Keycloak's Organizations feature is actively developed and well-documented. The multi-tenancy model maps 1:1 to our requirements.
 - `Keycloak.AuthServices.Aspire.Hosting` provides a purpose-built Aspire integration including realm import for local dev.
 
@@ -86,13 +122,14 @@ The `Organization Service` retains its local aggregate provisioning logic (Marte
 
 ### Risks / Mitigation
 - **Keycloak Organizations immaturity**: The feature is GA in KC 26 and the version we adopt will be ≥ 26. Mitigate by pinning the Keycloak version and reviewing release notes before upgrades.
-- **`tenant_id` claim not populated**: If the Protocol Mapper is misconfigured, all requests fail at the `OrganizationIdProvider`. Mitigate with a startup health check that validates token claims during local dev smoke tests.
+- **`organization` claim absent for landlord users**: If the `organization` scope is not added to the `landlord-bff` client, the claim will not appear. Mitigate by asserting the claim in `realm-export.json` and in integration tests. Note: absence is *expected and correct* for B2C users (tenants/renters) — `OrganizationIdProvider` returns `null` in that case; the Landlord BFF's `OrganizationHeaderHandler` rejects the request with 401 if null.
+- **Cross-tenant query safety**: Handlers on the `/my/*` path must never accept an org-scoped Marten session. Enforce this by making cross-tenant handlers take a plain `IQuerySession` (not injected via `IDocumentSession` scoped to a tenant) and always filter by `userId`.
 - **Guid parsing failure on `sub` claim**: If a non-UUID `sub` is received. Mitigate with a dedicated claim validator in `AuthenticationConfig` that validates UUID format.
 
 ## Related Decisions
 - [0010-direct-tenant-id-mapping.md](0010-direct-tenant-id-mapping.md): Superseded. Core principle retained; wording updated for Keycloak.
 - [0014-canonical-external-identifiers.md](0014-canonical-external-identifiers.md): Superseded. Type changes from `string` to `Guid`; all other rules unchanged.
-- [0003-headless-onboarding.md](0003-headless-onboarding.md): Superseded. Replaced by Keycloak hosted UI.
+- [0003-headless-onboarding.md](0003-headless-onboarding.md): Partially superseded. ZITADEL gRPC provisioning and custom login container replaced. Registration page ownership retained.
 - [0007-organization-multi-tenancy.md](0007-organization-multi-tenancy.md): Superseded. Same isolation model; Keycloak Organizations replaces ZITADEL structure.
 - [0008-authorization-hybrid-strategy.md](0008-authorization-hybrid-strategy.md): Superseded. OpenFGA portion unchanged; ZITADEL-specific membership handling replaced by Keycloak equivalents.
 
