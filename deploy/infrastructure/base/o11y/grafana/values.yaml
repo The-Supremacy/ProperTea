@@ -43,6 +43,10 @@ datasources:
         # The Grafana Loki datasource type works unchanged — only the URL differs.
         url: http://victoria-logs.o11y.svc.cluster.local:9428
         jsonData:
+          # VictoriaLogs does not implement /loki/api/v1/index/volume.
+          # Disabling prevents Grafana Explore from showing the "Log volume has
+          # not been configured" error when drilling into logs.
+          enableLogVolumeSeries: false
           derivedFields:
             - name: TraceID
               matcherRegex: '"traceId":"(\w+)"'
