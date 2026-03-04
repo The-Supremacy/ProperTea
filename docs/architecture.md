@@ -6,13 +6,13 @@ Multi-tenant Real Estate ERP. .NET 10, microservices, event-sourced.
 
 | Concern | Technology | Notes |
 |---|---|---|
-| Orchestration | .NET Aspire | `ProperTea.AppHost` manages PostgreSQL, Redis, RabbitMQ, ZITADEL, MailPit |
+| Orchestration | .NET Aspire | `ProperTea.AppHost` manages PostgreSQL, Redis, RabbitMQ, Keycloak, MailPit |
 | CQRS + Messaging | Wolverine | Over RabbitMQ. Handlers implement `IWolverineHandler` |
 | Persistence | Marten (PostgreSQL) | Event Store + Document DB. All documents multi-tenanted |
-| Identity | ZITADEL | External IdP. Org ID used directly as Marten `TenantId` (ADR 0010) |
-| Authorization | OpenFGA | Relationship-Based Access Control with contextual tuples (ADR 0004, 0008) |
-| Frontend | Angular 21 | Zoneless, signals, Tailwind CSS 4, Transloco i18n |
-| Frontend Gateway | BFF (YARP) | Pass-through only. No business logic (ADR 0003) |
+| Identity | Keycloak 26+ | External IdP. Org ID used directly as Marten `TenantId` via Organizations feature |
+| Authorization | Marten multi-tenancy | Automatic org-level isolation. OpenFGA planned for fine-grained resource permissions |
+| Frontend | Angular 21 | Zoneless, signals, Spartan UI, Tailwind CSS 4, Transloco i18n |
+| Frontend Gateway | BFF (YARP) | Pass-through only. No business logic |
 
 ## Service Map
 
@@ -43,7 +43,7 @@ Multi-tenant Real Estate ERP. .NET 10, microservices, event-sourced.
 
 ### Organization Service (`ProperTea.Organization`)
 The "Tenant Master". Orchestrates headless registration and manages organization lifecycles.
-- Registration: Wolverine Reliable Handler calls ZITADEL v2 `AddOrganization` API for atomic Org + User creation, then persists `OrganizationAggregate`.
+- Registration: Wolverine Reliable Handler calls Keycloak Admin REST API for atomic Org + User creation, then persists `OrganizationAggregate`.
 - Publishes: `organizations.registered.v1`, `organizations.updated.v1`.
 
 ### User Service (`ProperTea.User`)
@@ -68,17 +68,17 @@ Calculates "Lost Rent" (base rent vs. actual contracts).
 
 ### Work Order Service (`ProperTea.WorkOrder`) -- planned
 Maintenance tasks and inspections lifecycle.
-Uses cross-tenant projections for contractor visibility. OpenFGA for resource authorization.
+Uses cross-tenant projections for contractor visibility. OpenFGA planned for resource authorization.
 
 ### Landlord BFF (`ProperTea.Landlord.Bff`)
 Secures frontend, forwards authenticated requests. No business logic.
-- OIDC Code Flow with ZITADEL. Sessions in Redis.
-- `OrganizationHeaderHandler` extracts org claim, injects `X-Organization-Id` header downstream.
+- OIDC Code Flow with Keycloak. Sessions in Redis.
+- `OrganizationHeaderHandler` extracts org claim from Keycloak's `organization` JWT claim, injects `X-Organization-Id` header downstream.
 - `/api/session` returns user context from JWT claims.
 
 ### Landlord Portal (`apps/portals/landlord/web`)
 Angular 21 SPA. Standalone components, signals, `OnPush`, Tailwind CSS 4.
-- Components: Angular Aria + Material + TanStack Table (ADR 0012).
+- Components: Spartan UI (Brain + Helm) + Angular Aria + TanStack Table.
 - State: Signals for local, services with signals for shared.
 - Forms: Reactive only. i18n: Transloco (en, uk).
 
@@ -89,20 +89,20 @@ Code organized by **feature**, not layer. Path: `Features/{FeatureName}/`.
 Each feature contains: Aggregate, Events, Handlers, Endpoints, Configuration.
 
 ### Multi-Tenancy
-ZITADEL org ID = Marten `TenantId` directly (ADR 0010). No mapping layer.
-- BFF extracts org claim from token, forwards as `X-Organization-Id`.
+Keycloak org ID = Marten `TenantId` directly. No mapping layer.
+- BFF extracts org claim from Keycloak's `organization` JWT claim, forwards as `X-Organization-Id`.
 - Service extracts header via `IOrganizationIdProvider`.
 - All commands dispatched via `bus.InvokeForTenantAsync(tenantId, command)`.
 - Marten auto-scopes all queries to the tenant.
 
 ### Authorization (Two Layers)
 1. **Organization isolation**: Marten multi-tenancy. Automatic, no code needed per query.
-2. **Resource permissions**: OpenFGA checks. `ListObjects` returns authorized IDs, service filters query results. Contextual tuples for cross-tenant access (ADR 0004).
+2. **Resource permissions** (planned): OpenFGA for fine-grained ReBAC. `ListObjects` would return authorized IDs, service filters query results. Contextual tuples for cross-tenant access. Deferred until Work Order / contractor features are built.
 
 ### Identity (Canonical External IDs)
-- ZITADEL IDs are canonical: `string OrganizationId` / `string UserId` everywhere in APIs and events (ADR 0014).
+- Keycloak IDs are canonical: `Guid OrganizationId` / `Guid UserId` everywhere in APIs and events.
 - Internal: `Guid Id` private Marten stream key. Not exposed in APIs or integration events.
-- Services read standard OAuth2 `sub` claim for user ID (not ZITADEL-specific claims) (ADR 0009).
+- Services read standard OAuth2 `sub` claim for user ID.
 
 ## Shared Libraries
 
@@ -114,5 +114,6 @@ ZITADEL org ID = Marten `TenantId` directly (ADR 0010). No mapping layer.
 
 ## Related Documents
 - [Domain language](domain.md)
-- [Integration events](event-catalog.md)
-- [Architecture decisions](decisions/) (ADR 0001-0012)
+- [Technology showcase](tech-overview.md)
+- [Project journal](project-journal.md)
+- [Development patterns](dev/)

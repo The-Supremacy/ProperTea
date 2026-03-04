@@ -1,53 +1,55 @@
 # ProperTea
 
-**A Multi-Tenant Real Estate ERP for Modern Property Management**
+A multi-tenant Real Estate ERP built as a learning project to explore the full cloud-native .NET stack -- from event sourcing to Kubernetes GitOps -- without paying for any external service.
 
-ProperTea is a cloud-native, event-driven property management platform built on .NET with a microservices architecture. It provides comprehensive tools for landlords to manage properties, tenants, rentals, maintenance, and financials across multiple legal entities.
+## Architecture
 
-## 🏗️ Architecture
-
-- **Backend**: .NET 9.0 microservices with Event Sourcing (Marten + PostgreSQL)
+- **Backend**: .NET 10 microservices with Event Sourcing (Marten + PostgreSQL)
 - **Messaging**: Wolverine (CQRS) over RabbitMQ
 - **Multi-Tenancy**: Marten conjoined tenancy with organization-level isolation
-- **Authentication**: ZITADEL (External IdP) with JWT bearer tokens
-- **Authorization**: OpenFGA for fine-grained permissions (planned)
-- **Frontend**: Angular 21+ with Tailwind CSS (Headless: Angular Aria + Spartan UI)
+- **Authentication**: Keycloak 26+ with Organizations feature
+- **Authorization**: Marten multi-tenancy (automatic). OpenFGA planned for fine-grained permissions.
+- **Frontend**: Angular 21 with Tailwind CSS (Spartan UI + Angular Aria)
 - **Orchestration**: .NET Aspire for local development
+- **Kubernetes**: Talos Linux cluster on KVM, Cilium networking, ArgoCD GitOps
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 ProperTea/
-├── apps/
-│   ├── services/               # Backend microservices
-│   │   ├── ProperTea.Organization/  # Tenant master & registration
-│   │   ├── ProperTea.User/          # User profiles & preferences
-│   │   ├── ProperTea.Company/       # Legal business entities
-│   │   ├── ProperTea.Property/      # Physical assets (planned)
-│   │   └── ProperTea.Rental/        # Commercial operations (planned)
-│   └── portals/
-│       └── landlord/
-│           ├── bff/            # Backend for Frontend (YARP + Typed Clients)
-│           └── web/            # Angular SPA
-├── shared/
-│   ├── ProperTea.Contracts/         # Integration event contracts
-│   ├── ProperTea.Infrastructure.Common/  # Shared utilities
-│   └── ProperTea.ServiceDefaults/   # Common service configuration
-├── orchestration/
-│   └── ProperTea.AppHost/      # .NET Aspire orchestrator
-└── docs/
-    ├── architecture.md         # System architecture overview
-    ├── domain.md              # Domain model & business rules
-    ├── event-catalog.md       # Integration events catalog
-    └── decisions/             # Architecture Decision Records (ADRs)
+  apps/
+    services/                    # Backend microservices
+      ProperTea.Organization/    # Tenant master and registration
+      ProperTea.User/            # User profiles and preferences
+      ProperTea.Company/         # Legal business entities
+      ProperTea.Property/        # Physical assets (properties, buildings, units)
+    portals/
+      landlord/
+        bff/                     # Backend for Frontend (YARP + sessions)
+        web/                     # Angular SPA
+  shared/
+    ProperTea.Contracts/              # Integration event contracts
+    ProperTea.Infrastructure.Common/  # Shared utilities
+    ProperTea.ServiceDefaults/        # Common service configuration
+  orchestration/
+    ProperTea.AppHost/           # .NET Aspire orchestrator
+  deploy/
+    environments/local/          # Talos cluster config, ArgoCD apps, Kustomize overlays
+    infrastructure/base/         # Shared Kustomize bases (platform, workloads, o11y)
+  docs/
+    tech-overview.md             # Technology showcase (start here)
+    project-journal.md           # Design decisions and pivots narrative
+    architecture.md              # System architecture reference
+    domain.md                    # Domain model and business rules
+    dev/                         # Development patterns (AI-assisted dev reference)
 ```
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - .NET 10 SDK
-- Docker Desktop (for infrastructure)
-- Node.js 20+ (for frontend)
+- Docker Desktop (for infrastructure containers)
+- Node.js 22+ (for frontend)
 
 ### Running Locally
 
@@ -56,93 +58,72 @@ ProperTea/
 dotnet run --project orchestration/ProperTea.AppHost
 
 # Access services
-# - Aspire Dashboard: https://localhost:17285
-# - Landlord Portal: http://localhost:4200
-# - ZITADEL: http://localhost:8080
-# - RabbitMQ: http://localhost:15672
+# Aspire Dashboard: https://localhost:17285
+# Landlord Portal:  http://localhost:4200
+# Keycloak:         http://localhost:9080
+# RabbitMQ:         http://localhost:56720
 ```
 
-### Development Workflow
-
-1. **Aspire Dashboard** shows all running services, logs, and traces
-2. **Service-specific docs** in each service's README.md
-3. **System-wide docs** in `/docs/`
-4. **ADRs** document architectural decisions in `/docs/decisions/`
-
-## 🏛️ Services
+## Services
 
 ### Organization Service
-The "Tenant Master" that orchestrates headless registration with ZITADEL and publishes lifecycle events.
-- 📄 [Service README](apps/services/ProperTea.Organization/README.md)
+The "Tenant Master" that orchestrates headless registration with Keycloak and publishes lifecycle events.
 
 ### User Service
 Manages user profiles, preferences, and activity tracking within organizations.
-- 📄 [Service README](apps/services/ProperTea.User/README.md)
 
 ### Company Service
-Manages legal business entities (LLCs, Corporations) that own properties and conduct operations.
-- 📄 [Service README](apps/services/ProperTea.Company/README.md)
+Manages legal business entities (companies) that own properties and conduct operations.
+
+### Property Service
+Manages the physical reality: properties, buildings, entrances, and units.
 
 ### Landlord BFF
-Backend for Frontend providing authentication, session management, and service aggregation.
-- 📄 [Service README](apps/portals/landlord/bff/README.md)
+Backend for Frontend providing authentication, session management, and reverse proxying to backend services.
 
-## 📚 Documentation
+## Documentation
 
-- **[Architecture](docs/architecture.md)**: System design, patterns, and service boundaries
-- **[Domain Model](docs/domain.md)**: Business rules and aggregates
-- **[ADRs](docs/decisions/)**: Architecture Decision Records
-- **[Dev Guides](docs/dev/)**: Development patterns and quirky behavior
+| Document | Purpose |
+|---|---|
+| [Technology Showcase](docs/tech-overview.md) | Presentation-friendly overview of all technologies and patterns |
+| [Project Journal](docs/project-journal.md) | Narrative of design decisions and pivots |
+| [Architecture](docs/architecture.md) | System design, patterns, and service boundaries |
+| [Domain Model](docs/domain.md) | Business rules, aggregates, and ubiquitous language |
+| [Dev Guides](docs/dev/) | Development patterns (backend features, Angular features, multi-tenancy) |
 
-## 🧪 Testing
-
-```bash
-# Run all tests
-dotnet test
-
-# Run specific service tests
-dotnet test apps/services/ProperTea.Company
-```
-
-## 🔧 Technology Stack
+## Technology Stack
 
 ### Backend
 - .NET 10
 - Marten (Event Store + Document DB)
 - Wolverine (CQRS + Messaging)
-- PostgreSQL
-- RabbitMQ
-- Redis
+- PostgreSQL, RabbitMQ, Redis
 
 ### Frontend
-- Angular 21+ (Standalone Components, Signals)
-- Angular Aria (Headless accessible components)
-- Spartan UI (shadcn-style components)
-- TanStack Table (Data grids)
-- Tailwind CSS (Styling)
-- Transloco (i18n)
+- Angular 21 (Standalone Components, Signals, Zoneless)
+- Spartan UI (Brain + Helm, shadcn-style)
+- TanStack Table, Angular Aria
+- Tailwind CSS 4, Transloco (i18n)
 
 ### Infrastructure
-- .NET Aspire (Orchestration)
-- ZITADEL (Authentication)
-- OpenFGA (Authorization - planned)
-- MailPit (Email testing)
+- .NET Aspire (Local orchestration)
+- Keycloak 26+ (Authentication with Organizations)
+- Talos Linux on KVM (Kubernetes cluster)
+- Cilium (CNI + Gateway API + L2 LB)
+- ArgoCD + Kustomize (GitOps)
+- VictoriaMetrics + Tempo + Grafana (Observability)
+- Longhorn (Distributed storage)
+- SOPS + age (Secret management)
 
-## 📖 Key Patterns
+## Key Patterns
 
 - **Vertical Slice Architecture**: Features organized by capability, not layer
-- **Event Sourcing**: Domain events as source of truth for aggregates
+- **Event Sourcing**: Domain events as source of truth for aggregates (Decider pattern)
 - **CQRS**: Commands and queries handled by separate Wolverine handlers
 - **BFF Pattern**: Frontend-specific API gateway with no business logic
-- **Multi-Tenancy**: Organization-scoped data isolation via Marten
+- **Multi-Tenancy**: Keycloak org ID used directly as Marten TenantId
+- **AI-Assisted Development**: Structured Copilot instructions, skills, and prompts
 
-## 🤝 Contributing
-
-1. Read the architecture docs in `/docs/`
-2. Check ADRs for context on past decisions
-3. Follow patterns established in existing services
-4. Service-specific guidance in each service's README.md
-
-## 📜 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

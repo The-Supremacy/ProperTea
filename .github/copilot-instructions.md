@@ -25,11 +25,11 @@ Access Aspire Dashboard at `https://localhost:17285` for logs, metrics, and trac
 Read docs **before** making changes:
 - `/docs/architecture.md` - System context and service boundaries (READ FIRST)
 - `/docs/domain.md` - Ubiquitous language (exact terms to use in code)
-- `/docs/event-catalog.md` - Cross-service integration events
 - `/docs/dev/` - Development patterns and conventions
-- `/docs/decisions/` - ADRs explaining the "why" behind design choices
+- `/docs/tech-overview.md` - Technology showcase and high-level decisions
+- `/docs/project-journal.md` - Design decision narrative and pivots
 
-Example: ADR 0010 explains why we use ZITADEL org ID directly as `TenantId` (no mapping layer).
+Keycloak org ID is used directly as Marten `TenantId` (no mapping layer).
 
 ## AI Agent System
 
