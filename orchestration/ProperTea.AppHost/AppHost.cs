@@ -33,27 +33,16 @@ var mailpit = builder.AddMailPit("mailpit", httpPort: 8025, smtpPort: 1025)
 
 // Keycloak.
 var keycloakPort = 9080;
-var keycloakUrl = $"http://localhost:{keycloakPort}";
 var keycloakRealm = "propertea";
+var keycloakUrl = $"http://localhost:{keycloakPort}";
 var keycloakAuthority = $"{keycloakUrl}/realms/{keycloakRealm}";
-var keycloakDbUrl = $"jdbc:postgresql://postgres:{postgresPort}/keycloak";
 var keycloakConfigPath = Path.GetFullPath("Config/keycloak");
-var keycloak = builder.AddContainer("keycloak", "quay.io/keycloak/keycloak", "26.2")
-    .WithHttpEndpoint(port: keycloakPort, targetPort: 8080, name: "http")
-    .WithEnvironment("KC_BOOTSTRAP_ADMIN_USERNAME", username)
-    .WithEnvironment("KC_BOOTSTRAP_ADMIN_PASSWORD", password)
-    .WithEnvironment("KC_DB", "postgres")
-    .WithEnvironment("KC_DB_URL", keycloakDbUrl)
-    .WithEnvironment("KC_DB_USERNAME", username)
-    .WithEnvironment("KC_DB_PASSWORD", password)
-    .WithEnvironment("KC_HTTP_ENABLED", "true")
-    .WithEnvironment("KC_HTTP_PORT", "8080")
-    .WithEnvironment("KC_HOSTNAME_STRICT", "false")
-    .WithEnvironment("KC_LOG_LEVEL", "info")
-    .WithEnvironment("PROXY_ADDRESS_FORWARDING", "true")
-    .WithArgs("start-dev", "--import-realm")
-    .WithBindMount(keycloakConfigPath, "/opt/keycloak/data/import")
-    .WaitFor(postgres);
+
+var keycloak = builder.AddKeycloak("keycloak", port: keycloakPort, adminUsername: username, adminPassword: password)
+    // Enable the Organizations feature (preview in KC 26, GA in KC 26.1+).
+    .WithEnvironment("KC_FEATURES", "organization")
+    .WithDataVolume("keycloak-data")
+    .WithRealmImport(keycloakConfigPath);
 
 var scalarClientId = builder.Configuration["Configs:ScalarClientId"];
 var apiAudience = builder.Configuration["Configs:ApiAudience"];
@@ -135,14 +124,18 @@ var propertyService = builder.AddProject<Projects.ProperTea_Property>("property"
 
 // Landlord Portal.
 var landlordClientId = builder.Configuration["Configs:LandlordClientId"];
+var landlordClientSecret = builder.Configuration["Configs:LandlordClientSecret"];
 _ = builder.AddProject<Projects.ProperTea_Landlord_Bff>("landlord-bff")
     .WithReference(redis)
     .WithReference(organizationService)
     .WithReference(userService)
     .WithReference(companyService)
     .WithReference(propertyService)
-    .WithEnvironment("OIDC__Authority", keycloakAuthority)
-    .WithEnvironment("OIDC__ClientId", landlordClientId)
+    .WithEnvironment("Keycloak__AuthServerUrl", $"{keycloakUrl}/")
+    .WithEnvironment("Keycloak__Realm", keycloakRealm)
+    .WithEnvironment("Keycloak__Resource", landlordClientId)
+    .WithEnvironment("Keycloak__Credentials__Secret", landlordClientSecret)
+    .WithEnvironment("Keycloak__SslRequired", "none")
     .WithEnvironment("Scalar__ClientId", scalarClientId)
     .WaitFor(redis)
     .WaitFor(keycloak)

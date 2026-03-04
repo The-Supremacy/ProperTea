@@ -10,6 +10,7 @@ export interface SessionContext {
   organizationId: string;
   organizationName: string;
   userId: string;
+  accountUrl: string;
 }
 
 @Injectable({
@@ -70,7 +71,8 @@ export class SessionService {
           lastName: '',
           organizationName: '',
           organizationId: '',
-          userId: ''
+          userId: '',
+          accountUrl: ''
         });
         return of(null);
       }),

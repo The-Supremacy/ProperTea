@@ -16,9 +16,12 @@ public static class SessionEndpoints
         return endpoints;
     }
 
-    private static IResult GetSession(HttpContext context)
+    private static IResult GetSession(HttpContext context, IConfiguration configuration)
     {
         var isAuthenticated = context.User.Identity?.IsAuthenticated ?? false;
+        var authServerUrl = configuration["Keycloak:AuthServerUrl"]?.TrimEnd('/') ?? string.Empty;
+        var realm = configuration["Keycloak:Realm"] ?? string.Empty;
+        var accountUrl = $"{authServerUrl}/realms/{realm}/account";
 
         if (!isAuthenticated)
         {
@@ -30,6 +33,7 @@ public static class SessionEndpoints
                 LastName: string.Empty,
                 OrganizationId: string.Empty,
                 OrganizationName: string.Empty,
+                AccountUrl: accountUrl,
                 LastSeenAt: null
             ));
         }
@@ -50,6 +54,7 @@ public static class SessionEndpoints
             LastName: lastName,
             OrganizationId: organizationId,
             OrganizationName: orgName,
+            AccountUrl: accountUrl,
             LastSeenAt: DateTimeOffset.UtcNow
         ));
     }
@@ -63,5 +68,6 @@ public record SessionDto(
     string LastName,
     string OrganizationId,
     string OrganizationName,
+    string AccountUrl,
     DateTimeOffset? LastSeenAt
 );

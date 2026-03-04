@@ -3,6 +3,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- NU1603: Keycloak.AuthServices.Sdk.Kiota 26.x depends on Common >= 2.7.0-preview.1;
+         NuGet resolves 2.7.0 stable which is higher and fully compatible. -->
+    <NoWarn>$(NoWarn);NU1603</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,8 +20,9 @@
     <PackageReference Include="WolverineFx.Http" Version="5.16.2" />
     <PackageReference Include="WolverineFx.Marten" Version="5.16.2" />
     <PackageReference Include="WolverineFx.RabbitMQ" Version="5.16.2" />
+    <PackageReference Include="Duende.AccessTokenManagement" Version="4.1.1" />
     <PackageReference Include="Keycloak.AuthServices.Authentication" Version="2.8.0" />
-    <PackageReference Include="Keycloak.AuthServices.Sdk" Version="2.8.0" />
+    <PackageReference Include="Keycloak.AuthServices.Sdk.Kiota" Version="26.3.3" />
     <PackageReference Include="IdentityModel.AspNetCore.OAuth2Introspection" Version="6.1.0" />
   </ItemGroup>
 

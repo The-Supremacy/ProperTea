@@ -35,6 +35,21 @@ public static class AuthEndpoints
             });
         }).RequireAuthorization();
 
+        // Silent re-authentication: re-issues the OIDC flow with prompt=none so Keycloak
+        // returns a fresh token (including any new claims like `organization`) without
+        // showing a login page. Use after operations that change the user's Keycloak state
+        // — e.g. after onboarding creates a new org and adds the user as a member.
+        _ = group.MapGet("/reauth", (string? returnUrl) =>
+        {
+            return Results.Challenge(new AuthenticationProperties
+            {
+                RedirectUri = returnUrl ?? "/",
+                Items = {
+                    { "prompt", "none" }
+                }
+            });
+        }).RequireAuthorization();
+
         return endpoints;
     }
 }

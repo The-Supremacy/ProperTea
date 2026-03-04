@@ -1,4 +1,5 @@
-using Keycloak.AuthServices.Sdk;
+using Duende.AccessTokenManagement;
+using Keycloak.AuthServices.Sdk.Kiota;
 using Marten;
 using Marten.Events.Projections;
 using ProperTea.User.Features.UserProfiles.Infrastructure;
@@ -12,11 +13,30 @@ public static class UserProfileConfiguration
         IConfiguration configuration,
         IHostEnvironment environment)
     {
-        services.AddDistributedMemoryCache();
+        _ = services.AddDistributedMemoryCache();
 
-        _ = services.AddKeycloakAdminHttpClient(configuration.GetSection("Keycloak"))
-            .AddTypedClient<KeycloakUserClient>();
+        // Acquire admin tokens via client_credentials so the Kiota admin client can call Keycloak.
+        var authServerUrl = configuration["Keycloak:AuthServerUrl"]?.TrimEnd('/')
+            ?? throw new InvalidOperationException("Keycloak:AuthServerUrl not configured");
+        var realm = configuration["Keycloak:Realm"]
+            ?? throw new InvalidOperationException("Keycloak:Realm not configured");
 
+        _ = services.AddClientCredentialsTokenManagement()
+            .AddClient("keycloak-admin-user", client =>
+            {
+                client.TokenEndpoint = new Uri($"{authServerUrl}/realms/{realm}/protocol/openid-connect/token");
+                client.ClientId = ClientId.Parse(
+                    configuration["Keycloak:Resource"]
+                    ?? throw new InvalidOperationException("Keycloak:Resource not configured"));
+                client.ClientSecret = ClientSecret.Parse(
+                    configuration["Keycloak:Credentials:Secret"]
+                    ?? throw new InvalidOperationException("Keycloak:Credentials:Secret not configured"));
+            });
+
+        _ = services.AddKiotaKeycloakAdminHttpClient(configuration)
+            .AddClientCredentialsTokenHandler(ClientCredentialsClientName.Parse("keycloak-admin-user"));
+
+        _ = services.AddTransient<KeycloakUserClient>();
         _ = services.AddTransient<IExternalUserClient>(
             sp => sp.GetRequiredService<KeycloakUserClient>());
 
@@ -31,3 +51,4 @@ public static class UserProfileConfiguration
             .Index(x => x.UserId, idx => idx.IsUnique = true);
     }
 }
+

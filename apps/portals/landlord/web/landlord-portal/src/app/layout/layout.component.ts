@@ -10,9 +10,6 @@ import { UserPreferencesService } from '../core/services/user-preferences.servic
 import { ResponsiveService } from '../core/services/responsive.service';
 import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 
-// TODO: Move to environment config or read from BFF config endpoint
-const IDP_BASE_URL = 'http://localhost:9080';
-
 const AVAILABLE_LANGUAGES: LanguageOption[] = [
   { code: 'en', name: 'English', flag: '🇬🇧' },
   { code: 'uk', name: 'Українська', flag: '🇺🇦' }
@@ -149,7 +146,8 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
   }
 
   protected openProfile(): void {
-    window.open(`${IDP_BASE_URL}/ui/console/users/me`, '_blank');
+    const url = this.sessionService.context()?.accountUrl;
+    if (url) window.open(url, '_blank');
   }
 
   protected openPreferences(): void {

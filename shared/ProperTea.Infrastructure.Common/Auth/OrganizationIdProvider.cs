@@ -43,10 +43,14 @@ public class OrganizationIdProvider(IHttpContextAccessor httpContextAccessor) : 
             using var doc = JsonDocument.Parse(claimValue);
             foreach (var prop in doc.RootElement.EnumerateObject())
             {
-                var orgId = prop.Name;
+                // Claim format: {"<alias>": {"id": "<uuid>", ...}}
+                // The key is the org alias; the UUID is in the nested "id" field.
+                var orgId = prop.Value.TryGetProperty("id", out var idProp)
+                    ? idProp.GetString()
+                    : prop.Name; // fallback: key as id (older mapper config)
                 var orgName = prop.Value.TryGetProperty("name", out var nameProp)
                     ? nameProp.GetString()
-                    : null;
+                    : prop.Name;
                 return (orgId, orgName);
             }
         }
